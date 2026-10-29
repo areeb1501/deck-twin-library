@@ -1,0 +1,63 @@
+# CLI
+
+`deck-twin` is a single Node script with no dependencies. It needs Node 18 or later.
+
+```bash
+npx deck-twin <command>
+```
+
+| Command | What it does |
+|---|---|
+| `init` | Writes `deck-twin.json` with the install directory and registry URL |
+| `add <name…>` | Copies components and everything they need (`lib/`, other components) into your project. `install` is an alias. |
+| `list [category]` | Lists components by category |
+| `search <words>` | Finds components by name, tag, standard or category, e.g. `search api 610` |
+| `info <name>` | Shows props with ranges and defaults, ports at default props, standards and size |
+| `check <plant.json>` | Validates a plant (see below) |
+| `assemble <plant.json>` | Runs `check`, installs every component the plant uses and writes `PlantScene.tsx` |
+| `skill` | Installs the agent skill into `.claude/skills/deck-twin/` |
+
+## Flags
+
+| Flag | Meaning |
+|---|---|
+| `--dir <path>` | Install directory. Default: `src/components/deck-twin` |
+| `--registry <url or folder>` | Registry location. You can also set it with `DECKTWIN_REGISTRY` |
+| `--overwrite` | Replace files you have changed locally |
+| `--dry-run` | Show what would be written, without writing |
+| `--install` | Install missing peer dependencies with your package manager |
+| `--json` | Machine-readable output for `list`, `search` and `info` |
+| `--out <file>` | For `assemble`, where to write the scene. Default: `src/PlantScene.tsx` |
+| `--force` | For `assemble`, write the scene even if `check` reports errors |
+
+## check
+
+`check` runs without a browser, using `/r/index.json`. It reports:
+
+- **Unknown components**, with close matches.
+- **Duplicate tags.**
+- **Malformed positions** and rotations.
+- **Props** that don't exist, or that fall outside the component's range or options.
+- **Line ends** that aren't `TAG.port`, or that point at a missing tag or port.
+- **Size changes** between the two ends of a line.
+- **Inline components** that aren't inline, meaning they have no ports `A` and `B`.
+- **Process ports** left unconnected.
+
+Errors exit with code 1. Warnings don't.
+
+Ports are checked at each component's default props. Some ports exist only for some props, such as the water boot on a 3-phase separator. If an item overrides its props, a missing port is a warning rather than an error.
+
+`check` has no geometry, so it can't find overlaps or items standing on nothing. `<Plant onReport>` and the [playground](/playground) catch those, because they measure the rendered meshes.
+
+## Examples
+
+```bash
+npx deck-twin search compressor
+npx deck-twin info reciprocating-compressor --json
+npx deck-twin add pedestal-crane deck-module
+npx deck-twin check plant.json && npx deck-twin assemble plant.json
+```
+
+## Where it fetches from
+
+Each item is a JSON file in the shadcn registry-item format: `/r/<name>.json`, with the files inlined. `registryDependencies` point at other items, such as `/r/core.json`, and the CLI resolves them recursively. `/r/index.json` holds the agent index. If you self-host, run `npm run build` and serve `dist/`.

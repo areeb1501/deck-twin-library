@@ -1,0 +1,87 @@
+@import 'tailwindcss';
+@import '@fontsource-variable/inter';
+@import '@fontsource-variable/jetbrains-mono';
+
+@theme {
+  --font-sans: 'Inter Variable', ui-sans-serif, system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono Variable', ui-monospace, monospace;
+  --color-bg: #ffffff;
+  --color-fg: #0a0a0a;
+  --color-muted: #f4f4f5;
+  --color-muted-fg: #71717a;
+  --color-border: #e4e4e7;
+  --color-accent: #f4f4f5;
+  --color-brand: #0a0a0a;
+}
+
+:root {
+  color-scheme: light;
+  --sh-class: #6f42c1;
+  --sh-identifier: #24292e;
+  --sh-sign: #8e8e93;
+  --sh-property: #005cc5;
+  --sh-entity: #22863a;
+  --sh-jsxliterals: #24292e;
+  --sh-string: #032f62;
+  --sh-keyword: #d73a49;
+  --sh-comment: #9a9aa2;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+body {
+  @apply bg-bg text-fg font-sans antialiased;
+  font-feature-settings: 'cv11', 'ss01';
+}
+::selection {
+  background: #e4e4e7;
+}
+
+.prose-docs {
+  @apply text-[15px] leading-7 text-zinc-700;
+}
+.prose-docs h1 {
+  @apply text-3xl font-semibold tracking-tight text-fg mb-2;
+}
+.prose-docs h2 {
+  @apply text-xl font-semibold tracking-tight text-fg mt-10 mb-3 pb-2 border-b border-border;
+}
+.prose-docs h3 {
+  @apply text-base font-semibold text-fg mt-7 mb-2;
+}
+.prose-docs p {
+  @apply my-3;
+}
+.prose-docs a {
+  @apply text-fg underline underline-offset-4 decoration-zinc-300 hover:decoration-zinc-900;
+}
+.prose-docs ul {
+  @apply list-disc pl-5 my-3 space-y-1;
+}
+.prose-docs ol {
+  @apply list-decimal pl-5 my-3 space-y-1;
+}
+.prose-docs code {
+  @apply font-mono text-[13px] bg-muted rounded px-1.5 py-0.5 text-fg;
+}
+.prose-docs pre {
+  @apply my-4 rounded-lg border border-border bg-zinc-50 p-4 overflow-x-auto text-[13px] leading-6;
+}
+.prose-docs pre code {
+  @apply bg-transparent p-0;
+}
+.prose-docs table {
+  @apply w-full my-4 text-sm border-collapse;
+}
+.prose-docs th {
+  @apply text-left font-medium text-fg border-b border-border py-2 pr-4;
+}
+.prose-docs td {
+  @apply border-b border-border py-2 pr-4 align-top;
+}
+.prose-docs blockquote {
+  @apply border-l-2 border-border pl-4 text-muted-fg my-4;
+}

@@ -1,0 +1,34 @@
+{
+  "name": "deck-twin",
+  "version": "0.1.0",
+  "description": "CLI for the Deck Twin registry: add standards-based three.js oil & gas components, check and assemble plant.json.",
+  "license": "MIT",
+  "homepage": "https://deck-twin-library.demoareeb.workers.dev",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/areeb1501/deck-twin-library.git",
+    "directory": "cli"
+  },
+  "bugs": {
+    "url": "https://github.com/areeb1501/deck-twin-library/issues"
+  },
+  "type": "module",
+  "bin": {
+    "deck-twin": "deck-twin.mjs"
+  },
+  "files": [
+    "deck-twin.mjs",
+    "README.md"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "keywords": [
+    "three.js",
+    "react-three-fiber",
+    "digital twin",
+    "oil and gas",
+    "registry",
+    "shadcn"
+  ]
+}

@@ -1,0 +1,272 @@
+{
+  "name": "Wellhead platform",
+  "description": "Normally unattended wellhead platform on a 4-leg jacket in 60 m of water. Four surface trees on the cellar deck flow through a production / test manifold: production leaves through the riser ESDV, test flow is metered and sent to the host on its own riser. The main deck carries the pedestal crane, helideck, local equipment room and navigation aid.",
+  "source": "Deck Twin example (illustrative layout, not a real asset)",
+  "items": [
+    {
+      "tag": "JKT-1",
+      "component": "jacket",
+      "position": [
+        0,
+        0,
+        0
+      ],
+      "props": {
+        "legs": 4,
+        "waterDepth": 60,
+        "airGap": 20,
+        "spanX": 16,
+        "spanZ": 12,
+        "conductors": 4,
+        "risers": 2,
+        "riserNps": 12,
+        "riserRating": 1500
+      }
+    },
+    {
+      "tag": "DECK-C",
+      "component": "deck-module",
+      "position": [
+        0,
+        6,
+        0
+      ],
+      "props": {
+        "length": 24,
+        "width": 16,
+        "floor": "grating",
+        "legs": 4,
+        "legSpanX": 16,
+        "legSpanZ": 12,
+        "legHeight": 6,
+        "upperDeckAt": 9
+      }
+    },
+    {
+      "tag": "DECK-M",
+      "component": "deck-module",
+      "position": [
+        0,
+        15,
+        0
+      ],
+      "props": {
+        "length": 26,
+        "width": 18,
+        "floor": "plate",
+        "legs": 4,
+        "legSpanX": 16,
+        "legSpanZ": 12,
+        "legHeight": 0
+      }
+    },
+    {
+      "tag": "XT-101",
+      "component": "christmas-tree",
+      "position": [
+        -9,
+        6,
+        3.5
+      ],
+      "props": {
+        "tag": "XT-101"
+      }
+    },
+    {
+      "tag": "XT-102",
+      "component": "christmas-tree",
+      "position": [
+        -6,
+        6,
+        3.5
+      ],
+      "props": {
+        "tag": "XT-102"
+      }
+    },
+    {
+      "tag": "XT-103",
+      "component": "christmas-tree",
+      "position": [
+        -3,
+        6,
+        3.5
+      ],
+      "props": {
+        "tag": "XT-103",
+        "wellType": "gas"
+      }
+    },
+    {
+      "tag": "XT-104",
+      "component": "christmas-tree",
+      "position": [
+        0,
+        6,
+        3.5
+      ],
+      "props": {
+        "tag": "XT-104"
+      }
+    },
+    {
+      "tag": "M-100",
+      "component": "production-manifold",
+      "position": [
+        3,
+        6,
+        -3
+      ],
+      "props": {
+        "slots": 4,
+        "pitch": 1.2,
+        "productionNps": 12,
+        "testNps": 6,
+        "inletNps": 4,
+        "rating": 1500,
+        "tag": "M-100"
+      }
+    },
+    {
+      "tag": "WHCP-1",
+      "component": "wellhead-control-panel",
+      "position": [
+        -8,
+        6,
+        -5
+      ],
+      "props": {
+        "wells": 4,
+        "tag": "WHCP-1"
+      }
+    },
+    {
+      "tag": "CR-1",
+      "component": "pedestal-crane",
+      "position": [
+        -10.5,
+        15,
+        6.5
+      ],
+      "props": {
+        "boomLength": 30,
+        "slew": 180,
+        "luff": 22,
+        "hook": 10,
+        "pedestalHeight": 8,
+        "swl": 15,
+        "boomRest": false,
+        "tag": "CR-1"
+      }
+    },
+    {
+      "tag": "HD-1",
+      "component": "helideck",
+      "position": [
+        6,
+        15,
+        0
+      ],
+      "props": {
+        "dValue": 16,
+        "height": 4,
+        "installation": "WHP-A"
+      }
+    },
+    {
+      "tag": "LER-1",
+      "component": "e-house",
+      "position": [
+        -7,
+        15,
+        -5
+      ],
+      "props": {
+        "length": 8,
+        "width": 4,
+        "tag": "LER-1",
+        "label": "LOCAL EQUIPMENT ROOM"
+      }
+    },
+    {
+      "tag": "NAV-1",
+      "component": "navigation-aid",
+      "position": [
+        -12,
+        15,
+        -8
+      ],
+      "props": {
+        "tag": "NAV-1"
+      }
+    }
+  ],
+  "lines": [
+    {
+      "tag": "4\"-PM-1011-F15A-N",
+      "from": "XT-101.production",
+      "to": "M-100.slot-1",
+      "elevation": 10.4,
+      "supports": false
+    },
+    {
+      "tag": "4\"-PM-1012-F15A-N",
+      "from": "XT-102.production",
+      "to": "M-100.slot-2",
+      "elevation": 10.9,
+      "supports": false
+    },
+    {
+      "tag": "4\"-PM-1013-F15A-N",
+      "from": "XT-103.production",
+      "to": "M-100.slot-3",
+      "elevation": 11.4,
+      "supports": false
+    },
+    {
+      "tag": "4\"-PM-1014-F15A-N",
+      "from": "XT-104.production",
+      "to": "M-100.slot-4",
+      "elevation": 11.9,
+      "supports": false
+    },
+    {
+      "tag": "12\"-PM-1001-F15A-N",
+      "from": "M-100.production",
+      "to": "JKT-1.riser-1",
+      "inline": [
+        {
+          "component": "esd-valve",
+          "at": 0.72,
+          "tag": "ESDV-1001"
+        }
+      ]
+    },
+    {
+      "tag": "6\"-PM-1002-F15A-N",
+      "from": "M-100.test",
+      "to": "JKT-1.riser-2",
+      "elevation": 8.2,
+      "inline": [
+        {
+          "component": "ultrasonic-flowmeter",
+          "at": 0.3,
+          "tag": "FT-1002"
+        }
+      ]
+    }
+  ],
+  "camera": {
+    "target": [
+      -1,
+      9,
+      0
+    ],
+    "radius": 16,
+    "direction": [
+      1,
+      0.55,
+      1.15
+    ]
+  }
+}

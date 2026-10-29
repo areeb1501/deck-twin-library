@@ -1,0 +1,186 @@
+{
+  "name": "Central control room",
+  "description": "Cut-away central control room on a raised access floor. Two operator console rows face a 3 \u00d7 5 video wall; a supervisor desk sits behind. DCS cabinets run along one wall, with the fire-alarm panel and a CCTV display on the other. Double A60 doors at the escape route and blast-rated windows. Screens show sample HMI pages; pass live textures through each component's `screens` prop.",
+  "source": "Deck Twin example (illustrative layout, not a real asset)",
+  "camera": {
+    "target": [
+      0,
+      1.2,
+      0
+    ],
+    "radius": 7,
+    "direction": [
+      0.3,
+      0.85,
+      1
+    ]
+  },
+  "items": [
+    {
+      "tag": "B-300",
+      "component": "room",
+      "position": [
+        0,
+        0,
+        0
+      ],
+      "props": {
+        "width": 14,
+        "depth": 10,
+        "height": 3.2,
+        "cutaway": true,
+        "label": "CENTRAL CONTROL ROOM",
+        "tag": "B-300",
+        "doors": [
+          {
+            "wall": "-x",
+            "offset": 2.5,
+            "kind": "double",
+            "hardware": "panic",
+            "open": 0.4
+          },
+          {
+            "wall": "+x",
+            "offset": -3,
+            "kind": "single",
+            "open": 0
+          }
+        ],
+        "windows": [
+          {
+            "wall": "-z",
+            "offset": -5.2,
+            "width": 1.8,
+            "height": 1,
+            "sill": 1.1
+          },
+          {
+            "wall": "-z",
+            "offset": 5.2,
+            "width": 1.8,
+            "height": 1,
+            "sill": 1.1
+          }
+        ]
+      }
+    },
+    {
+      "tag": "VW-001",
+      "component": "video-wall",
+      "position": [
+        0,
+        0.3,
+        -4.4
+      ],
+      "props": {
+        "rows": 3,
+        "cols": 5,
+        "diagonal": 55,
+        "tag": "VW-001"
+      }
+    },
+    {
+      "tag": "OWS-101",
+      "component": "control-console",
+      "position": [
+        0,
+        0.3,
+        -0.6
+      ],
+      "props": {
+        "segments": 3,
+        "layout": "curved",
+        "tag": "OWS-101"
+      }
+    },
+    {
+      "tag": "OWS-102",
+      "component": "control-console",
+      "position": [
+        0,
+        0.3,
+        2.6
+      ],
+      "props": {
+        "segments": 2,
+        "layout": "straight",
+        "monitorsPerSegment": 2,
+        "rows": 1,
+        "tag": "OWS-102"
+      }
+    },
+    {
+      "tag": "SUP-1",
+      "component": "desk",
+      "position": [
+        4.9,
+        0.3,
+        3.4
+      ],
+      "props": {
+        "layout": "supervisor",
+        "tag": "SUP-1"
+      }
+    },
+    {
+      "tag": "SC-101",
+      "component": "system-cabinet",
+      "position": [
+        -6.45,
+        0.3,
+        -1.6
+      ],
+      "rotation": 90,
+      "props": {
+        "count": 4,
+        "system": "dcs",
+        "door": "glazed",
+        "tag": "SC-101"
+      }
+    },
+    {
+      "tag": "FACP-01",
+      "component": "fire-alarm-panel",
+      "position": [
+        7,
+        0.3,
+        0.6
+      ],
+      "rotation": -90,
+      "props": {
+        "panel": "fire-alarm",
+        "tag": "FACP-01"
+      }
+    },
+    {
+      "tag": "ESD-01",
+      "component": "fire-alarm-panel",
+      "position": [
+        7,
+        0.3,
+        -0.6
+      ],
+      "rotation": -90,
+      "props": {
+        "panel": "esd-mimic",
+        "tag": "ESD-01"
+      }
+    },
+    {
+      "tag": "DSP-101",
+      "component": "wall-display",
+      "position": [
+        7,
+        0.3,
+        -2.8
+      ],
+      "rotation": -90,
+      "props": {
+        "size": 55,
+        "content": "cctv",
+        "tag": "DSP-101"
+      }
+    }
+  ],
+  "lines": []
+}

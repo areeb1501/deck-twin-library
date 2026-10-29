@@ -1,0 +1,399 @@
+{
+  "name": "Separation & compression train",
+  "description": "Onshore pad: pipeline arrival through an ESDV into a 3-phase separator. Gas goes through the suction scrubber to a motor-driven centrifugal compressor and air-cooled aftercooler to export, with the anti-surge recycle run back along the pipe rack. Oil is pumped through the crude cooler to export, produced water leaves on level control, and the separator PSV discharges to the flare header.",
+  "source": "Deck Twin example (illustrative layout, not a real asset)",
+  "camera": {
+    "target": [
+      -2,
+      2.5,
+      -1
+    ],
+    "radius": 15,
+    "direction": [
+      0.5,
+      0.55,
+      1
+    ]
+  },
+  "items": [
+    {
+      "tag": "V-1100",
+      "component": "horizontal-separator",
+      "position": [
+        -20,
+        0,
+        -6
+      ],
+      "props": {
+        "service": "3-phase",
+        "diameter": 2.4,
+        "length": 8,
+        "pressure": 40,
+        "rating": 600,
+        "tag": "V-1100"
+      }
+    },
+    {
+      "tag": "PSV-1101",
+      "component": "pressure-safety-valve",
+      "position": [
+        -20.8,
+        5.3,
+        -6
+      ],
+      "props": {
+        "orifice": "J",
+        "inletRating": 600,
+        "tag": "PSV-1101"
+      }
+    },
+    {
+      "tag": "TEE-2101",
+      "component": "tee",
+      "position": [
+        -6,
+        4.85,
+        -6
+      ],
+      "props": {
+        "nps": 8,
+        "branchNps": 6,
+        "ends": "flanged",
+        "rating": 600,
+        "service": "gas"
+      }
+    },
+    {
+      "tag": "V-2100",
+      "component": "vertical-separator",
+      "position": [
+        2,
+        0,
+        -6
+      ],
+      "props": {
+        "tag": "V-2100",
+        "inletNps": 8,
+        "gasNps": 8
+      }
+    },
+    {
+      "tag": "K-2200",
+      "component": "centrifugal-compressor",
+      "position": [
+        14,
+        0,
+        -6
+      ],
+      "props": {
+        "suctionNps": 8,
+        "dischargeNps": 8,
+        "tag": "K-2200"
+      }
+    },
+    {
+      "tag": "E-2300",
+      "component": "air-cooled-exchanger",
+      "position": [
+        14,
+        0,
+        8
+      ],
+      "rotation": 180,
+      "props": {
+        "bays": 2,
+        "inletNps": 8,
+        "outletNps": 8,
+        "rating": 600,
+        "tag": "E-2300"
+      }
+    },
+    {
+      "tag": "P-1500A",
+      "component": "centrifugal-pump",
+      "position": [
+        -10,
+        0,
+        2
+      ],
+      "rotation": 180,
+      "props": {
+        "tag": "P-1500A",
+        "kw": 160
+      }
+    },
+    {
+      "tag": "E-1400",
+      "component": "shell-and-tube-exchanger",
+      "position": [
+        -2,
+        0,
+        6
+      ],
+      "props": {
+        "tema": "AES",
+        "tag": "E-1400"
+      }
+    },
+    {
+      "tag": "PR-1",
+      "component": "pipe-rack",
+      "position": [
+        0,
+        0,
+        -11
+      ],
+      "props": {
+        "bays": 7,
+        "bayLength": 6,
+        "width": 4,
+        "tiers": 2,
+        "firstTier": 5,
+        "tierSpacing": 2,
+        "walkway": false
+      }
+    },
+    {
+      "tag": "SS-1",
+      "component": "e-house",
+      "position": [
+        12,
+        0,
+        -20
+      ],
+      "props": {
+        "length": 12,
+        "width": 6,
+        "tag": "SS-1",
+        "label": "SUBSTATION"
+      }
+    },
+    {
+      "tag": "TR-1",
+      "component": "transformer",
+      "position": [
+        1,
+        0,
+        -20
+      ],
+      "props": {
+        "mva": 10,
+        "tag": "TR-1"
+      }
+    }
+  ],
+  "lines": [
+    {
+      "tag": "10\"-PM-1001-D6A-N",
+      "from": {
+        "at": [
+          -34,
+          3.04,
+          -6
+        ],
+        "label": "FROM PIPELINE"
+      },
+      "to": "V-1100.inlet",
+      "inline": [
+        {
+          "component": "esd-valve",
+          "at": 0.5,
+          "tag": "ESDV-1001"
+        }
+      ]
+    },
+    {
+      "tag": "3\"-FL-1101-D6A-N",
+      "from": "V-1100.psv",
+      "to": "PSV-1101.inlet"
+    },
+    {
+      "tag": "4\"-FL-1102-B1A-N",
+      "from": "PSV-1101.outlet",
+      "to": {
+        "at": [
+          -14,
+          5.3,
+          -2
+        ],
+        "label": "FLARE HEADER"
+      }
+    },
+    {
+      "tag": "8\"-PG-2101-D6A-N",
+      "from": "V-1100.gas",
+      "to": "TEE-2101.run-a"
+    },
+    {
+      "tag": "8\"-PG-2102-D6A-N",
+      "from": "TEE-2101.run-b",
+      "to": "V-2100.inlet"
+    },
+    {
+      "tag": "8\"-PG-2103-D6A-N",
+      "from": "V-2100.gas",
+      "to": "K-2200.suction"
+    },
+    {
+      "tag": "8\"-PG-2201-D6A-N",
+      "from": "K-2200.discharge",
+      "to": "E-2300.inlet"
+    },
+    {
+      "tag": "8\"-PG-2301-D6A-N",
+      "from": "E-2300.outlet",
+      "to": {
+        "at": [
+          34,
+          3.82,
+          2
+        ],
+        "label": "GAS EXPORT"
+      },
+      "inline": [
+        {
+          "component": "esd-valve",
+          "at": 0.6,
+          "tag": "ESDV-2301"
+        }
+      ]
+    },
+    {
+      "tag": "4\"-PG-2202-D6A-N",
+      "from": "K-2200.recycle",
+      "to": "TEE-2101.branch",
+      "supports": false,
+      "via": [
+        [
+          17.24,
+          5.09,
+          -8.01
+        ],
+        [
+          17.24,
+          5.09,
+          -10.6
+        ],
+        [
+          -6,
+          5.09,
+          -10.6
+        ],
+        [
+          -6,
+          5.84,
+          -10.6
+        ]
+      ],
+      "inline": [
+        {
+          "component": "control-valve",
+          "at": 0.1,
+          "tag": "FV-2201"
+        }
+      ]
+    },
+    {
+      "tag": "6\"-PO-1102-D6A-N",
+      "from": "V-1100.liquid",
+      "to": "P-1500A.suction",
+      "inline": [
+        {
+          "component": "gate-valve",
+          "at": 0.5
+        }
+      ]
+    },
+    {
+      "tag": "4\"-PO-1501-D6A-N",
+      "from": "P-1500A.discharge",
+      "to": "E-1400.tube-in",
+      "inline": [
+        {
+          "component": "swing-check-valve",
+          "at": 0.35
+        },
+        {
+          "component": "gate-valve",
+          "at": 0.7
+        }
+      ]
+    },
+    {
+      "tag": "6\"-PO-1401-D6A-N",
+      "from": "E-1400.tube-out",
+      "to": {
+        "at": [
+          34,
+          2.02,
+          6
+        ],
+        "label": "OIL EXPORT"
+      },
+      "inline": [
+        {
+          "component": "esd-valve",
+          "at": 0.7,
+          "tag": "ESDV-1601"
+        }
+      ]
+    },
+    {
+      "tag": "8\"-CM-6301-C3A-N",
+      "from": {
+        "at": [
+          -4.64,
+          4,
+          14
+        ],
+        "label": "CM SUPPLY"
+      },
+      "to": "E-1400.shell-in"
+    },
+    {
+      "tag": "8\"-CM-6302-C3A-N",
+      "from": "E-1400.shell-out",
+      "to": {
+        "at": [
+          0.31,
+          1.0,
+          14
+        ],
+        "label": "CM RETURN"
+      },
+      "elevation": 0.45,
+      "supports": false
+    },
+    {
+      "tag": "4\"-PW-4101-D6A-N",
+      "from": "V-1100.water",
+      "to": {
+        "at": [
+          -17.6,
+          1.3,
+          -16
+        ],
+        "label": "PRODUCED WATER"
+      },
+      "inline": [
+        {
+          "component": "control-valve",
+          "at": 0.45,
+          "tag": "LV-1102"
+        }
+      ]
+    },
+    {
+      "tag": "4\"-CD-2104-D6A-N",
+      "from": "V-2100.liquid",
+      "to": {
+        "at": [
+          7,
+          1.35,
+          -1
+        ],
+        "label": "CLOSED DRAIN"
+      }
+    }
+  ]
+}

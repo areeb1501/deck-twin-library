@@ -1,0 +1,12 @@
+node_modules
+dist
+.snaps
+.wrangler
+*.local
+.DS_Store
+public/r
+public/skill
+public/llms.txt
+public/cli
+public/prompt.md
+public/symbols
