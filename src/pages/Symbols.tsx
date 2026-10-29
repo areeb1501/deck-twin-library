@@ -1,5 +1,5 @@
-import { useMemo } from 'react'
-import { Link } from 'wouter'
+import { useMemo, type ReactNode } from 'react'
+import { Link, useLocation } from 'wouter'
 import { BY_NAME, CATEGORIES, byCategory } from '../registry'
 import { LIBRARY, PID, librarySymbolUrl, symbolUrl } from '../pid'
 import type { LibrarySymbol } from '../../registry/pid/types'
@@ -41,6 +41,9 @@ function Legend() {
   const [selId, setSelId] = useQueryState('symbol', '')
   const sel = useMemo(() => LIBRARY.symbols.find((x) => x.id === selId) ?? null, [selId])
   const setSel = (x: LibrarySymbol | null) => setSelId(x?.id ?? '')
+  const [, navigate] = useLocation()
+  // below lg the side panel sits under the whole grid, so a symbol opens its own page (Back restores scroll and filters)
+  const open = (x: LibrarySymbol) => (matchMedia('(min-width: 1024px)').matches ? setSel(x) : navigate(`/symbols/${encodeURIComponent(x.id)}`, { state: { fromList: true } }))
   const base = useMemo(() => {
     const s = q.trim().toLowerCase()
     return LIBRARY.symbols.filter((x) => (cat === 'all' || x.category === cat) && (!s || `${x.name} ${x.id} ${x.meaning} ${x.drawn} ${x.tags?.join(' ')} ${x.isa?.join(' ')} ${x.component ?? ''}`.toLowerCase().includes(s)))
@@ -73,7 +76,7 @@ function Legend() {
         <div>
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5">
             {shown.map((x) => (
-              <button key={x.id} onClick={() => setSel(x)} className={`rounded-xl border p-3 text-left transition-[border-color,box-shadow] hover:border-slate-300 hover:shadow-[0_8px_24px_-12px_rgb(14_26_36/0.18)] ${sel?.id === x.id ? 'border-ink ring-1 ring-ink' : 'border-border'}`}>
+              <button key={x.id} onClick={() => open(x)} className={`rounded-xl border p-3 text-left transition-[border-color,box-shadow] hover:border-slate-300 hover:shadow-[0_8px_24px_-12px_rgb(14_26_36/0.18)] ${sel?.id === x.id ? 'border-ink ring-1 ring-ink' : 'border-border'}`}>
                 <div className="flex aspect-[4/3] items-center justify-center p-2">
                   <img src={librarySymbolUrl(x.svg)} alt="" className="max-h-full max-w-full" />
                 </div>
@@ -92,45 +95,83 @@ function Legend() {
             </div>
           )}
         </div>
-        <aside className="flex flex-col overflow-hidden rounded-xl border border-border bg-white lg:sticky lg:top-[8.5rem] lg:h-[calc(100vh-10rem)]">
+        <aside className="hidden flex-col overflow-hidden rounded-xl border border-border bg-white lg:sticky lg:flex lg:top-[8.5rem] lg:h-[calc(100vh-10rem)]">
           {sel ? (
-            <>
-              <div className="shrink-0 border-b border-border p-5 pb-4">
-                <div className="flex h-36 items-center justify-center rounded-lg border border-border p-4">
-                  <img src={librarySymbolUrl(sel.svg)} alt="" className="max-h-full max-w-full" />
-                </div>
-                <div className="mt-3 text-lg leading-6 font-semibold tracking-tight">{sel.name}</div>
-                <div className="mt-0.5 text-xs text-muted-fg">{sel.standard}</div>
-              </div>
-              <div className="min-h-0 flex-1 space-y-3 overflow-y-auto px-5 py-4 text-[14px]">
-                <Field label="Drawn as">{sel.drawn}</Field>
-                <Field label="Meaning">{sel.meaning}</Field>
-                {sel.variants?.length ? (
-                  <Field label="Variants">
-                    <ul className="list-disc space-y-1 pl-4">
-                      {sel.variants.map((v) => (
-                        <li key={v}>{v}</li>
-                      ))}
-                    </ul>
-                  </Field>
-                ) : null}
-                {sel.tags?.length || sel.isa?.length ? <Field label="Tags">{[...(sel.tags ?? []), ...(sel.isa ?? [])].join(' · ')}</Field> : null}
-              </div>
-              <div className="shrink-0 border-t border-border p-4">
-                {sel.component && BY_NAME.get(sel.component) ? (
-                  <Link href={`/components/${sel.component}`} className="block truncate rounded-md bg-ink px-3 py-2 text-center text-[13px] font-semibold text-white transition-colors hover:bg-ink-2">
-                    Open the 3D component: {BY_NAME.get(sel.component)!.title}
-                  </Link>
-                ) : (
-                  <div className="text-[13px] text-muted-fg">{sel.physical ? 'No 3D component yet.' : 'Not physical hardware. Read it, then skip it in the 3D model.'}</div>
-                )}
-              </div>
-            </>
+            <SymbolDetail sel={sel} />
           ) : (
             <div className="p-5 text-[14px] text-muted-fg">Select a symbol to see how it is drawn, what it means, its variants and the component it maps to.</div>
           )}
         </aside>
       </div>
+    </div>
+  )
+}
+
+/** The selected symbol: drawing, meaning, variants and its 3D component. Shared by the desktop side panel and the phone page. */
+function SymbolDetail({ sel }: { sel: LibrarySymbol }) {
+  return (
+    <>
+      <div className="shrink-0 border-b border-border p-5 pb-4">
+        <div className="flex h-36 items-center justify-center rounded-lg border border-border p-4">
+          <img src={librarySymbolUrl(sel.svg)} alt="" className="max-h-full max-w-full" />
+        </div>
+        <div className="mt-3 text-lg leading-6 font-semibold tracking-tight">{sel.name}</div>
+        <div className="mt-0.5 text-xs text-muted-fg">{sel.standard}</div>
+      </div>
+      <div className="min-h-0 flex-1 space-y-3 overflow-y-auto px-5 py-4 text-[14px]">
+        <Field label="Drawn as">{sel.drawn}</Field>
+        <Field label="Meaning">{sel.meaning}</Field>
+        {sel.variants?.length ? (
+          <Field label="Variants">
+            <ul className="list-disc space-y-1 pl-4">
+              {sel.variants.map((v) => (
+                <li key={v}>{v}</li>
+              ))}
+            </ul>
+          </Field>
+        ) : null}
+        {sel.tags?.length || sel.isa?.length ? <Field label="Tags">{[...(sel.tags ?? []), ...(sel.isa ?? [])].join(' · ')}</Field> : null}
+      </div>
+      <div className="shrink-0 border-t border-border p-4">
+        {sel.component && BY_NAME.get(sel.component) ? (
+          <Link href={`/components/${sel.component}`} className="block truncate rounded-md bg-ink px-3 py-2 text-center text-[13px] font-semibold text-white transition-colors hover:bg-ink-2">
+            Open the 3D component: {BY_NAME.get(sel.component)!.title}
+          </Link>
+        ) : (
+          <div className="text-[13px] text-muted-fg">{sel.physical ? 'No 3D component yet.' : 'Not physical hardware. Read it, then skip it in the 3D model.'}</div>
+        )}
+      </div>
+    </>
+  )
+}
+
+/** /symbols/:id: one symbol on its own page. Phones and small tablets open this instead of the side panel. */
+export function SymbolPage({ id }: { id: string }) {
+  const sel = LIBRARY.symbols.find((x) => x.id === decodeURIComponent(id))
+  const fromList = !!(history.state as { fromList?: boolean } | null)?.fromList
+  return (
+    <div className="mx-auto max-w-[720px] px-6 py-6 lg:py-10">
+      <Link
+        href="/symbols"
+        onClick={(e) => {
+          if (!fromList) return
+          e.preventDefault()
+          history.back()
+        }}
+        className="inline-flex items-center gap-1.5 text-[14px] font-medium text-brand hover:underline hover:underline-offset-4"
+      >
+        <span aria-hidden>←</span> All symbols
+      </Link>
+      {sel ? (
+        <div className="mt-4 flex flex-col overflow-hidden rounded-xl border border-border bg-white">
+          <SymbolDetail sel={sel} />
+        </div>
+      ) : (
+        <div className="py-16 text-center">
+          <div className="text-[15px] font-medium text-ink">Symbol not found</div>
+          <p className="mt-1 text-[13.5px] text-muted-fg">It may have been renamed. Go back to the full legend.</p>
+        </div>
+      )}
     </div>
   )
 }
@@ -165,7 +206,7 @@ function ByComponent() {
   )
 }
 
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
+function Field({ label, children }: { label: string; children: ReactNode }) {
   return (
     <div>
       <div className="mb-0.5 text-[12.5px] font-semibold text-ink">{label}</div>
@@ -174,7 +215,7 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
   )
 }
 
-function TabButton({ on, onClick, children }: { on: boolean; onClick: () => void; children: React.ReactNode }) {
+function TabButton({ on, onClick, children }: { on: boolean; onClick: () => void; children: ReactNode }) {
   return (
     <button onClick={onClick} className={`-mb-px border-b-2 px-3.5 py-2.5 text-[14px] font-medium transition-colors ${on ? 'border-ink text-ink' : 'border-transparent text-muted-fg hover:text-ink'}`}>
       {children}

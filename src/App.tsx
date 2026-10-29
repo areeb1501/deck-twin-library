@@ -7,7 +7,7 @@ import { ComponentPage } from './pages/ComponentPage'
 import { DocPage } from './pages/DocPage'
 import { ExamplesIndex, ExamplePage } from './pages/Examples'
 import { Playground } from './pages/Playground'
-import { Symbols } from './pages/Symbols'
+import { SymbolPage, Symbols } from './pages/Symbols'
 import { NotFound } from './pages/NotFound'
 
 const Shot = lazy(() => import('./pages/Shot'))
@@ -29,6 +29,7 @@ export function App() {
             <Route path="/examples/:name">{(p) => <ExamplePage name={p.name} />}</Route>
             <Route path="/playground" component={Playground} />
             <Route path="/symbols" component={Symbols} />
+            <Route path="/symbols/:id">{(p) => <SymbolPage id={p.id} />}</Route>
             <Route>{() => <NotFound />}</Route>
           </Switch>
         </Shell>
