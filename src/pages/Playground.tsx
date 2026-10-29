@@ -19,7 +19,7 @@ export function Playground() {
   return (
     <div className="mx-auto max-w-[1440px] px-6 py-8">
       <h1 className="text-[28px] leading-tight font-semibold head-grad tracking-[-0.035em]">Playground</h1>
-      <p className="mt-2 text-[16px] text-zinc-400">Paste a plant.json from your agent, render it and read the checks. Nothing leaves your browser.</p>
+      <p className="mt-2 text-[16px] text-fg-3">Paste a plant.json from your agent, render it and read the checks. Nothing leaves your browser.</p>
       <div className="mt-5 grid grid-cols-1 gap-5 lg:grid-cols-[440px_minmax(0,1fr)]">
         <div className="flex flex-col gap-3">
           <div className="flex gap-2">
@@ -31,8 +31,8 @@ export function Playground() {
               Render
             </button>
           </div>
-          <textarea value={text} onChange={(e) => setText(e.target.value)} spellCheck={false} className="h-[520px] w-full resize-none rounded-lg border border-border bg-muted p-3 font-mono text-[12px] leading-5 outline-none focus:border-white/25 focus:ring-2 focus:ring-brand/15" />
-          {parsed.error ? <div className="rounded-md bg-red-400/10 px-3 py-2 text-[13px] text-red-300">JSON: {parsed.error}</div> : <Issues issues={issues} />}
+          <textarea value={text} onChange={(e) => setText(e.target.value)} spellCheck={false} className="h-[520px] w-full resize-none rounded-lg border border-border bg-muted p-3 font-mono text-[12px] leading-5 outline-none focus:border-line-strong focus:ring-2 focus:ring-brand/15" />
+          {parsed.error ? <div className="rounded-md bg-err-tint px-3 py-2 text-[13px] text-err">JSON: {parsed.error}</div> : <Issues issues={issues} />}
         </div>
         <div className="relative h-[680px] overflow-hidden rounded-xl border border-border shadow-sm">{spec && <PlantView spec={spec} labels onIssues={setIssues} className="absolute inset-0" />}</div>
       </div>

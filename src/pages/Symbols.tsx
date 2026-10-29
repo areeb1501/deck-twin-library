@@ -11,7 +11,7 @@ export function Symbols() {
   return (
     <div className="mx-auto max-w-[1440px] px-6 py-10 lg:px-10">
       <h1 className="text-[34px] leading-tight font-semibold head-grad tracking-[-0.035em]">P&amp;ID symbols</h1>
-      <p className="mt-2 max-w-3xl text-[15px] leading-7 text-zinc-400">
+      <p className="mt-2 max-w-3xl text-[15px] leading-7 text-fg-3">
         What each symbol on a P&amp;ID looks like, what it means, and which Deck Twin component it becomes. The conventions are ISO 10628-2 and PIP PIC001 for process, ISA 5.1 for instruments, IEC 60617 for electrical, and NFPA 170 / ISO 7010 for fire &amp; gas. Company legends vary, so read the drawing's own legend sheet first.
       </p>
       <p className="mt-3 text-[13px] text-muted-fg">
@@ -76,13 +76,13 @@ function Legend() {
         <div>
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5">
             {shown.map((x) => (
-              <button key={x.id} onClick={() => open(x)} className={`rounded-xl border p-3 text-left transition-[border-color,box-shadow] hover:border-white/20 hover:shadow-[0_8px_24px_-12px_rgb(0_0_0/0.18)] ${sel?.id === x.id ? 'border-ink ring-1 ring-ink' : 'border-border'}`}>
+              <button key={x.id} onClick={() => open(x)} className={`rounded-xl border p-3 text-left light:bg-surface transition-[border-color,box-shadow] hover:border-line-strong hover:shadow-[0_8px_24px_-12px_rgb(0_0_0/0.18)] ${sel?.id === x.id ? 'border-ink ring-1 ring-ink' : 'border-border'}`}>
                 <div className="flex aspect-[4/3] items-center justify-center p-2">
                   <img src={librarySymbolUrl(x.svg)} alt="" className="sym max-h-full max-w-full" />
                 </div>
                 <div className="mt-2 text-[13px] leading-5 font-medium">{x.name}</div>
                 <div className="mt-0.5 flex items-center gap-1.5 text-[11px] text-muted-fg">
-                  {has3d(x) ? <span className="rounded bg-ink px-1 font-semibold text-on-ink">3D</span> : !x.physical ? <span className="rounded bg-white/10 px-1">logical</span> : null}
+                  {has3d(x) ? <span className="rounded bg-ink px-1 font-semibold text-on-ink">3D</span> : !x.physical ? <span className="rounded bg-hover px-1">logical</span> : null}
                   <span className="truncate">{[...(x.tags ?? []), ...(x.isa ?? [])].join(' · ')}</span>
                 </div>
               </button>
@@ -179,7 +179,7 @@ function ByComponent() {
               {items.map((i) => {
                 const e = PID[i.name]
                 return (
-                  <Link key={i.name} href={`/components/${i.name}`} className="group rounded-xl border border-border p-3 transition-[border-color,box-shadow] hover:border-white/20 hover:shadow-[0_8px_24px_-12px_rgb(0_0_0/0.18)]">
+                  <Link key={i.name} href={`/components/${i.name}`} className="group rounded-xl border border-border p-3 light:bg-surface transition-[border-color,box-shadow] hover:border-line-strong hover:shadow-[0_8px_24px_-12px_rgb(0_0_0/0.18)]">
                     <div className="flex aspect-[4/3] items-center justify-center p-2">
                       <img src={symbolUrl(e)} alt="" className="sym max-h-full max-w-full" />
                     </div>
@@ -200,7 +200,7 @@ function Field({ label, children }: { label: string; children: ReactNode }) {
   return (
     <div>
       <div className="mb-0.5 text-[12.5px] font-semibold text-ink">{label}</div>
-      <div className="leading-6 text-zinc-300">{children}</div>
+      <div className="leading-6 text-fg-2">{children}</div>
     </div>
   )
 }

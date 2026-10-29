@@ -25,7 +25,7 @@ export function Controls({ params, values, onChange }: { params: Param[]; values
 }
 
 const fmt = (v: number) => (Number.isFinite(v) ? (Math.abs(v) >= 100 ? v.toFixed(0) : +v.toFixed(3) + '') : '–')
-const selectCls = 'h-8 w-full rounded-md border border-border bg-surface px-2 text-[13px] outline-none focus:border-white/25 focus:ring-2 focus:ring-brand/15'
+const selectCls = 'h-8 w-full rounded-md border border-border bg-surface px-2 text-[13px] outline-none focus:border-line-strong focus:ring-2 focus:ring-brand/15'
 
 function Input({ p, value, onChange }: { p: Param; value: unknown; onChange: (v: unknown) => void }) {
   switch (p.type) {
@@ -38,14 +38,14 @@ function Input({ p, value, onChange }: { p: Param; value: unknown; onChange: (v:
           step={p.step ?? (p.max - p.min) / 100}
           value={Number(value ?? p.min)}
           onChange={(e) => onChange(Number(e.target.value))}
-          className="h-1.5 w-full cursor-pointer appearance-none rounded-full bg-white/15 accent-ink"
+          className="h-1.5 w-full cursor-pointer appearance-none rounded-full bg-track accent-ink"
         />
       )
     case 'bool':
       return (
         <button
           onClick={() => onChange(!value)}
-          className={`relative h-5 w-9 rounded-full transition-colors ${value ? 'bg-signal' : 'bg-white/15'}`}
+          className={`relative h-5 w-9 rounded-full transition-colors ${value ? 'bg-signal' : 'bg-track'}`}
           aria-pressed={!!value}
         >
           <span className={`absolute top-0.5 h-4 w-4 rounded-full bg-zinc-100 shadow transition-all ${value ? 'left-[18px]' : 'left-0.5'}`} />

@@ -32,7 +32,7 @@ export function PromptCard() {
           or tell your agent: <code className="font-mono text-fg">Read {SITE}/prompt.md and follow it</code>
         </span>
       </div>
-      {open && <pre className="mt-3 max-h-80 overflow-auto rounded-lg border border-border bg-muted p-3 font-mono text-[11.5px] leading-5 whitespace-pre-wrap text-zinc-300">{prompt}</pre>}
+      {open && <pre className="mt-3 max-h-80 overflow-auto rounded-lg border border-border bg-muted p-3 font-mono text-[11.5px] leading-5 whitespace-pre-wrap text-fg-2">{prompt}</pre>}
     </div>
   )
 }

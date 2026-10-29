@@ -11,11 +11,11 @@ export function ExamplesIndex() {
   return (
     <div className="mx-auto max-w-[1280px] px-6 py-10">
       <h1 className="text-[34px] leading-tight font-semibold head-grad tracking-[-0.035em]">Examples</h1>
-      <p className="mt-3 max-w-2xl text-[16px] leading-7 text-zinc-400">Plants assembled from the registry with a single <code className="font-mono text-sm">plant.json</code>. Each one is wired port to port. Use them as starting points or as references for your agent.</p>
+      <p className="mt-3 max-w-2xl text-[16px] leading-7 text-fg-3">Plants assembled from the registry with a single <code className="font-mono text-sm">plant.json</code>. Each one is wired port to port. Use them as starting points or as references for your agent.</p>
       <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
         {[...EXAMPLES].sort(byLevel).map((e) => (
-          <Link key={e.name} href={`/examples/${e.name}`} className="group flex flex-col overflow-hidden rounded-xl border border-border bg-surface transition-[border-color,box-shadow] hover:border-white/20 hover:shadow-[0_8px_24px_-12px_rgb(0_0_0/0.18)]">
-            <div className="relative aspect-[16/10] bg-stage">
+          <Link key={e.name} href={`/examples/${e.name}`} className="group flex flex-col overflow-hidden rounded-xl border border-border bg-surface transition-[border-color,box-shadow] hover:border-line-strong hover:shadow-[0_8px_24px_-12px_rgb(0_0_0/0.18)]">
+            <div className="plate relative aspect-[16/10] bg-stage">
               <img src={`/thumbs/plant-${e.name}.webp`} alt="" className="h-full w-full object-cover" onError={(ev) => (ev.currentTarget.style.visibility = 'hidden')} />
               <LevelBadge level={level(e.spec, e.name)} />
             </div>
@@ -24,7 +24,7 @@ export function ExamplesIndex() {
               <p className="mt-1 line-clamp-3 text-[13px] leading-5 text-muted-fg">
                 <RichText text={e.spec.description ?? ''} />
               </p>
-              <div className="mt-auto pt-3 text-[12.5px] font-medium text-zinc-400">
+              <div className="mt-auto pt-3 text-[12.5px] font-medium text-fg-3">
                 {e.spec.items.length} items, {e.spec.lines?.length ?? 0} lines
               </div>
             </div>
@@ -45,11 +45,11 @@ export function ExamplePage({ name }: { name: string }) {
     <div className="mx-auto max-w-[1440px] px-6 py-8">
       <nav className="mb-2 flex items-center gap-1.5 text-[13px] text-muted-fg">
         <Link href="/examples" className="font-medium text-brand hover:underline hover:underline-offset-4">Examples</Link>
-        <span className="text-slate-300">/</span>
+        <span className="text-faint">/</span>
         <span>{ex.name}</span>
       </nav>
       <h1 className="text-[28px] leading-tight font-semibold head-grad tracking-[-0.035em]">{ex.spec.name}</h1>
-      <p className="mt-2 max-w-3xl text-[16px] text-zinc-400">
+      <p className="mt-2 max-w-3xl text-[16px] text-fg-3">
         <RichText text={ex.spec.description ?? ''} />
       </p>
       <div className="mt-5 grid grid-cols-1 gap-5 lg:grid-cols-[minmax(0,1fr)_420px]">

@@ -6,7 +6,8 @@ import { DOCS } from '../pages/docs'
 import { CLI, VERSION } from '../site'
 import { highlight, prepare, rank } from '../search'
 import { useScrollMemory } from '../url'
-import { Command } from './ui'
+import { Command, Segmented } from './ui'
+import { setTheme, useTheme, type Theme } from '../theme'
 
 export function Shell({ children }: { children: ReactNode }) {
   const [loc] = useLocation()
@@ -45,7 +46,7 @@ function Header() {
   const [menu, setMenu] = useState(false)
   useEffect(() => setMenu(false), [loc])
   return (
-    <header className="sticky top-0 z-40 border-b border-white/[0.07] bg-bg/70 backdrop-blur-xl backdrop-saturate-150">
+    <header className="sticky top-0 z-40 border-b border-border bg-bg/70 backdrop-blur-xl backdrop-saturate-150">
       <div className="flex h-14 items-center px-5 lg:px-6">
         <Link href="/" className="flex shrink-0 items-center gap-2 rounded-md pr-2">
           <Logo className="h-[22px] w-[22px]" />
@@ -60,7 +61,7 @@ function Header() {
                 key={href}
                 href={href}
                 aria-current={on ? 'page' : undefined}
-                className={`rounded-md px-2.5 py-1.5 text-[13.5px] font-medium whitespace-nowrap transition-colors ${on ? 'bg-muted text-ink' : 'text-zinc-400 hover:bg-muted/70 hover:text-ink'}`}
+                className={`rounded-md px-2.5 py-1.5 text-[13.5px] font-medium whitespace-nowrap transition-colors ${on ? 'bg-muted text-ink' : 'text-fg-3 hover:bg-muted/70 hover:text-ink'}`}
               >
                 {label}
               </Link>
@@ -69,6 +70,7 @@ function Header() {
         </nav>
         <div className="ml-auto flex items-center gap-2">
           <Search />
+          <ThemeToggle />
           <span className="mx-1.5 hidden h-5 w-px bg-border lg:block" />
           <Link href="/docs/installation" className="hidden h-8 items-center rounded-full bg-ink px-3.5 text-[13px] font-medium text-on-ink transition-colors hover:bg-ink-2 lg:flex">
             Get started
@@ -83,16 +85,54 @@ function Header() {
       {menu && (
         <nav className="border-t border-border bg-panel px-3 py-2 md:hidden">
           {nav.map(([href, label]) => (
-            <Link key={href} href={href} className={`block rounded-md px-3 py-2.5 text-[15px] font-medium ${loc.startsWith(href) ? 'bg-muted text-ink' : 'text-zinc-400'}`}>
+            <Link key={href} href={href} className={`block rounded-md px-3 py-2.5 text-[15px] font-medium ${loc.startsWith(href) ? 'bg-muted text-ink' : 'text-fg-3'}`}>
               {label}
             </Link>
           ))}
+          <div className="mt-1 flex items-center justify-between border-t border-border px-3 pt-3 pb-1">
+            <span className="text-[14px] font-medium text-fg-3">Theme</span>
+            <ThemeSwitch />
+          </div>
           <Link href="/docs/installation" className="mt-2 mb-1 flex h-10 items-center justify-center rounded-full bg-ink text-[14px] font-medium text-on-ink">
             Get started
           </Link>
         </nav>
       )}
     </header>
+  )
+}
+
+function ThemeToggle() {
+  const theme = useTheme()
+  const next: Theme = theme === 'dark' ? 'light' : 'dark'
+  return (
+    <button onClick={() => setTheme(next)} aria-label={`Switch to ${next} theme`} title={`Switch to ${next} theme`} className="hidden h-8 w-8 items-center justify-center rounded-md text-muted-fg transition-colors hover:bg-muted hover:text-ink md:flex">
+      <svg viewBox="0 0 16 16" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+        {theme === 'dark' ? (
+          <>
+            <circle cx="8" cy="8" r="3" />
+            <path d="M8 1.5v1.25M8 13.25v1.25M1.5 8h1.25M13.25 8h1.25M3.4 3.4l.9.9M11.7 11.7l.9.9M3.4 12.6l.9-.9M11.7 4.3l.9-.9" />
+          </>
+        ) : (
+          <path d="M13.5 9.6A5.75 5.75 0 0 1 6.4 2.5a5.75 5.75 0 1 0 7.1 7.1Z" />
+        )}
+      </svg>
+    </button>
+  )
+}
+
+function ThemeSwitch() {
+  const theme = useTheme()
+  return (
+    <Segmented
+      label="Theme"
+      value={theme}
+      onChange={setTheme}
+      options={[
+        { value: 'dark', label: 'Dark' },
+        { value: 'light', label: 'Light' },
+      ]}
+    />
   )
 }
 
@@ -112,21 +152,21 @@ function Footer() {
     ['Docs', [['/docs/installation', 'Installation'], ['/docs/cli', 'CLI'], ['/docs/assemble', 'Assembling plants'], ['/docs/standards', 'Standards & data']]],
     ['For agents', [['/docs/agents', 'Agent skill'], ['/llms.txt', 'llms.txt'], ['/r/index.json', 'Registry index'], ['/prompt.md', 'Setup prompt']]],
   ]
-  const link = 'group inline-flex items-center gap-1.5 text-slate-400 transition-colors hover:text-white'
-  const arrow = <span aria-hidden className="text-[#ff8a5c] opacity-0 transition-[opacity,transform] -translate-x-1 group-hover:translate-x-0 group-hover:opacity-100">→</span>
+  const link = 'group inline-flex items-center gap-1.5 text-fg-3 transition-colors hover:text-white light:hover:text-ink'
+  const arrow = <span aria-hidden className="text-brand-soft opacity-0 transition-[opacity,transform] -translate-x-1 group-hover:translate-x-0 group-hover:opacity-100">→</span>
   return (
-    <footer className="relative isolate overflow-hidden bg-[#0a0b0e] text-slate-300 [container-type:inline-size]">
+    <footer className="relative isolate overflow-hidden bg-deep text-fg-2 [container-type:inline-size]">
       <div aria-hidden className="pointer-events-none absolute inset-0 -z-10">
-        <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[#ff8a5c]/60 to-transparent" />
+        <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-brand-soft/60 to-transparent" />
         <div className="footer-light absolute inset-0" />
         <div className="grain absolute inset-0" />
       </div>
       <div className="mx-auto max-w-[1440px] px-6">
-        <div className="grid grid-cols-[minmax(0,1fr)] items-center gap-8 border-b border-white/[0.08] py-14 lg:grid-cols-[minmax(0,1fr)_minmax(0,460px)] lg:gap-16">
+        <div className="grid grid-cols-[minmax(0,1fr)] items-center gap-8 border-b border-border py-14 lg:grid-cols-[minmax(0,1fr)_minmax(0,460px)] lg:gap-16">
           <div>
-            <div className="text-[13px] font-medium text-[#ff8a5c]">Open source, MIT licence</div>
+            <div className="text-[13px] font-medium text-brand-soft">Open source, MIT licence</div>
             <h2 className="mt-2 text-[28px] leading-tight font-semibold text-balance head-grad tracking-[-0.03em] sm:text-[36px]">From one valve to a whole platform.</h2>
-            <p className="mt-3 max-w-lg text-[15px] leading-7 text-slate-400">Copy a component into your project, or hand your agent a P&amp;ID and let it assemble the plant.</p>
+            <p className="mt-3 max-w-lg text-[15px] leading-7 text-fg-3">Copy a component into your project, or hand your agent a P&amp;ID and let it assemble the plant.</p>
           </div>
           <div className="min-w-0 space-y-3">
             <Command cmd={`${CLI} add horizontal-separator`} />
@@ -134,7 +174,7 @@ function Footer() {
               <Link href="/docs/installation" className="inline-flex h-10 items-center rounded-full bg-ink px-5 text-[14px] font-medium text-on-ink transition-colors hover:bg-ink-2">
                 Get started
               </Link>
-              <Link href="/components" className="inline-flex h-10 items-center rounded-full border border-white/15 bg-white/[0.04] px-5 text-[14px] font-medium text-white transition-colors hover:border-white/30 hover:bg-white/[0.08]">
+              <Link href="/components" className="inline-flex h-10 items-center rounded-full border border-white/15 bg-white/[0.04] px-5 text-[14px] font-medium text-white transition-colors hover:border-white/30 hover:bg-hover light:border-line-strong light:bg-surface light:text-ink light:hover:border-ink/35 light:hover:bg-surface">
                 Browse {ITEMS.length} components
               </Link>
             </div>
@@ -143,15 +183,15 @@ function Footer() {
         <div className="grid gap-10 py-12 sm:grid-cols-2 md:grid-cols-[1.4fr_repeat(3,1fr)]">
           <div className="max-w-sm">
             <div className="flex items-center gap-2.5">
-              <Logo className="h-8 w-8 rounded-lg ring-1 ring-white/15" />
-              <span className="text-[15px] font-semibold text-white">Deck Twin</span>
-              <span className="rounded border border-white/10 px-1.5 py-px font-mono text-[10.5px] text-zinc-400">v{VERSION}</span>
+              <Logo className="h-8 w-8 rounded-lg ring-1 ring-white/15 light:ring-border" />
+              <span className="text-[15px] font-semibold text-white light:text-ink">Deck Twin</span>
+              <span className="rounded border border-border px-1.5 py-px font-mono text-[10.5px] text-fg-3">v{VERSION}</span>
             </div>
-            <p className="mt-4 text-[14px] leading-6 text-slate-400">3D components for oil &amp; gas digital twins, sized from public engineering standards.</p>
+            <p className="mt-4 text-[14px] leading-6 text-fg-3">3D components for oil &amp; gas digital twins, sized from public engineering standards.</p>
           </div>
           {cols.map(([title, links]) => (
             <div key={title}>
-              <div className="text-[12px] font-semibold tracking-[0.08em] text-zinc-400 uppercase">{title}</div>
+              <div className="text-[12px] font-semibold tracking-[0.08em] text-fg-3 uppercase">{title}</div>
               <ul className="mt-4 space-y-2.5 text-[14px]">
                 {links.map(([href, label]) => (
                   <li key={href}>
@@ -174,10 +214,10 @@ function Footer() {
         </div>
       </div>
       <div aria-hidden className="pointer-events-none -mt-2 overflow-hidden px-6 select-none">
-        <div className="mx-auto max-w-[1440px] translate-y-[22%] bg-gradient-to-b from-white/[0.09] to-transparent bg-clip-text text-center text-[16cqw] leading-[0.8] font-semibold tracking-[-0.05em] whitespace-nowrap text-transparent">Deck Twin</div>
+        <div className="mx-auto max-w-[1440px] translate-y-[22%] bg-gradient-to-b from-white/[0.09] to-transparent light:from-ink/[0.07] bg-clip-text text-center text-[16cqw] leading-[0.8] font-semibold tracking-[-0.05em] whitespace-nowrap text-transparent">Deck Twin</div>
       </div>
-      <div className="relative border-t border-white/[0.08] bg-[#0a0b0e]/80 backdrop-blur">
-        <div className="mx-auto flex max-w-[1440px] flex-wrap justify-between gap-2 px-6 py-5 text-[12.5px] text-zinc-400">
+      <div className="relative border-t border-border bg-deep/80 backdrop-blur">
+        <div className="mx-auto flex max-w-[1440px] flex-wrap justify-between gap-2 px-6 py-5 text-[12.5px] text-fg-3">
           <span>MIT licence</span>
           <span>Reference geometry from public standards, not vendor CAD. Check dimensions against the current edition.</span>
         </div>
@@ -199,7 +239,7 @@ function Sidebar() {
       key={href}
       href={href}
       aria-current={loc === href ? 'page' : undefined}
-      className={`block truncate rounded-md border-l-2 px-2.5 py-[5px] text-[13.5px] transition-colors ${loc === href ? 'border-brand bg-surface font-medium text-ink shadow-[0_1px_2px_rgb(0_0_0/0.06)]' : 'border-transparent text-zinc-400 hover:bg-muted hover:text-ink'}`}
+      className={`block truncate rounded-md border-l-2 px-2.5 py-[5px] text-[13.5px] transition-colors ${loc === href ? 'border-brand bg-surface font-medium text-ink shadow-[0_1px_2px_rgb(0_0_0/0.06)]' : 'border-transparent text-fg-3 hover:bg-muted hover:text-ink'}`}
     >
       {label}
     </Link>
@@ -271,7 +311,7 @@ function Search() {
       <button
         onClick={() => setOpen(true)}
         aria-label="Search components"
-        className="flex h-8 w-8 items-center justify-center gap-2 rounded-md text-muted-fg transition-colors hover:bg-muted hover:text-ink lg:w-60 lg:justify-start lg:border lg:border-border lg:bg-muted/60 lg:px-2.5 lg:hover:border-white/20 lg:hover:bg-white/[0.06]"
+        className="flex h-8 w-8 items-center justify-center gap-2 rounded-md text-muted-fg transition-colors hover:bg-muted hover:text-ink lg:w-60 lg:justify-start lg:border lg:border-border lg:bg-muted/60 lg:px-2.5 lg:hover:border-line-strong lg:hover:bg-hover"
       >
         <svg viewBox="0 0 16 16" className="h-4 w-4 shrink-0 lg:h-3.5 lg:w-3.5" fill="none" stroke="currentColor" strokeWidth="1.6" aria-hidden>
           <circle cx="7" cy="7" r="4.5" />
@@ -282,8 +322,8 @@ function Search() {
       </button>
       {open &&
         createPortal(
-          <div className="fixed inset-0 z-[2147483000] flex items-start justify-center bg-black/60 p-4 pt-[18vh] backdrop-blur-sm" onClick={() => setOpen(false)}>
-            <div className="w-full max-w-xl overflow-hidden rounded-xl border border-border bg-panel shadow-[0_24px_64px_-16px_rgb(0_0_0/0.7)]" onClick={(e) => e.stopPropagation()}>
+          <div className="fixed inset-0 z-[2147483000] flex items-start justify-center bg-black/60 p-4 pt-[18vh] backdrop-blur-sm light:bg-[rgb(16_18_27/0.28)]" onClick={() => setOpen(false)}>
+            <div className="w-full max-w-xl overflow-hidden rounded-xl border border-border bg-panel shadow-[0_24px_64px_-16px_rgb(0_0_0/0.7)] light:shadow-[0_24px_64px_-16px_rgb(16_18_27/0.3)]" onClick={(e) => e.stopPropagation()}>
               <input
                 autoFocus
                 value={q}
@@ -298,7 +338,7 @@ function Search() {
                   } else if (e.key === 'Enter' && hits[active]) pick(hits[active].href)
                 }}
                 placeholder="Search by name, tag or standard (e.g. API 610)"
-                className="h-13 w-full border-b border-border px-4 text-[15px] outline-none placeholder:text-slate-400"
+                className="h-13 w-full border-b border-border px-4 text-[15px] outline-none placeholder:text-muted-fg"
               />
               <div className="max-h-[50vh] overflow-y-auto p-1.5">
                 {hits.map((h, i) => (

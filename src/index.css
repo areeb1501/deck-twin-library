@@ -3,32 +3,87 @@
 @import '@fontsource/ibm-plex-mono/400.css';
 @import '@fontsource/ibm-plex-mono/500.css';
 
-/* Site theme: near-black ground, frosted-glass surfaces, signal orange and deep indigo light, white-to-grey headings. */
-@theme {
+/* Site theme: dark by default (near-black ground, frosted glass); html.light swaps the same tokens for a crisp near-white set. .dark-zone keeps a region dark in either theme. */
+@custom-variant light (&:where(.light, .light *));
+
+@theme inline {
   --font-sans: 'Inter Variable', ui-sans-serif, system-ui, sans-serif;
   --font-mono: 'IBM Plex Mono', ui-monospace, monospace;
-  --color-bg: #0e0f13;
-  --color-fg: #ececef;
-  --color-ink: #f5f5f7;
-  --color-ink-2: #d6d6dc;
-  --color-on-ink: #0e0f13;
-  --color-muted: rgb(255 255 255 / 0.045);
-  --color-muted-fg: #8f8f9a;
-  --color-border: rgb(255 255 255 / 0.08);
-  --color-accent: rgb(254 85 16 / 0.1);
-  --color-brand: #ff7a45;
-  --color-brand-hover: #ff9466;
-  --color-brand-tint: rgb(254 85 16 / 0.12);
+  --color-bg: var(--bg);
+  --color-fg: var(--fg);
+  --color-fg-2: var(--fg-2);
+  --color-fg-3: var(--fg-3);
+  --color-faint: var(--faint);
+  --color-ink: var(--ink);
+  --color-ink-2: var(--ink-2);
+  --color-on-ink: var(--on-ink);
+  --color-muted: var(--muted);
+  --color-muted-fg: var(--muted-fg);
+  --color-border: var(--border);
+  --color-line-strong: var(--line-strong);
+  --color-hover: var(--hover);
+  --color-track: var(--track);
+  --color-accent: var(--accent);
+  --color-brand: var(--brand);
+  --color-brand-hover: var(--brand-hover);
+  --color-brand-tint: var(--brand-tint);
+  --color-surface: var(--surface);
+  --color-panel: var(--panel);
+  --color-ok: var(--ok);
+  --color-ok-tint: var(--ok-tint);
+  --color-warn: var(--warn);
+  --color-warn-tint: var(--warn-tint);
+  --color-err: var(--err);
+  --color-err-tint: var(--err-tint);
   --color-signal: #fe5510;
   --color-indigo: #3b46cf;
   --color-stage: #060819;
-  --color-surface: rgb(255 255 255 / 0.03);
-  --color-panel: #17181e;
-  --color-code: #0a0b0e;
+  --color-code: var(--code);
+  --color-deep: var(--deep);
+  --color-brand-soft: var(--brand-soft);
 }
 
-:root {
+:root,
+.dark-zone {
   color-scheme: dark;
+  --bg: #0e0f13;
+  --fg: #ececef;
+  --fg-2: #d4d4d8;
+  --fg-3: #a1a1aa;
+  --faint: #52525b;
+  --ink: #f5f5f7;
+  --ink-2: #d6d6dc;
+  --on-ink: #0e0f13;
+  --muted: rgb(255 255 255 / 0.045);
+  --muted-fg: #8f8f9a;
+  --border: rgb(255 255 255 / 0.08);
+  --line-strong: rgb(255 255 255 / 0.2);
+  --hover: rgb(255 255 255 / 0.08);
+  --track: rgb(255 255 255 / 0.15);
+  --accent: rgb(254 85 16 / 0.1);
+  --brand: #ff7a45;
+  --brand-hover: #ff9466;
+  --brand-tint: rgb(254 85 16 / 0.12);
+  --brand-soft: #ff8a5c;
+  --code: #0a0b0e;
+  --deep: #0a0b0e;
+  --surface: rgb(255 255 255 / 0.03);
+  --panel: #17181e;
+  --ok: #6ee7b7;
+  --ok-tint: rgb(52 211 153 / 0.1);
+  --warn: #fde68a;
+  --warn-tint: rgb(251 191 36 / 0.1);
+  --err: #fca5a5;
+  --err-tint: rgb(248 113 113 / 0.1);
+  --sheen: linear-gradient(180deg, rgb(255 255 255 / 0.04), transparent 55%);
+  --surface-shadow: inset 0 1px 0 rgb(255 255 255 / 0.05);
+  --glass-bg: linear-gradient(180deg, rgb(255 255 255 / 0.07), rgb(255 255 255 / 0.02));
+  --glass-shadow: inset 0 1px 0 rgb(255 255 255 / 0.08), 0 24px 60px -30px rgb(0 0 0 / 0.8);
+  --head-grad: linear-gradient(180deg, #ffffff 30%, #9d9da8);
+  --sym-filter: invert(0.9) hue-rotate(180deg);
+  --grain-img: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 0.6 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  --grain-opacity: 0.16;
+  --grain-blend: overlay;
   --sh-class: #a5b4fc;
   --sh-identifier: #e4e4e7;
   --sh-sign: #71717a;
@@ -38,6 +93,57 @@
   --sh-string: #fcd34d;
   --sh-keyword: #f9a8d4;
   --sh-comment: #71717a;
+}
+
+html.light {
+  color-scheme: light;
+  --bg: #f7f7f9;
+  --fg: #26272e;
+  --fg-2: #3b3c45;
+  --fg-3: #5c5d68;
+  --faint: #b3b4bd;
+  --ink: #0f1015;
+  --ink-2: #2b2c34;
+  --on-ink: #ffffff;
+  --muted: rgb(16 18 27 / 0.035);
+  --muted-fg: #6c6d78;
+  --border: rgb(16 18 27 / 0.09);
+  --line-strong: rgb(16 18 27 / 0.2);
+  --hover: rgb(16 18 27 / 0.055);
+  --track: rgb(16 18 27 / 0.14);
+  --accent: rgb(254 85 16 / 0.08);
+  --brand: #d9480f;
+  --brand-hover: #b93c0b;
+  --brand-tint: rgb(254 85 16 / 0.1);
+  --brand-soft: #d9480f;
+  --code: #ffffff;
+  --deep: #f1f1f4;
+  --surface: #ffffff;
+  --panel: #ffffff;
+  --ok: #047857;
+  --ok-tint: rgb(16 185 129 / 0.1);
+  --warn: #92400e;
+  --warn-tint: rgb(245 158 11 / 0.12);
+  --err: #b91c1c;
+  --err-tint: rgb(239 68 68 / 0.09);
+  --sheen: none;
+  --surface-shadow: 0 1px 2px rgb(16 18 27 / 0.05);
+  --glass-bg: linear-gradient(180deg, rgb(255 255 255 / 0.88), rgb(255 255 255 / 0.62));
+  --glass-shadow: inset 0 1px 0 #ffffff, 0 1px 2px rgb(16 18 27 / 0.05), 0 24px 56px -34px rgb(16 18 27 / 0.18);
+  --head-grad: linear-gradient(180deg, #0f1015 35%, #5d5e6a);
+  --sym-filter: none;
+  --grain-img: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.55 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  --grain-opacity: 0.1;
+  --grain-blend: multiply;
+  --sh-class: #3b46cf;
+  --sh-identifier: #1f2029;
+  --sh-sign: #7a7b86;
+  --sh-property: #c2410c;
+  --sh-entity: #6d28d9;
+  --sh-jsxliterals: #1f2029;
+  --sh-string: #a35a00;
+  --sh-keyword: #be185d;
+  --sh-comment: #8a8b96;
 }
 
 html,
@@ -50,7 +156,7 @@ body {
 }
 ::selection {
   background: rgb(254 85 16 / 0.35);
-  color: #fff;
+  color: var(--ink);
 }
 *:not(html) {
   scrollbar-width: none;
@@ -60,7 +166,7 @@ body {
 }
 @layer base {
   :focus-visible {
-    outline: 2px solid var(--color-brand);
+    outline: 2px solid var(--brand);
     outline-offset: 2px;
   }
 }
@@ -72,28 +178,37 @@ h3 {
 
 /* Glass: every surface card gets a faint top sheen and an inner highlight; .glass adds the frosted blur. */
 .bg-surface {
-  background-image: linear-gradient(180deg, rgb(255 255 255 / 0.04), transparent 55%);
-  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.05);
+  background-image: var(--sheen);
+  box-shadow: var(--surface-shadow);
 }
 .glass {
-  background: linear-gradient(180deg, rgb(255 255 255 / 0.07), rgb(255 255 255 / 0.02));
+  background: var(--glass-bg);
   -webkit-backdrop-filter: blur(18px) saturate(1.35);
   backdrop-filter: blur(18px) saturate(1.35);
-  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.08), 0 24px 60px -30px rgb(0 0 0 / 0.8);
+  box-shadow: var(--glass-shadow);
 }
-/* Headings: white fading to grey, as in the 404 page. */
+/* Headings: white fading to grey on dark, ink fading to grey on light. */
 .head-grad {
-  background: linear-gradient(180deg, #ffffff 30%, #9d9da8);
+  background: var(--head-grad);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
 }
-/* P&ID symbols are black line drawings: draw them light on the dark ground. */
+/* Thumbnails are rendered on a dark stage: on light cards they sit as an inset dark plate. */
+html.light .plate {
+  margin: 6px 6px 0;
+  border-radius: 9px;
+  overflow: hidden;
+}
+html.light .plate + div {
+  border-top-color: transparent;
+}
+/* P&ID symbols are black line drawings: inverted on dark, as drawn on light. */
 .sym {
-  filter: invert(0.9) hue-rotate(180deg);
+  filter: var(--sym-filter);
 }
 
-.code-dark {
+:root:not(.light) .code-dark {
   --sh-class: #a5b4fc;
   --sh-identifier: #e2e8f0;
   --sh-sign: #7b8da3;
@@ -105,21 +220,13 @@ h3 {
   --sh-comment: #7b8da3;
 }
 
-.sheet-grid {
-  background-color: var(--color-muted);
-  background-image:
-    linear-gradient(to right, rgb(255 255 255 / 0.035) 1px, transparent 1px),
-    linear-gradient(to bottom, rgb(255 255 255 / 0.035) 1px, transparent 1px);
-  background-size: 24px 24px;
-}
-
 .prose-docs {
-  @apply text-[15.5px] leading-7 text-zinc-300;
+  @apply text-[15.5px] leading-7 text-fg-2;
 }
 .prose-docs h1 {
   @apply text-[34px] leading-tight font-semibold mb-3;
   letter-spacing: -0.035em;
-  background: linear-gradient(180deg, #ffffff 30%, #9d9da8);
+  background: var(--head-grad);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
@@ -147,16 +254,16 @@ h3 {
   mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 3h7v7M13 3 4 12'/%3E%3C/svg%3E") center / contain no-repeat;
 }
 .prose-docs ul {
-  @apply list-disc pl-5 my-3.5 space-y-1.5 marker:text-zinc-600;
+  @apply list-disc pl-5 my-3.5 space-y-1.5 marker:text-faint;
 }
 .prose-docs ol {
-  @apply list-decimal pl-5 my-3.5 space-y-1.5 marker:text-zinc-600;
+  @apply list-decimal pl-5 my-3.5 space-y-1.5 marker:text-faint;
 }
 .prose-docs code {
   @apply font-mono text-[13px] bg-muted border border-border rounded px-1 py-px text-ink;
 }
 .prose-docs pre {
-  @apply my-5 rounded-lg border border-border bg-muted p-4 overflow-x-auto text-[13px] leading-6;
+  @apply my-5 rounded-lg border border-border bg-muted light:bg-surface p-4 overflow-x-auto text-[13px] leading-6;
 }
 .prose-docs pre code {
   @apply bg-transparent border-0 p-0;
@@ -171,7 +278,7 @@ h3 {
   @apply border-b border-border py-2 px-3 align-top;
 }
 .prose-docs blockquote {
-  @apply border-l-2 border-brand bg-muted rounded-r-md py-2 pl-4 pr-3 text-zinc-300 my-5;
+  @apply border-l-2 border-brand bg-muted rounded-r-md py-2 pl-4 pr-3 text-fg-2 my-5;
 }
 .prose-docs strong {
   @apply font-semibold text-fg;
@@ -183,6 +290,11 @@ h3 {
     radial-gradient(55% 80% at 15% 0%, rgb(59 70 207 / 0.38), transparent 70%),
     radial-gradient(40% 70% at 95% 10%, rgb(254 85 16 / 0.16), transparent 70%);
 }
+html.light .footer-light {
+  background:
+    radial-gradient(55% 80% at 15% 0%, rgb(59 70 207 / 0.12), transparent 70%),
+    radial-gradient(40% 70% at 95% 10%, rgb(254 85 16 / 0.1), transparent 70%);
+}
 
 /* Home hero: a grainy gradient of signal orange and deep indigo light, slowly drifting, under a white-to-grey headline. */
 .hero-grain {
@@ -191,7 +303,7 @@ h3 {
     radial-gradient(45% 50% at 88% 62%, rgb(59 70 207 / 0.5), transparent 72%),
     radial-gradient(40% 45% at 8% 72%, rgb(59 70 207 / 0.3), transparent 70%),
     radial-gradient(35% 30% at 30% 30%, rgb(254 120 60 / 0.14), transparent 70%),
-    #0e0f13;
+    var(--bg);
   animation: hero-drift 22s ease-in-out infinite alternate;
   background-size: 120% 120%;
 }
@@ -204,10 +316,10 @@ h3 {
   }
 }
 .grain {
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 0.6 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-image: var(--grain-img);
   background-size: 240px 240px;
-  opacity: 0.16;
-  mix-blend-mode: overlay;
+  opacity: var(--grain-opacity);
+  mix-blend-mode: var(--grain-blend);
 }
 .hero-ink {
   background: linear-gradient(100deg, #ff9a66 0%, #fe5510 38%, #ff7a45 62%, #8f97ff 100%);
@@ -216,6 +328,18 @@ h3 {
   background-clip: text;
   color: transparent;
   animation: hero-sheen 9s ease-in-out infinite alternate;
+}
+html.light .hero-grain {
+  background:
+    radial-gradient(60% 55% at 50% -8%, rgb(254 85 16 / 0.26), transparent 70%),
+    radial-gradient(45% 50% at 88% 62%, rgb(59 70 207 / 0.2), transparent 72%),
+    radial-gradient(40% 45% at 8% 72%, rgb(59 70 207 / 0.13), transparent 70%),
+    radial-gradient(35% 30% at 30% 30%, rgb(254 120 60 / 0.12), transparent 70%),
+    var(--bg);
+  background-size: 120% 120%;
+}
+html.light .hero-ink {
+  background-image: linear-gradient(100deg, #f0601f 0%, #e5470a 38%, #f26a2e 62%, #4c56dc 100%);
 }
 @keyframes hero-sheen {
   from {
@@ -230,7 +354,13 @@ h3 {
   background:
     radial-gradient(50% 70% at 0% 0%, rgb(59 70 207 / 0.35), transparent 70%),
     radial-gradient(40% 60% at 100% 100%, rgb(254 85 16 / 0.18), transparent 70%),
-    #0a0b0e;
+    var(--deep);
+}
+html.light .agents-band {
+  background:
+    radial-gradient(50% 70% at 0% 0%, rgb(59 70 207 / 0.12), transparent 70%),
+    radial-gradient(40% 60% at 100% 100%, rgb(254 85 16 / 0.12), transparent 70%),
+    var(--deep);
 }
 @media (prefers-reduced-motion: reduce) {
   .hero-grain,

@@ -8,6 +8,7 @@ import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib'
 import { Stage } from '../../registry/lib/stage'
 import { Sky } from '../../registry/environment/sky'
 import type { Port } from '../../registry/lib/ports'
+import { useTheme } from '../theme'
 
 export interface Bounds {
   size: [number, number, number]
@@ -37,8 +38,8 @@ export interface ViewerProps {
 export type ViewerEnv = 'studio' | 'day' | 'night' | 'none'
 
 const DEFAULT_VIEW: [number, number, number] = [1, 0.62, 1.18]
-/** studio backdrop, matched to the site's --color-stage */
-const STUDIO_BG = '#23242b'
+/** studio backdrop per site theme; /shot renders always use the dark one so thumbnails stay consistent */
+const STUDIO_BG = { dark: '#23242b', light: '#e9eaee' }
 const sameV = (a: [number, number, number], b: [number, number, number]) => (a.every((v, i) => Math.abs(v - b[i]) < 0.5) ? a : b)
 
 export function Viewer({ children, ports, showPorts, fitKey, onBounds, shot, effects = true, view = DEFAULT_VIEW, focus, frame, env = 'studio', className }: ViewerProps) {
@@ -46,6 +47,8 @@ export function Viewer({ children, ports, showPorts, fitKey, onBounds, shot, eff
   const [groundY, setGroundY] = useState(0)
   const [center, setCenter] = useState<[number, number, number]>([0, 0, 0])
   const studio = env === 'studio'
+  const theme = useTheme()
+  const bg = STUDIO_BG[shot ? 'dark' : theme]
   const content = (
     <>
       <Suspense fallback={null}>
@@ -76,8 +79,8 @@ export function Viewer({ children, ports, showPorts, fitKey, onBounds, shot, eff
           gl.outputColorSpace = THREE.SRGBColorSpace
         }}
       >
-        {studio && <color attach="background" args={[STUDIO_BG]} />}
-        {studio && <fog attach="fog" args={[STUDIO_BG, radius * 6, radius * 14]} />}
+        {studio && <color attach="background" args={[bg]} />}
+        {studio && <fog attach="fog" args={[bg, radius * 6, radius * 14]} />}
         {studio && <Stage radius={radius} groundY={groundY} />}
         {env === 'day' && <Sky mode="day" shadowRadius={radius} shadowCenter={center} />}
         {env === 'night' && <Sky mode="night" azimuth={(Math.atan2(-view[0], view[2]) * 180) / Math.PI + 345} elevation={4} shadowRadius={radius} shadowCenter={center} />}
@@ -173,14 +176,14 @@ function PortMarker({ port, scale }: { port: Port; scale: number }) {
     <group position={port.position}>
       <mesh>
         <sphereGeometry args={[r, 16, 12]} />
-        <meshBasicMaterial color="#2563eb" />
+        <meshBasicMaterial color="#3b46cf" />
       </mesh>
       <mesh quaternion={q} position={new THREE.Vector3(...port.direction).multiplyScalar(r * 2.5)}>
         <coneGeometry args={[r * 0.7, r * 2.2, 12]} />
-        <meshBasicMaterial color="#2563eb" />
+        <meshBasicMaterial color="#3b46cf" />
       </mesh>
       <Html center zIndexRange={[20, 0]} position={new THREE.Vector3(...port.direction).multiplyScalar(r * 6).toArray()} style={{ pointerEvents: 'none' }}>
-        <div className="rounded bg-blue-600 px-1.5 py-0.5 font-mono text-[10px] whitespace-nowrap text-white shadow">{port.id}</div>
+        <div className="rounded bg-indigo px-1.5 py-0.5 font-mono text-[10px] whitespace-nowrap text-white shadow">{port.id}</div>
       </Html>
     </group>
   )

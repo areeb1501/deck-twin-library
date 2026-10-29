@@ -57,7 +57,7 @@ function Doc({ slug }: { slug: string }) {
 
 function Pager({ href, hint, title, right }: { href: string; hint: string; title: string; right?: boolean }) {
   return (
-    <Link href={href} className={`group rounded-lg border border-border px-4 py-3 transition-colors hover:border-white/20 hover:bg-muted ${right ? 'text-right' : ''}`}>
+    <Link href={href} className={`group rounded-lg border border-border px-4 py-3 light:bg-surface transition-colors hover:border-line-strong hover:bg-muted ${right ? 'text-right' : ''}`}>
       <div className="text-[12.5px] text-muted-fg">{hint}</div>
       <div className="mt-0.5 text-[15px] font-semibold text-ink group-hover:text-ink">{title}</div>
     </Link>

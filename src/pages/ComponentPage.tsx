@@ -38,7 +38,7 @@ function Detail({ item }: { item: Item }) {
     <div className="mx-auto max-w-[1180px] px-6 py-10 lg:px-10">
       <Crumbs items={[{ label: 'Components', href: '/components' }, { label: cat.title, href: `/components?category=${cat.id}` }, { label: item.title }]} />
       <h1 className="text-[34px] leading-tight font-semibold head-grad tracking-[-0.035em]">{item.title}</h1>
-      <p className="mt-3 max-w-3xl text-[16px] leading-7 text-zinc-400">
+      <p className="mt-3 max-w-3xl text-[16px] leading-7 text-fg-3">
         <RichText text={item.description} />
       </p>
       <div className="mt-4 flex flex-wrap gap-1.5">
@@ -77,11 +77,11 @@ function Detail({ item }: { item: Item }) {
                 </Viewer>
               )}
               {bounds && (
-                <div className="pointer-events-none absolute bottom-3 left-3 rounded-md bg-black/70 backdrop-blur px-2.5 py-1.5 font-mono text-[11.5px] text-white shadow-sm">
-                  {bounds.size[0].toFixed(2)} × {bounds.size[2].toFixed(2)} × {bounds.size[1].toFixed(2)} m <span className="text-slate-400">L × W × H</span>
+                <div className="dark-zone pointer-events-none absolute bottom-3 left-3 rounded-md bg-black/70 backdrop-blur px-2.5 py-1.5 font-mono text-[11.5px] text-white shadow-sm">
+                  {bounds.size[0].toFixed(2)} × {bounds.size[2].toFixed(2)} × {bounds.size[1].toFixed(2)} m <span className="text-fg-3">L × W × H</span>
                 </div>
               )}
-              <div className="pointer-events-none absolute right-3 bottom-3 text-[11.5px] text-slate-400">Drag to orbit, scroll to zoom</div>
+              <div className="pointer-events-none absolute right-3 bottom-3 text-[11.5px] text-fg-3">Drag to orbit, scroll to zoom</div>
             </div>
             <div className="border-t border-border bg-muted p-5 lg:max-h-[600px] lg:overflow-y-auto lg:border-t-0 lg:border-l">
               <div className="mb-4 flex items-center justify-between">
@@ -183,16 +183,16 @@ function PropsTable({ item, defaults }: { item: Item; defaults: Record<string, u
   const rows = item.params.map((p) => {
     const type = p.type === 'select' ? p.options.map((o) => JSON.stringify(typeof o === 'object' ? o.value : o)).join(' | ') : p.type === 'nps' ? 'number (NPS, in)' : p.type === 'rating' ? '150 | 300 | 600 | 900 | 1500 | 2500' : p.type === 'number' ? `number${p.unit ? ` (${p.unit})` : ''}` : p.type === 'bool' ? 'boolean' : 'string'
     const range = p.type === 'number' ? `${p.min} – ${p.max}` : ''
-    return [<code className="font-mono text-xs">{p.key}</code>, <span className="font-mono text-xs text-zinc-400">{type}</span>, <span className="font-mono text-xs">{JSON.stringify(defaults[p.key] ?? null)}</span>, range]
+    return [<code className="font-mono text-xs">{p.key}</code>, <span className="font-mono text-xs text-fg-3">{type}</span>, <span className="font-mono text-xs">{JSON.stringify(defaults[p.key] ?? null)}</span>, range]
   })
-  return <Table head={['Prop', 'Type', 'Default', 'Range']} rows={[...rows, [<code className="font-mono text-xs">...group</code>, <span className="font-mono text-xs text-zinc-400">position, rotation, scale…</span>, '', '']]} />
+  return <Table head={['Prop', 'Type', 'Default', 'Range']} rows={[...rows, [<code className="font-mono text-xs">...group</code>, <span className="font-mono text-xs text-fg-3">position, rotation, scale…</span>, '', '']]} />
 }
 
 function Table({ head, rows }: { head: string[]; rows: ReactNode[][] }) {
   return (
     <div className="overflow-x-auto rounded-lg border border-border bg-surface">
       <table className="w-full text-left text-[13px]">
-        <thead className="bg-muted text-[12.5px] text-zinc-400">
+        <thead className="bg-muted text-[12.5px] text-fg-3">
           <tr>
             {head.map((h) => (
               <th key={h} className="px-3 py-2.5 font-semibold">
@@ -227,7 +227,7 @@ function PidSection({ name }: { name: string }) {
       <div className="grid gap-5 rounded-xl border border-border bg-surface p-5 sm:grid-cols-[180px_1fr]">
         <div className="flex aspect-square items-center justify-center rounded-lg border border-border bg-surface p-4">{url && <img src={url} alt={`P&ID symbol for ${name}`} className="sym max-h-full max-w-full" />}</div>
         <div className="space-y-3 text-[14px]">
-          <p className="leading-6 text-zinc-300">{e.drawn}</p>
+          <p className="leading-6 text-fg-2">{e.drawn}</p>
           <div className="flex flex-wrap gap-1.5">
             {e.tags?.map((t) => <Badge key={t}>tag {t}</Badge>)}
             {e.isa?.map((t) => <Badge key={t}>ISA {t}</Badge>)}
@@ -240,7 +240,7 @@ function PidSection({ name }: { name: string }) {
               <div className="grid grid-cols-[1fr_auto] gap-x-6 gap-y-1 text-[13px]">
                 {Object.entries(e.datasheet.fields).map(([f, p]) => (
                   <div key={f} className="contents">
-                    <span className="text-zinc-400">{f}</span>
+                    <span className="text-fg-3">{f}</span>
                     <code className="font-mono text-xs">{p}</code>
                   </div>
                 ))}
@@ -257,7 +257,7 @@ const H2 = ({ children }: { children: ReactNode }) => <h2 className="mt-14 mb-4 
 
 function Toggle({ on, onClick, children }: { on: boolean; onClick: () => void; children: ReactNode }) {
   return (
-    <button onClick={onClick} className={`rounded-md border px-2.5 py-1 text-xs font-medium transition-colors ${on ? 'border-ink bg-ink text-on-ink' : 'border-border bg-surface text-zinc-400 hover:border-white/20 hover:text-ink'}`}>
+    <button onClick={onClick} className={`rounded-md border px-2.5 py-1 text-xs font-medium transition-colors ${on ? 'border-ink bg-ink text-on-ink' : 'border-border bg-surface text-fg-3 hover:border-line-strong hover:text-ink'}`}>
       {children}
     </button>
   )
