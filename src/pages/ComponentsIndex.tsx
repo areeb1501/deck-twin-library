@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react'
 import { Link } from 'wouter'
 import { CATEGORIES, ITEMS, thumb, type Item } from '../registry'
+import { FilterInput, Select, Toolbar } from '../components/ui'
 
 export function ComponentsIndex() {
   const [q, setQ] = useState('')
@@ -16,55 +17,16 @@ export function ComponentsIndex() {
       <p className="mt-3 max-w-2xl text-[16px] leading-7 text-slate-600">
         {ITEMS.length} parametric three.js components for offshore and onshore oil &amp; gas plants. Each one is a single file sized from the standard it follows, with ports for wiring pipe.
       </p>
-      <div className="z-20 -mx-6 mt-8 sm:sticky sm:top-14 border-y border-border bg-white/90 px-6 py-3 backdrop-blur-xl lg:-mx-10 lg:px-10">
-        <div className="flex flex-wrap items-center gap-2.5">
-          <label className="relative w-full min-w-0 sm:w-auto sm:max-w-sm sm:flex-1">
-            <span className="sr-only">Filter components</span>
-            <svg viewBox="0 0 16 16" className="pointer-events-none absolute top-1/2 left-3 h-3.5 w-3.5 -translate-y-1/2 text-muted-fg" fill="none" stroke="currentColor" strokeWidth="1.6" aria-hidden>
-              <circle cx="7" cy="7" r="4.5" />
-              <path d="m10.5 10.5 3 3" strokeLinecap="round" />
-            </svg>
-            <input
-              value={q}
-              onChange={(e) => setQ(e.target.value)}
-              placeholder="Filter by name, tag or standard"
-              className="h-9 w-full rounded-md border border-border bg-white pr-8 pl-8.5 text-[13.5px] outline-none placeholder:text-slate-400 focus:border-slate-400 focus:ring-2 focus:ring-brand/15"
-            />
-            {q && (
-              <button onClick={() => setQ('')} aria-label="Clear filter" className="absolute top-1/2 right-2 flex h-5 w-5 -translate-y-1/2 items-center justify-center rounded text-muted-fg hover:bg-muted hover:text-ink">
-                <svg viewBox="0 0 16 16" className="h-3 w-3" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" aria-hidden>
-                  <path d="m4 4 8 8M12 4l-8 8" />
-                </svg>
-              </button>
-            )}
-          </label>
-          <label className="relative">
-            <span className="sr-only">Category</span>
-            <select
-              value={cat}
-              onChange={(e) => setCat(e.target.value)}
-              className="h-9 cursor-pointer appearance-none rounded-md border border-border bg-white pr-9 pl-3 text-[13.5px] font-medium text-ink outline-none hover:border-slate-300 focus:border-slate-400 focus:ring-2 focus:ring-brand/15"
-            >
-              <option value="all">All categories ({ITEMS.length})</option>
-              {cats.map((c) => (
-                <option key={c.id} value={c.id}>
-                  {c.title} ({ITEMS.filter((i) => i.category === c.id).length})
-                </option>
-              ))}
-            </select>
-            <svg viewBox="0 0 16 16" className="pointer-events-none absolute top-1/2 right-3 h-3.5 w-3.5 -translate-y-1/2 text-muted-fg" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-              <path d="m4.5 6.5 3.5 3.5 3.5-3.5" />
-            </svg>
-          </label>
-          {(q || cat !== 'all') && (
-            <button onClick={() => { setQ(''); setCat('all') }} className="h-9 rounded-md px-2.5 text-[13px] font-medium text-muted-fg transition-colors hover:bg-muted hover:text-ink">
-              Reset
-            </button>
-          )}
-          <div className="ml-auto text-[13px] text-muted-fg tabular-nums" aria-live="polite">
-            Showing <span className="font-medium text-ink">{shown.length}</span> of {ITEMS.length}
-          </div>
-        </div>
+      <div className="mt-8">
+        <Toolbar shown={shown.length} total={ITEMS.length} onReset={q || cat !== 'all' ? () => { setQ(''); setCat('all') } : undefined}>
+          <FilterInput value={q} onChange={setQ} placeholder="Filter by name, tag or standard" className="w-full sm:w-auto sm:max-w-sm sm:flex-1" />
+          <Select
+            value={cat}
+            onChange={setCat}
+            label="Category"
+            options={[{ value: 'all', label: `All categories (${ITEMS.length})` }, ...cats.map((c) => ({ value: c.id, label: `${c.title} (${ITEMS.filter((i) => i.category === c.id).length})` }))]}
+          />
+        </Toolbar>
       </div>
       {CATEGORIES.map((c) => {
         const items = shown.filter((i) => i.category === c.id)

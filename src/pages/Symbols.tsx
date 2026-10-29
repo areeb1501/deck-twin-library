@@ -3,11 +3,12 @@ import { Link } from 'wouter'
 import { BY_NAME, CATEGORIES, byCategory } from '../registry'
 import { LIBRARY, PID, librarySymbolUrl, symbolUrl } from '../pid'
 import type { LibrarySymbol } from '../../registry/pid/types'
+import { FilterInput, Segmented, Select, Toolbar } from '../components/ui'
 
 export function Symbols() {
   const [tab, setTab] = useState<'legend' | 'components'>(LIBRARY.symbols.length ? 'legend' : 'components')
   return (
-    <div className="mx-auto max-w-[1440px] px-6 py-10">
+    <div className="mx-auto max-w-[1440px] px-6 py-10 lg:px-10">
       <h1 className="text-[34px] leading-tight font-semibold text-ink">P&amp;ID symbols</h1>
       <p className="mt-2 max-w-3xl text-[15px] leading-7 text-slate-600">
         What each symbol on a P&amp;ID looks like, what it means, and which Deck Twin component it becomes. The conventions are ISO 10628-2 and PIP PIC001 for process, ISA 5.1 for instruments, IEC 60617 for electrical, and NFPA 170 / ISO 7010 for fire &amp; gas. Company legends vary, so read the drawing's own legend sheet first.
@@ -30,80 +31,103 @@ export function Symbols() {
   )
 }
 
+const has3d = (x: LibrarySymbol) => !!(x.component && BY_NAME.get(x.component))
+
 function Legend() {
   const [cat, setCat] = useState('all')
   const [q, setQ] = useState('')
+  const [model, setModel] = useState<'all' | '3d' | 'none'>('all')
   const [sel, setSel] = useState<LibrarySymbol | null>(null)
-  const shown = useMemo(() => {
+  const base = useMemo(() => {
     const s = q.trim().toLowerCase()
     return LIBRARY.symbols.filter((x) => (cat === 'all' || x.category === cat) && (!s || `${x.name} ${x.id} ${x.meaning} ${x.drawn} ${x.tags?.join(' ')} ${x.isa?.join(' ')} ${x.component ?? ''}`.toLowerCase().includes(s)))
   }, [cat, q])
+  const with3d = base.filter(has3d).length
+  const shown = model === 'all' ? base : base.filter((x) => has3d(x) === (model === '3d'))
+  const dirty = q || cat !== 'all' || model !== 'all'
   return (
-    <div className="mt-6 grid items-start gap-6 lg:grid-cols-[1fr_380px]">
-      <div>
-        <div className="mb-4 flex flex-wrap items-center gap-2">
-          <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Filter: gate, PSV, FC, off-page…" className="h-9 w-64 rounded-md border border-border px-3 text-sm outline-none focus:border-slate-400 focus:ring-2 focus:ring-brand/15" />
-          <Chip on={cat === 'all'} onClick={() => setCat('all')}>All</Chip>
-          {LIBRARY.categories.map((c) => (
-            <Chip key={c.id} on={cat === c.id} onClick={() => setCat(c.id)}>
-              {c.title}
-            </Chip>
-          ))}
+    <div className="mt-6">
+      <Toolbar shown={shown.length} total={LIBRARY.symbols.length} onReset={dirty ? () => { setQ(''); setCat('all'); setModel('all') } : undefined}>
+        <FilterInput value={q} onChange={setQ} placeholder="Filter: gate, PSV, FC, off-page" className="w-full sm:w-auto sm:max-w-xs sm:flex-1" />
+        <Select
+          value={cat}
+          onChange={setCat}
+          label="Symbol category"
+          options={[{ value: 'all', label: `All categories (${LIBRARY.symbols.length})` }, ...LIBRARY.categories.map((c) => ({ value: c.id, label: `${c.title} (${LIBRARY.symbols.filter((x) => x.category === c.id).length})` }))]}
+        />
+        <Segmented
+          value={model}
+          onChange={setModel}
+          label="3D model"
+          options={[
+            { value: 'all', label: 'All', count: base.length },
+            { value: '3d', label: 'Has 3D model', count: with3d },
+            { value: 'none', label: 'Symbol only', count: base.length - with3d },
+          ]}
+        />
+      </Toolbar>
+      <div className="mt-6 grid items-start gap-6 lg:grid-cols-[1fr_380px]">
+        <div>
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5">
+            {shown.map((x) => (
+              <button key={x.id} onClick={() => setSel(x)} className={`rounded-xl border p-3 text-left transition-[border-color,box-shadow] hover:border-slate-300 hover:shadow-[0_8px_24px_-12px_rgb(14_26_36/0.18)] ${sel?.id === x.id ? 'border-ink ring-1 ring-ink' : 'border-border'}`}>
+                <div className="flex aspect-[4/3] items-center justify-center p-2">
+                  <img src={librarySymbolUrl(x.svg)} alt="" className="max-h-full max-w-full" />
+                </div>
+                <div className="mt-2 text-[13px] leading-5 font-medium">{x.name}</div>
+                <div className="mt-0.5 flex items-center gap-1.5 text-[11px] text-muted-fg">
+                  {has3d(x) ? <span className="rounded bg-ink px-1 font-semibold text-white">3D</span> : !x.physical ? <span className="rounded bg-slate-100 px-1">logical</span> : null}
+                  <span className="truncate">{[...(x.tags ?? []), ...(x.isa ?? [])].join(' · ')}</span>
+                </div>
+              </button>
+            ))}
+          </div>
+          {!shown.length && (
+            <div className="py-16 text-center">
+              <div className="text-[15px] font-medium text-ink">No symbols match these filters</div>
+              <p className="mt-1 text-[13.5px] text-muted-fg">Change the category or the 3D model filter, or clear the search.</p>
+            </div>
+          )}
         </div>
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5">
-          {shown.map((x) => (
-            <button key={x.id} onClick={() => setSel(x)} className={`rounded-xl border p-3 text-left transition-[border-color,box-shadow] hover:border-slate-300 hover:shadow-[0_8px_24px_-12px_rgb(14_26_36/0.18)] ${sel?.id === x.id ? 'border-ink ring-1 ring-ink' : 'border-border'}`}>
-              <div className="flex aspect-[4/3] items-center justify-center p-2">
-                <img src={librarySymbolUrl(x.svg)} alt="" className="max-h-full max-w-full" />
+        <aside className="flex flex-col overflow-hidden rounded-xl border border-border bg-white lg:sticky lg:top-[8.5rem] lg:h-[calc(100vh-10rem)]">
+          {sel ? (
+            <>
+              <div className="shrink-0 border-b border-border p-5 pb-4">
+                <div className="flex h-36 items-center justify-center rounded-lg border border-border p-4">
+                  <img src={librarySymbolUrl(sel.svg)} alt="" className="max-h-full max-w-full" />
+                </div>
+                <div className="mt-3 text-lg leading-6 font-semibold tracking-tight">{sel.name}</div>
+                <div className="mt-0.5 text-xs text-muted-fg">{sel.standard}</div>
               </div>
-              <div className="mt-2 text-[13px] leading-5 font-medium">{x.name}</div>
-              <div className="mt-0.5 flex items-center gap-1.5 text-[11px] text-muted-fg">
-                {x.component ? <span className="rounded bg-ink px-1 font-semibold text-white">3D</span> : !x.physical ? <span className="rounded bg-slate-100 px-1">logical</span> : null}
-                <span className="truncate">{[...(x.tags ?? []), ...(x.isa ?? [])].join(' · ')}</span>
+              <div className="min-h-0 flex-1 space-y-3 overflow-y-auto px-5 py-4 text-[14px]">
+                <Field label="Drawn as">{sel.drawn}</Field>
+                <Field label="Meaning">{sel.meaning}</Field>
+                {sel.variants?.length ? (
+                  <Field label="Variants">
+                    <ul className="list-disc space-y-1 pl-4">
+                      {sel.variants.map((v) => (
+                        <li key={v}>{v}</li>
+                      ))}
+                    </ul>
+                  </Field>
+                ) : null}
+                {sel.tags?.length || sel.isa?.length ? <Field label="Tags">{[...(sel.tags ?? []), ...(sel.isa ?? [])].join(' · ')}</Field> : null}
               </div>
-            </button>
-          ))}
-        </div>
-        {!shown.length && <div className="py-16 text-center text-muted-fg">No symbols match.</div>}
+              <div className="shrink-0 border-t border-border p-4">
+                {sel.component && BY_NAME.get(sel.component) ? (
+                  <Link href={`/components/${sel.component}`} className="block truncate rounded-md bg-ink px-3 py-2 text-center text-[13px] font-semibold text-white transition-colors hover:bg-ink-2">
+                    Open the 3D component: {BY_NAME.get(sel.component)!.title}
+                  </Link>
+                ) : (
+                  <div className="text-[13px] text-muted-fg">{sel.physical ? 'No 3D component yet.' : 'Not physical hardware. Read it, then skip it in the 3D model.'}</div>
+                )}
+              </div>
+            </>
+          ) : (
+            <div className="p-5 text-[14px] text-muted-fg">Select a symbol to see how it is drawn, what it means, its variants and the component it maps to.</div>
+          )}
+        </aside>
       </div>
-      <aside className="flex flex-col overflow-hidden rounded-xl border border-border bg-white lg:sticky lg:top-20 lg:h-[calc(100vh-6.5rem)]">
-        {sel ? (
-          <>
-            <div className="shrink-0 border-b border-border p-5 pb-4">
-              <div className="flex h-36 items-center justify-center rounded-lg border border-border p-4">
-                <img src={librarySymbolUrl(sel.svg)} alt="" className="max-h-full max-w-full" />
-              </div>
-              <div className="mt-3 text-lg leading-6 font-semibold tracking-tight">{sel.name}</div>
-              <div className="mt-0.5 text-xs text-muted-fg">{sel.standard}</div>
-            </div>
-            <div className="min-h-0 flex-1 space-y-3 overflow-y-auto px-5 py-4 text-[14px]">
-              <Field label="Drawn as">{sel.drawn}</Field>
-              <Field label="Meaning">{sel.meaning}</Field>
-              {sel.variants?.length ? (
-                <Field label="Variants">
-                  <ul className="list-disc space-y-1 pl-4">
-                    {sel.variants.map((v) => (
-                      <li key={v}>{v}</li>
-                    ))}
-                  </ul>
-                </Field>
-              ) : null}
-              {sel.tags?.length || sel.isa?.length ? <Field label="Tags">{[...(sel.tags ?? []), ...(sel.isa ?? [])].join(' · ')}</Field> : null}
-            </div>
-            <div className="shrink-0 border-t border-border p-4">
-              {sel.component && BY_NAME.get(sel.component) ? (
-                <Link href={`/components/${sel.component}`} className="block truncate rounded-md bg-ink px-3 py-2 text-center text-[13px] font-semibold text-white transition-colors hover:bg-ink-2">
-                  Open the 3D component: {BY_NAME.get(sel.component)!.title}
-                </Link>
-              ) : (
-                <div className="text-[13px] text-muted-fg">{sel.physical ? 'No 3D component yet.' : 'Not physical hardware. Read it, then skip it in the 3D model.'}</div>
-              )}
-            </div>
-          </>
-        ) : (
-          <div className="p-5 text-[14px] text-muted-fg">Select a symbol to see how it is drawn, what it means, its variants and the component it maps to.</div>
-        )}
-      </aside>
     </div>
   )
 }
@@ -150,14 +174,6 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 function TabButton({ on, onClick, children }: { on: boolean; onClick: () => void; children: React.ReactNode }) {
   return (
     <button onClick={onClick} className={`-mb-px border-b-2 px-3.5 py-2.5 text-[14px] font-medium transition-colors ${on ? 'border-ink text-ink' : 'border-transparent text-muted-fg hover:text-ink'}`}>
-      {children}
-    </button>
-  )
-}
-
-function Chip({ on, onClick, children }: { on: boolean; onClick: () => void; children: React.ReactNode }) {
-  return (
-    <button onClick={onClick} className={`h-8 rounded-full border px-3.5 text-[13px] font-medium transition-colors ${on ? 'border-ink bg-ink text-white' : 'border-border bg-white text-slate-600 hover:border-slate-300 hover:text-ink'}`}>
       {children}
     </button>
   )
