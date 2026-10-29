@@ -3,3 +3,4 @@ export const SITE = typeof window !== 'undefined' ? window.location.origin : 'ht
 // Until the npm package is published, the CLI runs straight from the tarball this site serves.
 export const CLI = `npx -y ${SITE}/cli/deck-twin.tgz`
 export const add = (name: string) => `${CLI} add ${name}`
+export { version as VERSION } from '../package.json'

@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom'
 import { Link, useLocation } from 'wouter'
 import { CATEGORIES, ITEMS, byCategory, thumb } from '../registry'
 import { DOCS } from '../pages/docs'
+import { VERSION } from '../site'
 
 export function Shell({ children }: { children: ReactNode }) {
   const [loc] = useLocation()
@@ -38,48 +39,51 @@ function Header() {
   const [menu, setMenu] = useState(false)
   useEffect(() => setMenu(false), [loc])
   return (
-    <header className="sticky top-0 z-40 border-b border-border bg-white/90 backdrop-blur-md">
-      <div className="mx-auto flex h-16 max-w-[1440px] items-center gap-8 px-6">
-        <Link href="/" className="flex shrink-0 items-center gap-2.5">
-          <Logo className="h-8 w-8" />
-          <span className="leading-none">
-            <span className="block text-[15px] font-semibold text-ink">Deck Twin</span>
-            <span className="mt-0.5 block text-[11px] font-medium text-muted-fg">Component library</span>
-          </span>
+    <header className="sticky top-0 z-40 border-b border-border/80 bg-white/80 backdrop-blur-xl backdrop-saturate-150">
+      <div className="mx-auto flex h-14 max-w-[1440px] items-center px-5 lg:px-6">
+        <Link href="/" className="flex shrink-0 items-center gap-2 rounded-md pr-2">
+          <Logo className="h-[22px] w-[22px]" />
+          <span className="text-[15px] font-semibold tracking-[-0.01em] text-ink">Deck Twin</span>
+          <span className="hidden rounded border border-border px-1.5 py-px font-mono text-[10.5px] text-muted-fg lg:inline">v{VERSION}</span>
         </Link>
-        <nav className="hidden h-full items-stretch gap-1 text-[14px] md:flex">
+        <nav className="ml-4 hidden items-center gap-0.5 md:flex lg:ml-6">
           {nav.map(([href, label]) => {
             const on = loc.startsWith(href)
             return (
               <Link
                 key={href}
                 href={href}
-                className={`relative flex items-center px-3 font-medium transition-colors ${on ? 'text-ink after:absolute after:inset-x-3 after:-bottom-px after:h-[2px] after:rounded-full after:bg-ink' : 'text-muted-fg hover:text-ink'}`}
+                aria-current={on ? 'page' : undefined}
+                className={`rounded-md px-2.5 py-1.5 text-[13.5px] font-medium whitespace-nowrap transition-colors ${on ? 'bg-muted text-ink' : 'text-slate-500 hover:bg-muted/70 hover:text-ink'}`}
               >
                 {label}
               </Link>
             )
           })}
         </nav>
-        <div className="ml-auto flex items-center gap-3">
+        <div className="ml-auto flex items-center gap-2">
           <Search />
-          <button onClick={() => setMenu((m) => !m)} aria-label="Menu" aria-expanded={menu} className="flex h-9 w-9 items-center justify-center rounded-md border border-border bg-white shadow-sm md:hidden">
-            <svg viewBox="0 0 16 16" className="h-4 w-4 text-ink" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" aria-hidden>
-              {menu ? <path d="m4 4 8 8M12 4l-8 8" /> : <path d="M2.5 5h11M2.5 11h11" />}
-            </svg>
-          </button>
-          <Link href="/docs/installation" className="hidden h-9 items-center rounded-md bg-ink px-3.5 text-[13px] font-semibold text-white transition-colors hover:bg-ink-2 lg:flex">
+          <span className="mx-1.5 hidden h-5 w-px bg-border lg:block" />
+          <Link href="/docs/installation" className="hidden h-8 items-center rounded-md bg-ink px-3 text-[13px] font-medium text-white transition-colors hover:bg-ink-2 lg:flex">
             Get started
           </Link>
+          <button onClick={() => setMenu((m) => !m)} aria-label="Menu" aria-expanded={menu} className="flex h-8 w-8 items-center justify-center rounded-md text-ink transition-colors hover:bg-muted md:hidden">
+            <svg viewBox="0 0 16 16" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" aria-hidden>
+              {menu ? <path d="m4 4 8 8M12 4l-8 8" /> : <path d="M2.5 5.5h11M2.5 10.5h11" />}
+            </svg>
+          </button>
         </div>
       </div>
       {menu && (
-        <nav className="border-t border-border bg-white px-4 py-2 md:hidden">
+        <nav className="border-t border-border bg-white px-3 py-2 md:hidden">
           {nav.map(([href, label]) => (
             <Link key={href} href={href} className={`block rounded-md px-3 py-2.5 text-[15px] font-medium ${loc.startsWith(href) ? 'bg-muted text-ink' : 'text-slate-600'}`}>
               {label}
             </Link>
           ))}
+          <Link href="/docs/installation" className="mt-2 mb-1 flex h-10 items-center justify-center rounded-md bg-ink text-[14px] font-medium text-white">
+            Get started
+          </Link>
         </nav>
       )}
     </header>
@@ -89,9 +93,9 @@ function Header() {
 export function Logo({ className = 'h-6 w-6' }: { className?: string }) {
   return (
     <svg viewBox="0 0 32 32" className={className} aria-hidden>
-      <rect width="32" height="32" rx="8" fill="#0b1f33" />
-      <path d="M7 22h18M9.5 22v-6h13v6M12.5 16v-4h7v4M16 12V8.5" stroke="#ffffff" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round" />
-      <circle cx="16" cy="6.5" r="1.9" fill="#f59e0b" />
+      <rect width="32" height="32" rx="7" fill="#0e1a24" />
+      <path d="M7 22h18M9.5 22v-6h13v6M12.5 16v-4h7v4M16 12V8.5" stroke="#ffffff" strokeWidth="2.2" fill="none" strokeLinecap="round" strokeLinejoin="round" />
+      <circle cx="16" cy="6.5" r="2" fill="#e9a23b" />
     </svg>
   )
 }
@@ -155,7 +159,7 @@ function Sidebar() {
     </Link>
   )
   return (
-    <aside className="sticky top-16 hidden h-[calc(100vh-4rem)] w-[264px] shrink-0 overflow-y-auto border-r border-border bg-muted/40 px-4 py-7 lg:block">
+    <aside className="sticky top-14 hidden h-[calc(100vh-3.5rem)] w-[264px] shrink-0 overflow-y-auto border-r border-border bg-muted/40 px-4 py-7 lg:block">
       <Section title="Getting started">{DOCS.map((d) => item(`/docs/${d.slug}`, d.title))}</Section>
       <Section title="Components">{item('/components', `All components (${ITEMS.length})`)}</Section>
       {CATEGORIES.map((c) => {
@@ -217,14 +221,14 @@ function Search() {
       <button
         onClick={() => setOpen(true)}
         aria-label="Search components"
-        className="flex h-9 items-center gap-2 rounded-md border border-border bg-white px-3 text-[13px] text-muted-fg shadow-sm transition-colors hover:border-slate-300 sm:w-64"
+        className="flex h-8 w-8 items-center justify-center gap-2 rounded-md text-muted-fg transition-colors hover:bg-muted hover:text-ink lg:w-60 lg:justify-start lg:border lg:border-border lg:bg-muted/60 lg:px-2.5 lg:hover:border-slate-300 lg:hover:bg-white"
       >
-        <svg viewBox="0 0 16 16" className="h-3.5 w-3.5 shrink-0" fill="none" stroke="currentColor" strokeWidth="1.6" aria-hidden>
+        <svg viewBox="0 0 16 16" className="h-4 w-4 shrink-0 lg:h-3.5 lg:w-3.5" fill="none" stroke="currentColor" strokeWidth="1.6" aria-hidden>
           <circle cx="7" cy="7" r="4.5" />
           <path d="m10.5 10.5 3 3" strokeLinecap="round" />
         </svg>
-        <span className="hidden flex-1 text-left sm:inline">Search components</span>
-        <kbd className="hidden rounded border border-border bg-muted px-1.5 font-sans text-[11px] font-medium sm:inline">⌘K</kbd>
+        <span className="hidden flex-1 text-left text-[13px] lg:inline">Search</span>
+        <kbd className="hidden h-5 items-center rounded border border-border bg-white px-1.5 font-sans text-[11px] font-medium text-muted-fg lg:flex">⌘K</kbd>
       </button>
       {open &&
         createPortal(
