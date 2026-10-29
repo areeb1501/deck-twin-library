@@ -47,7 +47,7 @@ S({ id: 'isa-plc', name: 'PLC / alternate control system function', cat: 'instru
 S({ id: 'isa-sis', name: 'Safety instrumented system (SIS) function', cat: 'instruments', std: STD_I + ' / IEC 61511', physical: false, tags: [], isa: ['LSHH', 'PSHH', 'LZ', 'PZ', 'XS'],
   drawn: 'A diamond inside a square (with a bar when operator-accessible), carrying a trip function such as LSHH or PSHH. Many legends add "SIS" or a distinct colour or letter.',
   meaning: 'A trip or permissive in the safety instrumented system: PSD/ESD logic on independent SIL-rated hardware. Not physical. Each one implies dedicated field sensors (often LZT/PZT, or a second transmitter) and final elements (ESDV, BDV, motor trips).',
-  variants: ['ISA 5.1-2009 introduced the diamond-in-square option for SIS. ISA describes the 2022 edition as a corrections release, and no change to this symbol was reported (the 2022 text was not checked)', 'Many operators mark SIS loops with Z (e.g. PZT, LZT, XZV) or a "S" prefix; this is company practice, not ISA', 'Some legends use a hexagon or a double-bordered diamond for the SIS and keep diamond-in-square for PLCs'],
+  variants: ['ISA 5.1-2009 introduced the diamond-in-square option for SIS. ISA describes the 2022 edition as a corrections release, and no change to this symbol was reported (the 2022 text was not checked)', 'Many operators mark SIS loops with Z (e.g. PZT, LZT, XZV) or a "S" prefix; this is company practice, not ISA', 'Some legends use a hexagon or a double-bordered diamond for the SIS and keep diamond-in-square for PLCs', 'A note such as CMS beside it puts the trip in the machinery protection / condition monitoring system (API 670 rack), not the process SIS: see cms-system'],
   svg: svg(100, 64, bubble(50, 32, { r: 24, shape: 'plc', loc: 'primary', top: 'LSHH', bot: '101', fs: 10 })) })
 
 S({ id: 'isa-computer', name: 'Computer function', cat: 'instruments', std: STD_I, physical: false, tags: [], isa: ['FQ', 'UY', 'KY'],
@@ -162,7 +162,7 @@ S({ id: 'fe-variable-area', name: 'Variable-area flowmeter (rotameter)', cat: 'p
 S({ id: 'te-thermowell', name: 'Thermowell with temperature element / transmitter', cat: 'primary-elements', std: STD_E, component: 'temperature-transmitter', physical: true, tags: ['TW', 'TE', 'TT'], isa: ['TW', 'TE', 'TT', 'TIT'],
   drawn: 'A U-shaped pocket dipping into the line (the thermowell), with a line up to a TT or TE bubble.',
   meaning: 'Temperature measurement: a thermowell (TW), an element (TE, an RTD or thermocouple) and a transmitter (TT). Model one temperature-transmitter for the loop.',
-  variants: ['Some legends draw the well as a short line into the pipe with a dot', 'A test thermowell (TW only, no TE) is for a portable probe; skip it'],
+  variants: ['Some legends draw the well as a short line into the pipe with a dot', 'A test thermowell (TW only, no TE) is for a portable probe; skip it', 'Some legends show a flanged thermowell connection as two short bars (a flange pair) on the branch to the bubble, with the connection size written beside it'],
   svg: svg(120, 112, PIPE() + p('M54 74V102a6 6 0 0 0 12 0V74', W) + p('M54 96H66', 'stroke="#fff" stroke-width="3"') + p('M54 74V102a6 6 0 0 0 12 0V74') + tx('TT', true, 74)) })
 
 S({ id: 'tg-temperature-gauge', name: 'Local temperature gauge', cat: 'primary-elements', std: STD_E, component: 'temperature-gauge', physical: true, tags: ['TI', 'TG'], isa: ['TI'],
@@ -174,7 +174,7 @@ S({ id: 'tg-temperature-gauge', name: 'Local temperature gauge', cat: 'primary-e
 S({ id: 'pi-pressure-gauge', name: 'Local pressure gauge', cat: 'primary-elements', std: STD_E, component: 'pressure-gauge', physical: true, tags: ['PI', 'PG'], isa: ['PI'],
   drawn: 'A PI (or PG) bubble on a thin impulse line from the pipe, often with a small root or isolation valve on the impulse line.',
   meaning: 'Bourdon-tube dial gauge read locally: pump discharges, filters and vessels. Becomes pressure-gauge.',
-  variants: ['ISA tag is PI; many companies use PG', 'A gauge with a seal or snubber shows extra small symbols on the impulse line'],
+  variants: ['ISA tag is PI; many companies use PG', 'A gauge with a seal or snubber shows extra small symbols on the impulse line', 'A small box with a letter on the gauge branch (F, S, D, P) is a project-specific accessory such as a snubber, seal, filter or pulsation damper: read the drawing legend, then model the gauge only'],
   svg: svg(120, 112, PIPE() + p('M60 96V52', thin(1.6)) + p('M53 64h14l-7 9zM53 82h14l-7-9z', thin(1.6)) + bubble(60, 32, { r: 20, top: 'PI' })) })
 
 S({ id: 'pt-pressure-transmitter', name: 'Pressure transmitter', cat: 'primary-elements', std: STD_E, component: 'pressure-transmitter', physical: true, tags: ['PT', 'PIT'], isa: ['PT', 'PIT', 'PZT'],
@@ -264,3 +264,21 @@ S({ id: 'diaphragm-seal', name: 'Diaphragm (remote) seal with capillary', cat: '
   meaning: 'Remote seal protecting a transmitter from corrosive, viscous or hot process fluid. Part of the transmitter; model the transmitter only.',
   variants: ['Some legends write "DS" or "SEAL" beside the instrument'],
   svg: svg(120, 112, PIPE() + r(20, 80, 24, 10) + p('M22 90q10 6 20 0', thin(1.6)) + p('M32 80V32H40', thin(1.4)) + p('M27 60l10 8M37 60l-10 8M27 42l10 8M37 42l-10 8', thin(1.4)) + bubble(60, 32, { r: 20, top: 'PT' })) })
+
+S({ id: 've-vibration-element', name: 'Vibration element / transmitter on a machine', cat: 'primary-elements', std: STD_E + ' / API 670', component: 'vibration-probe', physical: true, tags: ['VE', 'VT'], isa: ['VE', 'VT', 'VXE', 'VYE', 'VI', 'VSHH'],
+  drawn: 'A VE (or VT) bubble joined by a short line to a small square or dot on the outline of a motor, pump, compressor or bearing. Often in pairs (A / B or X / Y), one per bearing or per axis, with VI / VA / VSHH functions downstream.',
+  meaning: 'Machinery vibration sensor: proximity probes (shaft) or accelerometers (casing) on the bearings, wired to a proximitor junction box and a protection rack. V as the first letter is vibration in ISA 5.1. Becomes vibration-probe on each monitored bearing; set pair for X-Y probes.',
+  variants: ['Some legends draw only the bubble beside the machine with a note such as NOTE / TYP. for every bearing', 'VXE / VYE mark the X and Y probes of a pair; ZE on a machine is an axial position (thrust) probe and also becomes vibration-probe', 'Look-alike: V on a valve tag (XV, HV) is a valve, not vibration; check the first letter'],
+  svg: svg(150, 100, c(40, 54, 26) + t(40, 63, 24, 'M') + r(66, 49, 7, 10, W) + p('M73 54H94', thin(1.6)) + bubble(116, 54, { r: 20, top: 'VE' })) })
+
+S({ id: 'voting-annotation', name: 'Voting (MooN) annotation', cat: 'instruments', std: STD_I + ' / IEC 61511', physical: false, tags: [],
+  drawn: 'Text such as 1oo2, 2oo2 or 2oo3 written beside the signal lines where two or more measurements join into one alarm, trip or SIS function.',
+  meaning: 'M-out-of-N voting: 1oo2 trips when either of two sensors trips (safe, more spurious trips); 2oo2 needs both; 2oo3 needs any two of three. It tells you how many field sensors exist: model N of them. Logic only, nothing physical beyond the sensors.',
+  variants: ['Some legends put the voting inside the logic box (e.g. UZ 2oo3)', 'F&G uses the same notation for detector voting (2ooN confirmed gas or fire)'],
+  svg: svg(150, 90, p('M10 20H70V50M10 80H70V50', dash('6 4')) + p('M70 50H126', dash('6 4')) + p('M118 44l8 6-8 6', thin(1.6)) + t(98, 38, 14, '1oo2')) })
+
+S({ id: 'cms-system', name: 'Condition monitoring / machinery protection system (CMS)', cat: 'instruments', std: STD_I + ' / API 670', physical: false, tags: [],
+  drawn: 'A rectangle labelled CMS (or MPS, VMS), or the letters CMS written beside vibration and bearing-temperature alarm functions.',
+  meaning: 'The machinery protection and condition monitoring system: an API 670 rack that receives the VE / ZE / bearing TE signals, raises alarms and trips (often voted 1oo2 or 2oo2), and passes trends to analysis software. Not physical on the P&ID; in a twin the rack sits in an equipment-room system-cabinet.',
+  variants: ['Some legends draw it as a DCS-style square with the CMS tag', 'The machine trip from the CMS usually goes to the motor MCC or the SIS'],
+  svg: svg(130, 70, r(15, 15, 100, 40, W) + t(65, 41, 16, 'CMS') + p('M2 35H15M115 35H128', thin(1.6))) })

@@ -133,6 +133,25 @@
       "isa": []
     },
     {
+      "id": "valve-ball-encircled",
+      "name": "Ball valve, encircled style",
+      "category": "valves",
+      "svg": "valve-ball-encircled.svg",
+      "standard": "ISO 10628-2 (group 21, valves) / PIP PIC001",
+      "drawn": "A circle large enough to enclose the bow-tie, so it reads as a circle with an X in it, usually between two flange bars on the line.",
+      "meaning": "Ball valve in legends that draw the ball as a full circle around the bow-tie (common on European and NORSOK-style drawings). Becomes ball-valve; a filled bow-tie or NC beside it means normally closed.",
+      "variants": [
+        "Check the sheet legend: a few legends use the encircled X for a general or special valve",
+        "Look-alike: a circle with an X on an electrical or lighting drawing is a lamp, not a valve"
+      ],
+      "component": "ball-valve",
+      "physical": true,
+      "tags": [
+        "HV"
+      ],
+      "isa": []
+    },
+    {
       "id": "valve-butterfly",
       "name": "Butterfly valve",
       "category": "valves",
@@ -1408,7 +1427,8 @@
       "meaning": "Spectacle blind in the open position: flow passes through the ring. It is turned to the closed position for positive isolation during maintenance. Becomes spectacle-blind.",
       "variants": [
         "Some legends write \"NO\" (normally open) beside it",
-        "Spectacle blinds in plant isolations are often marked NO / NC"
+        "Spectacle blinds in plant isolations are often marked NO / NC",
+        "The offset form (figure-8 beside the flange pair on a short stem) means the same thing: see spectacle-blind-offset"
       ],
       "component": "spectacle-blind",
       "physical": true,
@@ -1427,7 +1447,28 @@
       "meaning": "Spectacle blind in the closed position: positive isolation, nothing passes. Typical on spare connections, start-up lines and vessel isolations.",
       "variants": [
         "Some legends write \"NC\" beside it",
-        "A filled circle without a ring is a spade (line blank)"
+        "A filled circle without a ring is a spade (line blank)",
+        "The offset form (figure-8 beside the flange pair on a short stem) means the same thing: see spectacle-blind-offset"
+      ],
+      "component": "spectacle-blind",
+      "physical": true,
+      "tags": [
+        "SB"
+      ],
+      "isa": []
+    },
+    {
+      "id": "spectacle-blind-offset",
+      "name": "Spectacle blind, offset figure-8 (drawn beside the flanges)",
+      "category": "fittings",
+      "svg": "spectacle-blind-offset.svg",
+      "standard": "ISO 10628-2 (groups 24-25, fittings and piping) / PIP PIC001 / ASME B16.48",
+      "drawn": "A flange pair (two short bars) on the line, with a figure-8 drawn off to one side and joined to the flanges by a short stem. The circle next to the stem is the half installed in the line; the far circle is the spare half. The blank half may be filled, hatched or drawn as concentric circles; the ring half is a plain open circle.",
+      "meaning": "Spectacle blind between the flanges, drawn beside the line so the pipe stays unbroken. Open ring next to the stem = open (NO); blank next to the stem = closed (NC). The line size (e.g. 4\") is usually written beside it. Becomes spectacle-blind with state set from the half next to the stem.",
+      "variants": [
+        "Some legends draw both halves as plain circles and write NO / NC beside it",
+        "Look-alike: a plain flange pair has no figure-8; do not drop the blind",
+        "Look-alike: a single open circle on a stem at a flange pair is a spacer ring; a single solid paddle is a spade"
       ],
       "component": "spectacle-blind",
       "physical": true,
@@ -1493,7 +1534,8 @@
       "meaning": "Bolted flange connection, usually shown only where it matters: equipment nozzles, spool breaks, spec breaks and maintenance breaks. Becomes flanged-joint.",
       "variants": [
         "A single bar is a flange face at an equipment nozzle",
-        "Look-alike: union has a shorter third bar in the middle"
+        "Look-alike: union has a shorter third bar in the middle",
+        "Look-alike: a flange pair with a figure-8 drawn beside it on a short stem is a spectacle blind (spectacle-blind-offset), not a plain joint"
       ],
       "component": "flanged-joint",
       "physical": true,
@@ -2572,7 +2614,8 @@
       "variants": [
         "ISA 5.1-2009 introduced the diamond-in-square option for SIS. ISA describes the 2022 edition as a corrections release, and no change to this symbol was reported (the 2022 text was not checked)",
         "Many operators mark SIS loops with Z (e.g. PZT, LZT, XZV) or a \"S\" prefix; this is company practice, not ISA",
-        "Some legends use a hexagon or a double-bordered diamond for the SIS and keep diamond-in-square for PLCs"
+        "Some legends use a hexagon or a double-bordered diamond for the SIS and keep diamond-in-square for PLCs",
+        "A note such as CMS beside it puts the trip in the machinery protection / condition monitoring system (API 670 rack), not the process SIS: see cms-system"
       ],
       "physical": false,
       "tags": [],
@@ -2676,6 +2719,38 @@
         "Company standards fill the user's-choice letters differently (C, D, G, M, N, O)",
         "Some companies put Z after the first letter for SIS loops (PZT); that is not ISA",
         "Loop numbers may include an area or unit prefix, e.g. 20-PT-1101"
+      ],
+      "physical": false,
+      "tags": [],
+      "isa": []
+    },
+    {
+      "id": "voting-annotation",
+      "name": "Voting (MooN) annotation",
+      "category": "instruments",
+      "svg": "voting-annotation.svg",
+      "standard": "ISA 5.1-2009/2022 (general instrument and function symbols) / IEC 61511",
+      "drawn": "Text such as 1oo2, 2oo2 or 2oo3 written beside the signal lines where two or more measurements join into one alarm, trip or SIS function.",
+      "meaning": "M-out-of-N voting: 1oo2 trips when either of two sensors trips (safe, more spurious trips); 2oo2 needs both; 2oo3 needs any two of three. It tells you how many field sensors exist: model N of them. Logic only, nothing physical beyond the sensors.",
+      "variants": [
+        "Some legends put the voting inside the logic box (e.g. UZ 2oo3)",
+        "F&G uses the same notation for detector voting (2ooN confirmed gas or fire)"
+      ],
+      "physical": false,
+      "tags": [],
+      "isa": []
+    },
+    {
+      "id": "cms-system",
+      "name": "Condition monitoring / machinery protection system (CMS)",
+      "category": "instruments",
+      "svg": "cms-system.svg",
+      "standard": "ISA 5.1-2009/2022 (general instrument and function symbols) / API 670",
+      "drawn": "A rectangle labelled CMS (or MPS, VMS), or the letters CMS written beside vibration and bearing-temperature alarm functions.",
+      "meaning": "The machinery protection and condition monitoring system: an API 670 rack that receives the VE / ZE / bearing TE signals, raises alarms and trips (often voted 1oo2 or 2oo2), and passes trends to analysis software. Not physical on the P&ID; in a twin the rack sits in an equipment-room system-cabinet.",
+      "variants": [
+        "Some legends draw it as a DCS-style square with the CMS tag",
+        "The machine trip from the CMS usually goes to the motor MCC or the SIS"
       ],
       "physical": false,
       "tags": [],
@@ -2949,7 +3024,8 @@
       "meaning": "Temperature measurement: a thermowell (TW), an element (TE, an RTD or thermocouple) and a transmitter (TT). Model one temperature-transmitter for the loop.",
       "variants": [
         "Some legends draw the well as a short line into the pipe with a dot",
-        "A test thermowell (TW only, no TE) is for a portable probe; skip it"
+        "A test thermowell (TW only, no TE) is for a portable probe; skip it",
+        "Some legends show a flanged thermowell connection as two short bars (a flange pair) on the branch to the bubble, with the connection size written beside it"
       ],
       "component": "temperature-transmitter",
       "physical": true,
@@ -2997,7 +3073,8 @@
       "meaning": "Bourdon-tube dial gauge read locally: pump discharges, filters and vessels. Becomes pressure-gauge.",
       "variants": [
         "ISA tag is PI; many companies use PG",
-        "A gauge with a seal or snubber shows extra small symbols on the impulse line"
+        "A gauge with a seal or snubber shows extra small symbols on the impulse line",
+        "A small box with a letter on the gauge branch (F, S, D, P) is a project-specific accessory such as a snubber, seal, filter or pulsation damper: read the drawing legend, then model the gauge only"
       ],
       "component": "pressure-gauge",
       "physical": true,
@@ -3329,6 +3406,34 @@
         "LT"
       ],
       "isa": []
+    },
+    {
+      "id": "ve-vibration-element",
+      "name": "Vibration element / transmitter on a machine",
+      "category": "primary-elements",
+      "svg": "ve-vibration-element.svg",
+      "standard": "ISA 5.1-2009/2022 (primary element symbols) / PIP PIC001 / API 670",
+      "drawn": "A VE (or VT) bubble joined by a short line to a small square or dot on the outline of a motor, pump, compressor or bearing. Often in pairs (A / B or X / Y), one per bearing or per axis, with VI / VA / VSHH functions downstream.",
+      "meaning": "Machinery vibration sensor: proximity probes (shaft) or accelerometers (casing) on the bearings, wired to a proximitor junction box and a protection rack. V as the first letter is vibration in ISA 5.1. Becomes vibration-probe on each monitored bearing; set pair for X-Y probes.",
+      "variants": [
+        "Some legends draw only the bubble beside the machine with a note such as NOTE / TYP. for every bearing",
+        "VXE / VYE mark the X and Y probes of a pair; ZE on a machine is an axial position (thrust) probe and also becomes vibration-probe",
+        "Look-alike: V on a valve tag (XV, HV) is a valve, not vibration; check the first letter"
+      ],
+      "component": "vibration-probe",
+      "physical": true,
+      "tags": [
+        "VE",
+        "VT"
+      ],
+      "isa": [
+        "VE",
+        "VT",
+        "VXE",
+        "VYE",
+        "VI",
+        "VSHH"
+      ]
     },
     {
       "id": "vessel-vertical",
@@ -4074,7 +4179,7 @@
       "drawn": "A circle (the scroll) with the outlet leaving tangentially as a short rectangular duct, and curved blades (or a small fan wheel) drawn inside.",
       "meaning": "Centrifugal fan or blower: HVAC supply and extract, combustion air, purge air. Becomes centrifugal-fan.",
       "variants": [
-        "Axial fans are drawn as a circle with a propeller",
+        "Axial and propeller fans are drawn differently: see fan-axial",
         "Positive displacement (roots) blowers are drawn as a circle with two lobes"
       ],
       "component": "centrifugal-fan",
@@ -4084,6 +4189,26 @@
         "B",
         "F",
         "FN"
+      ],
+      "isa": []
+    },
+    {
+      "id": "fan-axial",
+      "name": "Axial / propeller fan",
+      "category": "machines",
+      "svg": "fan-axial.svg",
+      "standard": "ISO 10628-2 (groups 16, 17 and 20, compressors, blowers, engines) / PIP PIC001 (group 17)",
+      "drawn": "A two-blade propeller (two teardrop or figure-8 lobes) on the end of a shaft line, often drawn on top of a motor circle, or a propeller inside a circle or duct outline.",
+      "meaning": "Axial-flow or propeller fan: motor-driven cooling and ventilation fans, HVAC extract, cooler fans. No dedicated component: air-cooled-exchanger and the E-house and analyser-shelter HVAC include their own fans, and centrifugal-fan is the closest standalone fan.",
+      "variants": [
+        "Look-alike: a spectacle blind is a figure-8 at a flange pair on a pipe, not on a motor shaft",
+        "A propeller inside a short duct section is a duct (tube-axial) fan"
+      ],
+      "physical": true,
+      "tags": [
+        "F",
+        "FN",
+        "EF"
       ],
       "isa": []
     },

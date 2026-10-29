@@ -31,6 +31,12 @@ S({ id: 'valve-ball', name: 'Ball valve', cat: 'valves', std: STD_V, component: 
   variants: ['Full-bore vs reduced-bore is usually written as FB / RB next to the symbol', 'Trunnion vs floating is not shown, only on the valve datasheet', 'Look-alikes: filled dot = globe valve, small rectangle = plug valve'],
   svg: svg(120, 52, valve(26) + c(60, 26, 8, W)) })
 
+S({ id: 'valve-ball-encircled', name: 'Ball valve, encircled style', cat: 'valves', std: STD_V, component: 'ball-valve', physical: true, tags: HV,
+  drawn: 'A circle large enough to enclose the bow-tie, so it reads as a circle with an X in it, usually between two flange bars on the line.',
+  meaning: 'Ball valve in legends that draw the ball as a full circle around the bow-tie (common on European and NORSOK-style drawings). Becomes ball-valve; a filled bow-tie or NC beside it means normally closed.',
+  variants: ['Check the sheet legend: a few legends use the encircled X for a general or special valve', 'Look-alike: a circle with an X on an electrical or lighting drawing is a lamp, not a valve'],
+  svg: svg(120, 60, p('M4 30H38M82 30H116') + p('M38 14V46M82 14V46') + c(60, 30, 18) + p('M47 17L73 43M47 43L73 17')) })
+
 S({ id: 'valve-butterfly', name: 'Butterfly valve', cat: 'valves', std: STD_V, component: 'butterfly-valve', physical: true, tags: HV,
   drawn: 'Two short vertical lines across the pipe (wafer body between flanges) with a diagonal line through the middle (the disc) and a dot at its centre (the shaft).',
   meaning: 'Quarter-turn disc valve used for large low-pressure lines: seawater, cooling water, firewater and HVAC. Can isolate or throttle.',

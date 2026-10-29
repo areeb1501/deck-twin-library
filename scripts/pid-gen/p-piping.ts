@@ -43,7 +43,7 @@ export default {
     e: {
       standard: ISO,
       drawn: 'Two short parallel bars across the line (a flange pair), sometimes with a gap between them; at a nozzle only one bar is drawn against the equipment.',
-      notes: 'Two bars with a filled or open paddle between them is a spectacle blind or spade; two bars with taps and an FE tag is an orifice flange pair. Spec breaks (class changes) are marked at a flange with the two class codes.',
+      notes: 'Two bars with a filled or open paddle between them, or with a figure-8 drawn beside them on a short stem, is a spectacle blind or spade (not a plain joint); two bars with taps and an FE tag is an orifice flange pair. Spec breaks (class changes) are marked at a flange with the two class codes.',
       datasheet: { form: 'Piping class (ASME B16.5 / B16.47 flanges, B16.20 gaskets)', fields: { 'Nominal size': 'nps', 'Flange rating': 'rating', 'Wall schedule': 'schedule', ...{ 'Tag number': 'tag' } } },
     },
   },
@@ -62,7 +62,7 @@ export default {
       standard: ISO,
       drawn: 'A figure-8 drawn across the line between two flange bars: one circle filled (solid blind) and one open (spacer ring). The filled half on the line means the line is blinded (normally closed); the open half on the line means it is open.',
       tags: ['SB', 'SP'],
-      notes: 'Note NO / NC (or SO / SC) beside it for the normal position. A single filled paddle is a spade; a single open ring is a spacer.',
+      notes: 'Note NO / NC (or SO / SC) beside it for the normal position. Many legends draw the figure-8 beside the flange pair on a short stem instead of across the line: the circle next to the stem is the half in the line (open ring = open, blank = closed), and the blank may be hatched or drawn as concentric circles. A single filled paddle is a spade; a single open ring is a spacer.',
       datasheet: { form: 'Piping class / special item datasheet (ASME B16.48)', fields: { 'Nominal size': 'nps', 'Flange rating': 'rating', 'Normal position (NO / NC)': 'state', 'Include flanges': 'flanges' } },
     },
   },

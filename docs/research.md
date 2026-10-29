@@ -133,6 +133,7 @@ Flange convention: `thickness` and `hubLength` exclude the raised face for every
 | Safety shower | ANSI Z358.1 | Heights |
 | Extinguishers | EN 3 colour zones | — |
 | Windsock | Orga | — |
+| Vibration probes | [Bently Nevada 31000/32000 probe housing](https://www.instrumart.com/products/44323/bently-nevada-31000-32000-proximity-probe-housings) (PPS body, stainless parts, conduit fittings, API 670 external mount; outline is in BN datasheet 141610, not seen); [Wilcoxon 793](https://www.directindustry.com/prod/wilcoxon-sensing-technologies/product-29441-2256042.html) | Top-exit accelerometer with a 2-pin MIL-C-5015 connector on a 1/4-28 stud. Probe and junction-box sizes are typical. |
 | Toxic gas | Dräger Polytron, Honeywell Sensepoint XCD | — |
 | Acoustic leak | Incus, FlexSonic | — |
 | Hydrogen | Crowcon Xgard | — |
@@ -186,7 +187,7 @@ Flange convention: `thickness` and `hubLength` exclude the raised face for every
 
 - **Sources consulted:** Wikipedia's P&ID page, internal P&ID-to-component mapping notes, and schematex single-line-diagram shapes. Web search results for symbol tables were mostly low quality.
 - **Where conventions vary widely:** coriolis, ultrasonic, vortex and magnetic flow elements, the PCHE, plug valves and F&G letters. Their entries say so.
-- **Extended legend (`registry/pid/library.json`):** 287 symbols in 17 categories. 159 of them map to 123 components; 48 are not physical (signal lines, bubbles, connectors).
+- **Extended legend (`registry/pid/library.json`):** 293 symbols in 17 categories. Added on 2026-10-29 from a user's drawing: an offset spectacle blind, a vibration element, MooN voting, the CMS box, the encircled ball valve and the axial fan. 162 of them map to 124 components; 50 are not physical (signal lines, bubbles, connectors).
   - **Sources:**
     - [ISO 10628-2:2012 preview](https://cdn.standards.iteh.ai/samples/51841/8eb426031e364fd49f1bd17e19a744dd/ISO-10628-2-2012.pdf): the group list and registration numbers.
     - [EIT "How to read P&IDs"](https://iceweb.eit.edu.au/InstrDesignEng/How%20to%20read%20P&ID.pdf) and [Control Engineering](https://www.controleng.com/how-to-read-pids-3/): ISA bubbles, location bars and the letter table.

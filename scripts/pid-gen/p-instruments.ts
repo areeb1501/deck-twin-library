@@ -154,4 +154,15 @@ export default {
       datasheet: { form: 'Pressure switch specification form (ISA-TR20.00.01)', fields: { 'Flange rating': 'rating', 'Housing material / finish': 'housing', ...tagF } },
     },
   },
+  'vibration-probe': {
+    svg: svg('0 0 140 100', C(40, 54, 26) + T(40, 62, 'M', 22) + R(66, 49, 7, 10, WHITE) + P('M73 54h21') + bubble(114, 54, 'VE', 18)),
+    e: {
+      standard: 'ISA 5.1 (field-mounted instrument bubble) / API 670',
+      drawn: 'A VE or VT bubble joined to a small square or dot on a motor, pump, compressor or bearing outline, often in A / B or X / Y pairs, feeding VI / VA / VSHH functions in the DCS, SIS or CMS.',
+      tags: ['VE', 'VT'],
+      isa: ['VE', 'VT', 'VXE', 'VYE', 'VI', 'VSHH'],
+      notes: 'V as the first letter is vibration (ISA 5.1). One vibration-probe per monitored bearing; pair for X-Y proximity probes, kind accelerometer for casing sensors. ZE on a machine is an axial position probe and maps here too. Voting such as 1oo2 between A and B means two sensors exist.',
+      datasheet: { form: 'Machinery protection system datasheet (API 670)', fields: { 'Transducer type': 'kind', 'X-Y pair': 'pair', 'Shaft centreline height': 'shaftHeight', ...tagF } },
+    },
+  },
 }

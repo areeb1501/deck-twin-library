@@ -255,8 +255,14 @@ S({ id: 'compressor-axial', name: 'Axial compressor', cat: 'machines', std: STD_
 S({ id: 'blower-fan', name: 'Blower / centrifugal fan', cat: 'machines', std: STD_MC + ' (group 17)', component: 'centrifugal-fan', physical: true, tags: ['K', 'B', 'F', 'FN'],
   drawn: 'A circle (the scroll) with the outlet leaving tangentially as a short rectangular duct, and curved blades (or a small fan wheel) drawn inside.',
   meaning: 'Centrifugal fan or blower: HVAC supply and extract, combustion air, purge air. Becomes centrifugal-fan.',
-  variants: ['Axial fans are drawn as a circle with a propeller', 'Positive displacement (roots) blowers are drawn as a circle with two lobes'],
+  variants: ['Axial and propeller fans are drawn differently: see fan-axial', 'Positive displacement (roots) blowers are drawn as a circle with two lobes'],
   svg: svg(120, 100, c(54, 54, 30) + p('M54 24H104V44H82') + c(54, 54, 8) + p('M54 46q10-10 18-6M62 54q10 10 6 18M54 62q-10 10-18 6M46 54q-10-10-6-18', thin(1.6))) })
+
+S({ id: 'fan-axial', name: 'Axial / propeller fan', cat: 'machines', std: STD_MC + ' (group 17)', physical: true, tags: ['F', 'FN', 'EF'],
+  drawn: 'A two-blade propeller (two teardrop or figure-8 lobes) on the end of a shaft line, often drawn on top of a motor circle, or a propeller inside a circle or duct outline.',
+  meaning: 'Axial-flow or propeller fan: motor-driven cooling and ventilation fans, HVAC extract, cooler fans. No dedicated component: air-cooled-exchanger and the E-house and analyser-shelter HVAC include their own fans, and centrifugal-fan is the closest standalone fan.',
+  variants: ['Look-alike: a spectacle blind is a figure-8 at a flange pair on a pipe, not on a motor shaft', 'A propeller inside a short duct section is a duct (tube-axial) fan'],
+  svg: svg(120, 120, c(60, 92, 22) + t(60, 100, 20, 'M') + p('M60 70V34', thin(2)) + p('M60 34C46 22 22 24 20 34C22 44 46 46 60 34Z') + p('M60 34C74 22 98 24 100 34C98 44 74 46 60 34Z')) })
 
 S({ id: 'ejector', name: 'Ejector / eductor', cat: 'machines', std: STD_MC + ' (jet pump)', physical: true, tags: ['J', 'EJ', 'X'],
   drawn: 'A converging nozzle inside a body that narrows to a throat and then widens (diffuser): the motive fluid enters at the nozzle end, suction comes in from the side, and the mixture leaves at the wide end.',

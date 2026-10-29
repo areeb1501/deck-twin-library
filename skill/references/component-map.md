@@ -185,6 +185,7 @@ Elbows, tees and flanges are made by the router. Add `elbow` and `tee` as items 
 | FE/FT vortex | `vortex-flowmeter` (inline) |
 | LSH / LSL / LSLL (vibrating fork) | `level-switch` |
 | PSH / PSL / PSHH / PSLL | `pressure-switch` |
+| VE / VT / VXE / VYE / ZE on a motor, pump, compressor or bearing | `vibration-probe`, one per monitored bearing (`pair` for X-Y probes). VI / VA / VSHH and CMS boxes are logic: no extra component |
 
 ## Fire, gas & safety
 

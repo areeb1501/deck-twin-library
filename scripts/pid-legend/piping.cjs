@@ -33,14 +33,20 @@ const flanges = (x1, x2, y = 70, h = 20) => p(`M${x1} ${y - h}V${y + h}M${x2} ${
 S({ id: 'spectacle-blind-open', name: 'Spectacle blind, open (spacer in line)', cat: 'fittings', std: STD_F + ' / ASME B16.48', component: 'spectacle-blind', physical: true, tags: ['SB'],
   drawn: 'A figure-8 between two flange bars: the open ring sits on the pipe, and the solid (filled) blank sits off the line.',
   meaning: 'Spectacle blind in the open position: flow passes through the ring. It is turned to the closed position for positive isolation during maintenance. Becomes spectacle-blind.',
-  variants: ['Some legends write "NO" (normally open) beside it', 'Spectacle blinds in plant isolations are often marked NO / NC'],
+  variants: ['Some legends write "NO" (normally open) beside it', 'Spectacle blinds in plant isolations are often marked NO / NC', 'The offset form (figure-8 beside the flange pair on a short stem) means the same thing: see spectacle-blind-offset'],
   svg: svg(140, 100, p('M4 70H136') + flanges(60, 80) + c(70, 70, 11, W) + p('M4 70H59M81 70H136') + p('M70 59V38') + c(70, 26, 12, B)) })
 
 S({ id: 'spectacle-blind-closed', name: 'Spectacle blind, closed (blank in line)', cat: 'fittings', std: STD_F + ' / ASME B16.48', component: 'spectacle-blind', physical: true, tags: ['SB'],
   drawn: 'A figure-8 between two flange bars: the solid (filled) blank sits on the pipe, and the open ring is off the line.',
   meaning: 'Spectacle blind in the closed position: positive isolation, nothing passes. Typical on spare connections, start-up lines and vessel isolations.',
-  variants: ['Some legends write "NC" beside it', 'A filled circle without a ring is a spade (line blank)'],
+  variants: ['Some legends write "NC" beside it', 'A filled circle without a ring is a spade (line blank)', 'The offset form (figure-8 beside the flange pair on a short stem) means the same thing: see spectacle-blind-offset'],
   svg: svg(140, 100, p('M4 70H60M80 70H136') + flanges(60, 80) + c(70, 70, 11, B) + p('M70 59V38') + c(70, 26, 12)) })
+
+S({ id: 'spectacle-blind-offset', name: 'Spectacle blind, offset figure-8 (drawn beside the flanges)', cat: 'fittings', std: STD_F + ' / ASME B16.48', component: 'spectacle-blind', physical: true, tags: ['SB'],
+  drawn: 'A flange pair (two short bars) on the line, with a figure-8 drawn off to one side and joined to the flanges by a short stem. The circle next to the stem is the half installed in the line; the far circle is the spare half. The blank half may be filled, hatched or drawn as concentric circles; the ring half is a plain open circle.',
+  meaning: 'Spectacle blind between the flanges, drawn beside the line so the pipe stays unbroken. Open ring next to the stem = open (NO); blank next to the stem = closed (NC). The line size (e.g. 4") is usually written beside it. Becomes spectacle-blind with state set from the half next to the stem.',
+  variants: ['Some legends draw both halves as plain circles and write NO / NC beside it', 'Look-alike: a plain flange pair has no figure-8; do not drop the blind', 'Look-alike: a single open circle on a stem at a flange pair is a spacer ring; a single solid paddle is a spade'],
+  svg: svg(150, 120, p('M110 4V116') + p('M92 52H128M92 68H128') + c(68, 60, 9) + p('M77 60H92') + c(38, 60, 13) + c(38, 60, 8) + c(38, 60, 3)) })
 
 S({ id: 'spade', name: 'Spade (line blank)', cat: 'fittings', std: STD_F + ' / ASME B16.48', physical: true, tags: [],
   drawn: 'A single solid blank between two flange bars with a short handle tab sticking out, and no ring.',
@@ -63,7 +69,7 @@ S({ id: 'blind-flange', name: 'Blind flange', cat: 'fittings', std: STD_F + ' / 
 S({ id: 'flange-pair', name: 'Flanged joint', cat: 'fittings', std: STD_F + ' / ASME B16.5', component: 'flanged-joint', physical: true, tags: [],
   drawn: 'Two short parallel bars across the pipe, close together.',
   meaning: 'Bolted flange connection, usually shown only where it matters: equipment nozzles, spool breaks, spec breaks and maintenance breaks. Becomes flanged-joint.',
-  variants: ['A single bar is a flange face at an equipment nozzle', 'Look-alike: union has a shorter third bar in the middle'],
+  variants: ['A single bar is a flange face at an equipment nozzle', 'Look-alike: union has a shorter third bar in the middle', 'Look-alike: a flange pair with a figure-8 drawn beside it on a short stem is a spectacle blind (spectacle-blind-offset), not a plain joint'],
   svg: svg(120, 60, p('M4 30H56M64 30H116') + p('M56 14V46M64 14V46')) })
 
 S({ id: 'pipe-cap', name: 'Pipe cap', cat: 'fittings', std: STD_F + ' / ASME B16.9', physical: true, tags: [],
