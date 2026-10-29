@@ -1,4 +1,4 @@
-// Access rules after ISO 14122-2/3/4, OSHA 1910 Subpart D and NORSOK C-001 (metres). Typical design values — verify against the governing standard.
+// Access rules after ISO 14122-2/3/4, OSHA 1910 Subpart D and NORSOK C-001 (metres). Typical design values. Verify against the governing standard.
 
 export const ACCESS = {
   handrail: { height: 1.1, kneeRail: 0.5, toePlate: 0.1, postSpacingMax: 1.5 },

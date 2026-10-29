@@ -19,9 +19,9 @@ Ask before redoing any of this research: check here first.
 | Valve face-to-face | B16.10, API 609, API 594, ISA 75.08.01 | Class 300 6" gate = 403 mm. Class 150 6" gate = 267 mm. Class 600 4" gate = 432 mm. |
 | PSVs | API 526 | J orifice = 3"×4". P = 4"×6". T = 8"×10". |
 | Motors | IEC 60072 | Shaft height H equals the frame number. |
-| Sections | EN 10365 / 10056 / 10210, AISC W-shapes | — |
-| Access | ISO 14122 | — |
-| Colours | ISO 14726, ISO 3864, RAL. RAL colours are approximate sRGB. | — |
+| Sections | EN 10365 / 10056 / 10210, AISC W-shapes | Not recorded |
+| Access | ISO 14122 | Not recorded |
+| Colours | ISO 14726, ISO 3864, RAL. RAL colours are approximate sRGB. | Not recorded |
 
 Flange convention: `thickness` and `hubLength` exclude the raised face for every class.
 
@@ -52,7 +52,7 @@ Flange convention: `thickness` and `hubLength` exclude the raised face for every
 | Gate and globe | Velan API 600 / API 623 | Flexible wedge, OS&Y |
 | MOV | Rotork IQ3 | Electric actuator layout |
 | Control valve | Fisher 657/667 | Diaphragm actuator layout |
-| Dual-plate check | Crane DuoChek | — |
+| Dual-plate check | Crane DuoChek | Not recorded |
 | Butterfly | Bray 30/31, Vanessa TOV | Extended neck for insulation |
 | Plug | Nordstrom | Adjustable gland, sealant injection |
 | Knife gate | DeZURIK KGN, Orbinox | MSS SP-81 lengths |
@@ -65,10 +65,10 @@ Flange convention: `thickness` and `hubLength` exclude the raised face for every
 | Filter-separator | Parker PECO 75HTL | One sump per stage, DP across the tube sheet |
 | Cartridge filter | Facet VCS, Parker DV, Ergil | Swing-bolt closure; inlet low, outlet high |
 | Tanks | Superior Tank, Angus Fire K20H | Foam chambers, cooling ring |
-| Spheres | CB&I Hortonsphere, Fabtank | — |
-| Air receiver | Man Tank 302443 | — |
-| Desander | NOV, Expro, Hunting | — |
-| Bullet tank | DNOW, chemengonline LPG primer | — |
+| Spheres | CB&I Hortonsphere, Fabtank | Not recorded |
+| Air receiver | Man Tank 302443 | Not recorded |
+| Desander | NOV, Expro, Hunting | Not recorded |
+| Bullet tank | DNOW, chemengonline LPG primer | Not recorded |
 | Slug catcher | Wikipedia | Finger-type layout |
 
 ## Heat transfer and flare
@@ -76,26 +76,26 @@ Flange convention: `thickness` and `hubLength` exclude the raised face for every
 | Equipment | Sources | What they drove |
 |---|---|---|
 | Air cooler | [Wermac](https://wermac.org/equipment/air-cooled_heatexchanger.html), Chart/Hudson | Fan coverage of at least 40 %, plug versus cover-plate headers |
-| Plate exchanger | Alfa Laval GPHE, Schmidt manual, Danfoss | — |
+| Plate exchanger | Alfa Laval GPHE, Schmidt manual, Danfoss | Not recorded |
 | Shell-and-tube | TEMA type references | The AES S-cover is larger than the shell |
 | Flares | Argo, OGJ, Zeeco, IChemE flare paper | Molecular seal, ignition panel, pilots |
 | Fired heater | API 560 PA, red-bag layout guide | Snuffing steam, explosion doors, sootblowers |
-| Vent stack | Storagetech / euromekanik end-of-line arresters | — |
-| Electric heater | Chromalox, Exheat | — |
-| Hairpin exchanger | US4570701 | — |
-| PCHE | Heatric, Alfa Laval Hybloc | — |
-| Cooling tower | SPX Marley | — |
+| Vent stack | Storagetech / euromekanik end-of-line arresters | Not recorded |
+| Electric heater | Chromalox, Exheat | Not recorded |
+| Hairpin exchanger | US4570701 | Not recorded |
+| PCHE | Heatric, Alfa Laval Hybloc | Not recorded |
+| Cooling tower | SPX Marley | Not recorded |
 
 ## Rotating equipment
 
 | Equipment | Sources | What they drove |
 |---|---|---|
-| Pumps | Flowserve VTP, Ruhrpumpen; Pentair Fairbanks Nijhuis fire pumps; Randolph right-angle gear; Framo; ITT Goulds 3600/3910/3700; Aldrich (API 674); Milton Roy Primeroyal (API 675); NETZSCH NEMO; WEG W22; Novenco and Hartzell fans | — |
+| Pumps | Flowserve VTP, Ruhrpumpen; Pentair Fairbanks Nijhuis fire pumps; Randolph right-angle gear; Framo; ITT Goulds 3600/3910/3700; Aldrich (API 674); Milton Roy Primeroyal (API 675); NETZSCH NEMO; WEG W22; Novenco and Hartzell fans | Not recorded |
 | Gas turbine generator | Solar Titan 130 spec sheet | Lube vent separator, enclosure F&G |
 | Gas turbine filter house | Siemens SGT-400 manual, Donaldson | 5-stage filter house |
-| Centrifugal compressor | Baker Hughes MCL (split up to ~60 bar, barrel above), Elliott, Wermac rundown tank | — |
-| Reciprocating compressor | Spectrum Acoustic and TNO (API 618 orifice plates), Ariel JGK/4 | — |
-| Screw compressor | Howden, Kirloskar | — |
+| Centrifugal compressor | Baker Hughes MCL (split up to ~60 bar, barrel above), Elliott, Wermac rundown tank | Not recorded |
+| Reciprocating compressor | Spectrum Acoustic and TNO (API 618 orifice plates), Ariel JGK/4 | Not recorded |
+| Screw compressor | Howden, Kirloskar | Not recorded |
 | Diesel generators | Cat C32 container, Cummins canopies, mtu offshore sets | 20/40 ft containers, sand-trap louvres |
 
 ## Wells, drilling and subsea
@@ -104,46 +104,46 @@ Flange convention: `thickness` and `hubLength` exclude the raised face for every
 |---|---|---|
 | Christmas tree | SLB opener devices, Sentry wellhead catalogue | Fusible lock-open on the SSV, test ports, lockdown screws |
 | Pig traps | GD Engineering Bandlock, SPX, TD Williamson, enggcyclopedia | Eccentric reducer on launchers, concentric on receivers; balance line |
-| Choke | WOM positive choke | — |
+| Choke | WOM positive choke | Not recorded |
 | WHCP | SLB WHCP page | Fusible loop, hi/lo pilots |
-| Mud pumps | NOV 14-P-220 / 12-P-160, HMH TPK-1600, Bentec | — |
-| Choke manifold | NOV HP choke and kill | — |
-| Shakers and agitators | Brandt and Derrick | — |
-| Catwalks | NOV, FET, HMH | — |
-| Cementing | SLB CPS-730, US4158510 | — |
-| Coiled tubing | Weatherford CTU | — |
-| Subsea manifold | OneSubsea | — |
-| PLET | Oil States, Turcomp | — |
-| UTA | Viper V-Lock, Prysmian | — |
-| Subsea tree | API 17D | — |
+| Mud pumps | NOV 14-P-220 / 12-P-160, HMH TPK-1600, Bentec | Not recorded |
+| Choke manifold | NOV HP choke and kill | Not recorded |
+| Shakers and agitators | Brandt and Derrick | Not recorded |
+| Catwalks | NOV, FET, HMH | Not recorded |
+| Cementing | SLB CPS-730, US4158510 | Not recorded |
+| Coiled tubing | Weatherford CTU | Not recorded |
+| Subsea manifold | OneSubsea | Not recorded |
+| PLET | Oil States, Turcomp | Not recorded |
+| UTA | Viper V-Lock, Prysmian | Not recorded |
+| Subsea tree | API 17D | Not recorded |
 
 ## Instruments, F&G and safety
 
 | Equipment | Sources | What they drove |
 |---|---|---|
 | Transmitters and impulse lines | Rosemount 3051S / 305 drawings, Swagelok impulse-line notes | Lines fall 1:10 to the taps in gas service |
-| Flow, level and temperature | Daniel 3415, Micro Motion, Magnetrol Atlas, Rosemount 9930 / 644, WIKA, Endress+Hauser, Rosemount 8800 / 2140, Ashcroft | — |
+| Flow, level and temperature | Daniel 3415, Micro Motion, Magnetrol Atlas, Rosemount 9930 / 644, WIKA, Endress+Hauser, Rosemount 8800 / 2140, Ashcroft | Not recorded |
 | Point gas detector | Honeywell Searchpoint Optima manual | IR head mounted horizontally into the junction box, deluge hood, remote gassing |
 | Flame detector | Det-Tronics | Aim 10–20° down |
 | Open-path detector | Searchline Excel | 2–120 m path |
-| Call points and beacons | MEDC, E2S | — |
+| Call points and beacons | MEDC, E2S | Not recorded |
 | Deluge set | Tyco DV-5 | Full trim list |
 | Fire monitor | Elkhart, Akron | Inline oscillator, +80 / −15° travel |
-| Hose reel | Angus | — |
+| Hose reel | Angus | Not recorded |
 | Safety shower | ANSI Z358.1 | Heights |
-| Extinguishers | EN 3 colour zones | — |
-| Windsock | Orga | — |
+| Extinguishers | EN 3 colour zones | Not recorded |
+| Windsock | Orga | Not recorded |
 | Vibration probes | [Bently Nevada 31000/32000 probe housing](https://www.instrumart.com/products/44323/bently-nevada-31000-32000-proximity-probe-housings) (PPS body, stainless parts, conduit fittings, API 670 external mount; outline is in BN datasheet 141610, not seen); [Wilcoxon 793](https://www.directindustry.com/prod/wilcoxon-sensing-technologies/product-29441-2256042.html) | Top-exit accelerometer with a 2-pin MIL-C-5015 connector on a 1/4-28 stud. Probe and junction-box sizes are typical. |
-| Toxic gas | Dräger Polytron, Honeywell Sensepoint XCD | — |
-| Acoustic leak | Incus, FlexSonic | — |
-| Hydrogen | Crowcon Xgard | — |
-| Aspirating smoke | VESDA VLF-500 | — |
-| Beam smoke | Fireray 5000 | — |
-| PA speakers | Industronic | — |
-| Emergency lighting and exit signs | CEAG | — |
-| Telephone hoods | Storacall, GAI-Tronics | — |
-| Hydrants | NAFFCO, Mueller | — |
-| Deluge nozzles | Reliable MV | — |
+| Toxic gas | Dräger Polytron, Honeywell Sensepoint XCD | Not recorded |
+| Acoustic leak | Incus, FlexSonic | Not recorded |
+| Hydrogen | Crowcon Xgard | Not recorded |
+| Aspirating smoke | VESDA VLF-500 | Not recorded |
+| Beam smoke | Fireray 5000 | Not recorded |
+| PA speakers | Industronic | Not recorded |
+| Emergency lighting and exit signs | CEAG | Not recorded |
+| Telephone hoods | Storacall, GAI-Tronics | Not recorded |
+| Hydrants | NAFFCO, Mueller | Not recorded |
+| Deluge nozzles | Reliable MV | Not recorded |
 | Lifesaving and first aid | Viking, Survitec, SHM, Ocean Safety | BA cabinets, stretchers, lifejacket boxes |
 
 ## Structure, lifting, electrical, interiors, packages, onshore
@@ -153,26 +153,26 @@ Flange convention: `thickness` and `hubLength` exclude the raised face for every
 | Ladders | Delta Plus EN 14122-4 | One flight up to 10 m; flights of 6 m or less above that |
 | Helideck | HSE netting note | Net below deck level |
 | Grating | Lionweld Kennedy | Pitches of 20, 30 and 34 mm |
-| Bridge bearings | Fluorocarbon, mageba | — |
-| Cable tray | Niedax | — |
+| Bridge bearings | Fluorocarbon, mageba | Not recorded |
+| Cable tray | Niedax | Not recorded |
 | Pipe racks | AISC journal | Bent spacing |
 | Deck drains | US4372757 | Seal pots |
 | Cranes | API 2C text | D/d ≥ 18, hook latch, anti-two-block, boom stops |
-| Crane vendors | PALFINGER, Liebherr | — |
-| Containers and cargo units | HZ Containers, OEG, DNV-ST-E271 | — |
-| Gas quads | Linde, Wilhelmsen | — |
-| Lifeboats | PALFINGER, Viking | — |
+| Crane vendors | PALFINGER, Liebherr | Not recorded |
+| Containers and cargo units | HZ Containers, OEG, DNV-ST-E271 | Not recorded |
+| Gas quads | Linde, Wilhelmsen | Not recorded |
+| Lifeboats | PALFINGER, Viking | Not recorded |
 | Transformers | Hitachi Energy level indicators | Accessories |
 | E-houses and switchgear | ABB, Siemens eHouse; NXAIR AFLR drawings | 0.8 m aisles |
-| Ex equipment | R. STAHL | — |
+| Ex equipment | R. STAHL | Not recorded |
 | Lighting masts | Abacus base-hinged masts | Lowering mast instead of a ladder |
 | Analyser houses | Control Global analyser-house article | Two doors, intake stack, external shutdown |
-| UPS, NER and aids to navigation | EnerSys, Vishay, IALA O-139 | — |
-| Control room | Vertiv Knürr, Winsted, Barco UniSee, Planar | — |
-| Racks and raised floors | Rittal VX25, Emerson DeltaV CTO, Tate | — |
-| CCTV | Videotec, Axis, Hernis | — |
-| Doors and windows | MML, Baggerod, Bohamet | — |
-| Packages | LEWA and Pulsafeeder (chemical injection); Emerson Daniel, KROHNE, Caldon (metering); Atlas Copco (instrument air); Croft, Kimray (TEG); Semco (HPU and N2); SLB Vortoil, CECO Peerless (hydrocyclones); Emerson compact prover; Evoqua (filters, hypochlorite) | — |
+| UPS, NER and aids to navigation | EnerSys, Vishay, IALA O-139 | Not recorded |
+| Control room | Vertiv Knürr, Winsted, Barco UniSee, Planar | Not recorded |
+| Racks and raised floors | Rittal VX25, Emerson DeltaV CTO, Tate | Not recorded |
+| CCTV | Videotec, Axis, Hernis | Not recorded |
+| Doors and windows | MML, Baggerod, Bohamet | Not recorded |
+| Packages | LEWA and Pulsafeeder (chemical injection); Emerson Daniel, KROHNE, Caldon (metering); Atlas Copco (instrument air); Croft, Kimray (TEG); Semco (HPU and N2); SLB Vortoil, CECO Peerless (hydrocyclones); Emerson compact prover; Evoqua (filters, hypochlorite) | Not recorded |
 | Onshore | Emco Wheaton B0030 loading arm, Hitachi Energy SDF disconnector, Cleaver-Brooks CBEX boiler | Many HV vendor pages returned 403, so those items use typical values |
 
 ## P&ID symbols

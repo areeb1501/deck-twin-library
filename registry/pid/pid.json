@@ -1297,7 +1297,7 @@
   "perimeter-fence": {
     "symbol": "perimeter-fence.svg",
     "standard": "Layout plan convention (site plan)",
-    "drawn": "Site plan: a line with crosses at intervals (—x—x—) along the boundary, gates shown as a swing (leaf and arc) or a sliding leaf, with fence height and type noted.",
+    "drawn": "Site plan: a line with crosses at intervals (-x-x-) along the boundary, gates shown as a swing (leaf and arc) or a sliding leaf, with fence height and type noted.",
     "tags": [
       "FNC"
     ],

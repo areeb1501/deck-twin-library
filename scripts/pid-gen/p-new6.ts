@@ -62,7 +62,7 @@ export default {
     svg: svg('0 0 200 80', P('M4 50h70M126 50h70') + [24, 54, 146, 176].map((x) => P(`M${x - 5} 45l10 10M${x + 5} 45l-10 10`, THIN)).join('') + P('M74 50l40-30', 'stroke-width="3"') + P('M74 50a50 50 0 0 1 50 0', DASH + ' ' + THIN)),
     e: {
       standard: LAY + ' (site plan)',
-      drawn: 'Site plan: a line with crosses at intervals (—x—x—) along the boundary, gates shown as a swing (leaf and arc) or a sliding leaf, with fence height and type noted.',
+      drawn: 'Site plan: a line with crosses at intervals (-x-x-) along the boundary, gates shown as a swing (leaf and arc) or a sliding leaf, with fence height and type noted.',
       tags: ['FNC'],
       notes: 'Only on site plans. The crosses tell it from a wall (solid double line) or a kerb.',
       datasheet: { form: 'Fencing specification (BS 1722-10 / -12, ASTM F567)', fields: { 'Run length': 'length', Style: 'style', Height: 'height', Topping: 'topping', Gate: 'gate', 'Gate width': 'gateWidth', Finish: 'finish', ...tagF } },

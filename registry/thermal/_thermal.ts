@@ -17,7 +17,7 @@ export interface Girth {
   db: number
 }
 
-/** typical: custom body flange for a shell of outside radius Ro (not B16.5/B16.47 — sized like TEMA girth flanges). */
+/** typical: custom body flange for a shell of outside radius Ro (not B16.5/B16.47; sized like TEMA girth flanges). */
 export function girthDims(Ro: number): Girth {
   const D = 2 * Ro
   const db = D < 0.6 ? 0.024 : D < 1.2 ? 0.03 : 0.036

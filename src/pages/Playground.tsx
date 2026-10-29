@@ -20,7 +20,7 @@ export function Playground() {
     <div className="mx-auto max-w-[1440px] px-6 py-8">
       <h1 className="text-[28px] leading-tight font-semibold text-ink">Playground</h1>
       <p className="mt-2 text-[16px] text-slate-600">Paste a plant.json from your agent, render it and read the checks. Nothing leaves your browser.</p>
-      <div className="mt-5 grid gap-5 lg:grid-cols-[440px_1fr]">
+      <div className="mt-5 grid grid-cols-1 gap-5 lg:grid-cols-[440px_minmax(0,1fr)]">
         <div className="flex flex-col gap-3">
           <div className="flex gap-2">
             <select className="h-8 flex-1 rounded-md border border-border px-2 text-[13px]" onChange={(e) => { const ex = EXAMPLES.find((x) => x.name === e.target.value); if (ex) { setText(JSON.stringify(ex.spec, null, 2)); setSpec(ex.spec) } }}>

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type ReactNode } from 'react'
+import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { createPortal } from 'react-dom'
 import { Link, useLocation } from 'wouter'
 import { CATEGORIES, ITEMS, byCategory, thumb } from '../registry'
@@ -15,7 +15,7 @@ export function Shell({ children }: { children: ReactNode }) {
     <div className="min-h-full">
       <Header />
       {withSidebar ? (
-        <div className="mx-auto flex max-w-[1440px]">
+        <div className="flex">
           <Sidebar />
           <main className="min-w-0 flex-1">{children}</main>
         </div>
@@ -40,7 +40,7 @@ function Header() {
   useEffect(() => setMenu(false), [loc])
   return (
     <header className="sticky top-0 z-40 border-b border-border/80 bg-white/80 backdrop-blur-xl backdrop-saturate-150">
-      <div className="mx-auto flex h-14 max-w-[1440px] items-center px-5 lg:px-6">
+      <div className="flex h-14 items-center px-5 lg:px-6">
         <Link href="/" className="flex shrink-0 items-center gap-2 rounded-md pr-2">
           <Logo className="h-[22px] w-[22px]" />
           <span className="text-[15px] font-semibold tracking-[-0.01em] text-ink">Deck Twin</span>
@@ -149,17 +149,24 @@ function Footer() {
 
 function Sidebar() {
   const [loc] = useLocation()
+  const ref = useRef<HTMLElement>(null)
+  useEffect(() => {
+    const aside = ref.current
+    const on = aside?.querySelector<HTMLElement>('[aria-current="page"]')
+    if (aside && on && (on.offsetTop < aside.scrollTop || on.offsetTop > aside.scrollTop + aside.clientHeight - 40)) aside.scrollTop = on.offsetTop - aside.clientHeight / 3
+  }, [loc])
   const item = (href: string, label: string) => (
     <Link
       key={href}
       href={href}
+      aria-current={loc === href ? 'page' : undefined}
       className={`block truncate rounded-md border-l-2 px-2.5 py-[5px] text-[13.5px] transition-colors ${loc === href ? 'border-brand bg-white font-medium text-ink shadow-[0_1px_2px_rgb(14_26_36/0.06)]' : 'border-transparent text-slate-600 hover:bg-muted hover:text-ink'}`}
     >
       {label}
     </Link>
   )
   return (
-    <aside className="sticky top-14 hidden h-[calc(100vh-3.5rem)] w-[264px] shrink-0 overflow-y-auto border-r border-border bg-muted/40 px-4 py-7 lg:block">
+    <aside ref={ref} className="sticky top-14 hidden h-[calc(100vh-3.5rem)] w-[264px] shrink-0 overflow-y-auto border-r border-border bg-muted px-4 py-7 lg:block">
       <Section title="Getting started">{DOCS.map((d) => item(`/docs/${d.slug}`, d.title))}</Section>
       <Section title="Components">{item('/components', `All components (${ITEMS.length})`)}</Section>
       {CATEGORIES.map((c) => {

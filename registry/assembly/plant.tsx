@@ -92,6 +92,30 @@ export function Plant({ spec, components, labels = false, onReport, ...group }: 
           <v.Comp {...v.props} />
         </group>
       ))}
+      {spec.sea && <Sea level={spec.sea.level} depth={spec.sea.depth} items={layout.items} />}
+    </group>
+  )
+}
+
+/** Water surface at mean sea level (seen through to the jacket) and an optional seabed. userData.noFit keeps it out of camera fitting. */
+function Sea({ level, depth, items }: { level: number; depth?: number; items: Placed[] }) {
+  const xs = items.map((i) => i.position[0])
+  const zs = items.map((i) => i.position[2])
+  const cx = xs.length ? (Math.min(...xs) + Math.max(...xs)) / 2 : 0
+  const cz = zs.length ? (Math.min(...zs) + Math.max(...zs)) / 2 : 0
+  const r = 4000
+  return (
+    <group position={[cx, 0, cz]} userData={{ noFit: true }}>
+      <mesh rotation-x={-Math.PI / 2} position-y={level} renderOrder={2}>
+        <circleGeometry args={[r, 96]} />
+        <meshStandardMaterial color="#2c6b80" roughness={0.42} metalness={0} transparent opacity={0.8} depthWrite={false} />
+      </mesh>
+      {depth !== undefined && (
+        <mesh rotation-x={-Math.PI / 2} position-y={level - depth} receiveShadow>
+          <circleGeometry args={[r, 64]} />
+          <meshStandardMaterial color="#9c967f" roughness={1} />
+        </mesh>
+      )}
     </group>
   )
 }

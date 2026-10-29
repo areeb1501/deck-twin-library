@@ -1,4 +1,4 @@
-import { useMemo, useState, type ReactNode } from 'react'
+import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { highlight } from 'sugar-high'
 
 export function CopyButton({ text, className = '' }: { text: string; className?: string }) {
@@ -33,7 +33,7 @@ export function Command({ cmd }: { cmd: string }) {
   return (
     <div className="flex items-center gap-3 rounded-lg bg-ink py-2.5 pr-2.5 pl-4 font-mono text-[13px] text-slate-100 shadow-sm ring-1 ring-ink">
       <span className="text-signal">$</span>
-      <span className="min-w-0 flex-1 overflow-x-auto whitespace-nowrap">{cmd}</span>
+      <span className="min-w-0 flex-1 overflow-x-auto whitespace-nowrap [mask-image:linear-gradient(to_right,#000_calc(100%-28px),transparent)] pr-6">{cmd}</span>
       <CopyButton text={cmd} className="border-white/10 bg-white/5 text-slate-300 shadow-none hover:bg-white/10 hover:text-white" />
     </div>
   )
@@ -145,6 +145,98 @@ export function Toolbar({ children, shown, total, onReset }: { children: ReactNo
           Showing <span className="font-medium text-ink">{shown}</span> of {total}
         </div>
       </div>
+    </div>
+  )
+}
+
+export function RichText({ text }: { text: string }) {
+  return (
+    <>
+      {text.split(/(`[^`]+`)/).map((part, i) =>
+        part.startsWith('`') && part.endsWith('`') ? (
+          <code key={i} className="rounded border border-border bg-muted px-1 py-px font-mono text-[0.86em] text-ink">
+            {part.slice(1, -1)}
+          </code>
+        ) : (
+          part
+        ),
+      )}
+    </>
+  )
+}
+
+export function Combobox({ value, onChange, label, allLabel, placeholder, options }: { value: string; onChange: (v: string) => void; label: string; allLabel: string; placeholder: string; options: { value: string; label: string; count: number }[] }) {
+  const [open, setOpen] = useState(false)
+  const [q, setQ] = useState('')
+  const [active, setActive] = useState(0)
+  const box = useRef<HTMLDivElement>(null)
+  const list = useMemo(() => {
+    const s = q.trim().toLowerCase()
+    return [{ value: '', label: allLabel, count: -1 }, ...options.filter((o) => !s || o.label.toLowerCase().includes(s))]
+  }, [q, options, allLabel])
+  useEffect(() => {
+    if (!open) return
+    const off = (e: MouseEvent) => !box.current?.contains(e.target as Node) && setOpen(false)
+    document.addEventListener('mousedown', off)
+    return () => document.removeEventListener('mousedown', off)
+  }, [open])
+  useEffect(() => setActive(0), [q, open])
+  const pick = (v: string) => {
+    onChange(v)
+    setOpen(false)
+    setQ('')
+  }
+  const current = options.find((o) => o.value === value)
+  return (
+    <div ref={box} className="relative max-w-full min-w-0">
+      <button
+        onClick={() => setOpen((o) => !o)}
+        aria-haspopup="listbox"
+        aria-expanded={open}
+        aria-label={label}
+        className={`flex h-9 max-w-full items-center gap-2 rounded-md border bg-white pr-9 pl-3 text-[13.5px] font-medium outline-none hover:border-slate-300 focus-visible:border-slate-400 focus-visible:ring-2 focus-visible:ring-brand/15 ${value ? 'border-slate-400 text-ink' : 'border-border text-ink'}`}
+      >
+        <span className="truncate">{current ? current.label : allLabel}</span>
+        <svg viewBox="0 0 16 16" className="pointer-events-none absolute top-1/2 right-3 h-3.5 w-3.5 -translate-y-1/2 text-muted-fg" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+          <path d="m4.5 6.5 3.5 3.5 3.5-3.5" />
+        </svg>
+      </button>
+      {open && (
+        <div className="absolute top-full left-0 z-30 mt-1.5 w-72 overflow-hidden rounded-lg border border-border bg-white shadow-[0_16px_40px_-12px_rgb(14_26_36/0.28)]">
+          <input
+            autoFocus
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'ArrowDown') {
+                e.preventDefault()
+                setActive((a) => Math.min(a + 1, list.length - 1))
+              } else if (e.key === 'ArrowUp') {
+                e.preventDefault()
+                setActive((a) => Math.max(a - 1, 0))
+              } else if (e.key === 'Enter' && list[active]) pick(list[active].value)
+              else if (e.key === 'Escape') setOpen(false)
+            }}
+            placeholder={placeholder}
+            className="h-10 w-full border-b border-border px-3 text-[13.5px] outline-none placeholder:text-slate-400"
+          />
+          <ul role="listbox" className="max-h-72 overflow-y-auto p-1">
+            {list.map((o, i) => (
+              <li key={o.value || '_all'} role="option" aria-selected={o.value === value}>
+                <button
+                  onMouseMove={() => setActive(i)}
+                  onClick={() => pick(o.value)}
+                  className={`flex w-full items-center gap-2 rounded-md px-2.5 py-1.5 text-left text-[13px] ${i === active ? 'bg-muted' : ''} ${o.value === value ? 'font-semibold text-ink' : 'text-slate-700'}`}
+                >
+                  <span className="min-w-0 flex-1 truncate">{o.label}</span>
+                  {o.count >= 0 && <span className="shrink-0 text-[12px] text-muted-fg tabular-nums">{o.count}</span>}
+                </button>
+              </li>
+            ))}
+            {list.length === 1 && <li className="px-2.5 py-3 text-[13px] text-muted-fg">No supplier matches “{q}”.</li>}
+          </ul>
+        </div>
+      )}
     </div>
   )
 }

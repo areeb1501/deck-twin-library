@@ -1,24 +1,41 @@
 import { useMemo, useState } from 'react'
 import { Link } from 'wouter'
 import { CATEGORIES, ITEMS, thumb, type Item } from '../registry'
-import { FilterInput, Select, Toolbar } from '../components/ui'
+import { Combobox, FilterInput, Select, Toolbar } from '../components/ui'
+
+// Supplier names are free text: group brands under their company ("SLB (Cameron)", "Emerson Fisher" → "SLB", "Emerson") and skip non-suppliers.
+const raw = (i: Item) => (i.vendors ?? []).filter((v) => !/^fabricated/i.test(v)).map((v) => v.replace(/\s*\(.*\)\s*$/, '').trim())
+const NAMES = [...new Set(ITEMS.flatMap(raw))]
+const PARENT = new Map(NAMES.map((n) => [n, NAMES.filter((p) => n.startsWith(p + ' ')).sort((a, b) => a.length - b.length)[0] ?? n]))
+const companiesOf = (i: Item) => [...new Set(raw(i).map((n) => PARENT.get(n) ?? n))]
+const SUPPLIERS = (() => {
+  const n = new Map<string, number>()
+  for (const i of ITEMS) for (const c of companiesOf(i)) n.set(c, (n.get(c) ?? 0) + 1)
+  return [...n].sort((a, b) => a[0].localeCompare(b[0])).map(([c, count]) => ({ value: c, label: c, count }))
+})()
 
 export function ComponentsIndex() {
   const [q, setQ] = useState('')
   const [cat, setCat] = useState<string>('all')
+  const [supplier, setSupplier] = useState('')
   const shown = useMemo(() => {
     const s = q.trim().toLowerCase()
-    return ITEMS.filter((i) => (cat === 'all' || i.category === cat) && (!s || `${i.title} ${i.name} ${i.description} ${i.tags?.join(' ')} ${i.standards.join(' ')}`.toLowerCase().includes(s)))
-  }, [q, cat])
+    return ITEMS.filter(
+      (i) =>
+        (cat === 'all' || i.category === cat) &&
+        (!supplier || companiesOf(i).includes(supplier)) &&
+        (!s || `${i.title} ${i.name} ${i.description} ${i.tags?.join(' ')} ${i.standards.join(' ')} ${i.vendors?.join(' ')}`.toLowerCase().includes(s)),
+    )
+  }, [q, cat, supplier])
   const cats = CATEGORIES.filter((c) => ITEMS.some((i) => i.category === c.id))
   return (
-    <div className="px-6 py-10 lg:px-10">
+    <div className="mx-auto max-w-[1400px] px-6 py-10 lg:px-10">
       <h1 className="text-[34px] leading-tight font-semibold text-ink">Components</h1>
       <p className="mt-3 max-w-2xl text-[16px] leading-7 text-slate-600">
         {ITEMS.length} parametric three.js components for offshore and onshore oil &amp; gas plants. Each one is a single file sized from the standard it follows, with ports for wiring pipe.
       </p>
       <div className="mt-8">
-        <Toolbar shown={shown.length} total={ITEMS.length} onReset={q || cat !== 'all' ? () => { setQ(''); setCat('all') } : undefined}>
+        <Toolbar shown={shown.length} total={ITEMS.length} onReset={q || cat !== 'all' || supplier ? () => { setQ(''); setCat('all'); setSupplier('') } : undefined}>
           <FilterInput value={q} onChange={setQ} placeholder="Filter by name, tag or standard" className="w-full sm:w-auto sm:max-w-sm sm:flex-1" />
           <Select
             value={cat}
@@ -26,7 +43,13 @@ export function ComponentsIndex() {
             label="Category"
             options={[{ value: 'all', label: `All categories (${ITEMS.length})` }, ...cats.map((c) => ({ value: c.id, label: `${c.title} (${ITEMS.filter((i) => i.category === c.id).length})` }))]}
           />
+          <Combobox value={supplier} onChange={setSupplier} label="Typical supplier" allLabel="Any supplier" placeholder="Search typical suppliers" options={SUPPLIERS} />
         </Toolbar>
+        {supplier && (
+          <p className="mt-3 text-[13px] text-muted-fg">
+            Showing components that <span className="font-medium text-ink">{supplier}</span> typically supplies. The geometry is generic and sized from public standards, not vendor CAD.
+          </p>
+        )}
       </div>
       {CATEGORIES.map((c) => {
         const items = shown.filter((i) => i.category === c.id)

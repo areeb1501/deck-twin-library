@@ -10,6 +10,12 @@ marked.use({
       const body = lang === 'tsx' || lang === 'ts' || lang === 'json' || lang === 'jsx' ? highlight(text) : text.replace(/&/g, '&amp;').replace(/</g, '&lt;')
       return `<pre><code>${body}</code></pre>`
     },
+    link({ href, title, tokens }) {
+      const text = this.parser.parseInline(tokens)
+      const t = title ? ` title="${title}"` : ''
+      if (!/^https?:\/\//.test(href)) return `<a href="${href}"${t}>${text}</a>`
+      return `<a href="${href}"${t} target="_blank" rel="noopener noreferrer" class="ext">${text}<span class="sr-only"> (opens in a new tab)</span></a>`
+    },
   },
 })
 

@@ -1,0 +1,447 @@
+{
+  "name": "Offshore water injection module",
+  "description": "Water injection module on a 4-leg jacket. Seawater lift pump P-W300 feeds the multimedia filter package X-W330, which backwashes to dump caisson CS-W350; filtered water is deaerated in the packed vacuum deaerator T-W320, dosed with oxygen scavenger and antifoam from C-W340, with the overhead going to the vacuum package. Duty / standby booster pumps P-W305A/B feed duty / standby multistage injection pumps P-W310A/B, which discharge through check valves into an injection header that drops through a check valve and ESDV into each of the two jacket risers to the injection flowlines.",
+  "source": "Deck Twin example (illustrative layout, not a real asset)",
+  "camera": {
+    "target": [
+      1,
+      10,
+      0
+    ],
+    "radius": 15.5,
+    "direction": [
+      0.9,
+      0.7,
+      1.15
+    ]
+  },
+  "sea": {
+    "level": -14,
+    "depth": 50
+  },
+  "items": [
+    {
+      "tag": "JKT-W1",
+      "component": "jacket",
+      "position": [
+        0,
+        0,
+        0
+      ],
+      "props": {
+        "legs": 4,
+        "waterDepth": 50,
+        "airGap": 14,
+        "spanX": 22,
+        "spanZ": 14,
+        "batter": 14,
+        "conductors": 0,
+        "risers": 2,
+        "riserNps": 8,
+        "riserRating": 1500
+      }
+    },
+    {
+      "tag": "DECK-W1",
+      "component": "deck-module",
+      "position": [
+        0,
+        6,
+        0
+      ],
+      "props": {
+        "length": 36,
+        "width": 24,
+        "floor": "plate",
+        "legs": 4,
+        "legSpanX": 22,
+        "legSpanZ": 14,
+        "legHeight": 6
+      }
+    },
+    {
+      "tag": "P-W300",
+      "component": "vertical-turbine-pump",
+      "position": [
+        -16,
+        6,
+        7.5
+      ],
+      "props": {
+        "kw": 200,
+        "dischargeNps": 10,
+        "depth": 26,
+        "stages": 3,
+        "tag": "P-W300"
+      }
+    },
+    {
+      "tag": "X-W330",
+      "component": "water-filter-package",
+      "position": [
+        -8.5,
+        6,
+        0.5
+      ],
+      "rotation": 90,
+      "props": {
+        "filters": 3,
+        "filterDiameter": 2,
+        "filterHeight": 2.2,
+        "pressure": 10,
+        "headerNps": 10,
+        "branchNps": 6,
+        "rating": 150,
+        "tag": "X-W330"
+      }
+    },
+    {
+      "tag": "CS-W350",
+      "component": "caisson",
+      "position": [
+        -16.2,
+        6,
+        -9.5
+      ],
+      "rotation": -90,
+      "props": {
+        "nps": 30,
+        "length": 26,
+        "inletNps": 10
+      }
+    },
+    {
+      "tag": "T-W320",
+      "component": "column",
+      "position": [
+        1,
+        6,
+        -6
+      ],
+      "props": {
+        "internals": "packed",
+        "diameter": 2.4,
+        "height": 12,
+        "sections": 2,
+        "pressure": 3.5,
+        "feedNps": 10,
+        "overheadNps": 6,
+        "bottomsNps": 10,
+        "refluxNps": 1,
+        "fireproofing": false,
+        "tag": "T-W320"
+      }
+    },
+    {
+      "tag": "C-W340",
+      "component": "chemical-injection-skid",
+      "position": [
+        -4,
+        6,
+        -9.3
+      ],
+      "props": {
+        "pumps": 2,
+        "chemical": "O2 SCAVENGER / ANTIFOAM",
+        "tag": "C-W340"
+      }
+    },
+    {
+      "tag": "TEE-W321",
+      "component": "tee",
+      "position": [
+        5.5,
+        6.85,
+        -4
+      ],
+      "props": {
+        "nps": 10,
+        "branchNps": 10,
+        "ends": "flanged",
+        "rating": 150,
+        "branch": "side",
+        "service": "water"
+      }
+    },
+    {
+      "tag": "P-W305A",
+      "component": "centrifugal-pump",
+      "position": [
+        8.2,
+        6,
+        -4
+      ],
+      "rotation": 180,
+      "props": {
+        "suctionNps": 10,
+        "dischargeNps": 8,
+        "rating": 300,
+        "kw": 160,
+        "tag": "P-W305A"
+      }
+    },
+    {
+      "tag": "P-W305B",
+      "component": "centrifugal-pump",
+      "position": [
+        8.2,
+        6,
+        0
+      ],
+      "rotation": 180,
+      "props": {
+        "suctionNps": 10,
+        "dischargeNps": 8,
+        "rating": 300,
+        "kw": 160,
+        "running": false,
+        "tag": "P-W305B"
+      }
+    },
+    {
+      "tag": "P-W310A",
+      "component": "between-bearings-pump",
+      "position": [
+        12.45,
+        6,
+        -8.5
+      ],
+      "props": {
+        "suctionNps": 8,
+        "dischargeNps": 6,
+        "rating": 1500,
+        "kw": 2600,
+        "stages": 10,
+        "tag": "P-W310A"
+      }
+    },
+    {
+      "tag": "P-W310B",
+      "component": "between-bearings-pump",
+      "position": [
+        12.35,
+        6,
+        8.5
+      ],
+      "rotation": 180,
+      "props": {
+        "suctionNps": 8,
+        "dischargeNps": 6,
+        "rating": 1500,
+        "kw": 2600,
+        "stages": 10,
+        "running": false,
+        "tag": "P-W310B"
+      }
+    },
+    {
+      "tag": "TEE-W311",
+      "component": "tee",
+      "position": [
+        12.4,
+        6.83,
+        -0.8
+      ],
+      "rotation": 90,
+      "props": {
+        "nps": 8,
+        "branchNps": 8,
+        "ends": "flanged",
+        "rating": 1500,
+        "branch": "down",
+        "service": "water"
+      }
+    },
+    {
+      "tag": "TEE-W312",
+      "component": "tee",
+      "position": [
+        12.4,
+        6.83,
+        0.8
+      ],
+      "rotation": 90,
+      "props": {
+        "nps": 8,
+        "branchNps": 8,
+        "ends": "flanged",
+        "rating": 1500,
+        "branch": "down",
+        "service": "water"
+      }
+    }
+  ],
+  "lines": [
+    {
+      "tag": "10\"-SW-3001-A1A-N",
+      "from": "P-W300.discharge",
+      "to": "X-W330.inlet",
+      "inline": [
+        {
+          "component": "swing-check-valve",
+          "at": 0.15
+        },
+        {
+          "component": "butterfly-valve",
+          "at": 0.35
+        }
+      ]
+    },
+    {
+      "tag": "10\"-SW-3301-A1A-N",
+      "from": "X-W330.backwash",
+      "to": "CS-W350.inlet",
+      "via": [
+        [
+          -6.95,
+          9.17,
+          -6.8
+        ],
+        [
+          -16.2,
+          9.17,
+          -6.8
+        ],
+        [
+          -16.2,
+          6.65,
+          -6.8
+        ]
+      ]
+    },
+    {
+      "tag": "10\"-SW-3302-A1A-N",
+      "from": "X-W330.outlet",
+      "to": "T-W320.feed",
+      "supports": false
+    },
+    {
+      "tag": "6\"-VA-3201-D6A-N",
+      "from": "T-W320.overhead",
+      "to": {
+        "at": [
+          6,
+          23.4,
+          -6
+        ],
+        "label": "TO VACUUM PACKAGE"
+      },
+      "service": "air",
+      "supports": false
+    },
+    {
+      "tag": "1/2\"-CI-3401-F15A-N",
+      "from": "C-W340.outlet-1",
+      "to": "T-W320.reboiler"
+    },
+    {
+      "tag": "1/2\"-CI-3402-F15A-N",
+      "from": "C-W340.outlet-2",
+      "to": "T-W320.reflux"
+    },
+    {
+      "tag": "10\"-WI-3203-D6A-N",
+      "from": "T-W320.bottoms",
+      "to": "TEE-W321.run-a"
+    },
+    {
+      "tag": "10\"-WI-3204-A1A-N",
+      "from": "TEE-W321.run-b",
+      "to": "P-W305A.suction"
+    },
+    {
+      "tag": "10\"-WI-3205-A1A-N",
+      "from": "TEE-W321.branch",
+      "to": "P-W305B.suction"
+    },
+    {
+      "tag": "8\"-WI-3501-C3A-N",
+      "from": "P-W305A.discharge",
+      "to": "P-W310A.suction",
+      "inline": [
+        {
+          "component": "swing-check-valve",
+          "at": 0.2
+        }
+      ]
+    },
+    {
+      "tag": "8\"-WI-3502-C3A-N",
+      "from": "P-W305B.discharge",
+      "to": "P-W310B.suction",
+      "inline": [
+        {
+          "component": "swing-check-valve",
+          "at": 0.2
+        }
+      ]
+    },
+    {
+      "tag": "6\"-WI-4011-F15A-N",
+      "from": "P-W310A.discharge",
+      "to": "TEE-W311.run-b",
+      "inline": [
+        {
+          "component": "dual-plate-check-valve",
+          "at": 0.3
+        },
+        {
+          "component": "gate-valve",
+          "at": 0.65
+        }
+      ]
+    },
+    {
+      "tag": "6\"-WI-4012-F15A-N",
+      "from": "P-W310B.discharge",
+      "to": "TEE-W312.run-a",
+      "inline": [
+        {
+          "component": "dual-plate-check-valve",
+          "at": 0.3
+        },
+        {
+          "component": "gate-valve",
+          "at": 0.65
+        }
+      ]
+    },
+    {
+      "tag": "8\"-WI-4001-F15A-N",
+      "from": "TEE-W311.run-a",
+      "to": "TEE-W312.run-b"
+    },
+    {
+      "tag": "8\"-WI-4101-F15A-N",
+      "from": "TEE-W311.branch",
+      "to": "JKT-W1.riser-1",
+      "inline": [
+        {
+          "component": "swing-check-valve",
+          "at": 0.3
+        },
+        {
+          "component": "esd-valve",
+          "at": 0.7,
+          "tag": "ESDV-W401"
+        }
+      ]
+    },
+    {
+      "tag": "8\"-WI-4102-F15A-N",
+      "from": "TEE-W312.branch",
+      "to": "JKT-W1.riser-2",
+      "inline": [
+        {
+          "component": "swing-check-valve",
+          "at": 0.3
+        },
+        {
+          "component": "esd-valve",
+          "at": 0.7,
+          "tag": "ESDV-W402"
+        }
+      ]
+    }
+  ]
+}

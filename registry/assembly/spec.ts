@@ -13,6 +13,8 @@ export interface PlantSpec {
   lines?: PlantLine[]
   /** optional framing for viewers: look at `target` from `direction`, fitting a sphere of `radius` */
   camera?: { target: Vec3; radius: number; direction?: Vec3 }
+  /** optional sea for offshore plants: mean sea level as plant y (a jacket at y = 0 has it at -airGap), and water depth to draw the seabed */
+  sea?: { level: number; depth?: number }
 }
 
 export interface PlantItem {

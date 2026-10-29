@@ -82,7 +82,7 @@ function Fit({ children, fitKey, view, shot, focus, onBounds }: { children: Reac
     const g = group.current
     if (!g) return
     if (report.current++ % 30 === 0 || pending.current > 0) {
-      const box = new THREE.Box3().setFromObject(g)
+      const box = fitBox(g)
       if (box.isEmpty()) return
       const size = box.getSize(new THREE.Vector3())
       const center = box.getCenter(new THREE.Vector3())
@@ -108,6 +108,16 @@ function Fit({ children, fitKey, view, shot, focus, onBounds }: { children: Reac
     }
   })
   return <group ref={group}>{children}</group>
+}
+
+/** Bounding box of everything except subtrees marked userData.noFit (sea, backdrops). */
+function fitBox(o: THREE.Object3D, box = new THREE.Box3()) {
+  if (o.userData.noFit) return box
+  let skip = false
+  o.traverse((c) => (skip ||= !!c.userData.noFit))
+  if (!skip) return box.union(new THREE.Box3().setFromObject(o))
+  for (const c of o.children) fitBox(c, box)
+  return box
 }
 
 /** Smallest camera distance along `dir` that keeps all eight box corners inside the frustum. */

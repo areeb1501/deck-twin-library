@@ -1,4 +1,4 @@
-// ASME B16.5 weld-neck RF flanges (NPS 1/2–24), B16.47 Series A (26–48) and B16.48 spectacle blinds. Reference values — verify against the current edition.
+// ASME B16.5 weld-neck RF flanges (NPS 1/2–24), B16.47 Series A (26–48) and B16.48 spectacle blinds. Reference values. Verify against the current edition.
 import { inch, mm, nearest, tableKeys } from './util'
 import { pipeOD } from './pipe'
 

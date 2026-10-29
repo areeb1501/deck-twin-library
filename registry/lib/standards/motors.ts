@@ -1,4 +1,4 @@
-// IEC 60072-1 frame sizes and IEC 60034 / EN 50347 output assignment for TEFC (IC411) cage motors. Reference values — verify against the current edition.
+// IEC 60072-1 frame sizes and IEC 60034 / EN 50347 output assignment for TEFC (IC411) cage motors. Reference values. Verify against the current edition.
 import { mm } from './util'
 
 export interface MotorFrame {

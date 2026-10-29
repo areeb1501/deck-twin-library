@@ -1,4 +1,4 @@
-// ASME B16.10 valve face-to-face (RF flanged), API 609 / API 594 / ISA 75.08.01 wafer and control valves, API 526 PSVs. Reference values — verify against the current edition.
+// ASME B16.10 valve face-to-face (RF flanged), API 609 / API 594 / ISA 75.08.01 wafer and control valves, API 526 PSVs. Reference values. Verify against the current edition.
 import { inch, mm, nearest, tableKeys } from './util'
 import { flange, RATINGS } from './flange'
 import type { Rating } from './flange'

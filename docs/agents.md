@@ -29,7 +29,7 @@ This writes `.claude/skills/deck-twin/`: `SKILL.md` plus the `references/` files
 | `references/plant-json.md` | The schema, with the rules the checker and renderer enforce |
 | `references/pid-symbols.md` | Generated: every component's P&ID symbol, tag letters, ISA codes and datasheet → props mapping |
 | `scripts/tile.py` | Cuts large P&ID scans into legible tiles |
-| `references/examples.md` | Complete worked plants: a production deck, a wellhead platform with a crane, a compressor module |
+| `references/examples.md` | Six worked plants from basic to advanced: well pad, control room, wellhead platform, water injection module, separation train, crude export terminal |
 
 ## From P&IDs
 
@@ -53,7 +53,7 @@ Every component page shows its symbol, tag letters and datasheet mapping, under 
 | `/llms.txt` | Short catalogue for LLM context |
 | `/r/examples/*.plant.json` | The example plants |
 
-## Prompting a small model
+## Prompting a cost-effective model
 
 Give it the skill, the equipment table and one instruction:
 

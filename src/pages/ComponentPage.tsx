@@ -3,7 +3,7 @@ import { Link } from 'wouter'
 import { BY_NAME, CATEGORIES, loadModule, loadSource, type ComponentModule, type Item } from '../registry'
 import { Viewer, type Bounds } from '../viewer/Viewer'
 import { Controls, frac } from '../viewer/Controls'
-import { Badge, Code, Command, Tabs } from '../components/ui'
+import { Badge, Code, Command, RichText, Tabs } from '../components/ui'
 import { add, CLI, SITE } from '../site'
 import { PID, symbolUrl } from '../pid'
 
@@ -43,7 +43,9 @@ function Detail({ item }: { item: Item }) {
         <span>{cat.title}</span>
       </nav>
       <h1 className="text-[34px] leading-tight font-semibold text-ink">{item.title}</h1>
-      <p className="mt-3 max-w-3xl text-[16px] leading-7 text-slate-600">{item.description}</p>
+      <p className="mt-3 max-w-3xl text-[16px] leading-7 text-slate-600">
+        <RichText text={item.description} />
+      </p>
       <div className="mt-4 flex flex-wrap gap-1.5">
         {item.standards.map((s) => (
           <Badge key={s}>{s}</Badge>

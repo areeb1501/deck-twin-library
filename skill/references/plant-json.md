@@ -8,6 +8,7 @@ interface PlantSpec {
   items: PlantItem[]
   lines?: PlantLine[]
   camera?: { target: [number, number, number]; radius: number; direction?: [number, number, number] }  // viewer framing only
+  sea?: { level: number; depth?: number }   // offshore: mean sea level as plant y (-airGap for a jacket at y = 0); depth draws the seabed
 }
 
 interface PlantItem {

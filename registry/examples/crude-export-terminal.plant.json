@@ -1,0 +1,791 @@
+{
+  "name": "Crude oil export terminal",
+  "description": "Onshore crude receiving and export terminal: the 12\" pipeline arrives through block-valve station PVS-1001 and ESDV-1001 into pig receiver L-1010, then passes basket strainer STR-1003 into fiscal metering skid X-1100, proved by compact prover X-1150. PCV-1104 lets down into the receipt header on the pipe rack, which fills dome-roof tanks TK-2001 and TK-2002 inside bund BW-2000. The tank outlets join the suction header on the rack to duty/standby loading pumps P-3001A/B, which deliver through ESDV-3101 to marine loading arm MLA-3101 at the jetty edge, with a branch through PCV-3201 to truck loading bay X-3200. Bund drainage goes to oily-water separator S-4001, receiver relief to vent stack VS-1020, and two fire monitors on the firewater ring cover the tanks.",
+  "source": "Deck Twin example (illustrative layout, not a real asset)",
+  "camera": {
+    "target": [
+      0,
+      0,
+      -11
+    ],
+    "radius": 42.5,
+    "direction": [
+      -0.45,
+      0.8,
+      1
+    ]
+  },
+  "items": [
+    {
+      "tag": "PVS-1001",
+      "component": "pipeline-valve-station",
+      "position": [
+        -66,
+        0,
+        -34
+      ],
+      "props": {
+        "nps": 12,
+        "rating": 600,
+        "tag": "PVS-1001"
+      }
+    },
+    {
+      "tag": "L-1010",
+      "component": "pig-launcher",
+      "position": [
+        -49,
+        0,
+        -34
+      ],
+      "props": {
+        "service": "receiver",
+        "nps": 12,
+        "rating": 600,
+        "kickerNps": 12,
+        "length": 3.2,
+        "tag": "L-1010"
+      }
+    },
+    {
+      "tag": "VS-1020",
+      "component": "vent-stack",
+      "position": [
+        -48.47,
+        0,
+        -42
+      ],
+      "rotation": 90,
+      "props": {
+        "nps": 2,
+        "height": 10,
+        "tag": "VS-1020"
+      }
+    },
+    {
+      "tag": "X-1100",
+      "component": "metering-skid",
+      "position": [
+        -28,
+        0,
+        -32.219
+      ],
+      "props": {
+        "runs": 3,
+        "meterType": "ultrasonic",
+        "headerNps": 12,
+        "runNps": 8,
+        "rating": 600,
+        "tag": "X-1100"
+      }
+    },
+    {
+      "tag": "X-1150",
+      "component": "compact-prover",
+      "position": [
+        -17,
+        -0.08,
+        -31
+      ],
+      "props": {
+        "nps": 8,
+        "rating": 600,
+        "tag": "X-1150"
+      }
+    },
+    {
+      "tag": "PR-1",
+      "component": "pipe-rack",
+      "position": [
+        15,
+        0,
+        -24
+      ],
+      "props": {
+        "bays": 12,
+        "bayLength": 6,
+        "width": 6,
+        "tiers": 2,
+        "firstTier": 5,
+        "tierSpacing": 2,
+        "cableTray": false,
+        "walkway": false
+      }
+    },
+    {
+      "tag": "TEE-2011",
+      "component": "tee",
+      "position": [
+        -12,
+        7.162,
+        -25.5
+      ],
+      "props": {
+        "nps": 12,
+        "branchNps": 12,
+        "ends": "flanged",
+        "rating": 150,
+        "branch": "down",
+        "service": "oil"
+      }
+    },
+    {
+      "tag": "ELB-2012",
+      "component": "elbow",
+      "position": [
+        18,
+        7.162,
+        -25.5
+      ],
+      "props": {
+        "nps": 12,
+        "ends": "flanged",
+        "rating": 150,
+        "turn": "down",
+        "service": "oil"
+      }
+    },
+    {
+      "tag": "BW-2000",
+      "component": "bund-wall",
+      "position": [
+        3,
+        0,
+        0
+      ],
+      "props": {
+        "length": 64,
+        "width": 34,
+        "height": 1.5,
+        "drainNps": 4,
+        "tag": "BW-2000"
+      }
+    },
+    {
+      "tag": "TK-2001",
+      "component": "storage-tank",
+      "position": [
+        -12,
+        0,
+        0
+      ],
+      "rotation": 235,
+      "props": {
+        "roof": "dome",
+        "diameter": 22,
+        "height": 14.4,
+        "gravity": 0.86,
+        "inletNps": 12,
+        "outletNps": 12,
+        "tag": "TK-2001"
+      }
+    },
+    {
+      "tag": "TK-2002",
+      "component": "storage-tank",
+      "position": [
+        18,
+        0,
+        0
+      ],
+      "rotation": 235,
+      "props": {
+        "roof": "dome",
+        "diameter": 22,
+        "height": 14.4,
+        "gravity": 0.86,
+        "inletNps": 12,
+        "outletNps": 12,
+        "tag": "TK-2002"
+      }
+    },
+    {
+      "tag": "ELB-2101",
+      "component": "elbow",
+      "position": [
+        -0.16999999999999993,
+        5.162,
+        -22.5
+      ],
+      "rotation": 180,
+      "props": {
+        "nps": 12,
+        "ends": "flanged",
+        "rating": 150,
+        "turn": "down",
+        "service": "oil"
+      }
+    },
+    {
+      "tag": "TEE-2102",
+      "component": "tee",
+      "position": [
+        29.83,
+        5.162,
+        -22.5
+      ],
+      "props": {
+        "nps": 12,
+        "branchNps": 12,
+        "ends": "flanged",
+        "rating": 150,
+        "branch": "down",
+        "service": "oil"
+      }
+    },
+    {
+      "tag": "TEE-3001",
+      "component": "tee",
+      "position": [
+        42,
+        5.162,
+        -22.5
+      ],
+      "props": {
+        "nps": 12,
+        "branchNps": 12,
+        "ends": "flanged",
+        "rating": 150,
+        "branch": "down",
+        "service": "oil"
+      }
+    },
+    {
+      "tag": "P-3001A",
+      "component": "centrifugal-pump",
+      "position": [
+        42,
+        0,
+        -12
+      ],
+      "rotation": 90,
+      "props": {
+        "suctionNps": 12,
+        "dischargeNps": 10,
+        "kw": 450,
+        "tag": "P-3001A"
+      }
+    },
+    {
+      "tag": "P-3001B",
+      "component": "centrifugal-pump",
+      "position": [
+        48,
+        0,
+        -12
+      ],
+      "rotation": 90,
+      "props": {
+        "suctionNps": 12,
+        "dischargeNps": 10,
+        "kw": 450,
+        "running": false,
+        "tag": "P-3001B"
+      }
+    },
+    {
+      "tag": "TEE-3002",
+      "component": "tee",
+      "position": [
+        48,
+        3.5,
+        -12.532
+      ],
+      "props": {
+        "nps": 10,
+        "branchNps": 10,
+        "ends": "flanged",
+        "rating": 300,
+        "branch": "down",
+        "service": "oil"
+      }
+    },
+    {
+      "tag": "TEE-3003",
+      "component": "tee",
+      "position": [
+        59.9,
+        3.5,
+        -12.532
+      ],
+      "props": {
+        "nps": 10,
+        "branchNps": 4,
+        "ends": "flanged",
+        "rating": 300,
+        "branch": "side",
+        "service": "oil"
+      }
+    },
+    {
+      "tag": "MLA-3101",
+      "component": "marine-loading-arm",
+      "position": [
+        76,
+        0,
+        -12.532
+      ],
+      "rotation": 90,
+      "props": {
+        "nps": 10,
+        "rating": 150,
+        "tag": "MLA-3101"
+      }
+    },
+    {
+      "tag": "TEE-3201",
+      "component": "tee",
+      "position": [
+        59.9,
+        0.75,
+        3.3
+      ],
+      "rotation": 90,
+      "props": {
+        "nps": 4,
+        "branchNps": 4,
+        "ends": "flanged",
+        "rating": 300,
+        "branch": "side",
+        "service": "oil"
+      }
+    },
+    {
+      "tag": "X-3200",
+      "component": "truck-loading-bay",
+      "position": [
+        70,
+        0,
+        9
+      ],
+      "props": {
+        "bays": 2,
+        "product": "crude",
+        "loading": "bottom",
+        "nps": 4,
+        "tag": "X-3200"
+      }
+    },
+    {
+      "tag": "S-4001",
+      "component": "oily-water-separator",
+      "position": [
+        45,
+        0,
+        15.8
+      ],
+      "props": {
+        "flow": 60,
+        "inletNps": 4,
+        "oilNps": 3,
+        "tag": "S-4001"
+      }
+    },
+    {
+      "tag": "FM-7101",
+      "component": "fire-monitor",
+      "position": [
+        -33,
+        0,
+        0
+      ],
+      "props": {
+        "tag": "FM-7101",
+        "slew": 0
+      }
+    },
+    {
+      "tag": "FM-7102",
+      "component": "fire-monitor",
+      "position": [
+        38.5,
+        0,
+        -2
+      ],
+      "rotation": 180,
+      "props": {
+        "tag": "FM-7102",
+        "slew": 0
+      }
+    },
+    {
+      "tag": "B-9001",
+      "component": "industrial-building",
+      "position": [
+        -46,
+        0,
+        8
+      ],
+      "props": {
+        "kind": "control",
+        "length": 16,
+        "width": 10,
+        "eaves": 4.5,
+        "rollerDoors": 0,
+        "personnelDoors": 2,
+        "tag": "B-9001"
+      }
+    }
+  ],
+  "lines": [
+    {
+      "tag": "12\"-PO-1001-D6A-N",
+      "from": {
+        "at": [
+          -80,
+          -1.36,
+          -34
+        ],
+        "label": "FROM PIPELINE"
+      },
+      "to": "PVS-1001.upstream"
+    },
+    {
+      "tag": "12\"-PO-1002-D6A-N",
+      "from": "PVS-1001.downstream",
+      "to": "L-1010.mainline",
+      "inline": [
+        {
+          "component": "esd-valve",
+          "at": 0.62,
+          "tag": "ESDV-1001"
+        }
+      ]
+    },
+    {
+      "tag": "12\"-PO-1003-D6A-N",
+      "from": "L-1010.kicker",
+      "to": "X-1100.inlet",
+      "supports": false,
+      "via": [
+        [
+          -45.5,
+          2.78,
+          -34
+        ],
+        [
+          -45.5,
+          1.03,
+          -34
+        ],
+        [
+          -35.5,
+          1.03,
+          -34
+        ],
+        [
+          -35.5,
+          1.63,
+          -34
+        ]
+      ],
+      "inline": [
+        {
+          "component": "basket-strainer",
+          "at": 0.42,
+          "tag": "STR-1003"
+        }
+      ]
+    },
+    {
+      "tag": "2\"-VA-1011-A1A-N",
+      "from": "L-1010.psv",
+      "to": "VS-1020.inlet"
+    },
+    {
+      "tag": "8\"-PO-1101-D6A-N",
+      "from": "X-1100.prover-out",
+      "to": "X-1150.inlet"
+    },
+    {
+      "tag": "8\"-PO-1102-D6A-N",
+      "from": "X-1150.outlet",
+      "to": "X-1100.prover-return",
+      "supports": false,
+      "via": [
+        [
+          -13.77,
+          0.55,
+          -28.6
+        ],
+        [
+          -22.21,
+          0.55,
+          -28.6
+        ],
+        [
+          -22.21,
+          0.55,
+          -30.688
+        ]
+      ]
+    },
+    {
+      "tag": "12\"-PO-1103-D6A-N",
+      "from": "X-1100.outlet",
+      "to": "TEE-2011.run-a",
+      "supports": false,
+      "via": [
+        [
+          -16,
+          1.63,
+          -34
+        ],
+        [
+          -16,
+          7.162,
+          -34
+        ],
+        [
+          -16,
+          7.162,
+          -25.5
+        ]
+      ],
+      "inline": [
+        {
+          "component": "control-valve",
+          "at": 0.12,
+          "tag": "PCV-1104"
+        }
+      ]
+    },
+    {
+      "tag": "12\"-PO-2001-A1A-N",
+      "from": "TEE-2011.branch",
+      "to": "TK-2001.inlet",
+      "elevation": 2.2,
+      "inline": [
+        {
+          "component": "motor-operated-valve",
+          "at": 0.45,
+          "tag": "MOV-2001"
+        }
+      ]
+    },
+    {
+      "tag": "12\"-PO-2002-A1A-N",
+      "from": "TEE-2011.run-b",
+      "to": "ELB-2012.A",
+      "supports": false
+    },
+    {
+      "tag": "12\"-PO-2003-A1A-N",
+      "from": "ELB-2012.B",
+      "to": "TK-2002.inlet",
+      "elevation": 2.2,
+      "inline": [
+        {
+          "component": "motor-operated-valve",
+          "at": 0.45,
+          "tag": "MOV-2002"
+        }
+      ]
+    },
+    {
+      "tag": "12\"-PO-2101-A1A-N",
+      "from": "TK-2001.outlet",
+      "to": "ELB-2101.B",
+      "elevation": 2.2,
+      "inline": [
+        {
+          "component": "motor-operated-valve",
+          "at": 0.3,
+          "tag": "MOV-2101"
+        }
+      ]
+    },
+    {
+      "tag": "12\"-PO-2102-A1A-N",
+      "from": "ELB-2101.A",
+      "to": "TEE-2102.run-a",
+      "supports": false
+    },
+    {
+      "tag": "12\"-PO-2103-A1A-N",
+      "from": "TK-2002.outlet",
+      "to": "TEE-2102.branch",
+      "elevation": 2.2,
+      "inline": [
+        {
+          "component": "motor-operated-valve",
+          "at": 0.3,
+          "tag": "MOV-2103"
+        }
+      ]
+    },
+    {
+      "tag": "12\"-PO-2104-A1A-N",
+      "from": "TEE-2102.run-b",
+      "to": "TEE-3001.run-a",
+      "supports": false
+    },
+    {
+      "tag": "12\"-PO-3001-A1A-N",
+      "from": "TEE-3001.branch",
+      "to": "P-3001A.suction",
+      "inline": [
+        {
+          "component": "gate-valve",
+          "at": 0.6
+        }
+      ]
+    },
+    {
+      "tag": "12\"-PO-3002-A1A-N",
+      "from": "TEE-3001.run-b",
+      "to": "P-3001B.suction",
+      "supports": false,
+      "via": [
+        [
+          48,
+          5.162,
+          -22.5
+        ],
+        [
+          48,
+          0.91,
+          -22.5
+        ]
+      ],
+      "inline": [
+        {
+          "component": "gate-valve",
+          "at": 0.75
+        }
+      ]
+    },
+    {
+      "tag": "10\"-PO-3003-C3A-N",
+      "from": "P-3001A.discharge",
+      "to": "TEE-3002.run-a",
+      "inline": [
+        {
+          "component": "swing-check-valve",
+          "at": 0.12
+        }
+      ]
+    },
+    {
+      "tag": "10\"-PO-3004-C3A-N",
+      "from": "P-3001B.discharge",
+      "to": "TEE-3002.branch",
+      "inline": [
+        {
+          "component": "swing-check-valve",
+          "at": 0.5
+        }
+      ]
+    },
+    {
+      "tag": "10\"-PO-3005-C3A-N",
+      "from": "TEE-3002.run-b",
+      "to": "TEE-3003.run-a",
+      "inline": [
+        {
+          "component": "esd-valve",
+          "at": 0.5,
+          "tag": "ESDV-3101"
+        }
+      ]
+    },
+    {
+      "tag": "10\"-PO-3101-C3A-N",
+      "from": "TEE-3003.run-b",
+      "to": "MLA-3101.riser",
+      "inline": [
+        {
+          "component": "motor-operated-valve",
+          "at": 0.4,
+          "tag": "MOV-3102"
+        }
+      ]
+    },
+    {
+      "tag": "4\"-PO-3201-C3A-N",
+      "from": "TEE-3003.branch",
+      "to": "TEE-3201.run-b",
+      "inline": [
+        {
+          "component": "control-valve",
+          "at": 0.35,
+          "tag": "PCV-3201"
+        }
+      ]
+    },
+    {
+      "tag": "4\"-PO-3202-C3A-N",
+      "from": "TEE-3201.branch",
+      "to": "X-3200.inlet-1"
+    },
+    {
+      "tag": "4\"-PO-3203-C3A-N",
+      "from": "TEE-3201.run-a",
+      "to": "X-3200.inlet-2",
+      "order": "zx"
+    },
+    {
+      "tag": "4\"-OD-4001-A1A-N",
+      "from": "BW-2000.drain",
+      "to": "S-4001.inlet"
+    },
+    {
+      "tag": "4\"-PW-4002-A1A-N",
+      "from": "S-4001.water-out",
+      "to": {
+        "at": [
+          56,
+          1.9,
+          15.8
+        ],
+        "label": "TO OUTFALL"
+      }
+    },
+    {
+      "tag": "3\"-PO-4003-A1A-N",
+      "from": "S-4001.oil-out",
+      "to": {
+        "at": [
+          45.4,
+          2,
+          22
+        ],
+        "label": "TO SLOP TANK"
+      }
+    },
+    {
+      "tag": "4\"-FW-7101-A1A-N",
+      "from": {
+        "at": [
+          -36,
+          -0.8,
+          0
+        ],
+        "direction": [
+          0,
+          1,
+          0
+        ],
+        "label": "FW RING MAIN"
+      },
+      "to": "FM-7101.inlet"
+    },
+    {
+      "tag": "4\"-FW-7102-A1A-N",
+      "from": {
+        "at": [
+          41.5,
+          -0.8,
+          -2
+        ],
+        "direction": [
+          0,
+          1,
+          0
+        ],
+        "label": "FW RING MAIN"
+      },
+      "to": "FM-7102.inlet"
+    }
+  ]
+}

@@ -1,4 +1,4 @@
-// Structural sections: EN 10365 (IPE, HEA, HEB, UPN), EN 10056-1 angles, EN 10210 hollow sections, AISC W-shapes. Reference values — verify against the current edition.
+// Structural sections: EN 10365 (IPE, HEA, HEB, UPN), EN 10056-1 angles, EN 10210 hollow sections, AISC W-shapes. Reference values. Verify against the current edition.
 import { inch, mm } from './util'
 
 export interface Section {

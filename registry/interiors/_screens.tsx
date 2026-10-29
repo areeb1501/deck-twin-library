@@ -214,7 +214,7 @@ function overview(g: G) {
   const plats = [
     { id: 'WHP-A', role: 'Wellhead', oil: '12 480', gas: '18.2', wat: '3 120', f: 0.62 },
     { id: 'CPF', role: 'Process & export', oil: '38 950', gas: '61.4', wat: '9 860', f: 0.78 },
-    { id: 'WI', role: 'Water injection', oil: '—', gas: '—', wat: '40 100', f: 0.71 },
+    { id: 'WI', role: 'Water injection', oil: '-', gas: '-', wat: '40 100', f: 0.71 },
   ]
   plats.forEach((p, i) => {
     const x = 16 + i * 336
@@ -263,7 +263,7 @@ function overview(g: G) {
 }
 
 function mimic(g: G) {
-  header(g, 'PROCESS MIMIC — INLET & SEPARATION')
+  header(g, 'PROCESS MIMIC: INLET & SEPARATION')
   // inlet manifold
   const y = 230
   rect(g, 30, y - 70, 70, 140, C.panel, C.text, 2.5)
@@ -334,7 +334,7 @@ const PENS = [
   ],
 ]
 function trend(g: G) {
-  header(g, 'TRENDS — EXPORT, FLARE, HP SEPARATOR')
+  header(g, 'TRENDS: EXPORT, FLARE, HP SEPARATOR')
   const r = rng(11)
   PENS.forEach((pens, i) => {
     const x = 70
@@ -424,7 +424,7 @@ function alarm(g: G) {
 }
 
 function fg(g: G) {
-  header(g, 'FIRE & GAS — ZONE MAP, MAIN DECK')
+  header(g, 'FIRE & GAS: ZONE MAP, MAIN DECK')
   const x0 = 24
   const y0 = 60
   const w = 690
@@ -738,7 +738,7 @@ function weather(g: G) {
 }
 
 function kpi(g: G) {
-  header(g, 'PRODUCTION KPIs — LAST 24 h')
+  header(g, 'PRODUCTION KPIs: LAST 24 h')
   const r = rng(3)
   const tiles: [string, string, string, number][] = [
     ['Oil', '49 830', 'bbl/d', 0.93],

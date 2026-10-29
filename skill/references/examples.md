@@ -1,6 +1,15 @@
 # Worked examples
 
-Each example is a complete, checked plant.json in the registry: `<registry>/r/examples/<name>.plant.json`. Both pass `deck-twin check` and the renderer's geometry checks with no issues. Copy the patterns below rather than inventing new ones.
+Each example is a complete, checked plant.json in the registry: `<registry>/r/examples/<name>.plant.json`. All six pass `deck-twin check` with no errors and the renderer's geometry checks with no issues. The wellhead platform shows two warnings for manifold slots 5 and 6: `check` reads ports at default props, and that manifold is set to `slots: 4`. Copy the patterns below rather than inventing new ones.
+
+| Example | Level | Items / lines | Shows |
+|---|---|---|---|
+| `onshore-well-pad` | Basic | 9 / 10 | One well to separator, pump, bunded tank and flare |
+| `control-room` | Basic | 9 / 0 | Interiors, screens, doors |
+| `wellhead-platform` | Intermediate | 13 / 6 | Jacket, decks, trees, manifold, crane, helideck |
+| `offshore-water-injection` | Intermediate | 14 / 16 | Caisson lift pump, filtration, deaerator, duty/standby pumps, riser ESDVs |
+| `separation-train` | Intermediate | 11 / 16 | Battery limits, tees, pipe-rack routing, relief |
+| `crude-export-terminal` | Advanced | 25 / 28 | Metering, tank farm in a bund, rack headers, loading arm and truck bay |
 
 ## 1. Wellhead platform: decks, jacket, trees, manifold, crane, helideck
 
@@ -95,6 +104,48 @@ Read it as a P&ID would show it: four wells feed a production / test manifold, p
 - **Cutaway.** `cutaway: true` drops the ceiling and the +Z wall, so the twin can look in. View from +Z.
 - **Live screens.** Consoles, video walls, desks and displays take `screens` (or `screen`) as an array of THREE textures. Pass CanvasTextures from your HMI, video textures or render targets, and the components swap them in without rebuilding geometry.
 - This plant has no process lines. That's fine: `lines` can be empty.
+
+## 4. Onshore well pad: the minimum producing plot
+
+`onshore-well-pad.plant.json`
+
+Well XT-101 flows through SDV-101 and choke HCV-101 into separator V-200. Gas goes to flare FS-500 on PCV-201. Oil is pumped by P-300 on level control LV-201 into tank TK-401 inside bund BW-400.
+```json
+{ "tag": "FS-500", "component": "flare-stack", "position": [6, 0, -28], "props": { "height": 20, "support": "self", "headerNps": 6, "lit": true } },
+{ "tag": "3\"-PO-302-C3A-N", "from": "P-300.discharge", "to": "TK-401.inlet", "elevation": 2, "order": "zx",
+  "inline": [{ "component": "swing-check-valve", "at": 0.12 }, { "component": "control-valve", "at": 0.3, "tag": "LV-201" }] }
+```
+- **Flare spacing.** The flare stands about 30 m from the separator, tank and well. The distance is illustrative: size it from a radiation study.
+- **Crossing a bund.** `elevation: 2` lifts the tank inlet over the 1.2 m bund wall, and `order: "zx"` jogs it clear of the step-over stairs.
+- **Control valve on the discharge.** Level control throttles a centrifugal pump's discharge, never its suction.
+
+## 5. Offshore water injection module: caissons, packages, risers
+
+`offshore-water-injection.plant.json`
+
+Lift pump P-W300 feeds filters X-W330 (backwash to caisson CS-W350), then deaerator T-W320 dosed from C-W340. Booster pumps P-W305A/B feed injection pumps P-W310A/B, which discharge into a header that drops through a check valve and an ESDV into each jacket riser.
+```json
+{ "tag": "P-W300", "component": "vertical-turbine-pump", "position": [-16, 6, 7.5], "props": { "kw": 200, "dischargeNps": 10, "depth": 26, "stages": 3 } },
+{ "tag": "8\"-WI-4101-F15A-N", "from": "TEE-W311.branch", "to": "JKT-W1.riser-1",
+  "inline": [{ "component": "swing-check-valve", "at": 0.3 }, { "component": "esd-valve", "at": 0.7, "tag": "ESDV-W401" }] }
+```
+- **Caisson pumps** stand on the deck (y = 6) and reach down `depth` metres. Put them just outside the jacket legs so the column clears the bracing.
+- **Duty / standby** pairs share a suction tee and a discharge header. Each pump gets its own check valve.
+- **Riser ESDVs** sit on the vertical drop below the deck, as on the wellhead platform.
+- **Sea.** `"sea": { "level": -14, "depth": 50 }` draws the water surface and seabed. The jacket stands at y = 0 with `airGap: 14` and `waterDepth: 50`, so mean sea level is y = -14. The sea is visual only and is left out of camera fitting and the checks.
+
+## 6. Crude export terminal: metering, tank farm, loading
+
+`crude-export-terminal.plant.json`
+
+The pipeline arrives through valve station PVS-1001 and pig receiver L-1010, is metered on X-1100 (proved by X-1150) and fills tanks TK-2001/2002 inside bund BW-2000 from a header on rack PR-1. Loading pumps P-3001A/B deliver to marine loading arm MLA-3101, with a branch to truck bay X-3200.
+```json
+{ "tag": "PR-1", "component": "pipe-rack", "position": [15, 0, -24], "props": { "bays": 12, "bayLength": 6, "width": 6, "tiers": 2, "firstTier": 5, "tierSpacing": 2 } },
+{ "tag": "12\"-PO-2101-A1A-N", "from": "TK-2001.outlet", "to": "ELB-2101.B", "elevation": 2.2, "inline": [{ "component": "motor-operated-valve", "at": 0.3, "tag": "MOV-2101" }] }
+```
+- **Headers on the rack.** Receipt and suction headers run along the rack. Tank lines join them with tees and elbows placed as items, so each tank branch is its own line.
+- **Tank valves.** Motor-operated valves sit close to each tank nozzle, outside the bund where they can be reached.
+- **Long plots.** The plot runs about 170 m west to east. Keep the tanks compact so the overview still reads.
 
 ## Checking your own plant
 

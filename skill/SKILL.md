@@ -133,9 +133,12 @@ Tell the user:
 
 [references/examples.md](references/examples.md) has complete plant.json files:
 
-1. A 3-phase separation train on a production deck: separator → pumps → cooler, gas → scrubber → compressor.
-2. An offshore wellhead platform: jacket, cellar and main deck, christmas trees, manifold, pedestal crane, helideck.
-3. A compressor module with a pipe rack, an air cooler and a lube-oil package.
+1. Basic: an onshore well pad. Well → choke → separator → pump → bunded tank, gas to flare.
+2. Basic: a central control room. Consoles, video wall, cabinets, doors and windows.
+3. Intermediate: an offshore wellhead platform. Jacket, cellar and main deck, christmas trees, manifold, pedestal crane, helideck.
+4. Intermediate: an offshore water injection module. Caisson lift pump, filters, deaerator, booster and injection pumps, riser ESDVs.
+5. Intermediate: an onshore separation and compression train. Separator → pumps → cooler, gas → scrubber → compressor, on a pipe rack.
+6. Advanced: a crude export terminal. Metering and prover, tank farm in a bund, rack headers, loading pumps, marine loading arm and truck bay.
 
 The full `plant.json` schema is in [references/plant-json.md](references/plant-json.md).
 [references/pid-symbols.md](references/pid-symbols.md) is generated from the registry and maps every component to its P&ID symbol, tag letters and datasheet fields.

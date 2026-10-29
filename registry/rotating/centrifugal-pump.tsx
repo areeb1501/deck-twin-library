@@ -280,7 +280,7 @@ function build(p: Omit<typeof defaults, 'running'> & { tag?: string }) {
   const Lm = Math.max(0.5, Math.min(Lwant, xm - (-BL / 2 + 0.06) - cowl))
   k.at([xm, ys, zc], undefined, () => motor(k, { R: Rm, L: Lm, H: ys - hb, tbox: 'side', cable: true }))
   // motor sole plates (shims) visible under feet already; coupling guard with the coupling (and
-  // shaft ends) turning inside it, and the motor's cooling fan behind the cowl grille — all one shaft
+  // shaft ends) turning inside it, and the motor's cooling fan behind the cowl grille, all on one shaft
   const rpm = 165
   const rotors: RotorSpec[] = [
     guardedCoupling(k, xMotorShaft - 0.02, xCoupEnd + 0.04, ys, Math.max(0.16, shaftR * 4.2), hb, 'safetyYellow', rpm, zc, Math.max(shaftR, 0.02, Rm * 0.13)),

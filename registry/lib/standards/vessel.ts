@@ -1,4 +1,4 @@
-// ASME BPVC Section VIII Div. 1 pressure-vessel geometry helpers (UG-27, UG-32, UG-34) and typical layout rules. Reference values — verify against the current edition.
+// ASME BPVC Section VIII Div. 1 pressure-vessel geometry helpers (UG-27, UG-32, UG-34) and typical layout rules. Reference values. Verify against the current edition.
 import { mm } from './util'
 import { flange } from './flange'
 import type { Rating } from './flange'

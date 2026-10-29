@@ -1,0 +1,265 @@
+{
+  "name": "Onshore well pad",
+  "description": "Single-well onshore production pad. Well XT-101 flows through flowline shutdown valve SDV-101 and production choke HCV-101 into the 2-phase production separator V-200, protected by PSV-201. Separator gas leaves on back-pressure control PCV-201 and joins the PSV discharge in the flare header to the elevated flare FS-500, about 30 m away, while oil is pumped by P-300 on level control LV-201 into atmospheric storage tank TK-401 inside bund BW-400 (bund drain to the oily-water system) and leaves to truck loading at the battery limit.",
+  "source": "Deck Twin example (illustrative layout, not a real asset)",
+  "camera": {
+    "target": [
+      -1,
+      6.5,
+      -8
+    ],
+    "radius": 18,
+    "direction": [
+      -0.35,
+      0.6,
+      1
+    ]
+  },
+  "items": [
+    {
+      "tag": "XT-101",
+      "component": "christmas-tree",
+      "position": [
+        -22,
+        0,
+        -3
+      ],
+      "props": {
+        "flowlineNps": 3,
+        "tag": "XT-101"
+      }
+    },
+    {
+      "tag": "HCV-101",
+      "component": "choke-valve",
+      "position": [
+        -11.5,
+        5.0,
+        -3
+      ],
+      "props": {
+        "operator": "actuator",
+        "opening": 0.4,
+        "tag": "HCV-101"
+      }
+    },
+    {
+      "tag": "V-200",
+      "component": "vertical-separator",
+      "position": [
+        -8,
+        0,
+        -3
+      ],
+      "props": {
+        "diameter": 1.5,
+        "height": 4.5,
+        "inletNps": 4,
+        "gasNps": 3,
+        "liquidNps": 4,
+        "tag": "V-200"
+      }
+    },
+    {
+      "tag": "PSV-201",
+      "component": "pressure-safety-valve",
+      "position": [
+        -8,
+        7.8,
+        -3.39
+      ],
+      "props": {
+        "orifice": "J",
+        "inletRating": 600,
+        "tag": "PSV-201"
+      }
+    },
+    {
+      "tag": "TEE-501",
+      "component": "tee",
+      "position": [
+        -4.5,
+        0.8,
+        -6.5
+      ],
+      "props": {
+        "nps": 4,
+        "branchNps": 4,
+        "ends": "flanged",
+        "rating": 150,
+        "service": "flare"
+      },
+      "rotation": 90
+    },
+    {
+      "tag": "P-300",
+      "component": "centrifugal-pump",
+      "position": [
+        -4,
+        0,
+        -3
+      ],
+      "rotation": 180,
+      "props": {
+        "suctionNps": 4,
+        "dischargeNps": 3,
+        "kw": 15,
+        "baseLength": 2,
+        "baseWidth": 0.8,
+        "tag": "P-300"
+      }
+    },
+    {
+      "tag": "BW-400",
+      "component": "bund-wall",
+      "position": [
+        9,
+        0,
+        1.5
+      ],
+      "props": {
+        "length": 16,
+        "width": 14,
+        "height": 1.2,
+        "tag": "BW-400"
+      }
+    },
+    {
+      "tag": "TK-401",
+      "component": "storage-tank",
+      "position": [
+        9.5,
+        0,
+        1.5
+      ],
+      "rotation": -35,
+      "props": {
+        "diameter": 6,
+        "height": 6,
+        "inletNps": 3,
+        "outletNps": 4,
+        "tag": "TK-401"
+      }
+    },
+    {
+      "tag": "FS-500",
+      "component": "flare-stack",
+      "position": [
+        6,
+        0,
+        -28
+      ],
+      "props": {
+        "height": 20,
+        "support": "self",
+        "headerNps": 6,
+        "pilots": 2,
+        "lit": true,
+        "flameHeight": 4,
+        "tag": "FS-500"
+      }
+    }
+  ],
+  "lines": [
+    {
+      "tag": "3\"-PM-101-F15A-N",
+      "from": "XT-101.production",
+      "to": "HCV-101.inlet",
+      "elevation": 2.0,
+      "inline": [
+        {
+          "component": "esd-valve",
+          "at": 0.3,
+          "tag": "SDV-101"
+        }
+      ]
+    },
+    {
+      "tag": "3\"-PM-102-F15A-N",
+      "from": "HCV-101.outlet",
+      "to": "V-200.inlet"
+    },
+    {
+      "tag": "3\"-PG-201-D6A-N",
+      "from": "V-200.gas",
+      "to": "TEE-501.run-a",
+      "inline": [
+        {
+          "component": "control-valve",
+          "at": 0.6,
+          "tag": "PCV-201"
+        }
+      ]
+    },
+    {
+      "tag": "3\"-FL-202-D6A-N",
+      "from": "V-200.psv",
+      "to": "PSV-201.inlet"
+    },
+    {
+      "tag": "4\"-FL-203-A1A-N",
+      "from": "PSV-201.outlet",
+      "to": "TEE-501.branch"
+    },
+    {
+      "tag": "4\"-FL-501-A1A-N",
+      "from": "TEE-501.run-b",
+      "to": "FS-500.inlet",
+      "order": "zx"
+    },
+    {
+      "tag": "4\"-PO-301-D6A-N",
+      "from": "V-200.liquid",
+      "to": "P-300.suction",
+      "inline": [
+        {
+          "component": "gate-valve",
+          "at": 0.3
+        }
+      ]
+    },
+    {
+      "tag": "3\"-PO-302-C3A-N",
+      "from": "P-300.discharge",
+      "to": "TK-401.inlet",
+      "elevation": 2.0,
+      "inline": [
+        {
+          "component": "swing-check-valve",
+          "at": 0.12
+        },
+        {
+          "component": "control-valve",
+          "at": 0.3,
+          "tag": "LV-201"
+        }
+      ],
+      "order": "zx"
+    },
+    {
+      "tag": "4\"-PO-401-A1A-N",
+      "from": "TK-401.outlet",
+      "to": {
+        "at": [
+          9.5,
+          2.0,
+          -9
+        ],
+        "label": "TO TRUCK LOADING"
+      },
+      "elevation": 2.0
+    },
+    {
+      "tag": "4\"-OD-402-A1A-N",
+      "from": "BW-400.drain",
+      "to": {
+        "at": [
+          21,
+          0.35,
+          7.3
+        ],
+        "label": "TO OILY WATER"
+      }
+    }
+  ]
+}

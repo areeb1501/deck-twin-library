@@ -288,7 +288,7 @@ export class Kit {
     list.push(g)
     return this
   }
-  // Clones first — for cached geometry.
+  // Clones first, for cached geometry.
   addShared(mat: MatKey, geo: THREE.BufferGeometry, local?: THREE.Matrix4) {
     return this.add(mat, geo.clone(), local)
   }

@@ -1,4 +1,4 @@
-// ASME B16.9 butt-welding fittings (and MSS SP-43 / B16.9 long-pattern stub ends). Reference values — verify against the current edition.
+// ASME B16.9 butt-welding fittings (and MSS SP-43 / B16.9 long-pattern stub ends). Reference values. Verify against the current edition.
 import { inch, nearest, tableKeys } from './util'
 import { pipeOD } from './pipe'
 import { flange } from './flange'

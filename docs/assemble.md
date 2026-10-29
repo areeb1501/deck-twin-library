@@ -94,6 +94,10 @@ const components: ComponentMap = {
 
 `npx deck-twin assemble plant.json` writes this file for you, as `src/PlantScene.tsx`, with every import in place.
 
+### Offshore: show the sea
+
+Add `"sea": { "level": -14, "depth": 50 }` to the plant. `<Plant>` draws a tinted water surface at mean sea level and a seabed `depth` metres below it, so the jacket shows through the water. For a jacket at y = 0, `level` is minus its `airGap`. The sea is visual only: it is not part of the checks. See the [offshore water injection example](/examples/offshore-water-injection).
+
 ## Checks
 
 `onReport` receives these issues:

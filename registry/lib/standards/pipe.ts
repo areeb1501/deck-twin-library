@@ -1,4 +1,4 @@
-// ASME B36.10M carbon steel pipe and B36.19M stainless (S schedules). Reference values — verify against the current edition.
+// ASME B36.10M carbon steel pipe and B36.19M stainless (S schedules). Reference values. Verify against the current edition.
 import { mm, nearest, tableKeys } from './util'
 
 export type Schedule =
