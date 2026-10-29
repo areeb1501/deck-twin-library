@@ -37,6 +37,8 @@ export interface ViewerProps {
 export type ViewerEnv = 'studio' | 'day' | 'night' | 'none'
 
 const DEFAULT_VIEW: [number, number, number] = [1, 0.62, 1.18]
+/** studio backdrop, matched to the site's --color-stage */
+const STUDIO_BG = '#23242b'
 const sameV = (a: [number, number, number], b: [number, number, number]) => (a.every((v, i) => Math.abs(v - b[i]) < 0.5) ? a : b)
 
 export function Viewer({ children, ports, showPorts, fitKey, onBounds, shot, effects = true, view = DEFAULT_VIEW, focus, frame, env = 'studio', className }: ViewerProps) {
@@ -74,8 +76,8 @@ export function Viewer({ children, ports, showPorts, fitKey, onBounds, shot, eff
           gl.outputColorSpace = THREE.SRGBColorSpace
         }}
       >
-        {studio && <color attach="background" args={[effects ? '#ffffff' : '#f3f4f5']} />}
-        {studio && <fog attach="fog" args={[effects ? '#ffffff' : '#f3f4f5', radius * 6, radius * 14]} />}
+        {studio && <color attach="background" args={[STUDIO_BG]} />}
+        {studio && <fog attach="fog" args={[STUDIO_BG, radius * 6, radius * 14]} />}
         {studio && <Stage radius={radius} groundY={groundY} />}
         {env === 'day' && <Sky mode="day" shadowRadius={radius} shadowCenter={center} />}
         {env === 'night' && <Sky mode="night" azimuth={(Math.atan2(-view[0], view[2]) * 180) / Math.PI + 345} elevation={4} shadowRadius={radius} shadowCenter={center} />}

@@ -30,36 +30,36 @@ export function Home() {
     <div>
       <section className="relative overflow-hidden border-b border-border">
         <div aria-hidden className="pointer-events-none absolute inset-0">
-          <div className="hero-grid absolute inset-0" />
-          <div className="absolute -top-56 left-1/2 h-[560px] w-[min(980px,100%)] -translate-x-1/2 rounded-[50%] bg-[radial-gradient(closest-side,rgb(127_209_207/0.42),rgb(10_107_111/0.10)_60%,transparent)] blur-2xl" />
-          <div className="hero-glow absolute top-[38%] left-1/2 h-[560px] w-[min(1200px,110%)] rounded-[50%] bg-[radial-gradient(closest-side,rgb(10_107_111/0.30),rgb(127_209_207/0.16)_55%,transparent)] blur-3xl" />
-          <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-b from-transparent to-white" />
+          <div className="hero-grain absolute inset-0" />
+          <div className="grain absolute inset-0" />
+          <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent" />
+          <div className="absolute inset-x-0 bottom-0 h-56 bg-gradient-to-b from-transparent to-bg" />
         </div>
         <div className="relative mx-auto max-w-[1440px] px-6 pt-16 pb-16 sm:pt-24 sm:pb-20">
           <div className="mx-auto max-w-[800px] text-center">
-            <Link href="/components" className="group mb-7 inline-flex items-center gap-2 rounded-full border border-border bg-white/80 py-1 pr-3 pl-3 text-[12.5px] whitespace-nowrap sm:pl-1 sm:text-[13px] text-slate-600 shadow-[0_1px_2px_rgb(14_26_36/0.05)] backdrop-blur transition-colors hover:border-slate-300 hover:text-ink">
-              <span className="hidden rounded-full bg-ink px-2 py-0.5 text-[11.5px] font-semibold text-white sm:inline">Open source</span>
+            <Link href="/components" className="group mb-7 inline-flex items-center gap-2 glass rounded-full border border-white/10 py-1 pr-3 pl-3 text-[12.5px] whitespace-nowrap sm:pl-1 sm:text-[13px] text-zinc-300 transition-colors hover:border-white/20 hover:text-ink">
+              <span className="hidden items-center gap-1.5 rounded-full bg-white/[0.08] px-2 py-0.5 text-[11.5px] font-medium text-ink sm:inline-flex"><span className="h-1.5 w-1.5 rounded-full bg-signal" />Open source</span>
               {ITEMS.length} components, {LIBRARY.symbols.length} P&amp;ID symbols
               <span aria-hidden className="text-muted-fg transition-transform group-hover:translate-x-0.5">→</span>
             </Link>
-            <h1 className="text-[42px] leading-[1.04] font-semibold tracking-[-0.03em] text-balance text-ink sm:text-[68px]">
-              3D components for <span className="hero-ink">oil &amp; gas digital twins</span>
+            <h1 className="text-[42px] leading-[1.04] font-semibold tracking-[-0.04em] text-balance sm:text-[72px]">
+              <span className="head-grad">3D components for</span> <span className="hero-ink">oil &amp; gas digital twins</span>
             </h1>
-            <p className="mx-auto mt-6 max-w-2xl text-[17px] leading-7 text-pretty text-slate-600 sm:text-[18px] sm:leading-8">
+            <p className="mx-auto mt-6 max-w-2xl text-[17px] leading-7 text-pretty text-zinc-400 sm:text-[18px] sm:leading-8">
               Separators, pumps, valves, compressors, cranes, decks and pipe racks for three.js and React Three Fiber. Each one is sized from the standard it follows. Copy it into your project, or let your agent assemble a whole plant from a P&amp;ID.
             </p>
             <div className="mt-9 flex flex-wrap justify-center gap-3">
-              <Link href="/components" className="inline-flex h-11 items-center rounded-md bg-ink px-5 text-[15px] font-semibold text-white transition-colors hover:bg-ink-2">
+              <Link href="/components" className="inline-flex h-11 items-center rounded-full bg-ink px-6 text-[15px] font-medium text-on-ink shadow-sm transition-[transform,background-color] duration-150 hover:bg-ink-2 active:scale-[0.97]">
                 Browse components
               </Link>
-              <Link href="/docs/assemble" className="inline-flex h-11 items-center rounded-md border border-border bg-white px-5 text-[15px] font-semibold text-ink shadow-sm transition-colors hover:border-slate-300 hover:bg-muted">
+              <Link href="/docs/assemble" className="glass inline-flex h-11 items-center rounded-full px-6 text-[15px] font-medium text-ink ring-1 ring-white/10 transition-[transform,background-color] duration-150 hover:bg-white/[0.08] active:scale-[0.97]">
                 Assemble a plant
               </Link>
             </div>
             <AgentLine className="mx-auto mt-7 max-w-[720px]" />
           </div>
-          <div className="relative mx-auto mt-14 max-w-[1240px] overflow-hidden rounded-2xl border border-border bg-white shadow-[0_1px_2px_rgb(14_26_36/0.05),0_32px_80px_-32px_rgb(10_107_111/0.45)] ring-1 ring-white/60 sm:mt-16">
-            <div className="flex items-center gap-3 border-b border-border bg-white px-4 py-2.5">
+          <div className="relative mx-auto mt-14 max-w-[1240px] overflow-hidden rounded-2xl border border-white/10 glass shadow-[0_40px_100px_-30px_rgb(59_70_207/0.55)] sm:mt-16">
+            <div className="flex items-center gap-3 border-b border-white/[0.08] px-4 py-2.5">
               <span className="h-2 w-2 rounded-full bg-signal" />
               <span className="truncate text-[13px] font-semibold text-ink">{hero?.spec.name}</span>
               {hero && (
@@ -97,9 +97,9 @@ export function Home() {
       </section>
 
       <section className="mx-auto max-w-[1440px] px-6 py-20">
-        <h2 className="text-[30px] font-semibold text-ink">From one component to a whole plant</h2>
-        <p className="mt-2 text-[16px] text-slate-600">Three steps, and every one of them works with or without an agent.</p>
-        <ol className="mt-10 grid gap-10 md:grid-cols-3 md:gap-8">
+        <h2 className="head-grad text-[32px] font-semibold tracking-[-0.03em]">From one component to a whole plant</h2>
+        <p className="mt-2 text-[16px] text-zinc-400">Three steps, and every one of them works with or without an agent.</p>
+        <ol className="mt-10 grid gap-4 md:grid-cols-3 md:gap-5">
           <Step n={1} title="Pick a component">
             Every component page has a live 3D preview, dimension controls, the code and its ports. Sizes come from ASME, API, TEMA, IEC and ISO tables.
           </Step>
@@ -116,8 +116,8 @@ export function Home() {
         <div className="mx-auto max-w-[1440px] px-6 py-20">
           <div className="mb-10 flex flex-wrap items-end justify-between gap-4">
             <div>
-              <h2 className="text-[30px] font-semibold text-ink">Categories</h2>
-              <p className="mt-2 text-[16px] text-slate-600">From a 1/2" needle valve to a pedestal crane.</p>
+              <h2 className="head-grad text-[32px] font-semibold tracking-[-0.03em]">Categories</h2>
+              <p className="mt-2 text-[16px] text-zinc-400">From a 1/2" needle valve to a pedestal crane.</p>
             </div>
             <Link href="/components" className="inline-flex h-10 items-center rounded-md border border-border px-4 text-[14px] font-semibold text-ink transition-colors hover:bg-muted">
               View all {ITEMS.length} components
@@ -127,7 +127,7 @@ export function Home() {
             {cats.map((c) => {
               const items = byCategory(c.id)
               return (
-                <Link key={c.id} href={`/components/${items[0].name}`} className="group overflow-hidden rounded-xl border border-border bg-white transition-[border-color,box-shadow] hover:border-slate-300 hover:shadow-[0_8px_24px_-12px_rgb(14_26_36/0.18)]">
+                <Link key={c.id} href={`/components/${items[0].name}`} className="group overflow-hidden rounded-xl border border-border bg-surface transition-[border-color,box-shadow] hover:border-white/20 hover:shadow-[0_8px_24px_-12px_rgb(0_0_0/0.18)]">
                   <div className="aspect-[4/3] bg-stage">
                     <img src={thumb(items[0].name)} alt="" loading="lazy" className="h-full w-full object-cover" onError={(e) => (e.currentTarget.style.visibility = 'hidden')} />
                   </div>
@@ -145,10 +145,11 @@ export function Home() {
         </div>
       </section>
 
-      <section className="bg-ink text-white">
+      <section className="agents-band relative isolate overflow-hidden text-white">
+        <div aria-hidden className="grain pointer-events-none absolute inset-0 -z-10" />
         <div className="mx-auto grid max-w-[1440px] grid-cols-1 items-start gap-12 px-6 py-20 lg:grid-cols-2 lg:gap-16">
           <div>
-            <h2 className="text-[30px] font-semibold">Built for agents</h2>
+            <h2 className="head-grad text-[32px] font-semibold tracking-[-0.03em]">Built for agents</h2>
             <p className="mt-4 max-w-xl text-[16px] leading-7 text-slate-300">
               The registry ships with an agent skill. Give it a P&amp;ID, a datasheet or an equipment list and it maps each item to a component, sizes it, lays it out, wires the ports and checks the result. It's model-agnostic and works just as well with cost-effective models.
             </p>
@@ -166,14 +167,14 @@ export function Home() {
             <div className="mt-8 max-w-md">
               <Command cmd={`${CLI} skill`} />
             </div>
-            <Link href="/docs/agents" className="mt-5 inline-block text-[14px] font-semibold text-[#7fd1cf] hover:underline hover:underline-offset-4">
+            <Link href="/docs/agents" className="mt-5 inline-block text-[14px] font-semibold text-[#ff8a5c] hover:underline hover:underline-offset-4">
               Read the agent skill
             </Link>
           </div>
           <div className="space-y-5">
             <PromptCard />
             <div className="overflow-hidden rounded-xl border border-white/10 shadow-2xl">
-              <div className="border-b border-white/10 bg-ink-2 px-4 py-2.5 font-mono text-[12px] text-slate-400">plant.json</div>
+              <div className="border-b border-white/10 bg-code px-4 py-2.5 font-mono text-[12px] text-slate-400">plant.json</div>
               <Code code={PLANT_SNIPPET} lang="json" dark className="rounded-none border-0" />
             </div>
           </div>
@@ -195,11 +196,14 @@ function Fact({ value, label }: { value: number; label: string }) {
 
 function Step({ n, title, children }: { n: number; title: string; children: ReactNode }) {
   return (
-    <li className="relative border-t-2 border-border pt-6">
-      <span className="absolute -top-[2px] left-0 h-[2px] w-16 bg-brand" />
-      <div className="text-[13px] font-semibold text-brand">Step {n}</div>
+    <li className="glass relative overflow-hidden rounded-2xl border border-white/[0.07] p-6">
+      <span aria-hidden className="absolute inset-x-6 top-0 h-px bg-gradient-to-r from-signal/70 via-signal/20 to-transparent" />
+      <div className="inline-flex items-center gap-2 text-[12px] font-medium tracking-[0.14em] text-muted-fg uppercase">
+        <span className="h-1.5 w-1.5 rounded-full bg-signal" />
+        Step {n}
+      </div>
       <div className="mt-1.5 text-[19px] font-semibold text-ink">{title}</div>
-      <p className="mt-2 text-[15px] leading-7 text-slate-600">{children}</p>
+      <p className="mt-2 text-[15px] leading-7 text-zinc-400">{children}</p>
     </li>
   )
 }

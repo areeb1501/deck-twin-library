@@ -10,8 +10,8 @@ export function Symbols() {
   const [tab, setTab] = useQueryState<'legend' | 'components'>('view', LIBRARY.symbols.length ? 'legend' : 'components')
   return (
     <div className="mx-auto max-w-[1440px] px-6 py-10 lg:px-10">
-      <h1 className="text-[34px] leading-tight font-semibold text-ink">P&amp;ID symbols</h1>
-      <p className="mt-2 max-w-3xl text-[15px] leading-7 text-slate-600">
+      <h1 className="text-[34px] leading-tight font-semibold head-grad tracking-[-0.035em]">P&amp;ID symbols</h1>
+      <p className="mt-2 max-w-3xl text-[15px] leading-7 text-zinc-400">
         What each symbol on a P&amp;ID looks like, what it means, and which Deck Twin component it becomes. The conventions are ISO 10628-2 and PIP PIC001 for process, ISA 5.1 for instruments, IEC 60617 for electrical, and NFPA 170 / ISO 7010 for fire &amp; gas. Company legends vary, so read the drawing's own legend sheet first.
       </p>
       <p className="mt-3 text-[13px] text-muted-fg">
@@ -76,13 +76,13 @@ function Legend() {
         <div>
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5">
             {shown.map((x) => (
-              <button key={x.id} onClick={() => open(x)} className={`rounded-xl border p-3 text-left transition-[border-color,box-shadow] hover:border-slate-300 hover:shadow-[0_8px_24px_-12px_rgb(14_26_36/0.18)] ${sel?.id === x.id ? 'border-ink ring-1 ring-ink' : 'border-border'}`}>
+              <button key={x.id} onClick={() => open(x)} className={`rounded-xl border p-3 text-left transition-[border-color,box-shadow] hover:border-white/20 hover:shadow-[0_8px_24px_-12px_rgb(0_0_0/0.18)] ${sel?.id === x.id ? 'border-ink ring-1 ring-ink' : 'border-border'}`}>
                 <div className="flex aspect-[4/3] items-center justify-center p-2">
-                  <img src={librarySymbolUrl(x.svg)} alt="" className="max-h-full max-w-full" />
+                  <img src={librarySymbolUrl(x.svg)} alt="" className="sym max-h-full max-w-full" />
                 </div>
                 <div className="mt-2 text-[13px] leading-5 font-medium">{x.name}</div>
                 <div className="mt-0.5 flex items-center gap-1.5 text-[11px] text-muted-fg">
-                  {has3d(x) ? <span className="rounded bg-ink px-1 font-semibold text-white">3D</span> : !x.physical ? <span className="rounded bg-slate-100 px-1">logical</span> : null}
+                  {has3d(x) ? <span className="rounded bg-ink px-1 font-semibold text-on-ink">3D</span> : !x.physical ? <span className="rounded bg-white/10 px-1">logical</span> : null}
                   <span className="truncate">{[...(x.tags ?? []), ...(x.isa ?? [])].join(' · ')}</span>
                 </div>
               </button>
@@ -95,7 +95,7 @@ function Legend() {
             </div>
           )}
         </div>
-        <aside className="hidden flex-col overflow-hidden rounded-xl border border-border bg-white lg:sticky lg:flex lg:top-[8.5rem] lg:h-[calc(100vh-10rem)]">
+        <aside className="hidden flex-col overflow-hidden rounded-xl border border-border bg-surface lg:sticky lg:flex lg:top-[8.5rem] lg:h-[calc(100vh-10rem)]">
           {sel ? (
             <SymbolDetail sel={sel} />
           ) : (
@@ -113,7 +113,7 @@ function SymbolDetail({ sel }: { sel: LibrarySymbol }) {
     <>
       <div className="shrink-0 border-b border-border p-5 pb-4">
         <div className="flex h-36 items-center justify-center rounded-lg border border-border p-4">
-          <img src={librarySymbolUrl(sel.svg)} alt="" className="max-h-full max-w-full" />
+          <img src={librarySymbolUrl(sel.svg)} alt="" className="sym max-h-full max-w-full" />
         </div>
         <div className="mt-3 text-lg leading-6 font-semibold tracking-tight">{sel.name}</div>
         <div className="mt-0.5 text-xs text-muted-fg">{sel.standard}</div>
@@ -134,7 +134,7 @@ function SymbolDetail({ sel }: { sel: LibrarySymbol }) {
       </div>
       <div className="shrink-0 border-t border-border p-4">
         {sel.component && BY_NAME.get(sel.component) ? (
-          <Link href={`/components/${sel.component}`} className="block truncate rounded-md bg-ink px-3 py-2 text-center text-[13px] font-semibold text-white transition-colors hover:bg-ink-2">
+          <Link href={`/components/${sel.component}`} className="block truncate rounded-full bg-ink px-3 py-2 text-center text-[13px] font-semibold text-on-ink transition-colors hover:bg-ink-2">
             Open the 3D component: {BY_NAME.get(sel.component)!.title}
           </Link>
         ) : (
@@ -163,7 +163,7 @@ export function SymbolPage({ id }: { id: string }) {
         <span aria-hidden>←</span> All symbols
       </Link>
       {sel ? (
-        <div className="mt-4 flex flex-col overflow-hidden rounded-xl border border-border bg-white">
+        <div className="mt-4 flex flex-col overflow-hidden rounded-xl border border-border bg-surface">
           <SymbolDetail sel={sel} />
         </div>
       ) : (
@@ -189,9 +189,9 @@ function ByComponent() {
               {items.map((i) => {
                 const e = PID[i.name]
                 return (
-                  <Link key={i.name} href={`/components/${i.name}`} className="group rounded-xl border border-border p-3 transition-[border-color,box-shadow] hover:border-slate-300 hover:shadow-[0_8px_24px_-12px_rgb(14_26_36/0.18)]">
+                  <Link key={i.name} href={`/components/${i.name}`} className="group rounded-xl border border-border p-3 transition-[border-color,box-shadow] hover:border-white/20 hover:shadow-[0_8px_24px_-12px_rgb(0_0_0/0.18)]">
                     <div className="flex aspect-[4/3] items-center justify-center p-2">
-                      <img src={symbolUrl(e)} alt="" className="max-h-full max-w-full" />
+                      <img src={symbolUrl(e)} alt="" className="sym max-h-full max-w-full" />
                     </div>
                     <div className="mt-2 text-[13px] font-medium">{i.title}</div>
                     <div className="mt-0.5 truncate font-mono text-[11px] text-muted-fg">{[...(e.tags ?? []), ...(e.isa ?? [])].join(' · ')}</div>
@@ -210,7 +210,7 @@ function Field({ label, children }: { label: string; children: ReactNode }) {
   return (
     <div>
       <div className="mb-0.5 text-[12.5px] font-semibold text-ink">{label}</div>
-      <div className="leading-6 text-slate-700">{children}</div>
+      <div className="leading-6 text-zinc-300">{children}</div>
     </div>
   )
 }

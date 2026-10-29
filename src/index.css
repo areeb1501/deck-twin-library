@@ -1,38 +1,43 @@
 @import 'tailwindcss';
-@import '@fontsource-variable/ibm-plex-sans';
+@import '@fontsource-variable/inter';
 @import '@fontsource/ibm-plex-mono/400.css';
 @import '@fontsource/ibm-plex-mono/500.css';
 
-/* Site theme: graphite ink for actions, petrol teal for links and focus, cool greys, safety amber as a small signal. */
+/* Site theme: near-black ground, frosted-glass surfaces, signal orange and deep indigo light, white-to-grey headings. */
 @theme {
-  --font-sans: 'IBM Plex Sans Variable', ui-sans-serif, system-ui, sans-serif;
+  --font-sans: 'Inter Variable', ui-sans-serif, system-ui, sans-serif;
   --font-mono: 'IBM Plex Mono', ui-monospace, monospace;
-  --color-bg: #ffffff;
-  --color-fg: #0e1a24;
-  --color-ink: #0e1a24;
-  --color-ink-2: #1b2a37;
-  --color-muted: #f5f7f8;
-  --color-muted-fg: #5e6b76;
-  --color-border: #e3e8ec;
-  --color-accent: #e8f2f1;
-  --color-brand: #0a6b6f;
-  --color-brand-hover: #08585b;
-  --color-brand-tint: #e8f2f1;
-  --color-signal: #e9a23b;
-  --color-stage: #f3f4f5;
+  --color-bg: #0e0f13;
+  --color-fg: #ececef;
+  --color-ink: #f5f5f7;
+  --color-ink-2: #d6d6dc;
+  --color-on-ink: #0e0f13;
+  --color-muted: rgb(255 255 255 / 0.045);
+  --color-muted-fg: #8f8f9a;
+  --color-border: rgb(255 255 255 / 0.08);
+  --color-accent: rgb(254 85 16 / 0.1);
+  --color-brand: #ff7a45;
+  --color-brand-hover: #ff9466;
+  --color-brand-tint: rgb(254 85 16 / 0.12);
+  --color-signal: #fe5510;
+  --color-indigo: #3b46cf;
+  --color-stage: #060819;
+  --color-surface: rgb(255 255 255 / 0.03);
+  --color-panel: #17181e;
+  --color-code: #0a0b0e;
 }
 
 :root {
-  color-scheme: light;
-  --sh-class: #7c3aed;
-  --sh-identifier: #0e1a24;
-  --sh-sign: #8a97a6;
-  --sh-property: #0a6b6f;
-  --sh-entity: #0f766e;
-  --sh-jsxliterals: #0e1a24;
-  --sh-string: #b45309;
-  --sh-keyword: #be185d;
-  --sh-comment: #8a97a6;
+  color-scheme: dark;
+  --sh-class: #a5b4fc;
+  --sh-identifier: #e4e4e7;
+  --sh-sign: #71717a;
+  --sh-property: #ffb38a;
+  --sh-entity: #c4b5fd;
+  --sh-jsxliterals: #e4e4e7;
+  --sh-string: #fcd34d;
+  --sh-keyword: #f9a8d4;
+  --sh-comment: #71717a;
 }
 
 html,
@@ -44,7 +49,8 @@ body {
   @apply bg-bg text-fg font-sans antialiased;
 }
 ::selection {
-  background: #cfe5e3;
+  background: rgb(254 85 16 / 0.35);
+  color: #fff;
 }
 *:not(html) {
   scrollbar-width: none;
@@ -61,15 +67,38 @@ body {
 h1,
 h2,
 h3 {
-  letter-spacing: -0.015em;
+  letter-spacing: -0.025em;
+}
+
+/* Glass: every surface card gets a faint top sheen and an inner highlight; .glass adds the frosted blur. */
+.bg-surface {
+  background-image: linear-gradient(180deg, rgb(255 255 255 / 0.04), transparent 55%);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.05);
+}
+.glass {
+  background: linear-gradient(180deg, rgb(255 255 255 / 0.07), rgb(255 255 255 / 0.02));
+  -webkit-backdrop-filter: blur(18px) saturate(1.35);
+  backdrop-filter: blur(18px) saturate(1.35);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.08), 0 24px 60px -30px rgb(0 0 0 / 0.8);
+}
+/* Headings: white fading to grey, as in the 404 page. */
+.head-grad {
+  background: linear-gradient(180deg, #ffffff 30%, #9d9da8);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+/* P&ID symbols are black line drawings: draw them light on the dark ground. */
+.sym {
+  filter: invert(0.9) hue-rotate(180deg);
 }
 
 .code-dark {
-  --sh-class: #c4b5fd;
+  --sh-class: #a5b4fc;
   --sh-identifier: #e2e8f0;
   --sh-sign: #7b8da3;
-  --sh-property: #7fd1cf;
-  --sh-entity: #5eead4;
+  --sh-property: #ffb38a;
+  --sh-entity: #c4b5fd;
   --sh-jsxliterals: #e2e8f0;
   --sh-string: #fcd34d;
   --sh-keyword: #f9a8d4;
@@ -79,16 +108,21 @@ h3 {
 .sheet-grid {
   background-color: var(--color-muted);
   background-image:
-    linear-gradient(to right, rgb(14 26 36 / 0.05) 1px, transparent 1px),
-    linear-gradient(to bottom, rgb(14 26 36 / 0.05) 1px, transparent 1px);
+    linear-gradient(to right, rgb(255 255 255 / 0.035) 1px, transparent 1px),
+    linear-gradient(to bottom, rgb(255 255 255 / 0.035) 1px, transparent 1px);
   background-size: 24px 24px;
 }
 
 .prose-docs {
-  @apply text-[15.5px] leading-7 text-slate-700;
+  @apply text-[15.5px] leading-7 text-zinc-300;
 }
 .prose-docs h1 {
-  @apply text-[34px] leading-tight font-semibold text-fg mb-3;
+  @apply text-[34px] leading-tight font-semibold mb-3;
+  letter-spacing: -0.035em;
+  background: linear-gradient(180deg, #ffffff 30%, #9d9da8);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
 }
 .prose-docs h2 {
   @apply text-[22px] font-semibold text-fg mt-12 mb-3 pb-2 border-b border-border;
@@ -113,10 +147,10 @@ h3 {
   mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 3h7v7M13 3 4 12'/%3E%3C/svg%3E") center / contain no-repeat;
 }
 .prose-docs ul {
-  @apply list-disc pl-5 my-3.5 space-y-1.5 marker:text-slate-400;
+  @apply list-disc pl-5 my-3.5 space-y-1.5 marker:text-zinc-600;
 }
 .prose-docs ol {
-  @apply list-decimal pl-5 my-3.5 space-y-1.5 marker:text-slate-400;
+  @apply list-decimal pl-5 my-3.5 space-y-1.5 marker:text-zinc-600;
 }
 .prose-docs code {
   @apply font-mono text-[13px] bg-muted border border-border rounded px-1 py-px text-ink;
@@ -137,7 +171,7 @@ h3 {
   @apply border-b border-border py-2 px-3 align-top;
 }
 .prose-docs blockquote {
-  @apply border-l-2 border-brand bg-muted rounded-r-md py-2 pl-4 pr-3 text-slate-700 my-5;
+  @apply border-l-2 border-brand bg-muted rounded-r-md py-2 pl-4 pr-3 text-zinc-300 my-5;
 }
 .prose-docs strong {
   @apply font-semibold text-fg;
@@ -151,31 +185,33 @@ h3 {
   mask-image: radial-gradient(ellipse 70% 80% at 50% 0%, #000 20%, transparent 75%);
 }
 
-/* Home hero: a drawing-sheet grid (minor and major lines), a slow petrol glow and the ink-to-petrol headline. */
-.hero-grid {
-  background-image:
-    linear-gradient(to right, rgb(10 107 111 / 0.13) 1px, transparent 1px),
-    linear-gradient(to bottom, rgb(10 107 111 / 0.13) 1px, transparent 1px),
-    linear-gradient(to right, rgb(14 26 36 / 0.045) 1px, transparent 1px),
-    linear-gradient(to bottom, rgb(14 26 36 / 0.045) 1px, transparent 1px);
-  background-size: 120px 120px, 120px 120px, 24px 24px, 24px 24px;
-  background-position: center top;
-  mask-image: radial-gradient(ellipse 80% 70% at 50% 20%, #000 30%, transparent 80%);
-}
-.hero-glow {
-  transform: translateX(-50%);
-  animation: hero-drift 18s ease-in-out infinite alternate;
+/* Home hero: a grainy gradient of signal orange and deep indigo light, slowly drifting, under a white-to-grey headline. */
+.hero-grain {
+  background:
+    radial-gradient(60% 55% at 50% -8%, rgb(254 85 16 / 0.42), transparent 70%),
+    radial-gradient(45% 50% at 88% 62%, rgb(59 70 207 / 0.5), transparent 72%),
+    radial-gradient(40% 45% at 8% 72%, rgb(59 70 207 / 0.3), transparent 70%),
+    radial-gradient(35% 30% at 30% 30%, rgb(254 120 60 / 0.14), transparent 70%),
+    #0e0f13;
+  animation: hero-drift 22s ease-in-out infinite alternate;
+  background-size: 120% 120%;
 }
 @keyframes hero-drift {
   from {
-    transform: translate(-54%, -4%) scale(1);
+    background-position: 0% 0%;
   }
   to {
-    transform: translate(-46%, 4%) scale(1.08);
+    background-position: 100% 60%;
   }
 }
+.grain {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 0.6 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: 240px 240px;
+  opacity: 0.16;
+  mix-blend-mode: overlay;
+}
 .hero-ink {
-  background: linear-gradient(100deg, #0a6b6f 0%, #12a39d 35%, #0b5f63 65%, #13a29c 100%);
+  background: linear-gradient(100deg, #ff9a66 0%, #fe5510 38%, #ff7a45 62%, #8f97ff 100%);
   background-size: 200% 100%;
   -webkit-background-clip: text;
   background-clip: text;
@@ -190,8 +226,15 @@ h3 {
     background-position: 100% 50%;
   }
 }
+/* "Built for agents" band: the same light, turned down and flipped. */
+.agents-band {
+  background:
+    radial-gradient(50% 70% at 0% 0%, rgb(59 70 207 / 0.35), transparent 70%),
+    radial-gradient(40% 60% at 100% 100%, rgb(254 85 16 / 0.18), transparent 70%),
+    #0a0b0e;
+}
 @media (prefers-reduced-motion: reduce) {
-  .hero-glow,
+  .hero-grain,
   .hero-ink {
     animation: none;
   }

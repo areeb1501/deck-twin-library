@@ -10,11 +10,11 @@ import { NotFound } from './NotFound'
 export function ExamplesIndex() {
   return (
     <div className="mx-auto max-w-[1280px] px-6 py-10">
-      <h1 className="text-[34px] leading-tight font-semibold text-ink">Examples</h1>
-      <p className="mt-3 max-w-2xl text-[16px] leading-7 text-slate-600">Plants assembled from the registry with a single <code className="font-mono text-sm">plant.json</code>. Each one is wired port to port. Use them as starting points or as references for your agent.</p>
+      <h1 className="text-[34px] leading-tight font-semibold head-grad tracking-[-0.035em]">Examples</h1>
+      <p className="mt-3 max-w-2xl text-[16px] leading-7 text-zinc-400">Plants assembled from the registry with a single <code className="font-mono text-sm">plant.json</code>. Each one is wired port to port. Use them as starting points or as references for your agent.</p>
       <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
         {[...EXAMPLES].sort(byLevel).map((e) => (
-          <Link key={e.name} href={`/examples/${e.name}`} className="group flex flex-col overflow-hidden rounded-xl border border-border bg-white transition-[border-color,box-shadow] hover:border-slate-300 hover:shadow-[0_8px_24px_-12px_rgb(14_26_36/0.18)]">
+          <Link key={e.name} href={`/examples/${e.name}`} className="group flex flex-col overflow-hidden rounded-xl border border-border bg-surface transition-[border-color,box-shadow] hover:border-white/20 hover:shadow-[0_8px_24px_-12px_rgb(0_0_0/0.18)]">
             <div className="relative aspect-[16/10] bg-stage">
               <img src={`/thumbs/plant-${e.name}.webp`} alt="" className="h-full w-full object-cover" onError={(ev) => (ev.currentTarget.style.visibility = 'hidden')} />
               <LevelBadge level={level(e.spec, e.name)} />
@@ -24,7 +24,7 @@ export function ExamplesIndex() {
               <p className="mt-1 line-clamp-3 text-[13px] leading-5 text-muted-fg">
                 <RichText text={e.spec.description ?? ''} />
               </p>
-              <div className="mt-auto pt-3 text-[12.5px] font-medium text-slate-500">
+              <div className="mt-auto pt-3 text-[12.5px] font-medium text-zinc-400">
                 {e.spec.items.length} items, {e.spec.lines?.length ?? 0} lines
               </div>
             </div>
@@ -48,8 +48,8 @@ export function ExamplePage({ name }: { name: string }) {
         <span className="text-slate-300">/</span>
         <span>{ex.name}</span>
       </nav>
-      <h1 className="text-[28px] leading-tight font-semibold text-ink">{ex.spec.name}</h1>
-      <p className="mt-2 max-w-3xl text-[16px] text-slate-600">
+      <h1 className="text-[28px] leading-tight font-semibold head-grad tracking-[-0.035em]">{ex.spec.name}</h1>
+      <p className="mt-2 max-w-3xl text-[16px] text-zinc-400">
         <RichText text={ex.spec.description ?? ''} />
       </p>
       <div className="mt-5 grid grid-cols-1 gap-5 lg:grid-cols-[minmax(0,1fr)_420px]">
@@ -57,7 +57,7 @@ export function ExamplePage({ name }: { name: string }) {
           <PlantView spec={ex.spec} labels={labels} env={env} onIssues={setIssues} className="absolute inset-0" />
           <div className="absolute top-3 right-3 flex items-center gap-2">
             {ex.spec.sea && (
-              <div className="rounded-md bg-white shadow-sm">
+              <div className="rounded-md bg-surface shadow-sm">
                 <Segmented
                   label="Lighting"
                   value={env}
@@ -70,7 +70,7 @@ export function ExamplePage({ name }: { name: string }) {
                 />
               </div>
             )}
-            <button onClick={() => setLabels((l) => !l)} className="h-9 rounded-md border border-border bg-white px-2.5 text-xs font-medium text-ink shadow-sm hover:bg-muted">
+            <button onClick={() => setLabels((l) => !l)} className="h-9 rounded-md border border-border bg-surface px-2.5 text-xs font-medium text-ink shadow-sm hover:bg-muted">
               {labels ? 'Hide tags' : 'Show tags'}
             </button>
           </div>
@@ -95,9 +95,9 @@ export function ExamplePage({ name }: { name: string }) {
 }
 
 const LEVEL_STYLE: Record<Level, string> = {
-  Basic: 'bg-white text-ink ring-border',
-  Intermediate: 'bg-white text-ink ring-border',
-  Advanced: 'bg-ink text-white ring-ink',
+  Basic: 'bg-black/55 text-white ring-white/15 backdrop-blur-md',
+  Intermediate: 'bg-black/55 text-white ring-white/15 backdrop-blur-md',
+  Advanced: 'bg-ink text-on-ink ring-ink',
 }
 
 function LevelBadge({ level }: { level: Level }) {

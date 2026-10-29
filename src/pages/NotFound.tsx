@@ -30,12 +30,12 @@ export function NotFound({ what = 'page' }: { what?: string }) {
   return (
     <div className="mx-auto flex max-w-[640px] flex-col px-6 py-20 sm:py-28">
       <div className="font-mono text-[13px] font-medium text-brand">404</div>
-      <h1 className="mt-2 text-[34px] leading-tight font-semibold text-ink">This {what} isn't on the drawing</h1>
-      <p className="mt-3 text-[15.5px] leading-7 text-slate-600">
+      <h1 className="mt-2 text-[34px] leading-tight font-semibold head-grad tracking-[-0.035em]">This {what} isn't on the drawing</h1>
+      <p className="mt-3 text-[15.5px] leading-7 text-zinc-400">
         Nothing lives at <code className="rounded border border-border bg-muted px-1 py-px font-mono text-[13px] text-ink">{path}</code>. The link may be old or mistyped. Search for it, or start from one of the sections below.
       </p>
 
-      <div className="mt-8 overflow-hidden rounded-xl border border-border bg-white shadow-[0_1px_2px_rgb(14_26_36/0.04),0_12px_32px_-16px_rgb(14_26_36/0.18)] focus-within:border-slate-400 focus-within:ring-2 focus-within:ring-brand/15">
+      <div className="mt-8 overflow-hidden rounded-xl border border-border bg-surface shadow-[0_1px_2px_rgb(0_0_0/0.04),0_12px_32px_-16px_rgb(0_0_0/0.18)] focus-within:border-white/25 focus-within:ring-2 focus-within:ring-brand/15">
         <label className="flex items-center gap-3 px-4">
           <svg viewBox="0 0 16 16" className="h-4 w-4 shrink-0 text-muted-fg" fill="none" stroke="currentColor" strokeWidth="1.6" aria-hidden>
             <circle cx="7" cy="7" r="4.5" />
@@ -84,7 +84,7 @@ export function NotFound({ what = 'page' }: { what?: string }) {
 
       <div className="mt-10 grid gap-3 sm:grid-cols-2">
         {places.map(([href, title, hint]) => (
-          <Link key={href} href={href} className="group rounded-xl border border-border px-4 py-3.5 transition-[border-color,box-shadow] hover:border-slate-300 hover:shadow-[0_8px_24px_-12px_rgb(14_26_36/0.18)]">
+          <Link key={href} href={href} className="group rounded-xl border border-border px-4 py-3.5 transition-[border-color,box-shadow] hover:border-white/20 hover:shadow-[0_8px_24px_-12px_rgb(0_0_0/0.18)]">
             <div className="flex items-center justify-between text-[14.5px] font-semibold text-ink">
               {title}
               <span aria-hidden className="text-muted-fg transition-transform group-hover:translate-x-0.5 group-hover:text-brand">→</span>

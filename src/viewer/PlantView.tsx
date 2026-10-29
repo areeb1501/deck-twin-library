@@ -27,11 +27,11 @@ export function PlantView({ spec, labels, onIssues, className, shot, effects, en
 }
 
 export function Issues({ issues }: { issues: Issue[] }) {
-  if (!issues.length) return <div className="rounded-md bg-emerald-50 px-3 py-2 text-[13px] text-emerald-800">No issues. Every port is connected and nothing overlaps or floats.</div>
+  if (!issues.length) return <div className="rounded-md bg-emerald-400/10 px-3 py-2 text-[13px] text-emerald-300">No issues. Every port is connected and nothing overlaps or floats.</div>
   return (
     <ul className="space-y-1.5">
       {issues.map((i, n) => (
-        <li key={n} className={`rounded-md px-3 py-2 text-[13px] ${i.level === 'error' ? 'bg-red-50 text-red-800' : 'bg-amber-50 text-amber-900'}`}>
+        <li key={n} className={`rounded-md px-3 py-2 text-[13px] ${i.level === 'error' ? 'bg-red-400/10 text-red-300' : 'bg-amber-400/10 text-amber-200'}`}>
           <span className="font-mono font-medium">{i.where}</span> {i.message}
         </li>
       ))}

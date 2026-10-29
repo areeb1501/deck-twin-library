@@ -43,8 +43,8 @@ function Detail({ item }: { item: Item }) {
         <span className="text-slate-300">/</span>
         <span>{cat.title}</span>
       </nav>
-      <h1 className="text-[34px] leading-tight font-semibold text-ink">{item.title}</h1>
-      <p className="mt-3 max-w-3xl text-[16px] leading-7 text-slate-600">
+      <h1 className="text-[34px] leading-tight font-semibold head-grad tracking-[-0.035em]">{item.title}</h1>
+      <p className="mt-3 max-w-3xl text-[16px] leading-7 text-zinc-400">
         <RichText text={item.description} />
       </p>
       <div className="mt-4 flex flex-wrap gap-1.5">
@@ -75,7 +75,7 @@ function Detail({ item }: { item: Item }) {
           }
         />
         {tab === 'preview' ? (
-          <div className="mt-5 grid overflow-hidden rounded-xl border border-border shadow-[0_1px_2px_rgb(14_26_36/0.04)] lg:grid-cols-[1fr_288px]">
+          <div className="mt-5 grid overflow-hidden rounded-xl border border-border shadow-[0_1px_2px_rgb(0_0_0/0.04)] lg:grid-cols-[1fr_288px]">
             <div className="relative h-[460px] lg:h-[600px]">
               {Comp && (
                 <Viewer className="absolute inset-0" ports={ports} showPorts={showPorts} fitKey={`${item.name}-${fit}`} onBounds={setBounds} env={item.viewer?.env} view={item.viewer?.view} frame={item.viewer?.frame}>
@@ -83,7 +83,7 @@ function Detail({ item }: { item: Item }) {
                 </Viewer>
               )}
               {bounds && (
-                <div className="pointer-events-none absolute bottom-3 left-3 rounded-md bg-ink/90 px-2.5 py-1.5 font-mono text-[11.5px] text-white shadow-sm">
+                <div className="pointer-events-none absolute bottom-3 left-3 rounded-md bg-black/70 backdrop-blur px-2.5 py-1.5 font-mono text-[11.5px] text-white shadow-sm">
                   {bounds.size[0].toFixed(2)} × {bounds.size[2].toFixed(2)} × {bounds.size[1].toFixed(2)} m <span className="text-slate-400">L × W × H</span>
                 </div>
               )}
@@ -189,16 +189,16 @@ function PropsTable({ item, defaults }: { item: Item; defaults: Record<string, u
   const rows = item.params.map((p) => {
     const type = p.type === 'select' ? p.options.map((o) => JSON.stringify(typeof o === 'object' ? o.value : o)).join(' | ') : p.type === 'nps' ? 'number (NPS, in)' : p.type === 'rating' ? '150 | 300 | 600 | 900 | 1500 | 2500' : p.type === 'number' ? `number${p.unit ? ` (${p.unit})` : ''}` : p.type === 'bool' ? 'boolean' : 'string'
     const range = p.type === 'number' ? `${p.min} – ${p.max}` : ''
-    return [<code className="font-mono text-xs">{p.key}</code>, <span className="font-mono text-xs text-slate-600">{type}</span>, <span className="font-mono text-xs">{JSON.stringify(defaults[p.key] ?? null)}</span>, range]
+    return [<code className="font-mono text-xs">{p.key}</code>, <span className="font-mono text-xs text-zinc-400">{type}</span>, <span className="font-mono text-xs">{JSON.stringify(defaults[p.key] ?? null)}</span>, range]
   })
-  return <Table head={['Prop', 'Type', 'Default', 'Range']} rows={[...rows, [<code className="font-mono text-xs">...group</code>, <span className="font-mono text-xs text-slate-600">position, rotation, scale…</span>, '', '']]} />
+  return <Table head={['Prop', 'Type', 'Default', 'Range']} rows={[...rows, [<code className="font-mono text-xs">...group</code>, <span className="font-mono text-xs text-zinc-400">position, rotation, scale…</span>, '', '']]} />
 }
 
 function Table({ head, rows }: { head: string[]; rows: ReactNode[][] }) {
   return (
-    <div className="overflow-x-auto rounded-lg border border-border bg-white">
+    <div className="overflow-x-auto rounded-lg border border-border bg-surface">
       <table className="w-full text-left text-[13px]">
-        <thead className="bg-muted text-[12.5px] text-slate-600">
+        <thead className="bg-muted text-[12.5px] text-zinc-400">
           <tr>
             {head.map((h) => (
               <th key={h} className="px-3 py-2.5 font-semibold">
@@ -230,10 +230,10 @@ function PidSection({ name }: { name: string }) {
   return (
     <>
       <H2>P&amp;ID</H2>
-      <div className="grid gap-5 rounded-xl border border-border bg-white p-5 sm:grid-cols-[180px_1fr]">
-        <div className="flex aspect-square items-center justify-center rounded-lg border border-border bg-white p-4">{url && <img src={url} alt={`P&ID symbol for ${name}`} className="max-h-full max-w-full" />}</div>
+      <div className="grid gap-5 rounded-xl border border-border bg-surface p-5 sm:grid-cols-[180px_1fr]">
+        <div className="flex aspect-square items-center justify-center rounded-lg border border-border bg-surface p-4">{url && <img src={url} alt={`P&ID symbol for ${name}`} className="sym max-h-full max-w-full" />}</div>
         <div className="space-y-3 text-[14px]">
-          <p className="leading-6 text-slate-700">{e.drawn}</p>
+          <p className="leading-6 text-zinc-300">{e.drawn}</p>
           <div className="flex flex-wrap gap-1.5">
             {e.tags?.map((t) => <Badge key={t}>tag {t}</Badge>)}
             {e.isa?.map((t) => <Badge key={t}>ISA {t}</Badge>)}
@@ -246,7 +246,7 @@ function PidSection({ name }: { name: string }) {
               <div className="grid grid-cols-[1fr_auto] gap-x-6 gap-y-1 text-[13px]">
                 {Object.entries(e.datasheet.fields).map(([f, p]) => (
                   <div key={f} className="contents">
-                    <span className="text-slate-600">{f}</span>
+                    <span className="text-zinc-400">{f}</span>
                     <code className="font-mono text-xs">{p}</code>
                   </div>
                 ))}
@@ -263,7 +263,7 @@ const H2 = ({ children }: { children: ReactNode }) => <h2 className="mt-14 mb-4 
 
 function Toggle({ on, onClick, children }: { on: boolean; onClick: () => void; children: ReactNode }) {
   return (
-    <button onClick={onClick} className={`rounded-md border px-2.5 py-1 text-xs font-medium transition-colors ${on ? 'border-ink bg-ink text-white' : 'border-border bg-white text-slate-600 hover:border-slate-300 hover:text-ink'}`}>
+    <button onClick={onClick} className={`rounded-md border px-2.5 py-1 text-xs font-medium transition-colors ${on ? 'border-ink bg-ink text-on-ink' : 'border-border bg-surface text-zinc-400 hover:border-white/20 hover:text-ink'}`}>
       {children}
     </button>
   )
