@@ -7,6 +7,7 @@ import { PlantView } from '../viewer/PlantView'
 import { Code, Command } from '../components/ui'
 import { AgentLine, PromptCard } from '../components/PromptCard'
 import { CLI } from '../site'
+import { useTheme } from '../theme'
 
 const PLANT_SNIPPET = `{
   "name": "Test separator skid",
@@ -23,6 +24,7 @@ const PLANT_SNIPPET = `{
 const BODIES = ['ASME', 'API', 'IEC', 'ISO', 'EN', 'NFPA', 'DNV', 'NORSOK', 'ISA', 'TEMA']
 
 export function Home() {
+  const theme = useTheme()
   const hero = EXAMPLES.find((e) => e.name === 'separation-train') ?? EXAMPLES[0]
   const heroSpec = useMemo(() => (hero?.spec.camera ? { ...hero.spec, camera: { ...hero.spec.camera, radius: hero.spec.camera.radius * 0.78 } } : hero?.spec), [hero])
   const cats = CATEGORIES.filter((c) => byCategory(c.id).length)
@@ -46,7 +48,7 @@ export function Home() {
               <span className="head-grad">3D components for</span> <span className="hero-ink">oil &amp; gas digital twins</span>
             </h1>
             <p className="mx-auto mt-6 max-w-2xl text-[17px] leading-7 text-pretty text-fg-3 sm:text-[18px] sm:leading-8">
-              Separators, pumps, valves, compressors, cranes, decks and pipe racks for three.js and React Three Fiber. Each one is sized from the standard it follows. Copy it into your project, or let your agent assemble a whole plant from a P&amp;ID.
+              An open-source library of 3D oil &amp; gas equipment for three.js, each part sized to its engineering standard. Use the parts in your own project, or let your AI agent build whole plants from your P&amp;IDs.
             </p>
             <div className="mt-9 flex flex-wrap justify-center gap-3">
               <Link href="/components" className="inline-flex h-11 items-center rounded-full bg-ink px-6 text-[15px] font-medium text-on-ink shadow-sm transition-[transform,background-color] duration-150 hover:bg-ink-2 active:scale-[0.97]">
@@ -128,8 +130,8 @@ export function Home() {
               const items = byCategory(c.id)
               return (
                 <Link key={c.id} href={`/components/${items[0].name}`} className="group overflow-hidden rounded-xl border border-border bg-surface transition-[border-color,box-shadow] hover:border-line-strong hover:shadow-[0_8px_24px_-12px_rgb(0_0_0/0.18)]">
-                  <div className="plate aspect-[4/3] bg-stage">
-                    <img src={thumb(items[0].name)} alt="" loading="lazy" className="h-full w-full object-cover" onError={(e) => (e.currentTarget.style.visibility = 'hidden')} />
+                  <div className="aspect-[4/3] bg-stage">
+                    <img src={thumb(items[0].name, theme)} alt="" loading="lazy" className="h-full w-full object-cover" onError={(e) => (e.currentTarget.style.visibility = 'hidden')} />
                   </div>
                   <div className="border-t border-border p-4">
                     <div className="flex items-center justify-between gap-3">

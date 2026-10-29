@@ -1,6 +1,7 @@
 import type { ComponentType } from 'react'
 import { CATEGORIES, type CategoryId, type ComponentMeta } from '../registry/meta'
 import type { Port } from '../registry/lib/ports'
+import type { Theme } from './theme'
 
 export interface Item extends ComponentMeta {
   category: CategoryId
@@ -50,6 +51,8 @@ export async function loadAll(names: string[]): Promise<Record<string, Component
   return out
 }
 
-export const thumb = (name: string) => `/thumbs/${name}.webp`
+/** thumbnail per theme: the dark set is rendered on the dark stage, the light set on the light studio */
+export const thumb = (name: string, theme: Theme = 'dark') => `/thumbs${theme === 'light' ? '-light' : ''}/${name}.webp`
+export const themedThumb = (src: string, theme: Theme) => (theme === 'light' ? src.replace('/thumbs/', '/thumbs-light/') : src)
 
 export { CATEGORIES }

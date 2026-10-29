@@ -3,6 +3,7 @@ import { Link } from 'wouter'
 import { CATEGORIES, ITEMS, thumb, type Item } from '../registry'
 import { Combobox, FilterInput, Select, Toolbar } from '../components/ui'
 import { useQueryState } from '../url'
+import { useTheme } from '../theme'
 
 // Supplier names are free text: group brands under their company ("SLB (Cameron)", "Emerson Fisher" → "SLB", "Emerson") and skip non-suppliers.
 const raw = (i: Item) => (i.vendors ?? []).filter((v) => !/^fabricated/i.test(v)).map((v) => v.replace(/\s*\(.*\)\s*$/, '').trim())
@@ -83,10 +84,11 @@ export function ComponentsIndex() {
 }
 
 export function Card({ item }: { item: Item }) {
+  const theme = useTheme()
   return (
     <Link href={`/components/${item.name}`} className="group overflow-hidden rounded-xl border border-border bg-surface transition-[border-color,box-shadow] hover:border-line-strong hover:shadow-[0_8px_24px_-12px_rgb(0_0_0/0.18)]">
-      <div className="plate aspect-[4/3] bg-stage">
-        <img src={thumb(item.name)} alt="" loading="lazy" className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.03]" onError={(e) => (e.currentTarget.style.visibility = 'hidden')} />
+      <div className="aspect-[4/3] bg-stage">
+        <img src={thumb(item.name, theme)} alt="" loading="lazy" className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.03]" onError={(e) => (e.currentTarget.style.visibility = 'hidden')} />
       </div>
       <div className="border-t border-border p-3.5">
         <div className="text-[14px] font-semibold text-ink">{item.title}</div>

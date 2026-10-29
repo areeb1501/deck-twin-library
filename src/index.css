@@ -194,15 +194,6 @@ h3 {
   background-clip: text;
   color: transparent;
 }
-/* Thumbnails are rendered on a dark stage: on light cards they sit as an inset dark plate. */
-html.light .plate {
-  margin: 6px 6px 0;
-  border-radius: 9px;
-  overflow: hidden;
-}
-html.light .plate + div {
-  border-top-color: transparent;
-}
 /* P&ID symbols are black line drawings: inverted on dark, as drawn on light. */
 .sym {
   filter: var(--sym-filter);

@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { createPortal } from 'react-dom'
 import { Link, useLocation } from 'wouter'
-import { CATEGORIES, ITEMS, byCategory, thumb } from '../registry'
+import { CATEGORIES, ITEMS, byCategory, themedThumb, thumb } from '../registry'
 import { DOCS } from '../pages/docs'
 import { CLI, VERSION } from '../site'
 import { highlight, prepare, rank } from '../search'
@@ -281,6 +281,7 @@ export function searchSite(q: string) {
 }
 
 function Search() {
+  const theme = useTheme()
   const [open, setOpen] = useState(false)
   const [q, setQ] = useState('')
   const [, go] = useLocation()
@@ -350,7 +351,7 @@ function Search() {
                     className={`flex w-full items-center gap-3 rounded-md px-3 py-2 text-left text-sm ${i === active ? 'bg-muted text-ink' : 'text-ink'}`}
                   >
                     {h.thumb ? (
-                      <img src={h.thumb} alt="" className="h-8 w-10 shrink-0 rounded border border-border bg-stage object-cover" onError={(e) => (e.currentTarget.style.visibility = 'hidden')} />
+                      <img src={themedThumb(h.thumb, theme)} alt="" className="h-8 w-10 shrink-0 rounded border border-border bg-stage object-cover" onError={(e) => (e.currentTarget.style.visibility = 'hidden')} />
                     ) : (
                       <span className="flex h-8 w-10 shrink-0 items-center justify-center rounded border border-border text-[10px] text-muted-fg">doc</span>
                     )}

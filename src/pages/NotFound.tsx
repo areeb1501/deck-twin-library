@@ -2,14 +2,16 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useLocation } from 'wouter'
 import { EXAMPLES } from '../plants'
-import { ITEMS } from '../registry'
+import { ITEMS, themedThumb } from '../registry'
 import { LIBRARY } from '../pid'
 import { DOCS } from './docs'
 import { markHits, searchSite } from '../components/Shell'
+import { useTheme } from '../theme'
 
 const guess = (path: string) => decodeURIComponent(path.split('/').filter(Boolean).pop() ?? '').replace(/[-_.]+/g, ' ').trim()
 
 export function NotFound({ what = 'page' }: { what?: string }) {
+  const theme = useTheme()
   const [path, go] = useLocation()
   const [q, setQ] = useState(() => guess(path))
   const [active, setActive] = useState(0)
@@ -69,7 +71,7 @@ export function NotFound({ what = 'page' }: { what?: string }) {
                 className={`flex items-center gap-3 rounded-md px-3 py-2 text-[14px] text-ink ${i === active ? 'bg-muted' : ''}`}
               >
                 {h.thumb ? (
-                  <img src={h.thumb} alt="" className="h-8 w-10 shrink-0 rounded border border-border bg-stage object-cover" onError={(e) => (e.currentTarget.style.visibility = 'hidden')} />
+                  <img src={themedThumb(h.thumb, theme)} alt="" className="h-8 w-10 shrink-0 rounded border border-border bg-stage object-cover" onError={(e) => (e.currentTarget.style.visibility = 'hidden')} />
                 ) : (
                   <span className="flex h-8 w-10 shrink-0 items-center justify-center rounded border border-border text-[10px] text-muted-fg">doc</span>
                 )}

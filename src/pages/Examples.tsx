@@ -6,8 +6,11 @@ import { Code, Command, RichText, Segmented } from '../components/ui'
 import { CLI } from '../site'
 import type { Issue } from '../../registry/assembly/spec'
 import { NotFound } from './NotFound'
+import { useTheme } from '../theme'
+import { thumb } from '../registry'
 
 export function ExamplesIndex() {
+  const theme = useTheme()
   return (
     <div className="mx-auto max-w-[1280px] px-6 py-10">
       <h1 className="text-[34px] leading-tight font-semibold head-grad tracking-[-0.035em]">Examples</h1>
@@ -15,8 +18,8 @@ export function ExamplesIndex() {
       <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
         {[...EXAMPLES].sort(byLevel).map((e) => (
           <Link key={e.name} href={`/examples/${e.name}`} className="group flex flex-col overflow-hidden rounded-xl border border-border bg-surface transition-[border-color,box-shadow] hover:border-line-strong hover:shadow-[0_8px_24px_-12px_rgb(0_0_0/0.18)]">
-            <div className="plate relative aspect-[16/10] bg-stage">
-              <img src={`/thumbs/plant-${e.name}.webp`} alt="" className="h-full w-full object-cover" onError={(ev) => (ev.currentTarget.style.visibility = 'hidden')} />
+            <div className="relative aspect-[16/10] bg-stage">
+              <img src={thumb(`plant-${e.name}`, theme)} alt="" className="h-full w-full object-cover" onError={(ev) => (ev.currentTarget.style.visibility = 'hidden')} />
               <LevelBadge level={level(e.spec, e.name)} />
             </div>
             <div className="flex flex-1 flex-col border-t border-border p-4">
