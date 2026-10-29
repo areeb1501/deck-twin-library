@@ -8,12 +8,12 @@ export function Symbols() {
   const [tab, setTab] = useState<'legend' | 'components'>(LIBRARY.symbols.length ? 'legend' : 'components')
   return (
     <div className="mx-auto max-w-[1440px] px-6 py-10">
-      <h1 className="text-3xl font-semibold tracking-tight">P&amp;ID symbols</h1>
-      <p className="mt-2 max-w-3xl text-[15px] leading-7 text-zinc-600">
+      <h1 className="text-[34px] leading-tight font-semibold text-ink">P&amp;ID symbols</h1>
+      <p className="mt-2 max-w-3xl text-[15px] leading-7 text-slate-600">
         What each symbol on a P&amp;ID looks like, what it means, and which Deck Twin component it becomes. The conventions are ISO 10628-2 and PIP PIC001 for process, ISA 5.1 for instruments, IEC 60617 for electrical, and NFPA 170 / ISO 7010 for fire &amp; gas. Company legends vary, so read the drawing's own legend sheet first.
       </p>
-      <p className="mt-2 text-[13px] text-muted-fg">
-        For agents: <a className="underline underline-offset-4" href="/skill/references/pid-legend.md">pid-legend.md</a> · <a className="underline underline-offset-4" href="/skill/references/pid-symbols.md">pid-symbols.md</a> · <a className="underline underline-offset-4" href="/r/pid-library.json">pid-library.json</a> · <a className="underline underline-offset-4" href="/symbols/legend.svg">legend.svg</a>
+      <p className="mt-3 text-[13px] text-muted-fg">
+        For agents: <a className="font-medium text-brand hover:underline hover:underline-offset-4" href="/skill/references/pid-legend.md">pid-legend.md</a> · <a className="font-medium text-brand hover:underline hover:underline-offset-4" href="/skill/references/pid-symbols.md">pid-symbols.md</a> · <a className="font-medium text-brand hover:underline hover:underline-offset-4" href="/r/pid-library.json">pid-library.json</a> · <a className="font-medium text-brand hover:underline hover:underline-offset-4" href="/symbols/legend.svg">legend.svg</a>
       </p>
       <div className="mt-6 flex gap-1 border-b border-border">
         {LIBRARY.symbols.length > 0 && (
@@ -42,7 +42,7 @@ function Legend() {
     <div className="mt-6 grid items-start gap-6 lg:grid-cols-[1fr_380px]">
       <div>
         <div className="mb-4 flex flex-wrap items-center gap-2">
-          <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Filter: gate, PSV, FC, off-page…" className="h-9 w-64 rounded-md border border-border px-3 text-sm outline-none focus:border-zinc-400" />
+          <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Filter: gate, PSV, FC, off-page…" className="h-9 w-64 rounded-md border border-border px-3 text-sm outline-none focus:border-slate-400 focus:ring-2 focus:ring-brand/15" />
           <Chip on={cat === 'all'} onClick={() => setCat('all')}>All</Chip>
           {LIBRARY.categories.map((c) => (
             <Chip key={c.id} on={cat === c.id} onClick={() => setCat(c.id)}>
@@ -52,13 +52,13 @@ function Legend() {
         </div>
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5">
           {shown.map((x) => (
-            <button key={x.id} onClick={() => setSel(x)} className={`rounded-xl border p-3 text-left hover:shadow-md ${sel?.id === x.id ? 'border-zinc-900' : 'border-border'}`}>
+            <button key={x.id} onClick={() => setSel(x)} className={`rounded-xl border p-3 text-left transition-[border-color,box-shadow] hover:border-slate-300 hover:shadow-[0_8px_24px_-12px_rgb(14_26_36/0.18)] ${sel?.id === x.id ? 'border-ink ring-1 ring-ink' : 'border-border'}`}>
               <div className="flex aspect-[4/3] items-center justify-center p-2">
                 <img src={librarySymbolUrl(x.svg)} alt="" className="max-h-full max-w-full" />
               </div>
               <div className="mt-2 text-[13px] leading-5 font-medium">{x.name}</div>
               <div className="mt-0.5 flex items-center gap-1.5 text-[11px] text-muted-fg">
-                {x.component ? <span className="rounded bg-emerald-50 px-1 text-emerald-700">3D</span> : !x.physical ? <span className="rounded bg-zinc-100 px-1">logical</span> : null}
+                {x.component ? <span className="rounded bg-ink px-1 font-semibold text-white">3D</span> : !x.physical ? <span className="rounded bg-slate-100 px-1">logical</span> : null}
                 <span className="truncate">{[...(x.tags ?? []), ...(x.isa ?? [])].join(' · ')}</span>
               </div>
             </button>
@@ -92,8 +92,8 @@ function Legend() {
             </div>
             <div className="shrink-0 border-t border-border p-4">
               {sel.component && BY_NAME.get(sel.component) ? (
-                <Link href={`/components/${sel.component}`} className="block truncate rounded-md bg-zinc-900 px-3 py-2 text-center text-[13px] text-white hover:bg-zinc-800">
-                  3D component: {BY_NAME.get(sel.component)!.title} →
+                <Link href={`/components/${sel.component}`} className="block truncate rounded-md bg-ink px-3 py-2 text-center text-[13px] font-semibold text-white transition-colors hover:bg-ink-2">
+                  Open the 3D component: {BY_NAME.get(sel.component)!.title}
                 </Link>
               ) : (
                 <div className="text-[13px] text-muted-fg">{sel.physical ? 'No 3D component yet.' : 'Not physical hardware. Read it, then skip it in the 3D model.'}</div>
@@ -116,12 +116,12 @@ function ByComponent() {
         if (!items.length) return null
         return (
           <section key={c.id} className="mt-8">
-            <h2 className="mb-4 text-lg font-semibold tracking-tight">{c.title}</h2>
+            <h2 className="mb-4 text-[19px] font-semibold text-ink">{c.title}</h2>
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5 xl:grid-cols-6">
               {items.map((i) => {
                 const e = PID[i.name]
                 return (
-                  <Link key={i.name} href={`/components/${i.name}`} className="group rounded-xl border border-border p-3 hover:shadow-md">
+                  <Link key={i.name} href={`/components/${i.name}`} className="group rounded-xl border border-border p-3 transition-[border-color,box-shadow] hover:border-slate-300 hover:shadow-[0_8px_24px_-12px_rgb(14_26_36/0.18)]">
                     <div className="flex aspect-[4/3] items-center justify-center p-2">
                       <img src={symbolUrl(e)} alt="" className="max-h-full max-w-full" />
                     </div>
@@ -141,15 +141,15 @@ function ByComponent() {
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div>
-      <div className="mb-0.5 text-xs font-medium text-fg">{label}</div>
-      <div className="leading-6 text-zinc-700">{children}</div>
+      <div className="mb-0.5 text-[12.5px] font-semibold text-ink">{label}</div>
+      <div className="leading-6 text-slate-700">{children}</div>
     </div>
   )
 }
 
 function TabButton({ on, onClick, children }: { on: boolean; onClick: () => void; children: React.ReactNode }) {
   return (
-    <button onClick={onClick} className={`-mb-px border-b-2 px-3 py-2 text-sm ${on ? 'border-fg font-medium text-fg' : 'border-transparent text-muted-fg hover:text-fg'}`}>
+    <button onClick={onClick} className={`-mb-px border-b-2 px-3.5 py-2.5 text-[14px] font-medium transition-colors ${on ? 'border-ink text-ink' : 'border-transparent text-muted-fg hover:text-ink'}`}>
       {children}
     </button>
   )
@@ -157,7 +157,7 @@ function TabButton({ on, onClick, children }: { on: boolean; onClick: () => void
 
 function Chip({ on, onClick, children }: { on: boolean; onClick: () => void; children: React.ReactNode }) {
   return (
-    <button onClick={onClick} className={`h-8 rounded-full border px-3 text-[13px] ${on ? 'border-zinc-900 bg-zinc-900 text-white' : 'border-border text-zinc-600 hover:text-fg'}`}>
+    <button onClick={onClick} className={`h-8 rounded-full border px-3.5 text-[13px] font-medium transition-colors ${on ? 'border-ink bg-ink text-white' : 'border-border bg-white text-slate-600 hover:border-slate-300 hover:text-ink'}`}>
       {children}
     </button>
   )

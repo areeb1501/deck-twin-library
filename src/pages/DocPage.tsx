@@ -22,7 +22,7 @@ export function DocPage({ slug }: { slug: string }) {
   const html = useMemo(() => marked.parse(md) as string, [md])
   const i = DOCS.findIndex((d) => d.slug === slug)
   return (
-    <div className="mx-auto max-w-3xl px-6 py-10 lg:px-10">
+    <div className="mx-auto max-w-3xl px-6 py-12 lg:px-10">
       <article
         className="prose-docs"
         dangerouslySetInnerHTML={{ __html: html }}
@@ -35,10 +35,19 @@ export function DocPage({ slug }: { slug: string }) {
           }
         }}
       />
-      <div className="mt-14 flex justify-between border-t border-border pt-6 text-sm">
-        {i > 0 ? <Link href={`/docs/${DOCS[i - 1].slug}`} className="text-muted-fg hover:text-fg">← {DOCS[i - 1].title}</Link> : <span />}
-        {i >= 0 && i < DOCS.length - 1 ? <Link href={`/docs/${DOCS[i + 1].slug}`} className="text-muted-fg hover:text-fg">{DOCS[i + 1].title} →</Link> : <span />}
+      <div className="mt-16 grid gap-4 border-t border-border pt-8 sm:grid-cols-2">
+        {i > 0 ? <Pager href={`/docs/${DOCS[i - 1].slug}`} hint="Previous" title={DOCS[i - 1].title} /> : <span />}
+        {i >= 0 && i < DOCS.length - 1 ? <Pager href={`/docs/${DOCS[i + 1].slug}`} hint="Next" title={DOCS[i + 1].title} right /> : <span />}
       </div>
     </div>
+  )
+}
+
+function Pager({ href, hint, title, right }: { href: string; hint: string; title: string; right?: boolean }) {
+  return (
+    <Link href={href} className={`group rounded-lg border border-border px-4 py-3 transition-colors hover:border-slate-300 hover:bg-muted ${right ? 'text-right' : ''}`}>
+      <div className="text-[12.5px] text-muted-fg">{hint}</div>
+      <div className="mt-0.5 text-[15px] font-semibold text-ink group-hover:text-ink">{title}</div>
+    </Link>
   )
 }

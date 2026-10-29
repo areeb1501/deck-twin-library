@@ -7,10 +7,10 @@ export function PromptCard() {
   const [copied, setCopied] = useState(false)
   const [open, setOpen] = useState(false)
   return (
-    <div className="rounded-xl border border-border bg-white p-4 shadow-sm">
+    <div className="rounded-xl border border-border bg-white p-5 shadow-[0_1px_2px_rgb(14_26_36/0.04)]">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <div className="text-sm font-semibold">Set it up with your agent</div>
+          <div className="text-[15px] font-semibold text-ink">Set it up with your agent</div>
           <p className="mt-1 text-[13px] leading-5 text-muted-fg">One prompt for Claude Code, Cursor, Codex or any coding agent. It covers setup, installs, the skill, and building a plant from your P&amp;IDs.</p>
         </div>
         <button
@@ -19,20 +19,20 @@ export function PromptCard() {
             setCopied(true)
             setTimeout(() => setCopied(false), 1600)
           }}
-          className="shrink-0 rounded-md bg-zinc-900 px-3.5 py-2 text-sm font-medium text-white hover:bg-zinc-800"
+          className="shrink-0 rounded-md bg-ink px-3.5 py-2 text-[13px] font-semibold text-white transition-colors hover:bg-ink-2"
         >
           {copied ? 'Copied' : 'Copy prompt'}
         </button>
       </div>
       <div className="mt-3 flex items-center gap-3 text-[12px] text-muted-fg">
-        <button onClick={() => setOpen((o) => !o)} className="shrink-0 whitespace-nowrap underline underline-offset-4 hover:text-fg">
+        <button onClick={() => setOpen((o) => !o)} className="shrink-0 font-medium whitespace-nowrap text-brand hover:underline hover:underline-offset-4">
           {open ? 'Hide prompt' : 'Preview prompt'}
         </button>
         <span>
           or tell your agent: <code className="font-mono text-fg">Read {SITE}/prompt.md and follow it</code>
         </span>
       </div>
-      {open && <pre className="mt-3 max-h-80 overflow-auto rounded-lg border border-border bg-zinc-50 p-3 font-mono text-[11.5px] leading-5 whitespace-pre-wrap text-zinc-700">{prompt}</pre>}
+      {open && <pre className="mt-3 max-h-80 overflow-auto rounded-lg border border-border bg-muted p-3 font-mono text-[11.5px] leading-5 whitespace-pre-wrap text-slate-700">{prompt}</pre>}
     </div>
   )
 }

@@ -35,15 +35,15 @@ function Detail({ item }: { item: Item }) {
 
   return (
     <div className="mx-auto max-w-[1180px] px-6 py-10 lg:px-10">
-      <div className="mb-2 text-[13px] text-muted-fg">
-        <Link href="/components" className="hover:text-fg">
+      <nav className="mb-3 flex items-center gap-1.5 text-[13px] text-muted-fg">
+        <Link href="/components" className="font-medium text-brand hover:underline hover:underline-offset-4">
           Components
         </Link>
-        <span className="mx-1.5">/</span>
+        <span className="text-slate-300">/</span>
         <span>{cat.title}</span>
-      </div>
-      <h1 className="text-3xl font-semibold tracking-tight">{item.title}</h1>
-      <p className="mt-2 max-w-3xl text-[15px] leading-7 text-zinc-600">{item.description}</p>
+      </nav>
+      <h1 className="text-[34px] leading-tight font-semibold text-ink">{item.title}</h1>
+      <p className="mt-3 max-w-3xl text-[16px] leading-7 text-slate-600">{item.description}</p>
       <div className="mt-4 flex flex-wrap gap-1.5">
         {item.standards.map((s) => (
           <Badge key={s}>{s}</Badge>
@@ -72,7 +72,7 @@ function Detail({ item }: { item: Item }) {
           }
         />
         {tab === 'preview' ? (
-          <div className="mt-4 grid overflow-hidden rounded-xl border border-border lg:grid-cols-[1fr_280px]">
+          <div className="mt-5 grid overflow-hidden rounded-xl border border-border shadow-[0_1px_2px_rgb(14_26_36/0.04)] lg:grid-cols-[1fr_288px]">
             <div className="relative h-[460px] lg:h-[600px]">
               {Comp && (
                 <Viewer className="absolute inset-0" ports={ports} showPorts={showPorts} fitKey={`${item.name}-${fit}`} onBounds={setBounds}>
@@ -80,16 +80,16 @@ function Detail({ item }: { item: Item }) {
                 </Viewer>
               )}
               {bounds && (
-                <div className="pointer-events-none absolute bottom-3 left-3 rounded-md bg-white/90 px-2.5 py-1.5 font-mono text-[11px] text-zinc-600 shadow-sm ring-1 ring-border">
-                  {bounds.size[0].toFixed(2)} × {bounds.size[2].toFixed(2)} × {bounds.size[1].toFixed(2)} m <span className="text-zinc-400">(L × W × H)</span>
+                <div className="pointer-events-none absolute bottom-3 left-3 rounded-md bg-ink/90 px-2.5 py-1.5 font-mono text-[11.5px] text-white shadow-sm">
+                  {bounds.size[0].toFixed(2)} × {bounds.size[2].toFixed(2)} × {bounds.size[1].toFixed(2)} m <span className="text-slate-400">L × W × H</span>
                 </div>
               )}
-              <div className="pointer-events-none absolute right-3 bottom-3 text-[11px] text-zinc-400">drag to orbit · scroll to zoom</div>
+              <div className="pointer-events-none absolute right-3 bottom-3 text-[11.5px] text-slate-400">Drag to orbit, scroll to zoom</div>
             </div>
-            <div className="border-t border-border bg-zinc-50/60 p-5 lg:max-h-[600px] lg:overflow-y-auto lg:border-t-0 lg:border-l">
+            <div className="border-t border-border bg-muted p-5 lg:max-h-[600px] lg:overflow-y-auto lg:border-t-0 lg:border-l">
               <div className="mb-4 flex items-center justify-between">
-                <div className="text-xs font-semibold tracking-wide text-muted-fg uppercase">Parameters</div>
-                <button onClick={() => mod && setValues({ ...(mod.defaults ?? {}), ...(item.preview ?? {}) })} className="text-xs text-muted-fg hover:text-fg">
+                <div className="text-[13px] font-semibold text-ink">Parameters</div>
+                <button onClick={() => mod && setValues({ ...(mod.defaults ?? {}), ...(item.preview ?? {}) })} className="text-xs font-medium text-brand hover:underline hover:underline-offset-4">
                   Reset
                 </button>
               </div>
@@ -106,7 +106,7 @@ function Detail({ item }: { item: Item }) {
       <p className="mt-3 text-[13px] text-muted-fg">
         Copies <code className="font-mono text-fg">{item.category}/{item.file}</code> and the shared <code className="font-mono text-fg">lib/</code> into{' '}
         <code className="font-mono text-fg">src/components/deck-twin/</code>. Needs <code className="font-mono text-fg">three</code>, <code className="font-mono text-fg">@react-three/fiber</code> and{' '}
-        <code className="font-mono text-fg">@react-three/drei</code>. See <Link href="/docs/installation" className="underline underline-offset-4">installation</Link> for the manual route.
+        <code className="font-mono text-fg">@react-three/drei</code>. See <Link href="/docs/installation" className="font-medium text-brand hover:underline hover:underline-offset-4">installation</Link> for the manual route.
       </p>
 
       <H2>Usage</H2>
@@ -150,7 +150,7 @@ function Detail({ item }: { item: Item }) {
       <p className="mb-3 text-[13px] text-muted-fg">Machine-readable entry with props, ranges, defaults and ports:</p>
       <Command cmd={`${CLI} info ${item.name}`} />
       <p className="mt-2 text-[13px] text-muted-fg">
-        Or fetch <a className="font-mono underline underline-offset-4" href={`/r/${item.name}.json`}>/r/{item.name}.json</a>, or copy a ready-made instruction:
+        Or fetch <a className="font-mono text-brand hover:underline hover:underline-offset-4" href={`/r/${item.name}.json`}>/r/{item.name}.json</a>, or copy a ready-made instruction:
       </p>
       <Code
         lang="text"
@@ -186,19 +186,19 @@ function PropsTable({ item, defaults }: { item: Item; defaults: Record<string, u
   const rows = item.params.map((p) => {
     const type = p.type === 'select' ? p.options.map((o) => JSON.stringify(typeof o === 'object' ? o.value : o)).join(' | ') : p.type === 'nps' ? 'number (NPS, in)' : p.type === 'rating' ? '150 | 300 | 600 | 900 | 1500 | 2500' : p.type === 'number' ? `number${p.unit ? ` (${p.unit})` : ''}` : p.type === 'bool' ? 'boolean' : 'string'
     const range = p.type === 'number' ? `${p.min} – ${p.max}` : ''
-    return [<code className="font-mono text-xs">{p.key}</code>, <span className="font-mono text-xs text-zinc-600">{type}</span>, <span className="font-mono text-xs">{JSON.stringify(defaults[p.key] ?? null)}</span>, range]
+    return [<code className="font-mono text-xs">{p.key}</code>, <span className="font-mono text-xs text-slate-600">{type}</span>, <span className="font-mono text-xs">{JSON.stringify(defaults[p.key] ?? null)}</span>, range]
   })
-  return <Table head={['Prop', 'Type', 'Default', 'Range']} rows={[...rows, [<code className="font-mono text-xs">...group</code>, <span className="font-mono text-xs text-zinc-600">position, rotation, scale…</span>, '', '']]} />
+  return <Table head={['Prop', 'Type', 'Default', 'Range']} rows={[...rows, [<code className="font-mono text-xs">...group</code>, <span className="font-mono text-xs text-slate-600">position, rotation, scale…</span>, '', '']]} />
 }
 
 function Table({ head, rows }: { head: string[]; rows: ReactNode[][] }) {
   return (
-    <div className="overflow-x-auto rounded-lg border border-border">
+    <div className="overflow-x-auto rounded-lg border border-border bg-white">
       <table className="w-full text-left text-[13px]">
-        <thead className="bg-zinc-50 text-xs text-muted-fg">
+        <thead className="bg-muted text-[12.5px] text-slate-600">
           <tr>
             {head.map((h) => (
-              <th key={h} className="px-3 py-2 font-medium">
+              <th key={h} className="px-3 py-2.5 font-semibold">
                 {h}
               </th>
             ))}
@@ -227,10 +227,10 @@ function PidSection({ name }: { name: string }) {
   return (
     <>
       <H2>P&amp;ID</H2>
-      <div className="grid gap-5 rounded-xl border border-border p-5 sm:grid-cols-[180px_1fr]">
+      <div className="grid gap-5 rounded-xl border border-border bg-white p-5 sm:grid-cols-[180px_1fr]">
         <div className="flex aspect-square items-center justify-center rounded-lg border border-border bg-white p-4">{url && <img src={url} alt={`P&ID symbol for ${name}`} className="max-h-full max-w-full" />}</div>
         <div className="space-y-3 text-[14px]">
-          <p className="leading-6 text-zinc-700">{e.drawn}</p>
+          <p className="leading-6 text-slate-700">{e.drawn}</p>
           <div className="flex flex-wrap gap-1.5">
             {e.tags?.map((t) => <Badge key={t}>tag {t}</Badge>)}
             {e.isa?.map((t) => <Badge key={t}>ISA {t}</Badge>)}
@@ -239,11 +239,11 @@ function PidSection({ name }: { name: string }) {
           {e.notes && <p className="text-[13px] text-muted-fg">{e.notes}</p>}
           {e.datasheet && (
             <div>
-              <div className="mb-1.5 text-xs font-medium text-fg">{e.datasheet.form} → props</div>
+              <div className="mb-1.5 text-[12.5px] font-semibold text-ink">{e.datasheet.form} fields and the props they set</div>
               <div className="grid grid-cols-[1fr_auto] gap-x-6 gap-y-1 text-[13px]">
                 {Object.entries(e.datasheet.fields).map(([f, p]) => (
                   <div key={f} className="contents">
-                    <span className="text-zinc-600">{f}</span>
+                    <span className="text-slate-600">{f}</span>
                     <code className="font-mono text-xs">{p}</code>
                   </div>
                 ))}
@@ -256,11 +256,11 @@ function PidSection({ name }: { name: string }) {
   )
 }
 
-const H2 = ({ children }: { children: ReactNode }) => <h2 className="mt-12 mb-4 text-xl font-semibold tracking-tight">{children}</h2>
+const H2 = ({ children }: { children: ReactNode }) => <h2 className="mt-14 mb-4 border-t border-border pt-8 text-[22px] font-semibold text-ink">{children}</h2>
 
 function Toggle({ on, onClick, children }: { on: boolean; onClick: () => void; children: ReactNode }) {
   return (
-    <button onClick={onClick} className={`rounded-md border px-2.5 py-1 text-xs ${on ? 'border-zinc-900 bg-zinc-900 text-white' : 'border-border text-muted-fg hover:text-fg'}`}>
+    <button onClick={onClick} className={`rounded-md border px-2.5 py-1 text-xs font-medium transition-colors ${on ? 'border-ink bg-ink text-white' : 'border-border bg-white text-slate-600 hover:border-slate-300 hover:text-ink'}`}>
       {children}
     </button>
   )

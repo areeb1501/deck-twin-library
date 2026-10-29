@@ -1,30 +1,38 @@
 @import 'tailwindcss';
-@import '@fontsource-variable/inter';
-@import '@fontsource-variable/jetbrains-mono';
+@import '@fontsource-variable/ibm-plex-sans';
+@import '@fontsource/ibm-plex-mono/400.css';
+@import '@fontsource/ibm-plex-mono/500.css';
 
+/* Site theme: graphite ink for actions, petrol teal for links and focus, cool greys, safety amber as a small signal. */
 @theme {
-  --font-sans: 'Inter Variable', ui-sans-serif, system-ui, sans-serif;
-  --font-mono: 'JetBrains Mono Variable', ui-monospace, monospace;
+  --font-sans: 'IBM Plex Sans Variable', ui-sans-serif, system-ui, sans-serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, monospace;
   --color-bg: #ffffff;
-  --color-fg: #0a0a0a;
-  --color-muted: #f4f4f5;
-  --color-muted-fg: #71717a;
-  --color-border: #e4e4e7;
-  --color-accent: #f4f4f5;
-  --color-brand: #0a0a0a;
+  --color-fg: #0e1a24;
+  --color-ink: #0e1a24;
+  --color-ink-2: #1b2a37;
+  --color-muted: #f5f7f8;
+  --color-muted-fg: #5e6b76;
+  --color-border: #e3e8ec;
+  --color-accent: #e8f2f1;
+  --color-brand: #0a6b6f;
+  --color-brand-hover: #08585b;
+  --color-brand-tint: #e8f2f1;
+  --color-signal: #e9a23b;
+  --color-stage: #f3f4f5;
 }
 
 :root {
   color-scheme: light;
-  --sh-class: #6f42c1;
-  --sh-identifier: #24292e;
-  --sh-sign: #8e8e93;
-  --sh-property: #005cc5;
-  --sh-entity: #22863a;
-  --sh-jsxliterals: #24292e;
-  --sh-string: #032f62;
-  --sh-keyword: #d73a49;
-  --sh-comment: #9a9aa2;
+  --sh-class: #7c3aed;
+  --sh-identifier: #0e1a24;
+  --sh-sign: #8a97a6;
+  --sh-property: #0a6b6f;
+  --sh-entity: #0f766e;
+  --sh-jsxliterals: #0e1a24;
+  --sh-string: #b45309;
+  --sh-keyword: #be185d;
+  --sh-comment: #8a97a6;
 }
 
 html,
@@ -34,54 +42,86 @@ body,
 }
 body {
   @apply bg-bg text-fg font-sans antialiased;
-  font-feature-settings: 'cv11', 'ss01';
 }
 ::selection {
-  background: #e4e4e7;
+  background: #cfe5e3;
+}
+:focus-visible {
+  outline: 2px solid var(--color-brand);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+h1,
+h2,
+h3 {
+  letter-spacing: -0.015em;
+}
+
+.code-dark {
+  --sh-class: #c4b5fd;
+  --sh-identifier: #e2e8f0;
+  --sh-sign: #7b8da3;
+  --sh-property: #7fd1cf;
+  --sh-entity: #5eead4;
+  --sh-jsxliterals: #e2e8f0;
+  --sh-string: #fcd34d;
+  --sh-keyword: #f9a8d4;
+  --sh-comment: #7b8da3;
+}
+
+.sheet-grid {
+  background-color: var(--color-muted);
+  background-image:
+    linear-gradient(to right, rgb(14 26 36 / 0.05) 1px, transparent 1px),
+    linear-gradient(to bottom, rgb(14 26 36 / 0.05) 1px, transparent 1px);
+  background-size: 24px 24px;
 }
 
 .prose-docs {
-  @apply text-[15px] leading-7 text-zinc-700;
+  @apply text-[15.5px] leading-7 text-slate-700;
 }
 .prose-docs h1 {
-  @apply text-3xl font-semibold tracking-tight text-fg mb-2;
+  @apply text-[34px] leading-tight font-semibold text-fg mb-3;
 }
 .prose-docs h2 {
-  @apply text-xl font-semibold tracking-tight text-fg mt-10 mb-3 pb-2 border-b border-border;
+  @apply text-[22px] font-semibold text-fg mt-12 mb-3 pb-2 border-b border-border;
 }
 .prose-docs h3 {
-  @apply text-base font-semibold text-fg mt-7 mb-2;
+  @apply text-[17px] font-semibold text-fg mt-8 mb-2;
 }
 .prose-docs p {
-  @apply my-3;
+  @apply my-3.5;
 }
 .prose-docs a {
-  @apply text-fg underline underline-offset-4 decoration-zinc-300 hover:decoration-zinc-900;
+  @apply font-medium text-brand underline underline-offset-4 decoration-brand/25 hover:decoration-brand;
 }
 .prose-docs ul {
-  @apply list-disc pl-5 my-3 space-y-1;
+  @apply list-disc pl-5 my-3.5 space-y-1.5 marker:text-slate-400;
 }
 .prose-docs ol {
-  @apply list-decimal pl-5 my-3 space-y-1;
+  @apply list-decimal pl-5 my-3.5 space-y-1.5 marker:text-slate-400;
 }
 .prose-docs code {
-  @apply font-mono text-[13px] bg-muted rounded px-1.5 py-0.5 text-fg;
+  @apply font-mono text-[13px] bg-muted border border-border rounded px-1 py-px text-ink;
 }
 .prose-docs pre {
-  @apply my-4 rounded-lg border border-border bg-zinc-50 p-4 overflow-x-auto text-[13px] leading-6;
+  @apply my-5 rounded-lg border border-border bg-muted p-4 overflow-x-auto text-[13px] leading-6;
 }
 .prose-docs pre code {
-  @apply bg-transparent p-0;
+  @apply bg-transparent border-0 p-0;
 }
 .prose-docs table {
-  @apply w-full my-4 text-sm border-collapse;
+  @apply w-full my-5 text-sm border-collapse;
 }
 .prose-docs th {
-  @apply text-left font-medium text-fg border-b border-border py-2 pr-4;
+  @apply text-left font-semibold text-fg bg-muted border-y border-border py-2 px-3;
 }
 .prose-docs td {
-  @apply border-b border-border py-2 pr-4 align-top;
+  @apply border-b border-border py-2 px-3 align-top;
 }
 .prose-docs blockquote {
-  @apply border-l-2 border-border pl-4 text-muted-fg my-4;
+  @apply border-l-2 border-brand bg-muted rounded-r-md py-2 pl-4 pr-3 text-slate-700 my-5;
+}
+.prose-docs strong {
+  @apply font-semibold text-fg;
 }

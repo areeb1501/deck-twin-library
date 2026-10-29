@@ -18,8 +18,8 @@ export function Playground() {
   const [spec, setSpec] = useState<PlantSpec | null>(parsed.spec ?? null)
   return (
     <div className="mx-auto max-w-[1440px] px-6 py-8">
-      <h1 className="text-2xl font-semibold tracking-tight">Playground</h1>
-      <p className="mt-1 text-[14px] text-zinc-600">Paste a plant.json from your agent, render it and read the checks. Nothing leaves your browser.</p>
+      <h1 className="text-[28px] leading-tight font-semibold text-ink">Playground</h1>
+      <p className="mt-2 text-[16px] text-slate-600">Paste a plant.json from your agent, render it and read the checks. Nothing leaves your browser.</p>
       <div className="mt-5 grid gap-5 lg:grid-cols-[440px_1fr]">
         <div className="flex flex-col gap-3">
           <div className="flex gap-2">
@@ -27,14 +27,14 @@ export function Playground() {
               <option>Load an example…</option>
               {EXAMPLES.map((e) => <option key={e.name} value={e.name}>{e.spec.name}</option>)}
             </select>
-            <button disabled={!parsed.spec} onClick={() => parsed.spec && setSpec(parsed.spec)} className="h-8 rounded-md bg-zinc-900 px-3 text-[13px] text-white disabled:opacity-40">
+            <button disabled={!parsed.spec} onClick={() => parsed.spec && setSpec(parsed.spec)} className="h-8 rounded-md bg-ink px-3.5 text-[13px] font-semibold text-white transition-colors hover:bg-ink-2 disabled:opacity-40">
               Render
             </button>
           </div>
-          <textarea value={text} onChange={(e) => setText(e.target.value)} spellCheck={false} className="h-[520px] w-full resize-none rounded-lg border border-border bg-zinc-50 p-3 font-mono text-[12px] leading-5 outline-none focus:border-zinc-400" />
+          <textarea value={text} onChange={(e) => setText(e.target.value)} spellCheck={false} className="h-[520px] w-full resize-none rounded-lg border border-border bg-muted p-3 font-mono text-[12px] leading-5 outline-none focus:border-slate-400 focus:ring-2 focus:ring-brand/15" />
           {parsed.error ? <div className="rounded-md bg-red-50 px-3 py-2 text-[13px] text-red-800">JSON: {parsed.error}</div> : <Issues issues={issues} />}
         </div>
-        <div className="relative h-[680px] overflow-hidden rounded-xl border border-border">{spec && <PlantView spec={spec} labels onIssues={setIssues} className="absolute inset-0" />}</div>
+        <div className="relative h-[680px] overflow-hidden rounded-xl border border-border shadow-sm">{spec && <PlantView spec={spec} labels onIssues={setIssues} className="absolute inset-0" />}</div>
       </div>
     </div>
   )
