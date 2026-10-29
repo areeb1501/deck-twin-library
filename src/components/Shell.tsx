@@ -3,27 +3,32 @@ import { createPortal } from 'react-dom'
 import { Link, useLocation } from 'wouter'
 import { CATEGORIES, ITEMS, byCategory, thumb } from '../registry'
 import { DOCS } from '../pages/docs'
-import { VERSION } from '../site'
+import { CLI, VERSION } from '../site'
 import { highlight, prepare, rank } from '../search'
+import { useScrollMemory } from '../url'
+import { Command } from './ui'
 
 export function Shell({ children }: { children: ReactNode }) {
   const [loc] = useLocation()
   const withSidebar = loc.startsWith('/docs') || loc.startsWith('/components')
-  useEffect(() => {
-    window.scrollTo(0, 0)
-  }, [loc])
+  useScrollMemory()
   return (
-    <div className="min-h-full">
+    <div className="flex min-h-full flex-col">
       <Header />
       {withSidebar ? (
-        <div className="flex">
+        <div className="flex flex-1">
           <Sidebar />
-          <main className="min-w-0 flex-1">{children}</main>
+          <div className="flex min-w-0 flex-1 flex-col">
+            <main className="flex-1">{children}</main>
+            <Footer />
+          </div>
         </div>
       ) : (
-        <main>{children}</main>
+        <>
+          <main className="flex-1">{children}</main>
+          <Footer />
+        </>
       )}
-      <Footer />
     </div>
   )
 }
@@ -107,38 +112,71 @@ function Footer() {
     ['Docs', [['/docs/installation', 'Installation'], ['/docs/cli', 'CLI'], ['/docs/assemble', 'Assembling plants'], ['/docs/standards', 'Standards & data']]],
     ['For agents', [['/docs/agents', 'Agent skill'], ['/llms.txt', 'llms.txt'], ['/r/index.json', 'Registry index'], ['/prompt.md', 'Setup prompt']]],
   ]
+  const link = 'group inline-flex items-center gap-1.5 text-slate-400 transition-colors hover:text-white'
+  const arrow = <span aria-hidden className="text-[#7fd1cf] opacity-0 transition-[opacity,transform] -translate-x-1 group-hover:translate-x-0 group-hover:opacity-100">→</span>
   return (
-    <footer className="border-t border-white/10 bg-ink text-slate-300">
-      <div className="mx-auto grid max-w-[1440px] gap-10 px-6 py-14 md:grid-cols-[1.4fr_repeat(3,1fr)]">
-        <div className="max-w-sm">
-          <div className="flex items-center gap-2.5">
-            <Logo className="h-8 w-8 rounded-lg ring-1 ring-white/15" />
-            <span className="text-[15px] font-semibold text-white">Deck Twin</span>
-          </div>
-          <p className="mt-4 text-[14px] leading-6 text-slate-400">Open-source 3D components for oil &amp; gas digital twins, sized from public engineering standards.</p>
-        </div>
-        {cols.map(([title, links]) => (
-          <div key={title}>
-            <div className="text-[13px] font-semibold text-white">{title}</div>
-            <ul className="mt-3 space-y-2 text-[14px]">
-              {links.map(([href, label]) => (
-                <li key={href}>
-                  {href.includes('.') ? (
-                    <a href={href} className="text-slate-400 transition-colors hover:text-white">
-                      {label}
-                    </a>
-                  ) : (
-                    <Link href={href} className="text-slate-400 transition-colors hover:text-white">
-                      {label}
-                    </Link>
-                  )}
-                </li>
-              ))}
-            </ul>
-          </div>
-        ))}
+    <footer className="relative isolate overflow-hidden bg-[#0a131a] text-slate-300 [container-type:inline-size]">
+      <div aria-hidden className="pointer-events-none absolute inset-0 -z-10">
+        <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[#7fd1cf]/60 to-transparent" />
+        <div className="absolute -top-48 left-1/2 h-96 w-[min(1100px,90%)] -translate-x-1/2 rounded-full bg-brand/30 blur-[120px]" />
+        <div className="footer-grid absolute inset-0" />
       </div>
-      <div className="border-t border-white/10">
+      <div className="mx-auto max-w-[1440px] px-6">
+        <div className="grid grid-cols-[minmax(0,1fr)] items-center gap-8 border-b border-white/[0.08] py-14 lg:grid-cols-[minmax(0,1fr)_minmax(0,460px)] lg:gap-16">
+          <div>
+            <div className="text-[13px] font-medium text-[#7fd1cf]">Open source, MIT licence</div>
+            <h2 className="mt-2 text-[28px] leading-tight font-semibold text-balance text-white sm:text-[34px]">From one valve to a whole platform.</h2>
+            <p className="mt-3 max-w-lg text-[15px] leading-7 text-slate-400">Copy a component into your project, or hand your agent a P&amp;ID and let it assemble the plant.</p>
+          </div>
+          <div className="min-w-0 space-y-3">
+            <Command cmd={`${CLI} add horizontal-separator`} />
+            <div className="flex flex-wrap gap-2.5">
+              <Link href="/docs/installation" className="inline-flex h-10 items-center rounded-md bg-white px-4 text-[14px] font-semibold text-ink transition-colors hover:bg-slate-200">
+                Get started
+              </Link>
+              <Link href="/components" className="inline-flex h-10 items-center rounded-md border border-white/15 px-4 text-[14px] font-semibold text-white transition-colors hover:border-white/30 hover:bg-white/5">
+                Browse {ITEMS.length} components
+              </Link>
+            </div>
+          </div>
+        </div>
+        <div className="grid gap-10 py-12 sm:grid-cols-2 md:grid-cols-[1.4fr_repeat(3,1fr)]">
+          <div className="max-w-sm">
+            <div className="flex items-center gap-2.5">
+              <Logo className="h-8 w-8 rounded-lg ring-1 ring-white/15" />
+              <span className="text-[15px] font-semibold text-white">Deck Twin</span>
+              <span className="rounded border border-white/10 px-1.5 py-px font-mono text-[10.5px] text-slate-500">v{VERSION}</span>
+            </div>
+            <p className="mt-4 text-[14px] leading-6 text-slate-400">3D components for oil &amp; gas digital twins, sized from public engineering standards.</p>
+          </div>
+          {cols.map(([title, links]) => (
+            <div key={title}>
+              <div className="text-[12px] font-semibold tracking-[0.08em] text-slate-500 uppercase">{title}</div>
+              <ul className="mt-4 space-y-2.5 text-[14px]">
+                {links.map(([href, label]) => (
+                  <li key={href}>
+                    {href.includes('.') ? (
+                      <a href={href} className={link}>
+                        {label}
+                        {arrow}
+                      </a>
+                    ) : (
+                      <Link href={href} className={link}>
+                        {label}
+                        {arrow}
+                      </Link>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </div>
+      </div>
+      <div aria-hidden className="pointer-events-none -mt-2 overflow-hidden px-6 select-none">
+        <div className="mx-auto max-w-[1440px] translate-y-[22%] bg-gradient-to-b from-white/[0.09] to-transparent bg-clip-text text-center text-[16cqw] leading-[0.8] font-semibold tracking-[-0.05em] whitespace-nowrap text-transparent">Deck Twin</div>
+      </div>
+      <div className="relative border-t border-white/[0.08] bg-[#0a131a]/80 backdrop-blur">
         <div className="mx-auto flex max-w-[1440px] flex-wrap justify-between gap-2 px-6 py-5 text-[12.5px] text-slate-500">
           <span>MIT licence</span>
           <span>Reference geometry from public standards, not vendor CAD. Check dimensions against the current edition.</span>
@@ -167,7 +205,7 @@ function Sidebar() {
     </Link>
   )
   return (
-    <aside ref={ref} className="sticky top-14 hidden h-[calc(100vh-3.5rem)] w-[264px] shrink-0 overflow-y-auto border-r border-border bg-muted px-4 py-7 lg:block">
+    <aside ref={ref} className="sticky top-14 hidden h-[calc(100vh-3.5rem)] w-[264px] shrink-0 overflow-y-auto overscroll-contain border-r border-border bg-muted px-4 pt-7 pb-20 [mask-image:linear-gradient(to_bottom,#000_calc(100%-56px),transparent)] lg:block">
       <Section title="Getting started">{DOCS.map((d) => item(`/docs/${d.slug}`, d.title))}</Section>
       <Section title="Components">{item('/components', `All components (${ITEMS.length})`)}</Section>
       {CATEGORIES.map((c) => {
@@ -192,6 +230,16 @@ function Section({ title, children }: { title: string; children: ReactNode }) {
   )
 }
 
+let pool: { href: string; label: string; hint: string; thumb: string; prep: ReturnType<typeof prepare> }[] | null = null
+/** Ranked hits across docs and components; the header search and the 404 page share it. */
+export function searchSite(q: string) {
+  pool ??= [
+    ...DOCS.map((d) => ({ href: `/docs/${d.slug}`, label: d.title, hint: 'Docs', thumb: '', prep: prepare({ title: d.title, slug: d.slug, keys: ['docs'] }) })),
+    ...ITEMS.map((i) => ({ href: `/components/${i.name}`, label: i.title, hint: CATEGORIES.find((c) => c.id === i.category)?.title ?? i.category, thumb: thumb(i.name), prep: prepare({ title: i.title, slug: i.name, keys: [i.category, ...(i.tags ?? []), ...i.standards], body: [i.description, ...(i.vendors ?? [])] }) })),
+  ]
+  return rank(pool, (h) => h.prep, (h) => h.label, q)
+}
+
 function Search() {
   const [open, setOpen] = useState(false)
   const [q, setQ] = useState('')
@@ -208,12 +256,7 @@ function Search() {
     return () => window.removeEventListener('keydown', on)
   }, [])
   const [active, setActive] = useState(0)
-  const pool = useMemo(() => {
-    const all = ITEMS.map((i) => ({ href: `/components/${i.name}`, label: i.title, hint: CATEGORIES.find((c) => c.id === i.category)?.title ?? i.category, thumb: thumb(i.name), prep: prepare({ title: i.title, slug: i.name, keys: [i.category, ...(i.tags ?? []), ...i.standards], body: [i.description, ...(i.vendors ?? [])] }) }))
-    const docs = DOCS.map((d) => ({ href: `/docs/${d.slug}`, label: d.title, hint: 'Docs', thumb: '', prep: prepare({ title: d.title, slug: d.slug, keys: ['docs'] }) }))
-    return [...docs, ...all]
-  }, [])
-  const hits = useMemo(() => rank(pool, (h) => h.prep, (h) => h.label, q), [pool, q])
+  const hits = useMemo(() => searchSite(q), [q])
   useEffect(() => setActive(0), [q, open])
   useEffect(() => {
     document.getElementById(`search-hit-${active}`)?.scrollIntoView({ block: 'nearest' })
@@ -271,7 +314,7 @@ function Search() {
                     ) : (
                       <span className="flex h-8 w-10 shrink-0 items-center justify-center rounded border border-border text-[10px] text-muted-fg">doc</span>
                     )}
-                    <span className="flex-1 truncate">{marked(h.label, q)}</span>
+                    <span className="flex-1 truncate">{markHits(h.label, q)}</span>
                     <span className="shrink-0 text-xs text-muted-fg">{h.hint}</span>
                   </button>
                 ))}
@@ -290,7 +333,7 @@ function Search() {
   )
 }
 
-function marked(label: string, q: string) {
+export function markHits(label: string, q: string) {
   const parts: ReactNode[] = []
   let at = 0
   for (const [a, b] of highlight(label, q)) {

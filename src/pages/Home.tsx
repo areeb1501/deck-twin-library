@@ -29,10 +29,22 @@ export function Home() {
   return (
     <div>
       <section className="relative overflow-hidden border-b border-border">
-        <div aria-hidden className="sheet-grid pointer-events-none absolute inset-0 [mask-image:radial-gradient(ellipse_75%_55%_at_50%_0%,#000_35%,transparent_85%)]" />
+        <div aria-hidden className="pointer-events-none absolute inset-0">
+          <div className="hero-grid absolute inset-0" />
+          <div className="absolute -top-56 left-1/2 h-[560px] w-[min(980px,100%)] -translate-x-1/2 rounded-[50%] bg-[radial-gradient(closest-side,rgb(127_209_207/0.42),rgb(10_107_111/0.10)_60%,transparent)] blur-2xl" />
+          <div className="hero-glow absolute top-[38%] left-1/2 h-[560px] w-[min(1200px,110%)] rounded-[50%] bg-[radial-gradient(closest-side,rgb(10_107_111/0.30),rgb(127_209_207/0.16)_55%,transparent)] blur-3xl" />
+          <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-b from-transparent to-white" />
+        </div>
         <div className="relative mx-auto max-w-[1440px] px-6 pt-16 pb-16 sm:pt-24 sm:pb-20">
-          <div className="mx-auto max-w-[760px] text-center">
-            <h1 className="text-[42px] leading-[1.04] font-semibold text-balance text-ink sm:text-[64px]">3D components for oil &amp; gas digital twins</h1>
+          <div className="mx-auto max-w-[800px] text-center">
+            <Link href="/components" className="group mb-7 inline-flex items-center gap-2 rounded-full border border-border bg-white/80 py-1 pr-3 pl-3 text-[12.5px] whitespace-nowrap sm:pl-1 sm:text-[13px] text-slate-600 shadow-[0_1px_2px_rgb(14_26_36/0.05)] backdrop-blur transition-colors hover:border-slate-300 hover:text-ink">
+              <span className="hidden rounded-full bg-ink px-2 py-0.5 text-[11.5px] font-semibold text-white sm:inline">Open source</span>
+              {ITEMS.length} components, {LIBRARY.symbols.length} P&amp;ID symbols
+              <span aria-hidden className="text-muted-fg transition-transform group-hover:translate-x-0.5">→</span>
+            </Link>
+            <h1 className="text-[42px] leading-[1.04] font-semibold tracking-[-0.03em] text-balance text-ink sm:text-[68px]">
+              3D components for <span className="hero-ink">oil &amp; gas digital twins</span>
+            </h1>
             <p className="mx-auto mt-6 max-w-2xl text-[17px] leading-7 text-pretty text-slate-600 sm:text-[18px] sm:leading-8">
               Separators, pumps, valves, compressors, cranes, decks and pipe racks for three.js and React Three Fiber. Each one is sized from the standard it follows. Copy it into your project, or let your agent assemble a whole plant from a P&amp;ID.
             </p>
@@ -46,7 +58,7 @@ export function Home() {
             </div>
             <AgentLine className="mx-auto mt-7 max-w-[720px]" />
           </div>
-          <div className="mx-auto mt-14 max-w-[1240px] overflow-hidden rounded-2xl border border-border bg-white shadow-[0_1px_2px_rgb(14_26_36/0.05),0_32px_64px_-32px_rgb(14_26_36/0.35)] sm:mt-16">
+          <div className="relative mx-auto mt-14 max-w-[1240px] overflow-hidden rounded-2xl border border-border bg-white shadow-[0_1px_2px_rgb(14_26_36/0.05),0_32px_80px_-32px_rgb(10_107_111/0.45)] ring-1 ring-white/60 sm:mt-16">
             <div className="flex items-center gap-3 border-b border-border bg-white px-4 py-2.5">
               <span className="h-2 w-2 rounded-full bg-signal" />
               <span className="truncate text-[13px] font-semibold text-ink">{hero?.spec.name}</span>

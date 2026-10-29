@@ -142,3 +142,57 @@ h3 {
 .prose-docs strong {
   @apply font-semibold text-fg;
 }
+
+.footer-grid {
+  background-image:
+    linear-gradient(to right, rgb(255 255 255 / 0.035) 1px, transparent 1px),
+    linear-gradient(to bottom, rgb(255 255 255 / 0.035) 1px, transparent 1px);
+  background-size: 32px 32px;
+  mask-image: radial-gradient(ellipse 70% 80% at 50% 0%, #000 20%, transparent 75%);
+}
+
+/* Home hero: a drawing-sheet grid (minor and major lines), a slow petrol glow and the ink-to-petrol headline. */
+.hero-grid {
+  background-image:
+    linear-gradient(to right, rgb(10 107 111 / 0.13) 1px, transparent 1px),
+    linear-gradient(to bottom, rgb(10 107 111 / 0.13) 1px, transparent 1px),
+    linear-gradient(to right, rgb(14 26 36 / 0.045) 1px, transparent 1px),
+    linear-gradient(to bottom, rgb(14 26 36 / 0.045) 1px, transparent 1px);
+  background-size: 120px 120px, 120px 120px, 24px 24px, 24px 24px;
+  background-position: center top;
+  mask-image: radial-gradient(ellipse 80% 70% at 50% 20%, #000 30%, transparent 80%);
+}
+.hero-glow {
+  transform: translateX(-50%);
+  animation: hero-drift 18s ease-in-out infinite alternate;
+}
+@keyframes hero-drift {
+  from {
+    transform: translate(-54%, -4%) scale(1);
+  }
+  to {
+    transform: translate(-46%, 4%) scale(1.08);
+  }
+}
+.hero-ink {
+  background: linear-gradient(100deg, #0a6b6f 0%, #12a39d 35%, #0b5f63 65%, #13a29c 100%);
+  background-size: 200% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: hero-sheen 9s ease-in-out infinite alternate;
+}
+@keyframes hero-sheen {
+  from {
+    background-position: 0% 50%;
+  }
+  to {
+    background-position: 100% 50%;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hero-glow,
+  .hero-ink {
+    animation: none;
+  }
+}

@@ -8,6 +8,7 @@ import { DocPage } from './pages/DocPage'
 import { ExamplesIndex, ExamplePage } from './pages/Examples'
 import { Playground } from './pages/Playground'
 import { Symbols } from './pages/Symbols'
+import { NotFound } from './pages/NotFound'
 
 const Shot = lazy(() => import('./pages/Shot'))
 
@@ -28,9 +29,7 @@ export function App() {
             <Route path="/examples/:name">{(p) => <ExamplePage name={p.name} />}</Route>
             <Route path="/playground" component={Playground} />
             <Route path="/symbols" component={Symbols} />
-            <Route>
-              <div className="mx-auto max-w-2xl px-6 py-24 text-center text-muted-fg">Page not found.</div>
-            </Route>
+            <Route>{() => <NotFound />}</Route>
           </Switch>
         </Shell>
       </Route>

@@ -6,10 +6,11 @@ import { Controls, frac } from '../viewer/Controls'
 import { Badge, Code, Command, RichText, Tabs } from '../components/ui'
 import { add, CLI, SITE } from '../site'
 import { PID, symbolUrl } from '../pid'
+import { NotFound } from './NotFound'
 
 export function ComponentPage({ name }: { name: string }) {
   const item = BY_NAME.get(name)
-  if (!item) return <div className="px-10 py-24 text-muted-fg">Unknown component “{name}”.</div>
+  if (!item) return <NotFound what="component" />
   return <Detail key={item.name} item={item} />
 }
 

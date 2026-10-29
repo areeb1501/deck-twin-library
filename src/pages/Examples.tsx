@@ -5,6 +5,7 @@ import { Issues, PlantView } from '../viewer/PlantView'
 import { Code, Command, RichText, Segmented } from '../components/ui'
 import { CLI } from '../site'
 import type { Issue } from '../../registry/assembly/spec'
+import { NotFound } from './NotFound'
 
 export function ExamplesIndex() {
   return (
@@ -39,7 +40,7 @@ export function ExamplePage({ name }: { name: string }) {
   const [labels, setLabels] = useState(true)
   const [env, setEnv] = useState<'studio' | 'day' | 'night'>('day')
   const [issues, setIssues] = useState<Issue[]>([])
-  if (!ex) return <div className="px-10 py-24 text-muted-fg">Unknown example.</div>
+  if (!ex) return <NotFound what="example" />
   return (
     <div className="mx-auto max-w-[1440px] px-6 py-8">
       <nav className="mb-2 flex items-center gap-1.5 text-[13px] text-muted-fg">

@@ -204,6 +204,23 @@ const llms = [
 ].join('\n')
 writeFileSync(join(root, 'public/llms.txt'), llms)
 
+// Sitemap and robots: every page route the site renders, from the same sources the router reads
+const pages = [
+  '/',
+  '/components',
+  '/symbols',
+  '/examples',
+  '/playground',
+  ...readdirSync(join(root, 'docs')).filter((f) => f.endsWith('.md')).map((f) => `/docs/${f.replace(/\.md$/, '')}`).sort(),
+  ...all.map((m) => `/components/${m.name}`),
+  ...readdirSync(join(reg, 'examples')).filter((f) => f.endsWith('.plant.json')).map((f) => `/examples/${f.replace(/\.plant\.json$/, '')}`).sort(),
+]
+writeFileSync(
+  join(root, 'public/sitemap.xml'),
+  `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${pages.map((p) => `  <url><loc>${SITE}${p}</loc></url>`).join('\n')}\n</urlset>\n`,
+)
+writeFileSync(join(root, 'public/robots.txt'), ['User-agent: *', 'Allow: /', 'Disallow: /shot/', 'Disallow: /shot-plant/', '', `Sitemap: ${SITE}/sitemap.xml`, ''].join('\n'))
+
 // P&ID: symbols, legend sheet and the generated skill reference
 rmSync(join(root, 'public/symbols'), { recursive: true, force: true })
 cpSync(join(reg, 'pid/symbols'), join(root, 'public/symbols'), { recursive: true })

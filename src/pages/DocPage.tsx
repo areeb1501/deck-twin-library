@@ -3,6 +3,7 @@ import { Link, useLocation } from 'wouter'
 import { marked } from 'marked'
 import { highlight } from 'sugar-high'
 import { DOCS, loadDoc } from './docs'
+import { NotFound } from './NotFound'
 
 marked.use({
   renderer: {
@@ -20,6 +21,11 @@ marked.use({
 })
 
 export function DocPage({ slug }: { slug: string }) {
+  if (!DOCS.some((d) => d.slug === slug)) return <NotFound what="doc" />
+  return <Doc slug={slug} />
+}
+
+function Doc({ slug }: { slug: string }) {
   const [md, setMd] = useState('')
   const [, go] = useLocation()
   useEffect(() => {

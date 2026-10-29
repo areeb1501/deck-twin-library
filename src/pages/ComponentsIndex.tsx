@@ -1,7 +1,8 @@
-import { useMemo, useState } from 'react'
+import { useMemo } from 'react'
 import { Link } from 'wouter'
 import { CATEGORIES, ITEMS, thumb, type Item } from '../registry'
 import { Combobox, FilterInput, Select, Toolbar } from '../components/ui'
+import { useQueryState } from '../url'
 
 // Supplier names are free text: group brands under their company ("SLB (Cameron)", "Emerson Fisher" → "SLB", "Emerson") and skip non-suppliers.
 const raw = (i: Item) => (i.vendors ?? []).filter((v) => !/^fabricated/i.test(v)).map((v) => v.replace(/\s*\(.*\)\s*$/, '').trim())
@@ -15,9 +16,9 @@ const SUPPLIERS = (() => {
 })()
 
 export function ComponentsIndex() {
-  const [q, setQ] = useState('')
-  const [cat, setCat] = useState<string>('all')
-  const [supplier, setSupplier] = useState('')
+  const [q, setQ] = useQueryState('q', '')
+  const [cat, setCat] = useQueryState('category', 'all')
+  const [supplier, setSupplier] = useQueryState('supplier', '')
   const shown = useMemo(() => {
     const s = q.trim().toLowerCase()
     return ITEMS.filter(

@@ -1,12 +1,13 @@
-import { useMemo, useState } from 'react'
+import { useMemo } from 'react'
 import { Link } from 'wouter'
 import { BY_NAME, CATEGORIES, byCategory } from '../registry'
 import { LIBRARY, PID, librarySymbolUrl, symbolUrl } from '../pid'
 import type { LibrarySymbol } from '../../registry/pid/types'
 import { FilterInput, Segmented, Select, Toolbar } from '../components/ui'
+import { useQueryState } from '../url'
 
 export function Symbols() {
-  const [tab, setTab] = useState<'legend' | 'components'>(LIBRARY.symbols.length ? 'legend' : 'components')
+  const [tab, setTab] = useQueryState<'legend' | 'components'>('view', LIBRARY.symbols.length ? 'legend' : 'components')
   return (
     <div className="mx-auto max-w-[1440px] px-6 py-10 lg:px-10">
       <h1 className="text-[34px] leading-tight font-semibold text-ink">P&amp;ID symbols</h1>
@@ -34,10 +35,12 @@ export function Symbols() {
 const has3d = (x: LibrarySymbol) => !!(x.component && BY_NAME.get(x.component))
 
 function Legend() {
-  const [cat, setCat] = useState('all')
-  const [q, setQ] = useState('')
-  const [model, setModel] = useState<'all' | '3d' | 'none'>('all')
-  const [sel, setSel] = useState<LibrarySymbol | null>(null)
+  const [cat, setCat] = useQueryState('category', 'all')
+  const [q, setQ] = useQueryState('q', '')
+  const [model, setModel] = useQueryState<'all' | '3d' | 'none'>('model', 'all')
+  const [selId, setSelId] = useQueryState('symbol', '')
+  const sel = useMemo(() => LIBRARY.symbols.find((x) => x.id === selId) ?? null, [selId])
+  const setSel = (x: LibrarySymbol | null) => setSelId(x?.id ?? '')
   const base = useMemo(() => {
     const s = q.trim().toLowerCase()
     return LIBRARY.symbols.filter((x) => (cat === 'all' || x.category === cat) && (!s || `${x.name} ${x.id} ${x.meaning} ${x.drawn} ${x.tags?.join(' ')} ${x.isa?.join(' ')} ${x.component ?? ''}`.toLowerCase().includes(s)))
