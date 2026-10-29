@@ -287,7 +287,8 @@ html.light .footer-light {
     radial-gradient(40% 70% at 95% 10%, rgb(254 85 16 / 0.1), transparent 70%);
 }
 
-/* Home hero: a grainy gradient of signal orange and deep indigo light, slowly drifting, under a white-to-grey headline. */
+/* Home hero: a grainy gradient of signal orange and deep indigo light under a white-to-grey headline. Static, so the
+   full orange-to-indigo blend shows from the first frame. */
 .hero-grain {
   background:
     radial-gradient(60% 55% at 50% -8%, rgb(254 85 16 / 0.42), transparent 70%),
@@ -295,16 +296,6 @@ html.light .footer-light {
     radial-gradient(40% 45% at 8% 72%, rgb(59 70 207 / 0.3), transparent 70%),
     radial-gradient(35% 30% at 30% 30%, rgb(254 120 60 / 0.14), transparent 70%),
     var(--bg);
-  animation: hero-drift 22s ease-in-out infinite alternate;
-  background-size: 120% 120%;
-}
-@keyframes hero-drift {
-  from {
-    background-position: 0% 0%;
-  }
-  to {
-    background-position: 100% 60%;
-  }
 }
 .grain {
   background-image: var(--grain-img);
@@ -313,12 +304,10 @@ html.light .footer-light {
   mix-blend-mode: var(--grain-blend);
 }
 .hero-ink {
-  background: linear-gradient(100deg, #ff9a66 0%, #fe5510 38%, #ff7a45 62%, #8f97ff 100%);
-  background-size: 200% 100%;
+  background: linear-gradient(100deg, #ff8a4c 0%, #fe5510 35%, #f2683a 62%, #b47fc4 82%, #8f97ff 100%);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
-  animation: hero-sheen 9s ease-in-out infinite alternate;
 }
 html.light .hero-grain {
   background:
@@ -327,18 +316,9 @@ html.light .hero-grain {
     radial-gradient(40% 45% at 8% 72%, rgb(59 70 207 / 0.13), transparent 70%),
     radial-gradient(35% 30% at 30% 30%, rgb(254 120 60 / 0.12), transparent 70%),
     var(--bg);
-  background-size: 120% 120%;
 }
 html.light .hero-ink {
-  background-image: linear-gradient(100deg, #f0601f 0%, #e5470a 38%, #f26a2e 62%, #4c56dc 100%);
-}
-@keyframes hero-sheen {
-  from {
-    background-position: 0% 50%;
-  }
-  to {
-    background-position: 100% 50%;
-  }
+  background-image: linear-gradient(100deg, #f0601f 0%, #e5470a 35%, #ee5a2a 62%, #9a5cbc 82%, #4c56dc 100%);
 }
 /* "Built for agents" band: the same light, turned down and flipped. */
 .agents-band {
@@ -352,10 +332,4 @@ html.light .agents-band {
     radial-gradient(50% 70% at 0% 0%, rgb(59 70 207 / 0.12), transparent 70%),
     radial-gradient(40% 60% at 100% 100%, rgb(254 85 16 / 0.12), transparent 70%),
     var(--deep);
-}
-@media (prefers-reduced-motion: reduce) {
-  .hero-grain,
-  .hero-ink {
-    animation: none;
-  }
 }
