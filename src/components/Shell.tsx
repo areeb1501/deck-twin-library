@@ -118,8 +118,8 @@ function Footer() {
     <footer className="relative isolate overflow-hidden bg-[#0a0b0e] text-slate-300 [container-type:inline-size]">
       <div aria-hidden className="pointer-events-none absolute inset-0 -z-10">
         <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[#ff8a5c]/60 to-transparent" />
-        <div className="absolute -top-48 left-1/2 h-96 w-[min(1100px,90%)] -translate-x-1/2 rounded-full bg-[#3b46cf]/35 blur-[120px]" />
-        <div className="footer-grid absolute inset-0" />
+        <div className="footer-light absolute inset-0" />
+        <div className="grain absolute inset-0" />
       </div>
       <div className="mx-auto max-w-[1440px] px-6">
         <div className="grid grid-cols-[minmax(0,1fr)] items-center gap-8 border-b border-white/[0.08] py-14 lg:grid-cols-[minmax(0,1fr)_minmax(0,460px)] lg:gap-16">

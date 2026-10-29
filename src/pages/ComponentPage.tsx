@@ -3,7 +3,7 @@ import { Link } from 'wouter'
 import { BY_NAME, CATEGORIES, loadModule, loadSource, type ComponentModule, type Item } from '../registry'
 import { Viewer, type Bounds } from '../viewer/Viewer'
 import { Controls, frac } from '../viewer/Controls'
-import { Badge, Code, Command, RichText, Tabs } from '../components/ui'
+import { Badge, Code, Command, Crumbs, RichText, Tabs } from '../components/ui'
 import { add, CLI, SITE } from '../site'
 import { PID, symbolUrl } from '../pid'
 import { NotFound } from './NotFound'
@@ -36,13 +36,7 @@ function Detail({ item }: { item: Item }) {
 
   return (
     <div className="mx-auto max-w-[1180px] px-6 py-10 lg:px-10">
-      <nav className="mb-3 flex items-center gap-1.5 text-[13px] text-muted-fg">
-        <Link href="/components" className="font-medium text-brand hover:underline hover:underline-offset-4">
-          Components
-        </Link>
-        <span className="text-slate-300">/</span>
-        <span>{cat.title}</span>
-      </nav>
+      <Crumbs items={[{ label: 'Components', href: '/components' }, { label: cat.title, href: `/components?category=${cat.id}` }, { label: item.title }]} />
       <h1 className="text-[34px] leading-tight font-semibold head-grad tracking-[-0.035em]">{item.title}</h1>
       <p className="mt-3 max-w-3xl text-[16px] leading-7 text-zinc-400">
         <RichText text={item.description} />

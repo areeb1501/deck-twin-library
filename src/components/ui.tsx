@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { highlight } from 'sugar-high'
+import { Link } from 'wouter'
+import { cameFrom } from '../url'
 
 export function CopyButton({ text, className = '' }: { text: string; className?: string }) {
   const [done, setDone] = useState(false)
@@ -238,5 +240,47 @@ export function Combobox({ value, onChange, label, allLabel, placeholder, option
         </div>
       )}
     </div>
+  )
+}
+
+export interface Crumb {
+  label: string
+  href?: string
+}
+
+/** Breadcrumb trail. A crumb for the page you came from goes Back, so the list reopens where you left it. */
+export function Crumbs({ items }: { items: Crumb[] }) {
+  return (
+    <nav aria-label="Breadcrumb" className="mb-4 flex min-w-0 items-center gap-1 text-[13px]">
+      {items.map((c, i) => {
+        const last = i === items.length - 1
+        return (
+          <span key={i} className="flex min-w-0 items-center gap-1">
+            {i > 0 && (
+              <svg viewBox="0 0 16 16" className="h-3.5 w-3.5 shrink-0 text-zinc-600" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                <path d="m6 3.5 4.5 4.5L6 12.5" />
+              </svg>
+            )}
+            {c.href && !last ? (
+              <Link
+                href={c.href}
+                onClick={(e) => {
+                  if (!cameFrom(c.href!, i === 0)) return
+                  e.preventDefault()
+                  history.back()
+                }}
+                className="truncate rounded-md px-1.5 py-0.5 font-medium text-muted-fg transition-colors hover:bg-white/[0.06] hover:text-ink"
+              >
+                {c.label}
+              </Link>
+            ) : (
+              <span aria-current={last ? 'page' : undefined} className={`truncate px-1.5 py-0.5 ${last ? 'font-medium text-zinc-300' : 'text-muted-fg'}`}>
+                {c.label}
+              </span>
+            )}
+          </span>
+        )
+      })}
+    </nav>
   )
 }

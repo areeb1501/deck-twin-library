@@ -3,7 +3,7 @@ import { Link, useLocation } from 'wouter'
 import { BY_NAME, CATEGORIES, byCategory } from '../registry'
 import { LIBRARY, PID, librarySymbolUrl, symbolUrl } from '../pid'
 import type { LibrarySymbol } from '../../registry/pid/types'
-import { FilterInput, Segmented, Select, Toolbar } from '../components/ui'
+import { Crumbs, FilterInput, Segmented, Select, Toolbar } from '../components/ui'
 import { useQueryState } from '../url'
 
 export function Symbols() {
@@ -43,7 +43,7 @@ function Legend() {
   const setSel = (x: LibrarySymbol | null) => setSelId(x?.id ?? '')
   const [, navigate] = useLocation()
   // below lg the side panel sits under the whole grid, so a symbol opens its own page (Back restores scroll and filters)
-  const open = (x: LibrarySymbol) => (matchMedia('(min-width: 1024px)').matches ? setSel(x) : navigate(`/symbols/${encodeURIComponent(x.id)}`, { state: { fromList: true } }))
+  const open = (x: LibrarySymbol) => (matchMedia('(min-width: 1024px)').matches ? setSel(x) : navigate(`/symbols/${encodeURIComponent(x.id)}`))
   const base = useMemo(() => {
     const s = q.trim().toLowerCase()
     return LIBRARY.symbols.filter((x) => (cat === 'all' || x.category === cat) && (!s || `${x.name} ${x.id} ${x.meaning} ${x.drawn} ${x.tags?.join(' ')} ${x.isa?.join(' ')} ${x.component ?? ''}`.toLowerCase().includes(s)))
@@ -148,22 +148,12 @@ function SymbolDetail({ sel }: { sel: LibrarySymbol }) {
 /** /symbols/:id: one symbol on its own page. Phones and small tablets open this instead of the side panel. */
 export function SymbolPage({ id }: { id: string }) {
   const sel = LIBRARY.symbols.find((x) => x.id === decodeURIComponent(id))
-  const fromList = !!(history.state as { fromList?: boolean } | null)?.fromList
+  const cat = LIBRARY.categories.find((c) => c.id === sel?.category)
   return (
     <div className="mx-auto max-w-[720px] px-6 py-6 lg:py-10">
-      <Link
-        href="/symbols"
-        onClick={(e) => {
-          if (!fromList) return
-          e.preventDefault()
-          history.back()
-        }}
-        className="inline-flex items-center gap-1.5 text-[14px] font-medium text-brand hover:underline hover:underline-offset-4"
-      >
-        <span aria-hidden>←</span> All symbols
-      </Link>
+      <Crumbs items={[{ label: 'P&ID symbols', href: '/symbols' }, ...(cat ? [{ label: cat.title, href: `/symbols?category=${cat.id}` }] : []), { label: sel?.name ?? 'Not found' }]} />
       {sel ? (
-        <div className="mt-4 flex flex-col overflow-hidden rounded-xl border border-border bg-surface">
+        <div className="flex flex-col overflow-hidden rounded-xl border border-border bg-surface">
           <SymbolDetail sel={sel} />
         </div>
       ) : (

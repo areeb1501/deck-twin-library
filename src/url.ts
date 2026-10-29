@@ -29,6 +29,21 @@ if (typeof window !== 'undefined') {
   addEventListener('popstate', () => (pending = saved.get(here()) ?? 0))
 }
 
+// Where the current page was opened from. wouter fires pushState / replaceState events after it changes the URL.
+let current = typeof window !== 'undefined' ? here() : ''
+let came: string | null = null
+if (typeof window !== 'undefined') {
+  addEventListener('pushState', () => ((came = current), (current = here())))
+  addEventListener('replaceState', () => (current = here()))
+  addEventListener('popstate', () => ((came = null), (current = here())))
+}
+
+/** True when this page was opened from `href` (the path alone when `samePath`), so Back returns there with its filters and scroll. */
+export function cameFrom(href: string, samePath = false) {
+  if (!came) return false
+  return samePath ? came.split('?')[0] === href.split('?')[0] : came === href
+}
+
 /** Scroll to top on a new page, and back to where you were on Back / Forward. */
 export function useScrollMemory() {
   const [path] = useLocation()

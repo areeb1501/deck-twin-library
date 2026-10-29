@@ -177,12 +177,11 @@ h3 {
   @apply font-semibold text-fg;
 }
 
-.footer-grid {
-  background-image:
-    linear-gradient(to right, rgb(255 255 255 / 0.035) 1px, transparent 1px),
-    linear-gradient(to bottom, rgb(255 255 255 / 0.035) 1px, transparent 1px);
-  background-size: 32px 32px;
-  mask-image: radial-gradient(ellipse 70% 80% at 50% 0%, #000 20%, transparent 75%);
+/* Footer: the hero's light, turned down. */
+.footer-light {
+  background:
+    radial-gradient(55% 80% at 15% 0%, rgb(59 70 207 / 0.38), transparent 70%),
+    radial-gradient(40% 70% at 95% 10%, rgb(254 85 16 / 0.16), transparent 70%);
 }
 
 /* Home hero: a grainy gradient of signal orange and deep indigo light, slowly drifting, under a white-to-grey headline. */
