@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Link } from 'wouter'
 import { EXAMPLES, byLevel, level, type Level } from '../plants'
 import { Issues, PlantView } from '../viewer/PlantView'
-import { Code, Command, RichText } from '../components/ui'
+import { Code, Command, RichText, Segmented } from '../components/ui'
 import { CLI } from '../site'
 import type { Issue } from '../../registry/assembly/spec'
 
@@ -37,6 +37,7 @@ export function ExamplesIndex() {
 export function ExamplePage({ name }: { name: string }) {
   const ex = EXAMPLES.find((e) => e.name === name)
   const [labels, setLabels] = useState(true)
+  const [env, setEnv] = useState<'studio' | 'day' | 'night'>('day')
   const [issues, setIssues] = useState<Issue[]>([])
   if (!ex) return <div className="px-10 py-24 text-muted-fg">Unknown example.</div>
   return (
@@ -52,10 +53,26 @@ export function ExamplePage({ name }: { name: string }) {
       </p>
       <div className="mt-5 grid grid-cols-1 gap-5 lg:grid-cols-[minmax(0,1fr)_420px]">
         <div className="relative h-[420px] overflow-hidden sm:h-[620px] rounded-xl border border-border shadow-sm">
-          <PlantView spec={ex.spec} labels={labels} onIssues={setIssues} className="absolute inset-0" />
-          <button onClick={() => setLabels((l) => !l)} className="absolute top-3 right-3 rounded-md border border-border bg-white px-2.5 py-1 text-xs font-medium text-ink shadow-sm hover:bg-muted">
-            {labels ? 'Hide tags' : 'Show tags'}
-          </button>
+          <PlantView spec={ex.spec} labels={labels} env={env} onIssues={setIssues} className="absolute inset-0" />
+          <div className="absolute top-3 right-3 flex items-center gap-2">
+            {ex.spec.sea && (
+              <div className="rounded-md bg-white shadow-sm">
+                <Segmented
+                  label="Lighting"
+                  value={env}
+                  onChange={setEnv}
+                  options={[
+                    { value: 'studio', label: 'Studio' },
+                    { value: 'day', label: 'Day' },
+                    { value: 'night', label: 'Night' },
+                  ]}
+                />
+              </div>
+            )}
+            <button onClick={() => setLabels((l) => !l)} className="h-9 rounded-md border border-border bg-white px-2.5 text-xs font-medium text-ink shadow-sm hover:bg-muted">
+              {labels ? 'Hide tags' : 'Show tags'}
+            </button>
+          </div>
         </div>
         <div className="space-y-4">
           <div>

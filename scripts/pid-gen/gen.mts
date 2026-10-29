@@ -32,6 +32,7 @@ const TAGFIX: Record<string, string[] | null> = {
   'pedestal-crane': ['CR'], 'spectacle-blind': ['SB'], 'y-strainer': ['SP', 'STR'], 'basket-strainer': ['SP', 'STR'], 'deluge-nozzle': ['NZ'],
   'small-bore-fitting': ['SW', 'THD'], 'sight-glass': ['SG'], 'marine-loading-arm': ['MLA'], 'compact-prover': ['X', 'A'],
   'wellhead-control-panel': ['X', 'WHCP'], 'smoke-detector': ['SD'], 'gas-turbine-generator': ['GT', 'G'],
+  ocean: null, sky: null,
 }
 const NOT_ISA = new Set(['GD', 'FD', 'OGD'])
 function cleanIsa(name: string, e: Entry) {

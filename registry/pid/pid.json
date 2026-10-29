@@ -450,6 +450,25 @@
       }
     }
   },
+  "ocean": {
+    "symbol": "ocean.svg",
+    "standard": "Layout plan convention (structural elevations, plot plans); metocean design basis",
+    "drawn": "Elevation: the mean sea level (MSL) or LAT line marked with an inverted triangle and its elevation (EL +0.000), with wave lines below it; jacket and riser drawings dimension the air gap and water depth from it.",
+    "notes": "Not on P&IDs. Metocean data (significant wave height, wind speed) comes from the project design basis.",
+    "datasheet": {
+      "form": "Metocean design basis",
+      "fields": {
+        "Significant wave height (Hs)": "waveHeight",
+        "Wind speed (10 m)": "wind"
+      }
+    }
+  },
+  "sky": {
+    "symbol": "sky.svg",
+    "standard": "Not drawn",
+    "drawn": "Not drawn on P&IDs or layouts. Plot plans only carry a north arrow; sun path or lighting studies are separate reports.",
+    "notes": "Scene lighting for the 3D model, not plant equipment."
+  },
   "pressure-transmitter": {
     "symbol": "pressure-transmitter.svg",
     "standard": "ISA 5.1 (field-mounted instrument bubble)",

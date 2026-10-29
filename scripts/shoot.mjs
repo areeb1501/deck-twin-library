@@ -3,6 +3,7 @@
 //   node scripts/shoot.mjs gate-valve --props '{"nps":12}'   → with prop overrides
 //   node scripts/shoot.mjs gate-valve --ports --view 0,0.3,1  → port markers, camera direction
 //   node scripts/shoot.mjs plant:separation-train            → example plant
+//   node scripts/shoot.mjs plant:offshore-water-injection --env day|night|studio → lighting (plants with a sea; thumbs default to day for those)
 //   node scripts/shoot.mjs page:/components/gate-valve [--full] → a website page
 //   node scripts/shoot.mjs --all --thumbs                    → public/thumbs/*.webp + registry/generated/bounds.json
 // Uses the dev server on :5190 if it is running, otherwise starts one.
@@ -18,7 +19,8 @@ const opt = (f) => (args.includes(f) ? args[args.indexOf(f) + 1] : undefined)
 const thumbs = flag('--thumbs')
 const props = opt('--props')
 const view = opt('--view')
-let names = args.filter((a, i) => !a.startsWith('--') && !['--props', '--view'].includes(args[i - 1]))
+const env = opt('--env')
+let names = args.filter((a, i) => !a.startsWith('--') && !['--props', '--view', '--env'].includes(args[i - 1]))
 
 if (flag('--all')) {
   const { execSync } = await import('node:child_process')
@@ -69,6 +71,8 @@ for (const name of names) {
   if (view) q.set('view', view)
   if (flag('--ports')) q.set('ports', '1')
   if (flag('--labels')) q.set('labels', '1')
+  if (env) q.set('env', env)
+  else if (thumbs && plant) q.set('env', 'auto')
   const url = `${base}/${plant ? 'shot-plant' : 'shot'}/${id}${q.size ? '?' + q : ''}`
   await page.goto(url)
   try {
@@ -78,7 +82,7 @@ for (const name of names) {
     continue
   }
   await page.waitForTimeout(plant ? 1500 : 600)
-  const suffix = props || flag('--ports') || view ? '-' + (await import('node:crypto')).createHash('sha1').update(String(props) + flag('--ports') + view).digest('hex').slice(0, 6) : ''
+  const suffix = (props || flag('--ports') || view ? '-' + (await import('node:crypto')).createHash('sha1').update(String(props) + flag('--ports') + view).digest('hex').slice(0, 6) : '') + (env ? '-' + env : '')
   const file = thumbs ? join(root, 'public/thumbs', `${plant ? 'plant-' + id : id}.webp`) : join(root, '.snaps', `${plant ? 'plant-' + id : id}${suffix}.jpg`)
   const shot = await page.screenshot({ type: 'jpeg', quality: 88 })
   if (thumbs) {

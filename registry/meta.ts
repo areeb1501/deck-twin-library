@@ -16,6 +16,7 @@ export type CategoryId =
   | 'lifting'
   | 'packages'
   | 'onshore'
+  | 'environment'
 
 export const CATEGORIES: { id: CategoryId; title: string; blurb: string }[] = [
   { id: 'piping', title: 'Piping & fittings', blurb: 'ASME B36.10 pipe, B16.9 fittings, B16.5 flanges, supports and specialty items.' },
@@ -33,6 +34,7 @@ export const CATEGORIES: { id: CategoryId; title: string; blurb: string }[] = [
   { id: 'lifting', title: 'Lifting & logistics', blurb: 'Pedestal cranes, monorails, davits, containers and cargo units.' },
   { id: 'packages', title: 'Packages & skids', blurb: 'Chemical injection, metering, nitrogen, air, HPU and treatment skids.' },
   { id: 'onshore', title: 'Onshore & terminals', blurb: 'Loading arms, truck bays, pipeline valve stations, bunds, fences, boilers, substations and site buildings.' },
+  { id: 'environment', title: 'Environment', blurb: 'Animated ocean and a day or night sky with matching lights, haze and reflections.' },
 ]
 
 export type Param =
@@ -62,6 +64,8 @@ export interface ComponentMeta {
   params: Param[]
   /** prop overrides used for the preview and thumbnail */
   preview?: Record<string, unknown>
+  /** website viewer for the preview: lighting (default studio; none when the component brings its own), camera direction, and a sphere to frame when nothing is fittable */
+  viewer?: { env?: 'studio' | 'day' | 'night' | 'none'; view?: [number, number, number]; frame?: { target: [number, number, number]; radius: number } }
   /**
    * 'base': origin at the footprint centre on the deck (y = 0).
    * 'inline': origin on the pipe centreline, ports A (-X) and B (+X); can sit in a line's "inline" list.

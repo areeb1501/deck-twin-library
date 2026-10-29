@@ -81,8 +81,8 @@ const write = (name: string, data: object) => !CHECK && writeFileSync(join(out, 
 write('core', item('core', 'registry:lib', 'Deck Twin core', 'Geometry kit, PBR materials, parts, ports, router, stage and engineering standards tables shared by every component.', libFiles.map(file), []))
 
 const asmFiles = walk(join(reg, 'assembly')).filter((f) => /\.(ts|tsx)$/.test(f))
-for (const f of asmFiles) checkImports(f, ['lib', 'assembly'])
-write('plant', item('plant', 'registry:block', 'Plant assembler', 'Renders a plant.json: places components, routes lines between ports with elbows, flanges, inline valves, colour bands and supports.', asmFiles.map(file), ['core']))
+for (const f of asmFiles) checkImports(f, ['lib', 'assembly', 'environment'])
+write('plant', item('plant', 'registry:block', 'Plant assembler', 'Renders a plant.json: places components, routes lines between ports with elbows, flanges, inline valves, colour bands and supports.', asmFiles.map(file), ['core', 'ocean']))
 
 const pid: Record<string, { symbol: string; standard: string; drawn: string; tags?: string[]; isa?: string[]; notes?: string; datasheet?: { form: string; fields: Record<string, string> } }> = JSON.parse(read(join(reg, 'pid/pid.json')))
 for (const n of Object.keys(pid)) if (!names.has(n)) errors.push(`pid/pid.json: ${n} is not a registry component`)

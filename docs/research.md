@@ -174,6 +174,7 @@ Flange convention: `thickness` and `hubLength` exclude the raised face for every
 | Doors and windows | MML, Baggerod, Bohamet | Not recorded |
 | Packages | LEWA and Pulsafeeder (chemical injection); Emerson Daniel, KROHNE, Caldon (metering); Atlas Copco (instrument air); Croft, Kimray (TEG); Semco (HPU and N2); SLB Vortoil, CECO Peerless (hydrocyclones); Emerson compact prover; Evoqua (filters, hypochlorite) | Not recorded |
 | Onshore | Emco Wheaton B0030 loading arm, Hitachi Energy SDF disconnector, Cleaver-Brooks CBEX boiler | Many HV vendor pages returned 403, so those items use typical values |
+| Environment | Ported from the Deck Twin app (`src/scene/env/Ocean.tsx`, `Sky.tsx`): six Gerstner (trochoidal) waves tuned for Hs 1.5 m, three.js / drei `Sky` (Preetham model), Lightformer environment maps | Ocean `waveHeight` scales the wave table; sky colours, haze and night rig are the app's tuned values, not measured data |
 
 ## P&ID symbols
 

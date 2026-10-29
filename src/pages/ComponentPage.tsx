@@ -77,7 +77,7 @@ function Detail({ item }: { item: Item }) {
           <div className="mt-5 grid overflow-hidden rounded-xl border border-border shadow-[0_1px_2px_rgb(14_26_36/0.04)] lg:grid-cols-[1fr_288px]">
             <div className="relative h-[460px] lg:h-[600px]">
               {Comp && (
-                <Viewer className="absolute inset-0" ports={ports} showPorts={showPorts} fitKey={`${item.name}-${fit}`} onBounds={setBounds}>
+                <Viewer className="absolute inset-0" ports={ports} showPorts={showPorts} fitKey={`${item.name}-${fit}`} onBounds={setBounds} env={item.viewer?.env} view={item.viewer?.view} frame={item.viewer?.frame}>
                   <Comp {...values} />
                 </Viewer>
               )}

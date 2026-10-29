@@ -6,6 +6,7 @@ import { EffectComposer, N8AO, ToneMapping } from '@react-three/postprocessing'
 import { ToneMappingMode } from 'postprocessing'
 import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib'
 import { Stage } from '../../registry/lib/stage'
+import { Sky } from '../../registry/environment/sky'
 import type { Port } from '../../registry/lib/ports'
 
 export interface Bounds {
@@ -26,14 +27,41 @@ export interface ViewerProps {
   view?: [number, number, number]
   /** frame this sphere instead of the whole scene */
   focus?: { target: [number, number, number]; radius: number }
+  /** frame this sphere when nothing in the scene is fittable (environment components) */
+  frame?: { target: [number, number, number]; radius: number }
+  /** studio: white backdrop and studio lights; day / night: the registry sky with its lights, haze and reflections; none: the children bring their own */
+  env?: ViewerEnv
   className?: string
 }
 
-const DEFAULT_VIEW: [number, number, number] = [1, 0.62, 1.18]
+export type ViewerEnv = 'studio' | 'day' | 'night' | 'none'
 
-export function Viewer({ children, ports, showPorts, fitKey, onBounds, shot, effects = true, view = DEFAULT_VIEW, focus, className }: ViewerProps) {
+const DEFAULT_VIEW: [number, number, number] = [1, 0.62, 1.18]
+const sameV = (a: [number, number, number], b: [number, number, number]) => (a.every((v, i) => Math.abs(v - b[i]) < 0.5) ? a : b)
+
+export function Viewer({ children, ports, showPorts, fitKey, onBounds, shot, effects = true, view = DEFAULT_VIEW, focus, frame, env = 'studio', className }: ViewerProps) {
   const [radius, setRadius] = useState(6)
   const [groundY, setGroundY] = useState(0)
+  const [center, setCenter] = useState<[number, number, number]>([0, 0, 0])
+  const studio = env === 'studio'
+  const content = (
+    <>
+      <Suspense fallback={null}>
+        <Fit
+          fitKey={fitKey}
+          view={view}
+          shot={shot}
+          focus={focus}
+          frame={frame}
+          minFar={studio ? 0 : 9000}
+          onBounds={(b) => (setRadius(Math.max(2, focus ? Math.min(b.radius, focus.radius * 1.5) : b.radius)), setGroundY(Math.min(0, b.center[1] - b.size[1] / 2)), setCenter((c) => sameV(c, focus?.target ?? b.center)), onBounds?.(b))}
+        >
+          {children}
+        </Fit>
+      </Suspense>
+      {showPorts && ports?.map((p) => <PortMarker key={p.id} port={p} scale={radius} />)}
+    </>
+  )
   return (
     <div className={className}>
       <Canvas
@@ -46,16 +74,12 @@ export function Viewer({ children, ports, showPorts, fitKey, onBounds, shot, eff
           gl.outputColorSpace = THREE.SRGBColorSpace
         }}
       >
-        <color attach="background" args={[effects ? '#ffffff' : '#f3f4f5']} />
-        <fog attach="fog" args={[effects ? '#ffffff' : '#f3f4f5', radius * 6, radius * 14]} />
-        <Stage radius={radius} groundY={groundY}>
-          <Suspense fallback={null}>
-            <Fit fitKey={fitKey} view={view} shot={shot} focus={focus} onBounds={(b) => (setRadius(Math.max(2, focus ? Math.min(b.radius, focus.radius * 1.5) : b.radius)), setGroundY(Math.min(0, b.center[1] - b.size[1] / 2)), onBounds?.(b))}>
-              {children}
-            </Fit>
-          </Suspense>
-          {showPorts && ports?.map((p) => <PortMarker key={p.id} port={p} scale={radius} />)}
-        </Stage>
+        {studio && <color attach="background" args={[effects ? '#ffffff' : '#f3f4f5']} />}
+        {studio && <fog attach="fog" args={[effects ? '#ffffff' : '#f3f4f5', radius * 6, radius * 14]} />}
+        {studio && <Stage radius={radius} groundY={groundY} />}
+        {env === 'day' && <Sky mode="day" shadowRadius={radius} shadowCenter={center} />}
+        {env === 'night' && <Sky mode="night" azimuth={(Math.atan2(-view[0], view[2]) * 180) / Math.PI + 345} elevation={4} shadowRadius={radius} shadowCenter={center} />}
+        {content}
         <OrbitControls makeDefault enableDamping dampingFactor={0.08} maxPolarAngle={Math.PI * 0.495} enabled={!shot} />
         {effects ? (
           <EffectComposer multisampling={4} enableNormalPass={false}>
@@ -68,7 +92,7 @@ export function Viewer({ children, ports, showPorts, fitKey, onBounds, shot, eff
   )
 }
 
-function Fit({ children, fitKey, view, shot, focus, onBounds }: { children: ReactNode; fitKey?: string; view: [number, number, number]; shot?: boolean; focus?: ViewerProps['focus']; onBounds: (b: Bounds) => void }) {
+function Fit({ children, fitKey, view, shot, focus, frame, minFar, onBounds }: { children: ReactNode; fitKey?: string; view: [number, number, number]; shot?: boolean; focus?: ViewerProps['focus']; frame?: ViewerProps['frame']; minFar: number; onBounds: (b: Bounds) => void }) {
   const group = useRef<THREE.Group>(null)
   const { camera, controls } = useThree() as unknown as { camera: THREE.PerspectiveCamera; controls: OrbitControlsImpl | null }
   const pending = useRef(3)
@@ -83,21 +107,25 @@ function Fit({ children, fitKey, view, shot, focus, onBounds }: { children: Reac
     if (!g) return
     if (report.current++ % 30 === 0 || pending.current > 0) {
       const box = fitBox(g)
-      if (box.isEmpty()) return
-      const size = box.getSize(new THREE.Vector3())
+      const empty = box.isEmpty()
+      if (empty && !frame) return
       const center = box.getCenter(new THREE.Vector3())
-      const sphere = box.getBoundingSphere(new THREE.Sphere())
-      onBounds({ size: size.toArray() as [number, number, number], center: center.toArray() as [number, number, number], radius: sphere.radius })
+      if (!empty) {
+        const size = box.getSize(new THREE.Vector3())
+        const sphere = box.getBoundingSphere(new THREE.Sphere())
+        onBounds({ size: size.toArray() as [number, number, number], center: center.toArray() as [number, number, number], radius: sphere.radius })
+      }
       if (pending.current > 0 && --pending.current === 0) {
         const dir = new THREE.Vector3(...view).normalize()
-        if (focus) {
-          center.set(...focus.target)
-          box.setFromCenterAndSize(center, new THREE.Vector3(1, 1, 1).multiplyScalar(focus.radius * 1.6))
+        const f = focus ?? (empty ? frame : undefined)
+        if (f) {
+          center.set(...f.target)
+          box.setFromCenterAndSize(center, new THREE.Vector3(1, 1, 1).multiplyScalar(f.radius * 1.6))
         }
         const dist = fitDistance(box, center, dir, camera) * (shot ? 1.06 : 1.14)
         camera.position.copy(center).addScaledVector(dir, dist)
         camera.near = Math.max(0.02, dist / 200)
-        camera.far = dist * 20
+        camera.far = Math.max(dist * 20, minFar)
         camera.updateProjectionMatrix()
         if (controls) {
           controls.target.copy(center)

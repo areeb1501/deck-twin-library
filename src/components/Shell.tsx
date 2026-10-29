@@ -4,6 +4,7 @@ import { Link, useLocation } from 'wouter'
 import { CATEGORIES, ITEMS, byCategory, thumb } from '../registry'
 import { DOCS } from '../pages/docs'
 import { VERSION } from '../site'
+import { highlight, prepare, rank } from '../search'
 
 export function Shell({ children }: { children: ReactNode }) {
   const [loc] = useLocation()
@@ -207,13 +208,12 @@ function Search() {
     return () => window.removeEventListener('keydown', on)
   }, [])
   const [active, setActive] = useState(0)
-  const hits = useMemo(() => {
-    const s = q.trim().toLowerCase()
-    const all = ITEMS.map((i) => ({ href: `/components/${i.name}`, label: i.title, hint: CATEGORIES.find((c) => c.id === i.category)?.title ?? i.category, thumb: thumb(i.name), text: `${i.title} ${i.name} ${i.category} ${i.tags?.join(' ')} ${i.standards.join(' ')}`.toLowerCase() }))
-    const docs = DOCS.map((d) => ({ href: `/docs/${d.slug}`, label: d.title, hint: 'Docs', thumb: '', text: `${d.title} docs`.toLowerCase() }))
-    const pool = s ? [...all, ...docs] : [...docs, ...all]
-    return (s ? pool.filter((h) => s.split(/\s+/).every((w) => h.text.includes(w))) : pool).slice(0, 40)
-  }, [q])
+  const pool = useMemo(() => {
+    const all = ITEMS.map((i) => ({ href: `/components/${i.name}`, label: i.title, hint: CATEGORIES.find((c) => c.id === i.category)?.title ?? i.category, thumb: thumb(i.name), prep: prepare({ title: i.title, slug: i.name, keys: [i.category, ...(i.tags ?? []), ...i.standards], body: [i.description, ...(i.vendors ?? [])] }) }))
+    const docs = DOCS.map((d) => ({ href: `/docs/${d.slug}`, label: d.title, hint: 'Docs', thumb: '', prep: prepare({ title: d.title, slug: d.slug, keys: ['docs'] }) }))
+    return [...docs, ...all]
+  }, [])
+  const hits = useMemo(() => rank(pool, (h) => h.prep, (h) => h.label, q), [pool, q])
   useEffect(() => setActive(0), [q, open])
   useEffect(() => {
     document.getElementById(`search-hit-${active}`)?.scrollIntoView({ block: 'nearest' })
@@ -271,7 +271,7 @@ function Search() {
                     ) : (
                       <span className="flex h-8 w-10 shrink-0 items-center justify-center rounded border border-border text-[10px] text-muted-fg">doc</span>
                     )}
-                    <span className="flex-1 truncate">{h.label}</span>
+                    <span className="flex-1 truncate">{marked(h.label, q)}</span>
                     <span className="shrink-0 text-xs text-muted-fg">{h.hint}</span>
                   </button>
                 ))}
@@ -288,4 +288,15 @@ function Search() {
         )}
     </>
   )
+}
+
+function marked(label: string, q: string) {
+  const parts: ReactNode[] = []
+  let at = 0
+  for (const [a, b] of highlight(label, q)) {
+    parts.push(label.slice(at, a), <mark key={a} className="bg-transparent font-semibold text-ink">{label.slice(a, b)}</mark>)
+    at = b
+  }
+  parts.push(label.slice(at))
+  return parts
 }

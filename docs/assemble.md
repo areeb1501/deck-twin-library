@@ -96,7 +96,15 @@ const components: ComponentMap = {
 
 ### Offshore: show the sea
 
-Add `"sea": { "level": -14, "depth": 50 }` to the plant. `<Plant>` draws a tinted water surface at mean sea level and a seabed `depth` metres below it, so the jacket shows through the water. For a jacket at y = 0, `level` is minus its `airGap`. The sea is visual only: it is not part of the checks. See the [offshore water injection example](/examples/offshore-water-injection).
+Add `"sea": { "level": -14, "depth": 50 }` to the plant. `<Plant>` draws the animated `ocean` component at mean sea level, with foam rings where the jacket legs cross the surface, and a seabed `depth` metres below it. The water is slightly transparent, so the jacket shows through it. For a jacket at y = 0, `level` is minus its `airGap`.
+
+| Field | What |
+|---|---|
+| `level` | Mean sea level as plant y, m |
+| `depth` | Water depth to the seabed, m. Leave it out for no seabed. |
+| `waves` | Significant wave height Hs, m (default 1.5) |
+
+Pass `night` to `<Plant>` for darker water. Add the `sky` component for a matching day or night sky, lights and haze. The sea is visual only: it is not part of the checks. See the [offshore water injection example](/examples/offshore-water-injection), which has a Studio / Day / Night switch.
 
 ## Checks
 

@@ -3,9 +3,10 @@ import { Plant, type ComponentMap } from '../../registry/assembly/plant'
 import type { Issue, PlantSpec } from '../../registry/assembly/spec'
 import { loadAll } from '../registry'
 import { componentsOf } from '../plants'
-import { Viewer } from './Viewer'
+import { Viewer, type ViewerEnv } from './Viewer'
 
-export function PlantView({ spec, labels, onIssues, className, shot, effects }: { spec: PlantSpec; labels?: boolean; onIssues?: (i: Issue[]) => void; className?: string; shot?: boolean; effects?: boolean }) {
+/** env applies only to plants with a sea; the rest always use the studio look. */
+export function PlantView({ spec, labels, onIssues, className, shot, effects, env = 'studio' }: { spec: PlantSpec; labels?: boolean; onIssues?: (i: Issue[]) => void; className?: string; shot?: boolean; effects?: boolean; env?: ViewerEnv }) {
   const [components, setComponents] = useState<ComponentMap | null>(null)
   useEffect(() => {
     let live = true
@@ -15,9 +16,12 @@ export function PlantView({ spec, labels, onIssues, className, shot, effects }: 
     }
   }, [spec])
   const report = useCallback((i: Issue[]) => onIssues?.(i), [onIssues])
+  const look = spec.sea ? env : 'studio'
+  const dir = spec.camera?.direction ?? [1, 0.75, 1.05]
+  const view: [number, number, number] = look === 'studio' ? dir : [dir[0], dir[1] * 0.45, dir[2]]
   return (
-    <Viewer className={className} fitKey={spec.name} shot={shot} effects={effects} view={spec.camera?.direction ?? [1, 0.75, 1.05]} focus={spec.camera}>
-      {components && <Plant spec={spec} components={components} labels={labels} onReport={report} />}
+    <Viewer className={className} fitKey={`${spec.name}${look === "studio" ? "" : "-sky"}`} shot={shot} effects={effects} env={look} view={view} focus={spec.camera}>
+      {components && <Plant spec={spec} components={components} labels={labels} night={look === 'night'} onReport={report} />}
     </Viewer>
   )
 }

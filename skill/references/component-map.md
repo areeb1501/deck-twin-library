@@ -254,6 +254,17 @@ Elbows, tees and flanges are made by the router. Add `elbow` and `tee` as items 
 
 Screen components take a `screens` prop: an array of `THREE.Texture`. Pass CanvasTextures, video textures or render targets to show live data in the twin.
 
+## Environment
+
+Not on drawings. Use them for scene context in offshore views.
+
+| Item | Component |
+|---|---|
+| Sea, mean sea level, waves | `ocean` (`waveHeight` = Hs, `wind`, `foam` rings at legs) |
+| Sky, sun, night scene, scene lighting | `sky` (`mode`: day / night, `elevation`, `azimuth`) |
+
+In a `plant.json`, prefer `"sea": { "level", "depth", "waves" }` over placing `ocean` as an item.
+
 ## Power, buildings, lifting, packages
 
 | Item | Component |

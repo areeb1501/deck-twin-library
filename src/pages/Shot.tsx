@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { BY_NAME, loadModule, type ComponentModule } from '../registry'
 import { EXAMPLES } from '../plants'
-import { Viewer, type Bounds } from '../viewer/Viewer'
+import { Viewer, type Bounds, type ViewerEnv } from '../viewer/Viewer'
 import { PlantView } from '../viewer/PlantView'
 
 declare global {
@@ -23,16 +23,18 @@ export default function Shot({ name, plant }: { name?: string; plant?: string })
   useEffect(() => {
     if (item) loadModule(item).then(setMod)
   }, [item])
+  const envParam = params.get('env') as ViewerEnv | 'auto' | null
   if (plant) {
     const ex = EXAMPLES.find((e) => e.name === plant)
-    return ex ? <PlantView spec={ex.spec} shot effects={fx} labels={params.get('labels') === '1'} onIssues={(i) => (window.__issues = i)} className="fixed inset-0" /> : null
+    const env = envParam === 'auto' ? (ex?.spec.sea ? 'day' : 'studio') : (envParam ?? 'studio')
+    return ex ? <PlantView spec={ex.spec} shot effects={fx} env={env} labels={params.get('labels') === '1'} onIssues={(i) => (window.__issues = i)} className="fixed inset-0" /> : null
   }
   if (!item || !mod) return null
   const values = { ...(mod.defaults ?? {}), ...(item.preview ?? {}), ...props }
   const ports = mod.ports?.(values) ?? []
   window.__ports = ports
   return (
-    <Viewer className="fixed inset-0" shot effects={fx} view={view} fitKey={item.name} ports={ports} showPorts={params.get('ports') === '1'} onBounds={(b) => (window.__bounds = b)}>
+    <Viewer className="fixed inset-0" shot effects={fx} view={view ?? item.viewer?.view} env={envParam && envParam !== 'auto' ? envParam : item.viewer?.env} frame={item.viewer?.frame} fitKey={item.name} ports={ports} showPorts={params.get('ports') === '1'} onBounds={(b) => (window.__bounds = b)}>
       <mod.default {...values} />
     </Viewer>
   )

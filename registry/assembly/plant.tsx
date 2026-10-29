@@ -11,6 +11,7 @@ import { GASKET_SPIRAL_WOUND, SAFETY, SERVICE, flange as flangeDims, pipeOD, pip
 import { paint } from '../lib/materials'
 import { splitRef, type InlineItem, type Issue, type LineEnd, type PlantLine, type PlantSpec } from './spec'
 import { parseLineTag } from './linetag'
+import { Ocean } from '../environment/ocean'
 
 export interface ComponentModule {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -26,6 +27,8 @@ export interface PlantProps {
   /** registry name → imported module, e.g. { 'gate-valve': await import('./valves/gate-valve') } */
   components: ComponentMap
   labels?: boolean
+  /** darker sea for night scenes */
+  night?: boolean
   onReport?: (issues: Issue[]) => void
 }
 
@@ -65,7 +68,7 @@ interface LineBuilt {
   grade: number
 }
 
-export function Plant({ spec, components, labels = false, onReport, ...group }: PlantProps & GroupProps) {
+export function Plant({ spec, components, labels = false, night = false, onReport, ...group }: PlantProps & GroupProps) {
   const layout = useMemo(() => resolve(spec, components), [spec, components])
   const root = useRef<THREE.Group>(null)
   useEffect(() => {
@@ -92,24 +95,22 @@ export function Plant({ spec, components, labels = false, onReport, ...group }: 
           <v.Comp {...v.props} />
         </group>
       ))}
-      {spec.sea && <Sea level={spec.sea.level} depth={spec.sea.depth} items={layout.items} />}
+      {spec.sea && <Sea level={spec.sea.level} depth={spec.sea.depth} waves={spec.sea.waves} night={night} items={layout.items} jacket={components.jacket?.defaults} />}
     </group>
   )
 }
 
-/** Water surface at mean sea level (seen through to the jacket) and an optional seabed. userData.noFit keeps it out of camera fitting. */
-function Sea({ level, depth, items }: { level: number; depth?: number; items: Placed[] }) {
+/** Animated ocean at mean sea level (seen through to the jacket), foam rings at the jacket legs and an optional seabed. userData.noFit keeps it out of camera fitting. */
+function Sea({ level, depth, waves, night, items, jacket }: { level: number; depth?: number; waves?: number; night: boolean; items: Placed[]; jacket?: Record<string, unknown> }) {
   const xs = items.map((i) => i.position[0])
   const zs = items.map((i) => i.position[2])
   const cx = xs.length ? (Math.min(...xs) + Math.max(...xs)) / 2 : 0
   const cz = zs.length ? (Math.min(...zs) + Math.max(...zs)) / 2 : 0
+  const foam = useMemo(() => jacketFoam(items, jacket ?? {}, level, cx, cz), [items, jacket, level, cx, cz])
   const r = 4000
   return (
     <group position={[cx, 0, cz]} userData={{ noFit: true }}>
-      <mesh rotation-x={-Math.PI / 2} position-y={level} renderOrder={2}>
-        <circleGeometry args={[r, 96]} />
-        <meshStandardMaterial color="#2c6b80" roughness={0.42} metalness={0} transparent opacity={0.8} depthWrite={false} />
-      </mesh>
+      <Ocean position-y={level} waveHeight={waves ?? 1.5} night={night} foam={foam} />
       {depth !== undefined && (
         <mesh rotation-x={-Math.PI / 2} position-y={level - depth} receiveShadow>
           <circleGeometry args={[r, 64]} />
@@ -118,6 +119,30 @@ function Sea({ level, depth, items }: { level: number; depth?: number; items: Pl
       )}
     </group>
   )
+}
+
+/** Jacket legs where they cross the sea surface ([x, z, radius] relative to the sea centre), using the jacket's batter geometry. */
+function jacketFoam(items: Placed[], defaults: Record<string, unknown>, level: number, cx: number, cz: number): [number, number, number][] {
+  const out: [number, number, number][] = []
+  for (const it of items) {
+    if (it.component !== 'jacket') continue
+    const p = { ...defaults, ...it.props } as { legs: number; spanX: number; spanZ: number; batter: number; legDiameter: number }
+    if (![p.spanX, p.spanZ, p.batter, p.legDiameter].every(Number.isFinite)) continue
+    const depth = Math.max(0, it.position[1] - level)
+    const b = Math.max(4, p.batter)
+    const hx = p.spanX / 2 + depth / b
+    const hz = p.spanZ / 2 + depth / b
+    const nx = Math.max(2, Math.round((p.legs || 4) / 2))
+    const c = Math.cos(it.rotation * DEG)
+    const s = Math.sin(it.rotation * DEG)
+    for (let i = 0; i < nx; i++)
+      for (const j of [-1, 1]) {
+        const x = (-1 + (2 * i) / (nx - 1)) * hx
+        const z = j * hz
+        out.push([it.position[0] + x * c + z * s - cx, it.position[2] - x * s + z * c - cz, p.legDiameter / 2])
+      }
+  }
+  return out
 }
 
 export default Plant
