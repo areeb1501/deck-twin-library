@@ -145,7 +145,7 @@ export function CranesPanel() {
                   </td>
                   <td className="num">{r.lifts}</td>
                   <td className="wrap" style={r.reason ? { color: r.engine ? '#ffd7a0' : '#ffb8b2' } : undefined}>
-                    {r.reason ?? '—'}
+                    {r.reason ?? '-'}
                   </td>
                   <td className="act">
                     {!r.engine && (
@@ -162,7 +162,7 @@ export function CranesPanel() {
         <Msg text={msg} />
         <p className="h-note" style={{ marginTop: 6 }}>
           Lifting stops on wind above the limit, Hs above {CRANE_LIMITS.hsBoat} m (boat lifts), a gas alarm, a general alarm or ESD1 on the platform: the load is landed and the boom laid on its
-          rest; work resumes {CRANE_LIMITS.resumeAfter} s after it clears. The diesel engines are ignition sources: confirmed gas (or APS) shuts them down at once — restart them here when the
+          rest; work resumes {CRANE_LIMITS.resumeAfter} s after it clears. The diesel engines are ignition sources: confirmed gas (or APS) shuts them down at once, restart them here when the
           platform is clear.
         </p>
       </Box>

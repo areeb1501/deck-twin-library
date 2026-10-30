@@ -108,7 +108,7 @@ function flyToZone(z: FireZone) {
 
 function fmtReading(d: Detector, v: number | undefined, state: string | undefined) {
   if (state === 'fault') return 'fault'
-  if (v === undefined) return '—'
+  if (v === undefined) return '-'
   if (d.type === 'GD') return `${v.toFixed(0)} %LEL`
   if (d.type === 'OGD') return `${v.toFixed(2)} LEL·m`
   return v >= 1 ? (d.type === 'MAC' ? 'operated' : 'ALARM') : 'clear'

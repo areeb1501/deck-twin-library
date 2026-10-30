@@ -276,7 +276,7 @@ function EquipmentEditor({ e, compiled, onConnect }: { e: EquipmentSpec; compile
 
   return (
     <div className="bf-editor">
-      <div className="muted small bf-blurb">{def.label} — {def.blurb}</div>
+      <div className="muted small bf-blurb">{def.label} - {def.blurb}</div>
       <Row label="Tag"><Txt mono value={e.tag} onCommit={(v) => v && !spec.equipment.some((x) => x.tag === v) && edit((d) => renameEquipment(d, e.tag, v))} /></Row>
       <Row label="Name"><Txt value={e.name ?? ''} placeholder={def.label} onCommit={(v) => upd((x) => void (x.name = v || undefined))} /></Row>
       <Row label="Position" hint="Auto: the compiler places it in flow order. Uncheck to pin it.">

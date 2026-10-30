@@ -420,7 +420,7 @@ export function screenMaterial(kind: ScreenKind) {
     const r = rng(kind.length * 31 + 7)
     switch (kind) {
       case 'trend': {
-        header(g, w, 'TREND — HP SEPARATOR V-1100')
+        header(g, w, 'TREND: HP SEPARATOR V-1100')
         grid(g, w, h, 32)
         const cols = ['#4fc3f7', '#ffb74d', '#81c784', '#e57373']
         cols.forEach((c, k) => {
@@ -439,7 +439,7 @@ export function screenMaterial(kind: ScreenKind) {
       }
       case 'mimic':
       case 'overview': {
-        header(g, w, kind === 'mimic' ? 'SEPARATION — TRAIN 1' : 'PLANT OVERVIEW — ALPHA')
+        header(g, w, kind === 'mimic' ? 'SEPARATION: TRAIN 1' : 'PLANT OVERVIEW: ALPHA')
         g.strokeStyle = '#7d8a96'
         g.lineWidth = 3
         g.beginPath()
@@ -518,7 +518,7 @@ export function screenMaterial(kind: ScreenKind) {
         break
       }
       case 'fgmap': {
-        header(g, w, 'F&G — FIRE AREA OVERVIEW')
+        header(g, w, 'F&G: FIRE AREA OVERVIEW')
         const zones = ['#2e7d4f', '#2e7d4f', '#2e7d4f', '#b8860b', '#2e7d4f', '#2e7d4f', '#2e7d4f', '#2e7d4f']
         zones.forEach((c, i) => {
           const x = 20 + (i % 4) * 120

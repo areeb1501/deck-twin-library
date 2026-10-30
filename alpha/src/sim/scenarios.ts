@@ -212,7 +212,7 @@ function startScenario(id: string, speed = 1): string | null {
   const plant = usePlantStore.getState().plant
   const why = unavailable(sc, plant)
   if (why) return `Not available in this plant: ${why}`
-  if (L) return 'A scenario is already running — abort it first'
+  if (L) return 'A scenario is already running: abort it first'
   const g = sim()
   if (typeof g.reset !== 'function' || typeof g.inject !== 'function') return 'Simulation engine not ready'
   const prev = g.knobs ?? ({} as SimState['knobs'])
@@ -286,11 +286,11 @@ function actionList(l: Live, c: Ctx): ScenarioAction[] {
       label: `Field: go to ${tag} and reset it locally (≈ ${Math.round(dt / 60)} min)`,
       who: 'field',
       delay: dt,
-      detail: `Machinery-protection trip (${m.tripCause ?? ''}) — only resettable at the machine`,
+      detail: `Machinery-protection trip (${m.tripCause ?? ''}): only resettable at the machine`,
       run: (cc) => {
         const r = actAs('field', () => sim().resetTrip(tag, { local: true }))
         void cc
-        return r ? `Field operator at ${tag}: cannot reset — ${r}` : `Field operator: ${tag} reset locally — ready to start from the CCR`
+        return r ? `Field operator at ${tag}: cannot reset, ${r}` : `Field operator: ${tag} reset locally: ready to start from the CCR`
       },
     })
   }
@@ -489,7 +489,7 @@ function collect(l: Live, s: SimState) {
     if (a.action === 'scenario' || a.action === 'ack' || a.action === 'ackAll') continue
     {
       const refused = /^refused/.test(a.detail ?? '')
-      l.log.push({ t: a.t - l.t0, lane: 'operator', text: `${a.who === 'field' ? 'Field: ' : ''}${a.action} ${a.tag ?? ''}${a.detail ? ` — ${a.detail}` : ''}`.trim(), level: refused ? 'warn' : 'info' })
+      l.log.push({ t: a.t - l.t0, lane: 'operator', text: `${a.who === 'field' ? 'Field: ' : ''}${a.action} ${a.tag ?? ''}${a.detail ? `: ${a.detail}` : ''}`.trim(), level: refused ? 'warn' : 'info' })
     }
   }
   if (l.log.length > 600) l.log.splice(1, l.log.length - 600)
@@ -513,7 +513,7 @@ function finish(aborted?: string) {
       else st.status = o.window && l.el - (st.since ?? 0) <= o.window ? 'na' : 'missed'
     }
   }
-  l.log.push({ t: l.el, lane: 'scenario', text: aborted ? `Scenario aborted — ${aborted}` : 'Scenario end', level: aborted ? 'warn' : 'info' })
+  l.log.push({ t: l.el, lane: 'scenario', text: aborted ? `Scenario aborted: ${aborted}` : 'Scenario end', level: aborted ? 'warn' : 'info' })
   const attempt = score({ sc: l.sc, goals: l.goals, objs: l.objs, alarms: l.alarmList, actions, t0: l.t0, el: l.el, before: l.before, after, hints: l.hints, log: l.log, aborted })
   // knobs the scenario changed go back
   actAs('scenario', () => {

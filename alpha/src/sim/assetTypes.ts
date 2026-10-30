@@ -27,9 +27,9 @@ export const daySeconds = (mode: LogisticsMode) => (mode === 'demo' ? DEMO_DAY_S
 /** A = no spare means lost production (insurance / critical), B = degrades redundancy, C = convenience / consumable */
 export type Criticality = 'A' | 'B' | 'C'
 export const CRITICALITY_LABEL: Record<Criticality, string> = {
-  A: 'A — production critical',
-  B: 'B — redundancy',
-  C: 'C — routine / consumable',
+  A: 'A: production critical',
+  B: 'B: redundancy',
+  C: 'C: routine / consumable',
 }
 export type PartCategory = 'rotating' | 'electrical' | 'instrument' | 'static' | 'consumable' | 'chemical'
 export type StockLocation = 'offshore' | 'base'
@@ -82,10 +82,10 @@ export interface StockLevel {
 export type PoStage = 'requisition' | 'ordered' | 'inTransit' | 'atBase' | 'onBoat' | 'onHeli' | 'received' | 'cancelled'
 export const PO_FLOW: PoStage[] = ['requisition', 'ordered', 'inTransit', 'atBase', 'onBoat', 'received']
 export const PO_STAGE_LABEL: Record<PoStage, string> = {
-  requisition: 'Requisition — awaiting approval',
+  requisition: 'Requisition: awaiting approval',
   ordered: 'PO placed with vendor',
   inTransit: 'In transit to supply base',
-  atBase: 'At supply base — next sailing',
+  atBase: 'At supply base: next sailing',
   onBoat: 'On supply vessel',
   onHeli: 'On helicopter',
   received: 'Received offshore',

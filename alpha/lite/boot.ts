@@ -3,6 +3,7 @@
  *   full         laptops, desktops, large tablets: load the twin (../src/main.tsx)
  *   lite         phones and small tablets: screenshots only (./lite.ts), no WebGL and no way into the twin
  *   unsupported  no WebGL2 or a very small screen: a short "not compatible" note
+ * The twin draws at 90 % here (twin-scale in ../demo/index.html) so the toolbar and panels fit a laptop screen.
  * Lives outside src/ so `npm run refresh` (rsync --delete of src/) keeps it.
  */
 export type Tier = 'full' | 'lite' | 'unsupported'
@@ -29,6 +30,7 @@ function tier(): Tier {
 // Two separate loaders: merged into one import() expression, the bundler keeps only one branch's CSS
 // (the twin then loads unstyled). Each loader keeps its own stylesheet preload this way.
 async function loadTwin() {
+  document.documentElement.classList.add('twin-scale')
   await import('../bridge')
   await import('../src/main.tsx')
 }

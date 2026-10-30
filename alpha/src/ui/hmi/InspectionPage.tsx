@@ -120,8 +120,8 @@ function UnitCard({ u }: { u: UnitId }) {
       </div>
       <div className="ins-stats">
         <Kpi label="Battery" value={String(s.battery)} unit="%" abn={s.battery < 30} />
-        <Kpi label="Done" value={live ? `${s.done}/${s.total}` : '—'} />
-        <Kpi label="Left" value={live && s.etaS !== null ? mins(s.etaS / (rate || 1)) : '—'} title="Rough time left at this speed" />
+        <Kpi label="Done" value={live ? `${s.done}/${s.total}` : '-'} />
+        <Kpi label="Left" value={live && s.etaS !== null ? mins(s.etaS / (rate || 1)) : '-'} title="Rough time left at this speed" />
       </div>
       {s.hold && (
         <div className="ins-holdbar" data-hold>
@@ -256,7 +256,7 @@ function StopView({ s }: { s: StopResult }) {
                   {x.value} {x.unit}
                 </td>
                 <td className="mono dim r">
-                  {x.lo ?? '—'} … {x.hi ?? '—'}
+                  {x.lo ?? '-'} … {x.hi ?? '-'}
                 </td>
                 <td className="dim">{x.source === 'simulated' ? 'simulated' : x.tag}</td>
               </tr>

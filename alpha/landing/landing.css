@@ -655,9 +655,6 @@ figcaption {
 .foot p {
   max-width: 76ch;
 }
-.foot a {
-  color: var(--fg);
-}
 
 /* the stage needs width to pin beside the text: narrower screens get a still with each step */
 /* below this the search field is an icon, as on the library site */

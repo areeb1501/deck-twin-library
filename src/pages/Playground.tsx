@@ -1,9 +1,12 @@
 import { useMemo, useState } from 'react'
 import type { Issue, PlantSpec } from '../../registry/assembly/spec'
 import { EXAMPLES } from '../plants'
-import { Issues, PlantView } from '../viewer/PlantView'
+import { Issues } from '../viewer/PlantView'
+import { ClientPlant } from '../viewer/ClientPlant'
+import { usePageMeta } from '../meta'
 
 export function Playground() {
+  usePageMeta('Playground', 'Paste a plant.json from your agent, render it in 3D and read the checks. Nothing leaves your browser.')
   const [text, setText] = useState(() => JSON.stringify(EXAMPLES[0]?.spec ?? { name: 'Empty', items: [], lines: [] }, null, 2))
   const [issues, setIssues] = useState<Issue[]>([])
   const parsed = useMemo(() => {
@@ -34,7 +37,7 @@ export function Playground() {
           <textarea value={text} onChange={(e) => setText(e.target.value)} spellCheck={false} className="h-[520px] w-full resize-none rounded-lg border border-border bg-muted p-3 font-mono text-[12px] leading-5 outline-none focus:border-line-strong focus:ring-2 focus:ring-brand/15" />
           {parsed.error ? <div className="rounded-md bg-err-tint px-3 py-2 text-[13px] text-err">JSON: {parsed.error}</div> : <Issues issues={issues} />}
         </div>
-        <div className="relative h-[680px] overflow-hidden rounded-xl border border-border shadow-sm">{spec && <PlantView spec={spec} labels onIssues={setIssues} className="absolute inset-0" />}</div>
+        <div className="relative h-[680px] overflow-hidden rounded-xl border border-border shadow-sm">{spec && <ClientPlant spec={spec} labels onIssues={setIssues} className="absolute inset-0" />}</div>
       </div>
     </div>
   )

@@ -29,13 +29,13 @@ export function ShutdownPage() {
   return (
     <div className="h-grid">
       <div className="h-grid" style={{ gridTemplateColumns: 'minmax(0, 2fr) minmax(0, 3fr)' }}>
-        <Box title="Shutdown hierarchy — a level includes every level below it">
+        <Box title="Shutdown hierarchy: a level includes every level below it">
           <div className="sd-ladder">
             {[...LEVELS].reverse().map((l) => (
               <div key={l} className={highest && SHUTDOWN_RANK[l] <= SHUTDOWN_RANK[highest] ? 'on' : ''}>
                 <b>{l}</b>
                 <span>
-                  <b style={{ fontFamily: 'inherit' }}>{SHUTDOWN_LABEL[l]}</b> — <span className="dim">{WHAT[l]}</span>
+                  <b style={{ fontFamily: 'inherit' }}>{SHUTDOWN_LABEL[l]}</b> - <span className="dim">{WHAT[l]}</span>
                 </span>
               </div>
             ))}
@@ -46,7 +46,7 @@ export function ShutdownPage() {
           </p>
         </Box>
 
-        <Box title={`Latched shutdowns — ${shutdowns.length}`}>
+        <Box title={`Latched shutdowns: ${shutdowns.length}`}>
           {shutdowns.length === 0 ? (
             <div className="h-empty">No shutdown latched. All platforms are free to produce.</div>
           ) : (
@@ -82,7 +82,7 @@ export function ShutdownPage() {
                         </div>
                       </td>
                       <td className="mono">{fmtClock(s.at)}</td>
-                      <td>{s.resetAt !== undefined ? `reset ${fmtClock(s.resetAt, false)} — awaiting restart` : s.resettable ? 'cause cleared — resettable' : 'cause present'}</td>
+                      <td>{s.resetAt !== undefined ? `reset ${fmtClock(s.resetAt, false)}: awaiting restart` : s.resettable ? 'cause cleared: resettable' : 'cause present'}</td>
                       <td className="act">
                         {s.resetAt === undefined && (
                           <button className={s.resettable ? 'warn' : ''} onClick={() => say(s.id, call('resetShutdown', s.id), `Reset ${s.level} ${s.platform}`)} data-act="reset-sd">
@@ -131,13 +131,13 @@ function ManualEsd() {
   const pb = (level: ShutdownLevel, platform: PlatformId, zone?: string, label?: string) => {
     const on = armed?.level === level && armed.platform === platform && armed.zone === zone
     return (
-      <button key={`${level}-${zone ?? ''}`} className={`danger pb ${on ? 'armed' : ''}`} onClick={() => (setMsg(null), setArmed(on ? null : { level, platform, zone }))} title={`${SHUTDOWN_LABEL[level]}${zone ? ` — zone ${zone}` : ''}`} data-pb={`${level}-${platform}${zone ? `-${zone}` : ''}`}>
+      <button key={`${level}-${zone ?? ''}`} className={`danger pb ${on ? 'armed' : ''}`} onClick={() => (setMsg(null), setArmed(on ? null : { level, platform, zone }))} title={`${SHUTDOWN_LABEL[level]}${zone ? `: zone ${zone}` : ''}`} data-pb={`${level}-${platform}${zone ? `-${zone}` : ''}`}>
         {label ?? level}
       </button>
     )
   }
   return (
-    <Box title="Manual ESD push-buttons (CCR) — lift the cover, then confirm">
+    <Box title="Manual ESD push-buttons (CCR): lift the cover, then confirm">
       <div className="esd-pb">
         {PLATFORMS.map((p) => (
           <section key={p} className="h-box">
@@ -160,7 +160,7 @@ function ManualEsd() {
       {armed && (
         <div className="esd-confirm" style={{ marginTop: 8 }}>
           <b>
-            Confirm {armed.level} — {SHUTDOWN_LABEL[armed.level]} on {armed.platform}
+            Confirm {armed.level} - {SHUTDOWN_LABEL[armed.level]} on {armed.platform}
             {armed.zone ? `, zone ${armed.zone}` : ''}?
           </b>
           <span className="dim">This shuts the plant down and books the loss to control & safety.</span>
@@ -179,7 +179,7 @@ function ManualEsd() {
 function CauseEffect() {
   const rows = causeEffect()
   return (
-    <Box title={`Cause & effect matrix — ${rows.length} causes`}>
+    <Box title={`Cause & effect matrix: ${rows.length} causes`}>
       {rows.length === 0 ? (
         <div className="h-empty">The cause & effect matrix (sim/causeEffect.ts) is not loaded yet.</div>
       ) : (

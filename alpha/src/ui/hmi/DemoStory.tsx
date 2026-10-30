@@ -75,7 +75,7 @@ function DgsChoice() {
   }
   return (
     <span className="story-choice">
-      <button className="warn" onClick={go} disabled={!!pv.why} title={pv.why ?? `Exchange unit from the vendor, helicopter for the last leg: ${fmtUsd(pv.premium + pv.freight)} extra, ≈ ${pv.days.toFixed(0)} d instead of ${pv.days + pv.savedDays > 0 ? (pv.days + pv.savedDays).toFixed(0) : '—'} d`}>
+      <button className="warn" onClick={go} disabled={!!pv.why} title={pv.why ?? `Exchange unit from the vendor, helicopter for the last leg: ${fmtUsd(pv.premium + pv.freight)} extra, ≈ ${pv.days.toFixed(0)} d instead of ${pv.days + pv.savedDays > 0 ? (pv.days + pv.savedDays).toFixed(0) : '-'} d`}>
         Expedite by helicopter {pv.why ? '' : `(${fmtUsd(pv.premium + pv.freight)})`}
       </button>
       <span className="dim">or wait</span>

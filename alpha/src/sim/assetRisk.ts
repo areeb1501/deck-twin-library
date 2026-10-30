@@ -74,7 +74,7 @@ const GAS_TAGS = new Set<string>([A.TAGS.compressor, ...A.TAGS.swPumps, ...A.TAG
 
 /** "$4.05 M", "$385 k", "−$1.2 M" */
 export function fmtUsd(v: number | null | undefined): string {
-  if (typeof v !== 'number' || !Number.isFinite(v)) return '—'
+  if (typeof v !== 'number' || !Number.isFinite(v)) return '-'
   const a = Math.abs(v)
   const sg = v < 0 ? '−' : ''
   if (a >= 1e9) return `${sg}$${(a / 1e9).toFixed(2)} B`
@@ -84,7 +84,7 @@ export function fmtUsd(v: number | null | undefined): string {
 }
 /** real days → "0.8 d", "14 d", "6 mo" */
 export function fmtDays(d: number): string {
-  if (!Number.isFinite(d)) return '—'
+  if (!Number.isFinite(d)) return '-'
   if (d <= 0.01) return '0 d'
   if (d < 10) return `${d.toFixed(1)} d`
   if (d < 120) return `${Math.round(d)} d`
@@ -267,11 +267,11 @@ function waitAt(arrive: number, failed: boolean, ttfDays: number | null, H: numb
 
 function leverText(o: Opt, partName: string, save: number, poId?: string) {
   const saves = `saves ${fmtUsd(save)} exposure`
-  if (o.kind === 'transfer') return `Transfer ${partName} from base ${o.heli ? 'by helicopter' : 'on the next sailing'} — ${saves}`
-  if (o.kind === 'expedite') return `Expedite ${partName}${poId ? ` (${poId})` : ''}${o.heli ? ', helicopter to the deck' : ''} — ${saves}`
-  if (o.mode === 'emergency') return `Emergency-order ${partName} by helicopter — ${saves}`
-  if (o.mode === 'expedite') return `Expedite-order ${partName} — ${saves}`
-  return `Order ${partName} (standard) — ${saves}`
+  if (o.kind === 'transfer') return `Transfer ${partName} from base ${o.heli ? 'by helicopter' : 'on the next sailing'}: ${saves}`
+  if (o.kind === 'expedite') return `Expedite ${partName}${poId ? ` (${poId})` : ''}${o.heli ? ', helicopter to the deck' : ''}: ${saves}`
+  if (o.mode === 'emergency') return `Emergency-order ${partName} by helicopter: ${saves}`
+  if (o.mode === 'expedite') return `Expedite-order ${partName}: ${saves}`
+  return `Order ${partName} (standard): ${saves}`
 }
 
 const NONE: RiskLever = { kind: 'none', label: '', saveUsd: 0, costUsd: 0, arriveDays: 0, beatsFailure: false }
@@ -372,13 +372,13 @@ function rowFor(tag: string, h: Health, horizonDays: number, deck: PriceDeck, u:
     const after = pBase * consequenceUsd + planned
     const save = h.stage === 'failed' ? 0 : Math.max(0, exposureUsd - after)
     lever = { ...NONE, kind: 'raiseWo', label: 'Raise WO', saveUsd: save, beatsFailure: h.stage !== 'failed' }
-    action = h.stage === 'failed' ? 'Failed — raise a corrective work order' : `Raise condition-based WO — repair before it fails${save > 0 ? `, saves ${fmtUsd(save)} exposure` : ''}`
+    action = h.stage === 'failed' ? 'Failed: raise a corrective work order' : `Raise condition-based WO: repair before it fails${save > 0 ? `, saves ${fmtUsd(save)} exposure` : ''}`
   }
   if (!action) {
-    if (wo) action = `${wo.id} open — ${wo.label}`
-    else if (impact === 0 && partner) action = `Standby ${partner} covers it — no production at stake`
-    else if (cover.status === 'onboard') action = 'Spare on board — monitor'
-    else if (cover.status === 'notStocked') action = h.stage === 'normal' ? 'Monitor' : 'No spares data — raise WO'
+    if (wo) action = `${wo.id} open: ${wo.label}`
+    else if (impact === 0 && partner) action = `Standby ${partner} covers it: no production at stake`
+    else if (cover.status === 'onboard') action = 'Spare on board: monitor'
+    else if (cover.status === 'notStocked') action = h.stage === 'normal' ? 'Monitor' : 'No spares data: raise WO'
     else action = 'Monitor'
   }
 

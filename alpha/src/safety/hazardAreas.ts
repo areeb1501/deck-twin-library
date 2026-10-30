@@ -80,13 +80,13 @@ export const CLASSIFICATION: { source: HazSource; what: string; z0?: string; z1?
   { source: 'pigTrap', what: 'Pig-trap closure door', z1: '1.5 m around the closure', z2: '3 m around the trap' },
   { source: 'process', what: 'HC vessels, exchangers, manifolds, metering / chemical skids: flanges, valves, instrument connections', z2: '3 m envelope' },
   { source: 'valve', what: 'Control, ESD and blowdown valve stations on hydrocarbon lines (flanges, stem packing)', z2: '3 m around the valve' },
-  { source: 'interior', what: 'Vessel / tank interiors (hydrocarbon)', z0: 'inside the shell — confined-space entry only' },
+  { source: 'interior', what: 'Vessel / tank interiors (hydrocarbon)', z0: 'inside the shell: confined-space entry only' },
   { source: 'vent', what: 'Cold vent tips (elevated)', z0: '1 m', z1: '3 m', z2: '6 m' },
   { source: 'flare', what: 'Flare tip, unlit / flame-out case (elevated)', z0: '1 m', z1: '3 m', z2: '6 m' },
   { source: 'turbine', what: 'Gas-turbine enclosure (fuel gas)', z2: 'inside the acoustic enclosure' },
 ]
 export const CLASSIFICATION_BASIS =
-  'Screening extents after API RP 505 / IEC 60079-10-1 / EI 15 typical figures — not a release-rate calculation. Utilities, power, LQ, the CCR and pressurised rooms are safe (unclassified) area.'
+  'Screening extents after API RP 505 / IEC 60079-10-1 / EI 15 typical figures, not a release-rate calculation. Utilities, power, LQ, the CCR and pressurised rooms are safe (unclassified) area.'
 
 /** industry colours: Zone 0 red, Zone 1 orange, Zone 2 yellow */
 export const HAZ_COLOR: Record<HazZone, string> = { 0: '#e0453a', 1: '#f08c1e', 2: '#f2d02b' }
@@ -109,7 +109,7 @@ export interface ZoneRule {
 }
 
 export const ZONE_RULES: ZoneRule[] = [
-  { zone: 0, name: 'Zone 0', where: 'Vessel / tank interiors, vent and flare tips', entry: 'No entry — only under an issued confined-space entry permit with a gas test', ppe: ['hardHat', 'vest', 'gasMonitor'], also: ['Standby man and rescue plan', 'Continuous gas test'] },
+  { zone: 0, name: 'Zone 0', where: 'Vessel / tank interiors, vent and flare tips', entry: 'No entry: only under an issued confined-space entry permit with a gas test', ppe: ['hardHat', 'vest', 'gasMonitor'], also: ['Standby man and rescue plan', 'Continuous gas test'] },
   { zone: 1, name: 'Zone 1', where: 'Pump seals, compressor enclosures, wellheads, pig-trap closures', entry: 'Authorised personnel', ppe: ['hardHat', 'vest', 'gasMonitor'], also: ['No non-Ex devices (phones, radios, torches must be Ex)', 'Hot work only under a hot-work permit'] },
   { zone: 2, name: 'Zone 2', where: '3 m envelopes around flanges, valves and HC equipment', entry: 'Authorised personnel', ppe: ['hardHat', 'vest'], also: ['Ex-rated portable equipment', 'Hot work only under a hot-work permit'] },
   { zone: 'safe', name: 'Safe area', where: 'Utilities, power, LQ, CCR, pressurised rooms (unclassified)', entry: 'Open', ppe: [], also: ['Site minimum PPE on open deck (hard hat, coverall, boots, glasses)'] },

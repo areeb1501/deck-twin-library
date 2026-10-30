@@ -261,7 +261,7 @@ export function computeRisk(): RiskSnapshot {
     const pts = Math.min(A.max, u.n[0] * A.p1 + u.n[1] * A.p2 + u.n[2] * A.p3)
     const total = u.n[0] + u.n[1] + u.n[2]
     const parts = [u.n[0] && `${u.n[0]}×P1`, u.n[1] && `${u.n[1]}×P2`, u.n[2] && `${u.n[2]}×P3`].filter(Boolean).join(', ')
-    add({ id: `alarm:unack:${pl}`, platform: pl, category: 'alarms', tag: itemOr(c, u.top?.tag), text: `${total} unacknowledged alarm${total > 1 ? 's' : ''} (${parts})${u.top ? ` — worst: ${u.top.text}` : ''}`, points: pts })
+    add({ id: `alarm:unack:${pl}`, platform: pl, category: 'alarms', tag: itemOr(c, u.top?.tag), text: `${total} unacknowledged alarm${total > 1 ? 's' : ''} (${parts})${u.top ? `: worst: ${u.top.text}` : ''}`, points: pts })
   }
   const rate = num(s.kpis?.alarmRate) ?? 0
   if (rate >= A.floodRate) {
@@ -277,7 +277,7 @@ export function computeRisk(): RiskSnapshot {
     if (!stage || stage === 'normal') continue
     const pts = stage === 'failed' ? M.failed : stage === 'alarm' ? M.alarm : M.alert
     const deg = num(h.degr)
-    add({ id: `mach:health:${tag}`, platform: platOf(c, tag), category: 'machinery', tag: itemOr(c, tag), text: `${tag} condition ${stage}${h.mode ? ` — ${h.mode}` : ''}${deg !== undefined ? ` (degradation ${f0(deg * 100)} %)` : ''}`, points: pts })
+    add({ id: `mach:health:${tag}`, platform: platOf(c, tag), category: 'machinery', tag: itemOr(c, tag), text: `${tag} condition ${stage}${h.mode ? `: ${h.mode}` : ''}${deg !== undefined ? ` (degradation ${f0(deg * 100)} %)` : ''}`, points: pts })
   }
   for (const [tag, st] of Object.entries(s.status ?? {})) {
     if (st !== 'tripped') continue
@@ -294,7 +294,7 @@ export function computeRisk(): RiskSnapshot {
     if (d?.state === 'fault') add({ id: `bar:fault:${tag}`, platform: platOf(c, tag), category: 'barriers', tag: itemOr(c, tag), text: `${tag} detector in fault`, points: B.fault })
   }
   for (const [tag, v] of Object.entries(s.valves ?? {})) {
-    if (v?.fault === 'stuck') add({ id: `bar:stuck:${tag}`, platform: platOf(c, tag), category: 'barriers', tag: itemOr(c, tag), text: `${tag} stuck — valve not moving (position discrepancy)`, points: B.stuckValve })
+    if (v?.fault === 'stuck') add({ id: `bar:stuck:${tag}`, platform: platOf(c, tag), category: 'barriers', tag: itemOr(c, tag), text: `${tag} stuck: valve not moving (position discrepancy)`, points: B.stuckValve })
   }
   // what inspections have found, never the ground truth: nothing counts until a unit has been there
   for (const f of latestFindings()) {
@@ -309,7 +309,7 @@ export function computeRisk(): RiskSnapshot {
     const pl = pm.platform && pm.platform !== 'Plant' ? pm.platform : platOf(c, pm.tag)
     if (pm.type === 'hot') {
       const gas = gasOn.has(pl)
-      add({ id: `work:hot:${pm.id}`, platform: pl, category: 'work', tag: itemOr(c, pm.tag), text: `Hot-work permit ${pm.id} issued at ${pm.tag}${gas ? ' — gas alarm on the platform' : ''}`, points: W.hot + (gas ? W.hotWithGas : 0) })
+      add({ id: `work:hot:${pm.id}`, platform: pl, category: 'work', tag: itemOr(c, pm.tag), text: `Hot-work permit ${pm.id} issued at ${pm.tag}${gas ? ': gas alarm on the platform' : ''}`, points: W.hot + (gas ? W.hotWithGas : 0) })
     } else if (pm.type === 'confined') {
       add({ id: `work:cse:${pm.id}`, platform: pl, category: 'work', tag: itemOr(c, pm.tag), text: `Confined-space entry ${pm.id} at ${pm.tag}`, points: W.confined })
     }
@@ -347,7 +347,7 @@ export function computeRisk(): RiskSnapshot {
     }
   }
   for (const [pl, e] of Object.entries(ppe) as [PlatformId, NonNullable<(typeof ppe)[PlatformId]>][]) {
-    add({ id: `ppe:${pl}`, platform: pl, category: 'people', text: `${e.n} PPE / machinery-zone violation${e.n > 1 ? 's' : ''} on CCTV in 2 min — latest: ${e.last}`, points: Math.min(P.max, e.n * P.each) })
+    add({ id: `ppe:${pl}`, platform: pl, category: 'people', text: `${e.n} PPE / machinery-zone violation${e.n > 1 ? 's' : ''} on CCTV in 2 min: latest: ${e.last}`, points: Math.min(P.max, e.n * P.each) })
   }
 
   // ---- hazardous areas: people tracked (worn tag / RTLS) in a Zone 0 / 1 / 2 without what it needs
@@ -366,7 +366,7 @@ export function computeRisk(): RiskSnapshot {
     e.pts += pts
   }
   for (const [pl, e] of Object.entries(hz) as [PlatformId, NonNullable<(typeof hz)[PlatformId]>][]) {
-    add({ id: `hz:${pl}`, platform: pl, category: 'people', tag: e.tag && c.items.has(e.tag) ? e.tag : undefined, text: `Hazardous area: ${e.worst}${e.n > 1 ? ` (+${e.n - 1} more)` : ''} — tracked by worn tag`, points: Math.min(HZ.max, e.pts) })
+    add({ id: `hz:${pl}`, platform: pl, category: 'people', tag: e.tag && c.items.has(e.tag) ? e.tag : undefined, text: `Hazardous area: ${e.worst}${e.n > 1 ? ` (+${e.n - 1} more)` : ''}: tracked by worn tag`, points: Math.min(HZ.max, e.pts) })
   }
 
   // ---- roll up per platform, then the field

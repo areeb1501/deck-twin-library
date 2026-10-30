@@ -8,6 +8,7 @@ import { Badge, Code, Command, CopyMarkdown, Crumbs, RichText, Tabs, ViewMarkdow
 import { componentMarkdown, portOrigin, propRange, propType, usageSnippet } from '../componentMarkdown'
 import { add, CLI, SITE } from '../site'
 import { PID, symbolUrl } from '../pid'
+import { usePageMeta } from '../meta'
 import { NotFound } from './NotFound'
 
 export function ComponentPage({ name }: { name: string }) {
@@ -17,6 +18,7 @@ export function ComponentPage({ name }: { name: string }) {
 }
 
 function Detail({ item }: { item: Item }) {
+  usePageMeta(`${item.title} 3D model`, item.description)
   const [mod, setMod] = useState<ComponentModule | null>(null)
   const [source, setSource] = useState('')
   const [values, setValues] = useState<Record<string, unknown>>({})

@@ -148,7 +148,7 @@ function makeOceanMaterial() {
     envMapIntensity: 1.0,
   })
   const all = foamPoints()
-  if (all.length > MAX_FOAM) console.warn(`[Ocean] ${all.length} foam points, only the first ${MAX_FOAM} are used — raise MAX_FOAM`)
+  if (all.length > MAX_FOAM) console.warn(`[Ocean] ${all.length} foam points, only the first ${MAX_FOAM} are used: raise MAX_FOAM`)
   const pool = all.slice(0, MAX_FOAM).map((p) => new THREE.Vector3(...p))
   const foam = Array.from({ length: FOAM_SLOTS }, (_, i) => (pool[i] ?? new THREE.Vector3(1e5, 1e5, 0)).clone())
   m.userData.foam = { pool, slots: foam, at: new THREE.Vector2(1e9, 1e9), order: pool.map((_, i) => i), dist: new Float32Array(pool.length) }

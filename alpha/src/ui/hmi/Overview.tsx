@@ -26,20 +26,20 @@ export function Overview() {
         platform holds the control room, the emergency generator and the accommodation.
       </p>
 
-      <Box title="Field — now">
+      <Box title="Field: now">
         <div className="h-kpis">
           <Kpi label="Oil export" value={fmt(r?.oilExport)} unit="bbl/d" />
           <Kpi label="Gas export" value={fmt(r?.gasExport, 1)} unit="MMscfd" />
           <Kpi label="Flare" value={fmt(r?.flare, 1)} unit="MMscfd" abn={(r?.flare ?? 0) > 3} bad={(r?.flare ?? 0) > 15} />
           <Kpi label="Produced water" value={fmt(r?.water)} unit="bbl/d" />
-          <Kpi label="Power generated / available" value={r ? `${fmt(r.powerGenerated, 1)} / ${grid ? 'grid' : fmt(r.powerAvailable, 0)}` : '—'} unit="MW" abn={!!r && !grid && r.powerDemand > r.powerAvailable * 0.9} bad={!!r && r.powerGenerated <= 0} />
-          <Kpi label="Production efficiency — now" value={fmt(r?.efficiency, 1)} unit="%" abn={(r?.efficiency ?? 100) < 95} bad={(r?.efficiency ?? 100) < 50} title="Actual over maximum production potential (boe), this instant" />
-          <Kpi label="PE — last hour" value={fmt(k?.peHour, 1)} unit="%" abn={(k?.peHour ?? 100) < 95} />
-          <Kpi label="PE — session" value={fmt(k?.pe, 1)} unit="%" abn={(k?.pe ?? 100) < 95} />
+          <Kpi label="Power generated / available" value={r ? `${fmt(r.powerGenerated, 1)} / ${grid ? 'grid' : fmt(r.powerAvailable, 0)}` : '-'} unit="MW" abn={!!r && !grid && r.powerDemand > r.powerAvailable * 0.9} bad={!!r && r.powerGenerated <= 0} />
+          <Kpi label="Production efficiency: now" value={fmt(r?.efficiency, 1)} unit="%" abn={(r?.efficiency ?? 100) < 95} bad={(r?.efficiency ?? 100) < 50} title="Actual over maximum production potential (boe), this instant" />
+          <Kpi label="PE: last hour" value={fmt(k?.peHour, 1)} unit="%" abn={(k?.peHour ?? 100) < 95} />
+          <Kpi label="PE: session" value={fmt(k?.pe, 1)} unit="%" abn={(k?.pe ?? 100) < 95} />
           <Kpi label="Availability" value={fmt(k?.availability ?? avail, 1)} unit="%" abn={(k?.availability ?? avail ?? 100) < 95} title="Share of sim time the field was up (no PSD / ESD / blackout)" />
           <Kpi label="Alarm rate" value={fmt(rate)} unit="/ 10 min" abn={(rate ?? 0) >= 5} bad={(rate ?? 0) >= 10} title="ISA-18.2: ≥ 10 alarms in 10 minutes is a flood" />
           <Kpi label="Standing alarms" value={String(standing)} />
-          <Kpi label="Trips / shutdowns" value={k ? `${k.trips ?? 0} / ${k.shutdowns ?? 0}` : '—'} />
+          <Kpi label="Trips / shutdowns" value={k ? `${k.trips ?? 0} / ${k.shutdowns ?? 0}` : '-'} />
           <Kpi label="Deferred production" value={fmt(deferred)} unit="boe" abn={(deferred ?? 0) >= 1} />
           <Kpi label="Max. production potential" value={fmt(r?.mpp)} unit="boe/d" />
           <Kpi label="Actual production" value={fmt(r?.actual)} unit="boe/d" abn={!!r && r.actual < r.mpp * 0.95} />
@@ -75,10 +75,10 @@ export function Overview() {
       </div>
 
       <div className="h-grid" style={{ gridTemplateColumns: 'minmax(0, 3fr) minmax(0, 2fr)' }}>
-        <Box title="Production efficiency — where the potential went (session)" right={k ? <span className="mono dim">PE {fmt(k.pe, 1)} %</span> : null}>
+        <Box title="Production efficiency, where the potential went (session)" right={k ? <span className="mono dim">PE {fmt(k.pe, 1)} %</span> : null}>
           <Waterfall k={k} />
         </Box>
-        <Box title="Process — key values">
+        <Box title="Process: key values">
           <div className="kv2">
             <span>HP separator V-1100 level</span>
             <span>{fmt(p?.hpLevel, 1)} %</span>
@@ -99,7 +99,7 @@ export function Overview() {
             <span>Bus frequency</span>
             <span>{fmt(p?.busHz, 2)} Hz</span>
             <span>Emergency generator</span>
-            <span>{p?.emergencyGen ?? '—'}</span>
+            <span>{p?.emergencyGen ?? '-'}</span>
             <span>Firewater ring main</span>
             <span>{fmt(p?.fwPressure, 1)} barg</span>
             <span>PSV relief / blowdown left</span>
@@ -112,7 +112,7 @@ export function Overview() {
 
       <Box title="Recent events">
         {events.length === 0 ? (
-          <div className="h-empty">No events — plant in normal operation.</div>
+          <div className="h-empty">No events: plant in normal operation.</div>
         ) : (
           <table className="h-tbl">
             <tbody>
@@ -132,7 +132,7 @@ export function Overview() {
   )
 }
 
-const NAMES: Record<string, string> = { Alpha: 'Alpha — production platform', 'WHP-N': 'WHP-N — wellhead platform', LQ: 'LQ — accommodation & CCR' }
+const NAMES: Record<string, string> = { Alpha: 'Alpha: production platform', 'WHP-N': 'WHP-N: wellhead platform', LQ: 'LQ: accommodation & CCR' }
 
 function PlatformCard({ id, res }: { id: PlatformId; res: PlatformResult | undefined }) {
   const shutdowns = useS((s) => s.shutdowns) ?? EMPTY_ARR
@@ -146,9 +146,9 @@ function PlatformCard({ id, res }: { id: PlatformId; res: PlatformResult | undef
       </h3>
       <div className="kv2">
         <span>Status</span>
-        <span className={`state ${esd ? 'esd' : sd ? 'sd' : ''}`}>{!res ? '—' : sd ? `${sd} latched` : id === 'LQ' ? 'Normal' : res.online ? 'Producing' : 'Not producing'}</span>
+        <span className={`state ${esd ? 'esd' : sd ? 'sd' : ''}`}>{!res ? '-' : sd ? `${sd} latched` : id === 'LQ' ? 'Normal' : res.online ? 'Producing' : 'Not producing'}</span>
         <span>General alarm</span>
-        <span>{res?.ga ?? '—'}</span>
+        <span>{res?.ga ?? '-'}</span>
         {id !== 'LQ' && (
           <>
             <span>Oil</span>
@@ -162,7 +162,7 @@ function PlatformCard({ id, res }: { id: PlatformId; res: PlatformResult | undef
       </div>
       {latched.map((x) => (
         <div key={x.id} className="h-msg">
-          {x.level} — {x.cause} <span className="mono">({fmtClock(x.at)})</span>
+          {x.level} - {x.cause} <span className="mono">({fmtClock(x.at)})</span>
           {x.resetAt !== undefined ? ' · reset, awaiting restart' : x.resettable ? ' · resettable' : ' · cause still present'}
         </div>
       ))}

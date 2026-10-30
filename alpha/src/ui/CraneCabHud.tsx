@@ -59,7 +59,7 @@ function Hud({ site }: { site: CraneSite }) {
   let chip: { text: string; cls: string }
   if (!r.engine) chip = { text: 'Engine stopped', cls: 'trip' }
   else if (r.state === 'suspended') chip = { text: `Suspended`, cls: 'warn' }
-  else if (!mine) chip = { text: 'Look only — schedule has control', cls: 'info' }
+  else if (!mine) chip = { text: 'Look only: schedule has control', cls: 'info' }
   else if (paused) chip = { text: 'Manual · sim paused', cls: 'info' }
   else
     chip = {
@@ -74,7 +74,7 @@ function Hud({ site }: { site: CraneSite }) {
   else if (r.state === 'suspended') note = { text: `Controls locked: ${r.reason ?? 'interlock'}`, cls: 'warn' }
   else if (paused)
     note = {
-      text: 'Simulation paused — the crane does not move until the clock runs',
+      text: 'Simulation paused: the crane does not move until the clock runs',
       cls: 'info',
     }
   else if (mine && onRest && cmd.slew)
@@ -89,7 +89,7 @@ function Hud({ site }: { site: CraneSite }) {
     }
   else if (mine && onRest)
     note = {
-      text: 'Boom on its rest — W / ↑ to luff it up off the rest',
+      text: 'Boom on its rest: W / ↑ to luff it up off the rest',
       cls: 'info',
     }
 

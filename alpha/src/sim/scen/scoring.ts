@@ -70,7 +70,7 @@ export function score(inp: ScoreInput): Attempt {
       if (o.lesson) lessons.add(o.lesson)
     } else if (o.kind === 'do' && st.status === 'late' && o.category === 'safety') {
       safety -= (o.penalty ?? 15) / 2
-      improve.push(`${o.text} — done, but late (${fmtEl((st.at ?? 0) - (st.since ?? 0))} after the cue, target ${fmtEl(o.window ?? 0)})`)
+      improve.push(`${o.text}: done, but late (${fmtEl((st.at ?? 0) - (st.since ?? 0))} after the cue, target ${fmtEl(o.window ?? 0)})`)
       if (o.lesson) lessons.add(o.lesson)
     }
   }
@@ -115,9 +115,9 @@ export function score(inp: ScoreInput): Attempt {
   alarmScore = Math.max(0, Math.min(100, alarmScore))
   if (p1.length && p1ok < p1.length) {
     failures.push(`${p1.length - p1ok} of ${p1.length} P1 alarm${p1.length > 1 ? 's' : ''} not acknowledged within 2 min`)
-    lessons.add('ISA-18.2: a priority-1 alarm needs a response within minutes — acknowledge, then act.')
+    lessons.add('ISA-18.2: a priority-1 alarm needs a response within minutes, acknowledge, then act.')
   }
-  if (shelvedP1) improve.push(`${shelvedP1} P1 alarm${shelvedP1 > 1 ? 's were' : ' was'} shelved — shelving is for nuisance alarms, never for an emergency in progress`)
+  if (shelvedP1) improve.push(`${shelvedP1} P1 alarm${shelvedP1 > 1 ? 's were' : ' was'} shelved: shelving is for nuisance alarms, never for an emergency in progress`)
 
   // ---------------------------------------------------------------- total
   const breakdown: Breakdown = { safety: Math.round(safety), production: Math.round(production), time: Math.round(time), alarms: Math.round(alarmScore), hints: inp.hints * HINT_COST }
@@ -130,15 +130,15 @@ export function score(inp: ScoreInput): Attempt {
   for (const o of goals) {
     const st = objs[o.id]
     if (!st) continue
-    if (o.kind === 'do' && st.status === 'done') wentWell.push(`${o.text}${st.at !== undefined && st.since !== undefined && o.window ? ` — ${fmtEl(st.at - st.since)} after the cue (target ${fmtEl(o.window)})` : ''}`)
+    if (o.kind === 'do' && st.status === 'done') wentWell.push(`${o.text}${st.at !== undefined && st.since !== undefined && o.window ? `: ${fmtEl(st.at - st.since)} after the cue (target ${fmtEl(o.window)})` : ''}`)
     if (o.kind === 'avoid' && st.status === 'kept' && (o.critical || (o.penalty ?? 0) >= 20)) wentWell.push(o.text.replace(/^Avoid /, 'Avoided ').replace(/^Do not /, 'Did not '))
-    if (o.kind === 'do' && st.status === 'late' && o.category !== 'safety') improve.push(`${o.text} — late (${fmtEl((st.at ?? 0) - (st.since ?? 0))} after the cue, target ${fmtEl(o.window ?? 0)})`)
+    if (o.kind === 'do' && st.status === 'late' && o.category !== 'safety') improve.push(`${o.text}: late (${fmtEl((st.at ?? 0) - (st.since ?? 0))} after the cue, target ${fmtEl(o.window ?? 0)})`)
     if (o.kind === 'do' && st.status === 'missed' && o.optional) improve.push(`Optional: ${o.text}`)
     if (st.status === 'late' && o.lesson) lessons.add(o.lesson)
   }
   if (p1.length && p1ok === p1.length) wentWell.push(`All ${p1.length} P1 alarm${p1.length > 1 ? 's' : ''} acknowledged within 2 min${ackTimes.length ? ` (mean ${Math.round(ackTimes.reduce((a, b) => a + b, 0) / ackTimes.length)} s)` : ''}`)
-  if (production >= 95) wentWell.push(`Deferred production ${Math.round(deferred).toLocaleString()} boe — at or near the ideal response (${idealDeferred.toLocaleString()} boe)`)
-  else improve.push(`Deferred production ${Math.round(deferred).toLocaleString()} boe vs ${idealDeferred.toLocaleString()} boe for an ideal response — ${Math.round(deferred - idealDeferred).toLocaleString()} boe more than needed (PE ${pe.toFixed(0)} % over the scenario)`)
+  if (production >= 95) wentWell.push(`Deferred production ${Math.round(deferred).toLocaleString()} boe, at or near the ideal response (${idealDeferred.toLocaleString()} boe)`)
+  else improve.push(`Deferred production ${Math.round(deferred).toLocaleString()} boe vs ${idealDeferred.toLocaleString()} boe for an ideal response: ${Math.round(deferred - idealDeferred).toLocaleString()} boe more than needed (PE ${pe.toFixed(0)} % over the scenario)`)
   if (inp.hints) improve.push(`${inp.hints} hint${inp.hints > 1 ? 's' : ''} used (−${inp.hints * HINT_COST})`)
   for (const l of lessons) improve.push(l)
 
@@ -147,7 +147,7 @@ export function score(inp: ScoreInput): Attempt {
   for (const o of goals) {
     const st = objs[o.id]
     if (!st || o.kind !== 'do' || st.since === undefined || st.status === 'na') continue
-    rows.push({ t: st.since, lane: 'expected', text: `${o.text}${o.window ? ` — due by ${fmtEl(st.since + o.window)}` : ''}`, level: 'info' })
+    rows.push({ t: st.since, lane: 'expected', text: `${o.text}${o.window ? `: due by ${fmtEl(st.since + o.window)}` : ''}`, level: 'info' })
     if (st.status === 'done' || st.status === 'late') rows.push({ t: st.at ?? st.since, lane: 'expected', text: `${st.status === 'done' ? '✓' : '◷ late:'} ${o.text}`, level: st.status === 'done' ? 'ok' : 'warn' })
     else if (st.status === 'missed') rows.push({ t: st.at ?? el, lane: 'expected', text: `✗ missed: ${o.text}`, level: 'bad' })
   }

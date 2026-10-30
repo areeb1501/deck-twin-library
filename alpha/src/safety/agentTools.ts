@@ -370,7 +370,7 @@ export function barrierErosion(args: { zone?: string; platform?: PlatformId }): 
   for (const d of detectors(p)) {
     const st = s.detectors?.[d.tag]?.state
     const inh = !!s.inhibits?.[d.tag] || (!!d.rxTag && !!s.inhibits?.[d.rxTag]) || st === 'inhibited'
-    if (inh || st === 'fault') add(d.zone, 'detection', `${d.type} ${d.tag} ${inh ? 'inhibited' : 'faulted'} — out of the voting`, [d.tag])
+    if (inh || st === 'fault') add(d.zone, 'detection', `${d.type} ${d.tag} ${inh ? 'inhibited' : 'faulted'}: out of the voting`, [d.tag])
   }
   // alarms: shelved alarms in the zone
   for (const a of s.alarms ?? []) {
@@ -388,7 +388,7 @@ export function barrierErosion(args: { zone?: string; platform?: PlatformId }): 
     add(zoneIdOf(pm.tag), 'ignition', `Hot-work permit ${pm.id} live on ${pm.tag}`, [pm.tag])
   }
   // isolation: stuck ESD / control valves
-  for (const [tag, v] of Object.entries(s.valves ?? {})) if (v.fault === 'stuck') add(zoneIdOf(tag), 'isolation', `${tag} stuck — will not stroke on demand`, [tag])
+  for (const [tag, v] of Object.entries(s.valves ?? {})) if (v.fault === 'stuck') add(zoneIdOf(tag), 'isolation', `${tag} stuck: will not stroke on demand`, [tag])
   // hydrocarbon: gas present below confirmation
   for (const z of Object.values(s.fg ?? {})) if (z.gas === 'low' || z.gas === 'high') add(z.zone, 'hydrocarbon', `Gas at ${z.gas} setpoint in the zone`, [])
 
@@ -402,8 +402,8 @@ export function barrierErosion(args: { zone?: string; platform?: PlatformId }): 
     const layers = [...layers0]
     // weather only aggravates a zone that already has a weakened layer
     if (wind && z.kind !== 'lq' && z.kind !== 'module') {
-      if (wind.speed >= WIND_HIGH) layers.push({ layer: 'weather', text: `Wind ${wind.speed.toFixed(0)} m/s ≥ ${WIND_HIGH} m/s (personnel-lift limit) — sparks and gas carried downwind, lifts restricted`, tags: [] })
-      else if (wind.speed <= WIND_CALM && (z.kind === 'process' || z.kind === 'wellbay')) layers.push({ layer: 'weather', text: `Near-calm wind ${wind.speed.toFixed(1)} m/s — poor natural ventilation, gas can accumulate`, tags: [] })
+      if (wind.speed >= WIND_HIGH) layers.push({ layer: 'weather', text: `Wind ${wind.speed.toFixed(0)} m/s ≥ ${WIND_HIGH} m/s (personnel-lift limit): sparks and gas carried downwind, lifts restricted`, tags: [] })
+      else if (wind.speed <= WIND_CALM && (z.kind === 'process' || z.kind === 'wellbay')) layers.push({ layer: 'weather', text: `Near-calm wind ${wind.speed.toFixed(1)} m/s: poor natural ventilation, gas can accumulate`, tags: [] })
     }
     const kinds = new Set(layers.map((l) => l.layer))
     const tags = [...new Set(layers.flatMap((l) => l.tags))]
@@ -764,7 +764,7 @@ export const AGENT_TOOLS: AgentTool[] = [
       const ev: { t: number; at: string; source: string; text: string; level?: string }[] = []
       for (const e of s.events ?? []) if (!tag || e.text.includes(tag)) ev.push({ t: e.t, at: fmtClock(e.t), source: 'engine', text: e.text, level: e.level })
       for (const e of useMaint.getState().log ?? []) if (!tag || e.text.includes(tag)) ev.push({ t: e.t, at: fmtClock(e.t), source: 'maintenance', text: e.text, level: e.level })
-      for (const a of s.actions ?? []) if (!tag || a.tag === tag) ev.push({ t: a.t, at: fmtClock(a.t), source: `action:${a.who}`, text: `${a.action}${a.tag ? ` ${a.tag}` : ''}${a.detail ? ` — ${a.detail}` : ''}` })
+      for (const a of s.actions ?? []) if (!tag || a.tag === tag) ev.push({ t: a.t, at: fmtClock(a.t), source: `action:${a.who}`, text: `${a.action}${a.tag ? ` ${a.tag}` : ''}${a.detail ? `: ${a.detail}` : ''}` })
       ev.sort((a, b) => b.t - a.t)
       return { count: ev.length, events: ev.slice(0, limit) }
     },
@@ -786,7 +786,7 @@ export const AGENT_TOOLS: AgentTool[] = [
       const f = sensorDrift({ tag: str(args.tag) || undefined, platform: asPlatform(args.platform) })
       let longest = 0
       for (const r of rings.values()) if (r.t.length > 1) longest = Math.max(longest, r.t[r.t.length - 1] - r.t[0])
-      return { signalsWatched: rings.size, historyMin: Math.round(longest / 60), drifting: f.slice(0, 8), note: longest < 300 ? 'Less than 5 min of sampled history yet — drift needs a longer window (speed the clock up).' : null }
+      return { signalsWatched: rings.size, historyMin: Math.round(longest / 60), drifting: f.slice(0, 8), note: longest < 300 ? 'Less than 5 min of sampled history yet: drift needs a longer window (speed the clock up).' : null }
     },
   },
   {
@@ -962,7 +962,7 @@ export function summarise(name: string, r: unknown): string {
   if (o.error) return `error: ${String(o.error)}`
   switch (name) {
     case 'get_field_status':
-      return `oil ${o.oilExportBpd ?? '—'} bbl/d, PE ${o.efficiencyPct ?? '—'} %, ${(o.shutdowns as unknown[])?.length ?? 0} shutdown(s)`
+      return `oil ${o.oilExportBpd ?? '-'} bbl/d, PE ${o.efficiencyPct ?? '-'} %, ${(o.shutdowns as unknown[])?.length ?? 0} shutdown(s)`
     case 'get_risk':
       return o.platform ? `${o.platform} ${o.score} (${o.band})` : `field ${o.field} (${o.band})`
     case 'get_alarms':

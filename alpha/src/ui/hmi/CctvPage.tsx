@@ -112,7 +112,7 @@ const Tile = memo(function Tile({ cam, big, calledUp, slot }: { cam: CctvCameraE
       className={`cctv-tile ${big ? 'big ptz' : ''} ${calledUp ? 'callup' : ''} ${cam.type}`}
       style={style}
       onClick={big ? undefined : () => setSelected(cam.id)}
-      title={big ? `${cam.id} · ${cam.model} · drag to pan and tilt, scroll to zoom, double-click to reset` : `${cam.id} — click to show on the main monitor`}
+      title={big ? `${cam.id} · ${cam.model} · drag to pan and tilt, scroll to zoom, double-click to reset` : `${cam.id}: click to show on the main monitor`}
       data-cam={cam.id}
       {...steer}
     >
@@ -525,7 +525,7 @@ function LogBox() {
                       </span>{' '}
                       <span className="dim">{Math.round(d.confidence * 100)}%</span>
                     </td>
-                    <td title={d.workerId ? names.get(d.workerId) : undefined}>{d.workerId ? names.get(d.workerId) ?? d.workerId : '—'}</td>
+                    <td title={d.workerId ? names.get(d.workerId) : undefined}>{d.workerId ? names.get(d.workerId) ?? d.workerId : '-'}</td>
                     <td className="act">
                       {cam && (
                         <button onClick={() => walkToTag(cam.watches[0])} title={`Walk to ${cam.watches[0]} (${cam.name})`}>
@@ -619,7 +619,7 @@ function PromptsBox({ cam }: { cam: string }) {
   }, [inst])
   return (
     <Box
-      title="Segmentation — SAM 3.1 (simulated)"
+      title="Segmentation: SAM 3.1 (simulated)"
       right={
         <button className={on ? 'on' : ''} onClick={() => useCctv.getState().setSeg(!on)} data-seg-toggle>
           {on ? 'Masks on' : 'Masks off'}
@@ -674,7 +674,7 @@ function ModelBox() {
           <tr>
             <td className="dim">Active</td>
             <td>
-              <b>Simulated SAM 3.1 (twin ground truth)</b> — instance masks from an id render pass of the camera view (true occlusion), PPE boxes from worker flags, hazards from live incidents
+              <b>Simulated SAM 3.1 (twin ground truth)</b> : instance masks from an id render pass of the camera view (true occlusion), PPE boxes from worker flags, hazards from live incidents
             </td>
           </tr>
           <tr>

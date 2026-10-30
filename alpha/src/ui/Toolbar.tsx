@@ -13,9 +13,16 @@ const PRESETS: [CameraPreset, string][] = [
   ['deck', 'Deck'],
   ['plan', 'Plan'],
 ]
+/** a button's left edge inside the toolbar, in the toolbar's own px, for a menu that hangs under that button */
+function leftInToolbar(button: HTMLElement) {
+  const bar = button.closest<HTMLElement>('.toolbar')!
+  const b = bar.getBoundingClientRect()
+  return ((button.getBoundingClientRect().left - b.left) * bar.offsetWidth) / b.width
+}
+
 /** more views, in the Views menu */
 const MORE: [CameraPreset, string][] = [
-  ['field', 'Field — WI, WHP-N, RP, Alpha & LQ'],
+  ['field', 'Field: WI, WHP-N, RP, Alpha & LQ'],
   ['whp', 'Wellhead platform (WHP-N)'],
   ['bridgeN', 'North bridge'],
   ['rp', 'Riser platform (RP)'],
@@ -53,10 +60,9 @@ export function Toolbar() {
   const section = useStore((s) => s.section)
   const setSection = useStore((s) => s.setSection)
   const [menu, setMenu] = useState<'layers' | 'section' | 'views' | 'decks' | 'cranes' | null>(null)
+  const [craneLeft, setCraneLeft] = useState(0)
   const workers = useStore((s) => s.workers)
   const setWorkers = useStore((s) => s.setWorkers)
-  const inspection = useStore((s) => s.inspection)
-  const setInspection = useStore((s) => s.setInspection)
   const craneCab = useStore((s) => s.craneCab)
   const setCraneCab = useStore((s) => s.setCraneCab)
   const walk = useStore((s) => s.walk)
@@ -106,17 +112,12 @@ export function Toolbar() {
           Control room
         </button>}
         {tourable && (
-          <button className={workers ? 'on' : ''} onClick={(e) => (e.currentTarget.blur(), setWorkers(!workers))} title="Simulated field workers walking the decks — the CCTV PPE detector watches them" data-workers>
+          <button className={workers ? 'on' : ''} onClick={(e) => (e.currentTarget.blur(), setWorkers(!workers))} title="Simulated field workers walking the decks: the CCTV PPE detector watches them" data-workers>
             Workers
           </button>
         )}
         {tourable && (
-          <button className={inspection ? 'on' : ''} onClick={(e) => (e.currentTarget.blur(), setInspection(!inspection))} title="Simulated inspection drone and robot, on their bay on the LQ. Send them from the console or the Inspector. They stop for workers." data-inspection>
-            Inspection
-          </button>
-        )}
-        {tourable && (
-          <button className={craneCab || menu === 'cranes' ? 'on' : ''} onClick={(e) => (e.currentTarget.blur(), craneCab ? setCraneCab(null) : setMenu(menu === 'cranes' ? null : 'cranes'))} title="Sit in a crane cab: operate the crane and look around the field" data-crane-menu>
+          <button className={craneCab || menu === 'cranes' ? 'on' : ''} onClick={(e) => (e.currentTarget.blur(), setCraneLeft(leftInToolbar(e.currentTarget)), craneCab ? setCraneCab(null) : setMenu(menu === 'cranes' ? null : 'cranes'))} title="Sit in a crane cab: operate the crane and look around the field" data-crane-menu>
             {craneCab ? 'Leave cab' : 'Crane ▾'}
           </button>
         )}
@@ -132,7 +133,7 @@ export function Toolbar() {
         )}
       </div>
       {menu === 'cranes' && (
-        <div className="pop views">
+        <div className="pop cranes" style={{ left: craneLeft }}>
           <div className="pop-head">Sit in a crane cab</div>
           {CRANES.map((c) => (
             <button key={c.tag} className="pop-item" onClick={() => (setMenu(null), setCraneCab(c.tag))} data-crane={c.tag}>

@@ -69,7 +69,7 @@ function CamControl() {
           </button>
         ))}
       </div>
-      <label className="dist" title="Distance from the person — or scroll / − +">
+      <label className="dist" title="Distance from the person, or scroll / − +">
         <span className="faint">Close</span>
         <input
           type="range"
@@ -82,7 +82,7 @@ function CamControl() {
           onPointerUp={(e) => (e.currentTarget as HTMLInputElement).blur()}
         />
         <span className="faint">Far</span>
-        <span className="mono val">{mode === 'eyes' ? '—' : `${dist.toFixed(1)} m`}</span>
+        <span className="mono val">{mode === 'eyes' ? '-' : `${dist.toFixed(1)} m`}</span>
       </label>
       <button
         className="reset"
@@ -173,7 +173,7 @@ function landmarksOf(plant: Plant, levels: WalkLevel[]): Landmark[] {
     out.push({
       id: m.tag,
       short: ccr ? 'CCR' : 'LCR',
-      title: `${m.tag} ${m.name} — click to go inside`,
+      title: `${m.tag} ${m.name}: click to go inside`,
       kind: ccr ? 'ccr' : 'room',
       x: m.position[0],
       z: m.position[2],
@@ -191,7 +191,7 @@ function landmarksOf(plant: Plant, levels: WalkLevel[]): Landmark[] {
       out.push({
         id: `LB${i + 1}`,
         short: `LB${i + 1}`,
-        title: `Lifeboat ${i + 1} (TEMPSC) muster station — click to go there`,
+        title: `Lifeboat ${i + 1} (TEMPSC) muster station: click to go there`,
         kind: 'boat',
         x: bx,
         z,
@@ -205,7 +205,7 @@ function landmarksOf(plant: Plant, levels: WalkLevel[]): Landmark[] {
     out.push({
       id: 'HELI',
       short: 'H',
-      title: 'Helideck (quarters roof) — click to go to the escape stair foot',
+      title: 'Helideck (quarters roof): click to go to the escape stair foot',
       kind: 'heli',
       x: h.x,
       z: h.z,
@@ -397,7 +397,7 @@ function Minimap({ big, setBig }: { big: boolean; setBig: (b: boolean) => void }
         ))}
         {eqs.map(({ e, f, li }) => {
           if (li !== level || !vis(f)) return null
-          const tip = `${e.tag} — ${e.name}`
+          const tip = `${e.tag}: ${e.name}`
           return (
             <rect
               key={e.tag}
@@ -675,7 +675,7 @@ function ConsolePrompt() {
   return (
     <div className="console-prompt" data-console-prompt={room.tag}>
       <span>
-        {room.name} — <b>sit at the console</b>
+        {room.name} - <b>sit at the console</b>
       </span>
       <kbd>Enter</kbd>
       <button onClick={() => useStore.getState().setHmi('dashboard')}>Open console</button>
@@ -704,7 +704,7 @@ function HazardZoneChip() {
     <div
       className="hz-walk-chip"
       data-hz-zone={here ? here.zone : 'safe'}
-      title={here ? `${here.reason} — ${rule.entry}. ${rule.also.join('. ')}` : 'Unclassified (safe) area'}
+      title={here ? `${here.reason}: ${rule.entry}. ${rule.also.join('. ')}` : 'Unclassified (safe) area'}
       style={{
         position: 'absolute',
         zIndex: 11,

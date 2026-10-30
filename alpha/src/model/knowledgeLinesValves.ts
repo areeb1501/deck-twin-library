@@ -504,8 +504,8 @@ const VALVES: Knowledge[] = [
 const LINES: Knowledge[] = [
   {
     id: 'line-multiphase',
-    title: 'Multiphase Line (PM) – Flowlines and Production Header',
-    summary: 'Piping carrying unprocessed well fluids – oil, gas, water and sometimes sand – from the trees to the manifold and on to the separators. Usually duplex stainless steel and heat-traced.',
+    title: 'Multiphase Line (PM): Flowlines and Production Header',
+    summary: 'Piping carrying unprocessed well fluids (oil, gas, water and sometimes sand) from the trees to the manifold and on to the separators. Usually duplex stainless steel and heat-traced.',
     howItWorks: 'Each well flowline leaves the tree wing valve and choke and runs to a slot on the production/test manifold, which directs it to the HP separator or the test separator. Because the fluid is a mixture of phases, flow regimes such as stratified, slug and annular occur depending on velocity and line inclination. The line is sized to stay below the erosional velocity limit while avoiding low-velocity slugging; material is typically 22Cr duplex to resist CO₂ and H₂S corrosion, with a high pressure class (E9A/D6A) because it sees wellhead shut-in pressure upstream of the choke.',
     useCases: [
       'Well flowlines from tree to manifold',
@@ -661,7 +661,7 @@ const LINES: Knowledge[] = [
   },
   {
     id: 'line-flare',
-    title: 'Flare Line (FL) – Relief and Blowdown Headers',
+    title: 'Flare Line (FL): Relief and Blowdown Headers',
     summary: 'Low-pressure piping that collects relief, blowdown and vent gas from PSVs, BDVs and pressure control valves and carries it to the flare knock-out drum and flare tip.',
     howItWorks: 'Sub-headers from each PSV and BDV join the main flare header, which is sloped continuously (typically 1:200) to drain liquid to the flare KO drum with no pockets. The KO drum removes droplets before gas goes to the flare boom and tip. The header is sized so that, in the worst relief case, back-pressure at each PSV stays within its rating and the gas velocity stays below about Mach 0.7 in headers. Purge gas keeps air out continuously.',
     useCases: [
@@ -886,7 +886,7 @@ const LINES: Knowledge[] = [
   },
   {
     id: 'line-firewater',
-    title: 'Firewater Line (FW) – Ring Main and Deluge',
+    title: 'Firewater Line (FW): Ring Main and Deluge',
     summary: 'Pressurised ring main distributing firewater from the firewater pumps to deluge valves, hydrants, monitors and hose reels around the platform.',
     howItWorks: 'A jockey pump (or seawater lift pump) keeps the ring main pressurised. When pressure falls or the F&G system detects a fire, the main diesel firewater pumps auto-start and supply the ring through check valves. The ring is looped with sectionalising valves so a damaged section can be isolated while all areas stay supplied from either direction. Deluge branches with spray nozzles discharge at the design application rate, typically 10.2 l/min/m² over process vessels.',
     useCases: [
@@ -997,7 +997,7 @@ const LINES: Knowledge[] = [
   },
   {
     id: 'line-teg',
-    title: 'TEG Glycol Line (TG) – Lean and Rich Glycol',
+    title: 'TEG Glycol Line (TG): Lean and Rich Glycol',
     summary: 'Lines carrying lean triethylene glycol from the regeneration package to the top of the contactor and rich glycol from the contactor bottom back for regeneration.',
     howItWorks: 'Lean TEG (≥ 99 wt %) is pumped to contactor pressure, cooled slightly above the gas temperature and fed to the top of the packing. Rich TEG, having absorbed water from the gas, leaves under level control, is let down in pressure, heated in the lean/rich exchanger and regenerated in the reboiler and still column at about 204 °C. The rich side is at low pressure after the level valve; the lean side is at full contactor pressure.',
     useCases: [

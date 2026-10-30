@@ -130,7 +130,7 @@ function FieldRisk() {
   return (
     <section className={`h-box dsh-hero b-${band}`} data-dash="field-risk">
       <h3>
-        <span>Field risk — now</span>
+        <span>Field risk: now</span>
         <span className="grow" />
         <span className={`dsh-state ${now?.producing === false ? 'down' : ''}`}>{now ? (now.producing ? 'Producing' : 'Not producing') : 'Waiting for sim'}</span>
       </h3>
@@ -165,7 +165,7 @@ function FieldRisk() {
         <div className="dsh-hero-side">
           <div className="dsh-cap">
             <span>Risk history</span>
-            <span className="dim mono">{hist.span > 0 ? `${fmtSpan(hist.span)} · peak ${Math.round(hist.peak)}` : '—'}</span>
+            <span className="dim mono">{hist.span > 0 ? `${fmtSpan(hist.span)} · peak ${Math.round(hist.peak)}` : '-'}</span>
           </div>
           <svg className="dsh-hist" viewBox="0 0 300 60" preserveAspectRatio="none">
             {[25, 50, 75].map((v) => (
@@ -175,10 +175,10 @@ function FieldRisk() {
             {hist.n > 1 && <polyline points={hist.pts} className="ln" style={{ stroke: col }} vectorEffect="non-scaling-stroke" />}
           </svg>
           <div className="dsh-cap">
-            <span>Why — by category</span>
+            <span>Why, by category</span>
           </div>
           <div className="dsh-cats">
-            {cats.length === 0 && <div className="dim">Every category nominal — no contributors.</div>}
+            {cats.length === 0 && <div className="dim">Every category nominal: no contributors.</div>}
             {cats.slice(0, 5).map(([k, v]) => (
               <div key={k} className="dsh-cat" title={RISK_CATEGORY_LABEL[k]}>
                 <span className="l">{CAT_SHORT[k]}</span>
@@ -220,8 +220,8 @@ function FieldKpis() {
     <Box title="Production & availability" className="dsh-kpibox" right={<span className="dim mono">{trend.span > 0 ? `trend ${fmtSpan(trend.span)}` : ''}</span>}>
       <div className="dsh-kpis">
         <Kpi label="Availability" value={fmt(k?.availability, 1)} unit="%" abn={(k?.availability ?? 100) < 95} title="Share of sim time the field was up (no PSD / ESD / blackout)" />
-        <Kpi label="PE — now" value={fmt(r?.efficiency, 1)} unit="%" abn={(r?.efficiency ?? 100) < 95} bad={!!r && r.efficiency < 50} title="Actual / maximum production potential (boe), this instant" />
-        <Kpi label="PE — session" value={fmt(k?.pe, 1)} unit="%" abn={(k?.pe ?? 100) < 95} />
+        <Kpi label="PE: now" value={fmt(r?.efficiency, 1)} unit="%" abn={(r?.efficiency ?? 100) < 95} bad={!!r && r.efficiency < 50} title="Actual / maximum production potential (boe), this instant" />
+        <Kpi label="PE: session" value={fmt(k?.pe, 1)} unit="%" abn={(k?.pe ?? 100) < 95} />
         <Kpi label="Oil export" value={fmt(r?.oilExport)} unit="bbl/d" bad={!!r && !producing} />
         <Kpi label="Gas export" value={fmt(r?.gasExport, 1)} unit="MMscfd" />
         <Kpi label="Flare" value={fmt(r?.flare, 1)} unit="MMscfd" abn={(r?.flare ?? 0) > 3} bad={(r?.flare ?? 0) > 15} />
@@ -293,7 +293,7 @@ function PlatformCards({ sel, onSel }: { sel: PlatformId | null; onSel: (p: Plat
         const sd = now?.shutdowns[id]
         const ga = r?.ga ?? 'normal'
         return (
-          <button key={id} className={`dsh-plat b-${band} ${sel === id ? 'sel' : ''}`} onClick={() => onSel(id)} title={`${PLATFORM_LABEL[id] ?? id} — click to filter the issues`} data-plat={id}>
+          <button key={id} className={`dsh-plat b-${band} ${sel === id ? 'sel' : ''}`} onClick={() => onSel(id)} title={`${PLATFORM_LABEL[id] ?? id}: click to filter the issues`} data-plat={id}>
             <Ring score={score} band={band} />
             <div className="body">
               <div className="hd">
@@ -386,7 +386,7 @@ function TopIssues({ plat, onClear }: { plat: PlatformId | null; onClear: () => 
   const total = now ? (plat ? (now.platforms[plat]?.contributors.length ?? 0) : now.contributors.length) : 0
   return (
     <Box
-      title={plat ? `Top issues — ${plat}` : 'Top issues — field'}
+      title={plat ? `Top issues: ${plat}` : 'Top issues: field'}
       className="dsh-issues"
       right={
         <>
@@ -460,7 +460,7 @@ function Barriers() {
       ) : (
         <div className="dsh-tags">
           {inh.map((t) => (
-            <span key={`i${t}`} className="dsh-tag inh" title="Inhibited — excluded from voting">
+            <span key={`i${t}`} className="dsh-tag inh" title="Inhibited: excluded from voting">
               INH <TagLink tag={t} />
             </span>
           ))}
@@ -470,7 +470,7 @@ function Barriers() {
             </span>
           ))}
           {stuck.map((t) => (
-            <span key={`s${t}`} className="dsh-tag stk" title="Valve stuck — position discrepancy">
+            <span key={`s${t}`} className="dsh-tag stk" title="Valve stuck: position discrepancy">
               STK <TagLink tag={t} />
             </span>
           ))}
@@ -579,7 +579,7 @@ const SensorTile = memo(function SensorTile({ s }: { s: Tile }) {
   return (
     <div className={`dsh-tile s${sev} ${s.inh ? 'inh' : ''}`} data-sensor={inst.tag}>
       <div className="hd">
-        <span className="tg mono" title={`${inst.type} ${inst.tag} · range ${inst.range || '—'}`}>
+        <span className="tg mono" title={`${inst.type} ${inst.tag} · range ${inst.range || '-'}`}>
           {inst.tag}
         </span>
         {s.why && <span className="why">{s.why}</span>}
@@ -592,7 +592,7 @@ const SensorTile = memo(function SensorTile({ s }: { s: Tile }) {
       </div>
       <div className="mid">
         <span className="v mono">
-          {v === undefined ? '—' : fmt(v, dec)}
+          {v === undefined ? '-' : fmt(v, dec)}
           <small>{inst.unit}</small>
         </span>
         <svg viewBox={`0 0 ${W} 26`} preserveAspectRatio="none" className="sp">

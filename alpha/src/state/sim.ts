@@ -467,7 +467,7 @@ export const useSim = create<SimState>((set, get) => ({
       const c = getCtx()
       d.status = { ...d.status, [tag]: c.partner.has(tag) ? 'standby' : 'stopped' }
       d.machines = { ...d.machines, [tag]: { runHours: m?.runHours ?? 0 } }
-      log(d, `${tag} trip reset${opts?.local ? ' locally' : ''} — ready to start`, 'info')
+      log(d, `${tag} trip reset${opts?.local ? ' locally' : ''}: ready to start`, 'info')
     })
     return why
   },
@@ -488,7 +488,7 @@ export const useSim = create<SimState>((set, get) => ({
         return
       }
       if (v.fault === 'stuck') {
-        why = `${tag} does not move — valve stuck (raise a work order)`
+        why = `${tag} does not move: valve stuck (raise a work order)`
         return
       }
       const lk = lockOf(tag)
@@ -497,7 +497,7 @@ export const useSim = create<SimState>((set, get) => ({
         return
       }
       if (cmd === 'open' && v.by && d.shutdowns.some((s) => s.id === v.by && !s.resetAt)) {
-        why = `${tag} is held closed by ${v.by} — reset the shutdown first`
+        why = `${tag} is held closed by ${v.by}: reset the shutdown first`
         return
       }
       d.valves = { ...d.valves, [tag]: { ...v, cmd, by: by ?? 'operator' } }
@@ -514,7 +514,7 @@ export const useSim = create<SimState>((set, get) => ({
   initiate: (level, platform, zone, cause) =>
     withDraft((d) => {
       if (level === 'APS') return initiate(d, 'APS', 'Alpha', undefined, 'aps', cause ?? 'Manual APS push-button (CCR)')
-      initiate(d, level, platform, zone, 'manual', cause ?? `Manual ${level} push-button (CCR)${zone ? ` — zone ${zone}` : ''}`)
+      initiate(d, level, platform, zone, 'manual', cause ?? `Manual ${level} push-button (CCR)${zone ? `: zone ${zone}` : ''}`)
     }),
   resetShutdown: (id) => {
     let why: string | null = null
@@ -539,7 +539,7 @@ export const useSim = create<SimState>((set, get) => ({
 
   inhibit: (tag, on) => {
     set((s) => ({ inhibits: { ...s.inhibits, [tag]: on } }))
-    withDraft((d) => log(d, `${tag} ${on ? 'INHIBITED (override) — excluded from voting' : 'inhibit removed'}`, on ? 'warn' : 'info'))
+    withDraft((d) => log(d, `${tag} ${on ? 'INHIBITED (override): excluded from voting' : 'inhibit removed'}`, on ? 'warn' : 'info'))
   },
 
   inject: (f) => {
@@ -599,7 +599,7 @@ export const useSim = create<SimState>((set, get) => ({
       lockouts: {},
     })
     for (const p of plugins.values()) p.reset?.()
-    withDraft((d) => log(d, 'Simulation reset — new session, plant in normal operation', 'info'))
+    withDraft((d) => log(d, 'Simulation reset: new session, plant in normal operation', 'info'))
   },
   setDoor: (key, open) => get().doors[key] !== open && set((s) => ({ doors: { ...s.doors, [key]: open } })),
   toggleDoor: (key) => set((s) => ({ doors: { ...s.doors, [key]: !s.doors[key] } })),
@@ -717,13 +717,13 @@ function startMachine(d: Draft, tag: string, auto = false): string | null {
   if (!cl) return `${tag} is not a machine`
   const st = stateOf(d, tag)
   if (st === 'running' || st === 'starting') return null
-  if (st === 'tripped') return `${tag} is tripped — reset it first (${d.machines[tag]?.tripCause ?? ''})`
+  if (st === 'tripped') return `${tag} is tripped: reset it first (${d.machines[tag]?.tripCause ?? ''})`
   const lk = lockOf(tag)
-  if (lk) return `${tag} is locked out under ${lk.by} — sign the permit off first`
-  if (!mainPowered && !essential(c, tag)) return `No main power — start a turbine generator before ${tag}`
+  if (lk) return `${tag} is locked out under ${lk.by}: sign the permit off first`
+  if (!mainPowered && !essential(c, tag)) return `No main power: start a turbine generator before ${tag}`
   const p = platOf(c, tag)
   const blocking = d.shutdowns.find((s) => !s.resetAt && (s.platform === p || s.level === 'APS') && blockedBy(s, tag))
-  if (blocking) return `${tag} is interlocked by the latched ${blocking.level} on ${blocking.platform} — reset the shutdown first`
+  if (blocking) return `${tag} is interlocked by the latched ${blocking.level} on ${blocking.platform}: reset the shutdown first`
   if (tag === A.TAGS.compressor && c.alpha && vpos(d, A.TAGS.gasOut) < 0.5) return `${tag}: suction ESDV-2101 is closed`
   const dur = A.CLASS_DATA[cl].start
   d.status = { ...d.status, [tag]: 'starting' }
@@ -750,7 +750,7 @@ function tripMachine(d: Draft, tag: string, why: string, opts?: { local?: boolea
   const m = d.machines[tag] ?? { runHours: 0 }
   d.machines = { ...d.machines, [tag]: { ...m, tripCause: why, localReset: !!opts?.local, repairUntil: opts?.repairH ? d.t + opts.repairH * 3600 : undefined, startDoneAt: undefined } }
   d.kpis = { ...d.kpis, trips: d.kpis.trips + 1 }
-  log(d, `${tag} TRIPPED — ${why}${opts?.local ? ' · local reset required' : ''}${opts?.repairH ? ` · repair ~${opts.repairH.toFixed(1)} h` : ''}`, 'trip')
+  log(d, `${tag} TRIPPED: ${why}${opts?.local ? ' · local reset required' : ''}${opts?.repairH ? ` · repair ~${opts.repairH.toFixed(1)} h` : ''}`, 'trip')
   // duty / standby: the standby takes over
   const o = c.partner.get(tag)
   if (wasOn && o && d.knobs.autoChangeover && stateOf(d, o) === 'standby') startMachine(d, o, true)
@@ -769,7 +769,7 @@ function initiate(d: Draft, level: ShutdownLevel, platform: PlatformId, zone: st
   d.shutdowns = [...d.shutdowns, sd]
   d.kpis = { ...d.kpis, shutdowns: d.kpis.shutdowns + 1 }
   if (!['upstream-psd', 'injector-shut'].includes(causeId)) lastLoss = sd.loss
-  log(d, `${level} ${platform}${zone ? ` zone ${zone}` : ''} — ${SHUTDOWN_LABEL[level]}: ${cause}`, 'trip')
+  log(d, `${level} ${platform}${zone ? ` zone ${zone}` : ''}: ${SHUTDOWN_LABEL[level]}: ${cause}`, 'trip')
 
   const close = (tag: string) => {
     const v = d.valves[tag]
@@ -818,11 +818,11 @@ function stillActive(d: Draft, s: Shutdown): string | null {
   const p = d.process
   switch (s.causeId) {
     case 'lahh-1101':
-      return p.hpLevel >= A.HP.lah ? `HP separator level ${p.hpLevel.toFixed(0)} % is above LAH ${A.HP.lah} % — drain it down first` : null
+      return p.hpLevel >= A.HP.lah ? `HP separator level ${p.hpLevel.toFixed(0)} % is above LAH ${A.HP.lah} %: drain it down first` : null
     case 'pahh-1101':
       return p.hpPressure >= A.HP.pah ? `HP separator pressure ${p.hpPressure.toFixed(1)} barg is above PAH ${A.HP.pah}` : null
     case 'ia-ll':
-      return p.iaPressure < 6.5 ? `instrument air ${p.iaPressure.toFixed(1)} barg — restore K-4600 (above 6.5 barg)` : null
+      return p.iaPressure < 6.5 ? `instrument air ${p.iaPressure.toFixed(1)} barg: restore K-4600 (above 6.5 barg)` : null
     case 'blackout':
       return mainPowered ? null : 'no turbine generator on the bus'
     case 'upstream-psd': {
@@ -850,13 +850,13 @@ function stillActive(d: Draft, s: Shutdown): string | null {
 function restartPlatform(d: Draft, platform: PlatformId): string | null {
   const c = getCtx()
   const mine = d.shutdowns.filter((s) => s.platform === platform || s.level === 'APS')
-  if (!mine.length) return `${platform} is not shut down — nothing to restart`
+  if (!mine.length) return `${platform} is not shut down: nothing to restart`
   const unreset = mine.find((s) => !s.resetAt)
   if (unreset) return `Reset the ${unreset.level} (${unreset.cause}) before restarting ${platform}`
-  if (platform === 'WHP-N' && d.shutdowns.some((s) => s.platform === 'Alpha')) return 'Restart Alpha first — WHP-N produces into Alpha'
-  if (platform === 'WI' && d.shutdowns.some((s) => s.platform === 'WHP-N')) return 'Restart WHP-N first — WI injects into its water injector'
+  if (platform === 'WHP-N' && d.shutdowns.some((s) => s.platform === 'Alpha')) return 'Restart Alpha first: WHP-N produces into Alpha'
+  if (platform === 'WI' && d.shutdowns.some((s) => s.platform === 'WHP-N')) return 'Restart WHP-N first: WI injects into its water injector'
   const ids = new Set(mine.map((s) => s.id))
-  if (!mainPowered && c.gtgs.length && !c.gtgs.some((g) => ids.has(d.machines[g]?.byShutdown ?? ''))) return 'No main power — reset and start a turbine generator first'
+  if (!mainPowered && c.gtgs.length && !c.gtgs.some((g) => ids.has(d.machines[g]?.byShutdown ?? ''))) return 'No main power: reset and start a turbine generator first'
   // valves back to their normal position
   const vs = { ...d.valves }
   for (const [tag, v] of Object.entries(vs)) {
@@ -866,7 +866,7 @@ function restartPlatform(d: Draft, platform: PlatformId): string | null {
   }
   d.valves = vs
   d.shutdowns = d.shutdowns.filter((s) => !ids.has(s.id))
-  log(d, `${platform} RESTART — ESD valves opening, wells ramping back over ~10 min`, 'info')
+  log(d, `${platform} RESTART: ESD valves opening, wells ramping back over ~10 min`, 'info')
   // machines the shutdown stopped come back through their start sequences
   const rank = (m: string) => (c.cls.get(m) === 'gtg' ? 0 : c.cls.get(m) === 'compressor' ? 2 : 1)
   const order = [...c.machines].sort((a, b) => rank(a) - rank(b))
@@ -899,9 +899,9 @@ function platformDown(d: Pick<Draft, 'shutdowns'>, p: PlatformId) {
 function describeFault(f: Fault) {
   switch (f.kind) {
     case 'gasRelease':
-      return `gas release ${f.rateKgS} kg/s${f.label ? ` — ${f.label}` : ''}`
+      return `gas release ${f.rateKgS} kg/s${f.label ? `: ${f.label}` : ''}`
     case 'fire':
-      return `fire ${f.sizeMW} MW${f.label ? ` — ${f.label}` : ''}`
+      return `fire ${f.sizeMW} MW${f.label ? `: ${f.label}` : ''}`
     case 'trip':
       return `${f.tag} trip (${f.cause})`
     case 'valveStuck':
@@ -934,7 +934,7 @@ function injectFault(d: Draft, f: Fault): string {
   d.incidents = [...d.incidents, inc]
   log(d, `INSTRUCTOR: ${describeFault(f)}`, 'warn')
   if (f.kind === 'trip') tripMachine(d, f.tag, f.cause, { local: f.local, repairH: f.repairH })
-  if (f.kind === 'instrumentAirFail') tripMachine(d, A.TAGS.iaCompressor, 'Dryer tower failure — air wet, package shut down', { local: true, repairH: 3 })
+  if (f.kind === 'instrumentAirFail') tripMachine(d, A.TAGS.iaCompressor, 'Dryer tower failure: air wet, package shut down', { local: true, repairH: 3 })
   if (f.kind === 'valveStuck' && d.valves[f.tag]) d.valves = { ...d.valves, [f.tag]: { ...d.valves[f.tag], fault: 'stuck' } }
   if (f.kind === 'levelControlFail' && d.valves[f.tag]) d.valves = { ...d.valves, [f.tag]: { ...d.valves[f.tag], cmd: 'closed', fault: 'stuck', by: 'fault' } }
   return id
@@ -1029,7 +1029,7 @@ function step(d: Draft, c: Ctx, dt: number): PlantResult {
   const wasPowered = mainPowered
   mainPowered = powerAvailable > 0
   if (!mainPowered && wasPowered) {
-    log(d, 'BLACKOUT — no turbine generator on the main bus; emergency generator starting', 'trip')
+    log(d, 'BLACKOUT: no turbine generator on the main bus; emergency generator starting', 'trip')
     p.emergencyGen = 'starting'
     emergencyAt = d.t + 15
     // electric drives drop out
@@ -1048,7 +1048,7 @@ function step(d: Draft, c: Ctx, dt: number): PlantResult {
   }
   if (p.emergencyGen === 'starting' && d.t >= emergencyAt) {
     p.emergencyGen = 'running'
-    log(d, 'Emergency generator B-9310 running — essential loads (LQ, F&G, UPS, nav aids)', 'warn')
+    log(d, 'Emergency generator B-9310 running: essential loads (LQ, F&G, UPS, nav aids)', 'warn')
   }
   const loadOf = (t: string) => (t === A.TAGS.rig ? (k.drilling ? A.LOADS[t] : 0) : (A.LOADS[t] ?? 0))
   const demandNow = () => {
@@ -1063,7 +1063,7 @@ function step(d: Draft, c: Ctx, dt: number): PlantResult {
     for (const t of A.SHED_ORDER) {
       if (demand <= powerAvailable + 0.01) break
       if (!running(d, c, t) && stateOf(d, t) !== 'starting') continue
-      tripMachine(d, t, `Load shed — under-frequency (demand ${demand.toFixed(1)} MW > ${powerAvailable.toFixed(0)} MW)`)
+      tripMachine(d, t, `Load shed: under-frequency (demand ${demand.toFixed(1)} MW > ${powerAvailable.toFixed(0)} MW)`)
       shedNow = true
       demand = demandNow()
     }
@@ -1164,7 +1164,7 @@ function step(d: Draft, c: Ctx, dt: number): PlantResult {
   if (compRunning0(d, c) && vpos(d, A.TAGS.gasOut) > 0.5 && !(vpos(d, A.TAGS.gasExport) > 0.5 && gasRiserOpen)) {
     blockedTimer += dt
     if (blockedTimer > 10) {
-      tripMachine(d, A.TAGS.compressor, `High discharge pressure — export blocked (${vpos(d, A.TAGS.gasExport) <= 0.5 ? 'ESDV-2301' : 'RP gas riser'} closed)`)
+      tripMachine(d, A.TAGS.compressor, `High discharge pressure: export blocked (${vpos(d, A.TAGS.gasExport) <= 0.5 ? 'ESDV-2301' : 'RP gas riser'} closed)`)
       blockedTimer = 0
     }
   } else blockedTimer = 0
@@ -1181,12 +1181,12 @@ function step(d: Draft, c: Ctx, dt: number): PlantResult {
       if (p.surgeMargin < 0) {
         surgeTimer += dt
         if (surgeTimer > 5) {
-          tripMachine(d, A.TAGS.compressor, 'Surge — high vibration (anti-surge valve FV-2201 failed)', { local: true })
+          tripMachine(d, A.TAGS.compressor, 'Surge: high vibration (anti-surge valve FV-2201 failed)', { local: true })
           surgeTimer = 0
         }
       } else surgeTimer = 0
     } else p.recycle += (raw - p.recycle) * Math.min(1, dt / 2)
-    if (p.cmTemp >= 55) tripMachine(d, A.TAGS.compressor, `High discharge temperature — cooling medium ${p.cmTemp.toFixed(0)} °C (TAHH-6303)`)
+    if (p.cmTemp >= 55) tripMachine(d, A.TAGS.compressor, `High discharge temperature: cooling medium ${p.cmTemp.toFixed(0)} °C (TAHH-6303)`)
   } else {
     p.recycle = 100
     p.surgeMargin = 0
@@ -1215,7 +1215,7 @@ function step(d: Draft, c: Ctx, dt: number): PlantResult {
     p.relief = trapped + (p.hpPressure - A.HP.psv) * 200
     p.hpPressure = A.HP.psv + 0.3
     if (!psvLifting) {
-      log(d, `PSV-1101 LIFTING at ${A.HP.psv} barg — relieving to flare`, 'trip')
+      log(d, `PSV-1101 LIFTING at ${A.HP.psv} barg: relieving to flare`, 'trip')
       d.newAlarms.push({ key: `PSV:${d.t}`, tag: 'PSV-1101', text: 'PSV-1101 lifting (HP separator overpressure)', priority: 1, kind: 'process', platform: 'Alpha' })
     }
     psvLifting = true
@@ -1236,7 +1236,7 @@ function step(d: Draft, c: Ctx, dt: number): PlantResult {
     if (pumps > 0 && (!pathOpen || !lift)) {
       wiBlockedTimer += dt
       if (wiBlockedTimer > 30) {
-        for (const t of A.TAGS.wi.injPumps) if (running(d, c, t)) tripMachine(d, t, !lift ? 'Low suction pressure — no seawater lift pump' : 'Low flow — injection path closed')
+        for (const t of A.TAGS.wi.injPumps) if (running(d, c, t)) tripMachine(d, t, !lift ? 'Low suction pressure: no seawater lift pump' : 'Low flow: injection path closed')
         wiBlockedTimer = 0
       }
     } else wiBlockedTimer = 0
@@ -1281,15 +1281,15 @@ function step(d: Draft, c: Ctx, dt: number): PlantResult {
   const flareLoss = Math.min(rest, flared)
   const liqLoss = rest - flareLoss
   const liqCat: LossCategory = planned([...A.TAGS.exportPumps, ...A.TAGS.pwPumps]) || anyPlanned ? 'planned' : hasFault(d, 'exportBlocked') || !exportOk ? 'export' : 'oil'
-  if (resBoe > 50) constraints.push({ id: 'reservoir', text: `Reservoir pressure ${(p.reservoir * 100).toFixed(1)} % — ${p.wiRate < 1 ? 'no water injection' : 'injection below voidage'}, ${Math.round(resBoe).toLocaleString()} boe/d lost`, loss: 'reservoir', boe: resBoe })
-  if (wellsLoss > 50) constraints.push({ id: 'wells', text: `Wells choked back / shut in — ${Math.round(wellsLoss).toLocaleString()} boe/d below potential`, loss: 'wells', boe: wellsLoss })
-  for (const s of down) if (!constraints.some((x) => x.id === s.platform)) constraints.push({ id: s.platform, text: `${s.platform} ${s.level}${s.resetAt ? ' (reset — awaiting restart)' : ''}: ${s.cause}`, loss: s.loss, boe: sdLoss })
-  if (!down.length && sdLoss > 50) constraints.push({ id: 'ramp', text: `Wells ramping back after restart — ${Math.round(sdLoss).toLocaleString()} boe/d to come`, loss: sdCat, boe: sdLoss })
-  if (flareLoss > 50) constraints.push({ id: 'flare', text: compRunning ? `Compressor at capacity — ${(gas - fuel - gasExport).toFixed(1)} MMscfd to flare` : `Export compressor down${k2Cause ? ` (${k2Cause})` : ''} — gas to flare`, loss: gasCat, boe: flareLoss })
-  if (liqLoss > 50) constraints.push({ id: 'liquid', text: !exportOk ? 'Export blocked — oil held in the separators' : nRunning(d, c, A.TAGS.exportPumps) === 0 ? 'No export pump running — HP separator level rising' : 'Liquid handling limits export (level rising)', loss: liqCat, boe: liqLoss })
-  if (!mainPowered && c.gtgs.length) constraints.unshift({ id: 'blackout', text: 'BLACKOUT — no gas turbine generator running', loss: 'power', boe: 0 })
-  if (p.iaPressure < 6.5 && p.iaPressure > 5.5) constraints.push({ id: 'ia', text: `Instrument air low ${p.iaPressure.toFixed(1)} barg — PSD at 5.5`, loss: 'utilities', boe: 0 })
-  if (p.hpLevel >= A.HP.lah && p.hpLevel < A.HP.lahh) constraints.push({ id: 'lah', text: `HP separator level high ${p.hpLevel.toFixed(0)} % — PSD at ${A.HP.lahh.toFixed(0)} %`, loss: liqCat, boe: 0 })
+  if (resBoe > 50) constraints.push({ id: 'reservoir', text: `Reservoir pressure ${(p.reservoir * 100).toFixed(1)} %: ${p.wiRate < 1 ? 'no water injection' : 'injection below voidage'}, ${Math.round(resBoe).toLocaleString()} boe/d lost`, loss: 'reservoir', boe: resBoe })
+  if (wellsLoss > 50) constraints.push({ id: 'wells', text: `Wells choked back / shut in: ${Math.round(wellsLoss).toLocaleString()} boe/d below potential`, loss: 'wells', boe: wellsLoss })
+  for (const s of down) if (!constraints.some((x) => x.id === s.platform)) constraints.push({ id: s.platform, text: `${s.platform} ${s.level}${s.resetAt ? ' (reset: awaiting restart)' : ''}: ${s.cause}`, loss: s.loss, boe: sdLoss })
+  if (!down.length && sdLoss > 50) constraints.push({ id: 'ramp', text: `Wells ramping back after restart: ${Math.round(sdLoss).toLocaleString()} boe/d to come`, loss: sdCat, boe: sdLoss })
+  if (flareLoss > 50) constraints.push({ id: 'flare', text: compRunning ? `Compressor at capacity: ${(gas - fuel - gasExport).toFixed(1)} MMscfd to flare` : `Export compressor down${k2Cause ? ` (${k2Cause})` : ''}: gas to flare`, loss: gasCat, boe: flareLoss })
+  if (liqLoss > 50) constraints.push({ id: 'liquid', text: !exportOk ? 'Export blocked: oil held in the separators' : nRunning(d, c, A.TAGS.exportPumps) === 0 ? 'No export pump running: HP separator level rising' : 'Liquid handling limits export (level rising)', loss: liqCat, boe: liqLoss })
+  if (!mainPowered && c.gtgs.length) constraints.unshift({ id: 'blackout', text: 'BLACKOUT: no gas turbine generator running', loss: 'power', boe: 0 })
+  if (p.iaPressure < 6.5 && p.iaPressure > 5.5) constraints.push({ id: 'ia', text: `Instrument air low ${p.iaPressure.toFixed(1)} barg: PSD at 5.5`, loss: 'utilities', boe: 0 })
+  if (p.hpLevel >= A.HP.lah && p.hpLevel < A.HP.lahh) constraints.push({ id: 'lah', text: `HP separator level high ${p.hpLevel.toFixed(0)} %: PSD at ${A.HP.lahh.toFixed(0)} %`, loss: liqCat, boe: 0 })
   stepLoss = { res: resBoe, wells: wellsLoss, sd: sdLoss, sdCat, flare: flareLoss, gasCat, liq: liqLoss, liqCat, mpp: mppBoe, actual }
 
   // ---- platforms
@@ -1463,7 +1463,7 @@ function stepFireGas(d: Draft, c: Ctx, dt: number) {
       initiate(d, st.fire === 'confirmed' ? 'ESD1' : 'ESD2', pid, id, 'fire-confirmed', `Confirmed ${st.fire === 'confirmed' ? 'fire (2ooN flame)' : 'fire (2ooN heat / smoke)'} in ${id}`)
       for (const v of c.deluge) if (zoneOf(c, v) === id && d.valves[v] && d.valves[v].cmd !== 'open') {
         d.valves = { ...d.valves, [v]: { ...d.valves[v], cmd: 'open', by: 'F&G' } }
-        log(d, `DELUGE released in ${id} — ${v} opening`, 'trip')
+        log(d, `DELUGE released in ${id}: ${v} opening`, 'trip')
         d.newAlarms.push({ key: `DELUGE:${v}:${d.t}`, tag: v, text: `Deluge released ${v} (${id})`, priority: 1, kind: 'fg', platform: pid, zone: id })
       }
     }
@@ -1549,11 +1549,11 @@ function reconcileAlarms(s: SimState, c: Ctx, r: PlantResult): Alarm[] {
     const st = stateOf(s, m)
     if (st === 'tripped') {
       const mm = s.machines[m]
-      add({ key: `${m}:TRIP`, tag: m, text: `${m} tripped — ${mm?.tripCause ?? ''}${mm?.localReset ? ' (local reset)' : ''}`, priority: /surge|fire|failure/i.test(mm?.tripCause ?? '') ? 1 : 2, kind: 'equipment', platform: c.alpha ? platOf(c, m) : 'Plant' })
+      add({ key: `${m}:TRIP`, tag: m, text: `${m} tripped: ${mm?.tripCause ?? ''}${mm?.localReset ? ' (local reset)' : ''}`, priority: /surge|fire|failure/i.test(mm?.tripCause ?? '') ? 1 : 2, kind: 'equipment', platform: c.alpha ? platOf(c, m) : 'Plant' })
     }
   }
   // shutdowns
-  for (const sd of s.shutdowns) if (!sd.resetAt) add({ key: `ESD:${sd.id}`, tag: sd.level, text: `${sd.level} ${sd.platform}${sd.zone ? ` ${sd.zone}` : ''} — ${sd.cause}`, priority: 1, kind: 'esd', platform: sd.platform, zone: sd.zone })
+  for (const sd of s.shutdowns) if (!sd.resetAt) add({ key: `ESD:${sd.id}`, tag: sd.level, text: `${sd.level} ${sd.platform}${sd.zone ? ` ${sd.zone}` : ''}: ${sd.cause}`, priority: 1, kind: 'esd', platform: sd.platform, zone: sd.zone })
   // F&G
   for (const [tag, ds] of Object.entries(s.detectors)) {
     if (ds.state === 'normal' || ds.state === 'inhibited') continue
@@ -1564,12 +1564,12 @@ function reconcileAlarms(s: SimState, c: Ctx, r: PlantResult): Alarm[] {
   }
   for (const [tag, on] of Object.entries(s.inhibits)) if (on) add({ key: `${tag}:INH`, tag, text: `${tag} inhibited (override in force)`, priority: 3, kind: 'fg', platform: dets(c).find((x) => x.tag === tag)?.platform ?? 'Alpha' })
   // system
-  if (!mainPowered && c.gtgs.length) add({ key: 'SYS:BLACKOUT', tag: 'MAIN BUS', text: 'Main power lost — blackout', priority: 1, kind: 'system', platform: 'Alpha' })
+  if (!mainPowered && c.gtgs.length) add({ key: 'SYS:BLACKOUT', tag: 'MAIN BUS', text: 'Main power lost: blackout', priority: 1, kind: 'system', platform: 'Alpha' })
   if (s.process.emergencyGen === 'running') add({ key: 'SYS:EG', tag: A.TAGS.emergencyGen, text: 'Emergency generator running', priority: 2, kind: 'system', platform: 'LQ' })
   if (onDiesel) add({ key: 'SYS:DIESEL', tag: 'GT-8100', text: 'Turbine generators on diesel (no fuel gas)', priority: 3, kind: 'system', platform: 'Alpha' })
   if (c.alpha && r.flare > 20) add({ key: 'SYS:FLARE', tag: 'FLARE', text: `High flaring ${r.flare.toFixed(0)} MMscfd`, priority: r.flare > A.CAP.flareSystem * 0.8 ? 1 : 2, kind: 'process', platform: 'Alpha' })
   if (c.alpha && s.process.surgeMargin < 5 && isRunning(A.TAGS.compressor)) add({ key: 'K-2200:SURGE', tag: A.TAGS.compressor, text: `K-2200 surge margin low ${s.process.surgeMargin.toFixed(0)} %`, priority: 1, kind: 'process', platform: 'Alpha' })
-  for (const v of Object.entries(s.valves)) if (v[1].fault === 'stuck') add({ key: `${v[0]}:STUCK`, tag: v[0], text: `${v[0]} position discrepancy — valve not moving`, priority: 2, kind: 'equipment', platform: c.alpha ? platOf(c, v[0]) : 'Plant' })
+  for (const v of Object.entries(s.valves)) if (v[1].fault === 'stuck') add({ key: `${v[0]}:STUCK`, tag: v[0], text: `${v[0]} position discrepancy: valve not moving`, priority: 2, kind: 'equipment', platform: c.alpha ? platOf(c, v[0]) : 'Plant' })
   for (const a of pushedAlarms.splice(0)) add({ ...a })
   for (const p of plugins.values()) {
     try {

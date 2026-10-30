@@ -1,7 +1,9 @@
 import { useState } from 'react'
 import { Link } from 'wouter'
 import { EXAMPLES, byLevel, level, type Level } from '../plants'
-import { Issues, PlantView } from '../viewer/PlantView'
+import { Issues } from '../viewer/PlantView'
+import { ClientPlant } from '../viewer/ClientPlant'
+import { usePageMeta } from '../meta'
 import { Code, Command, RichText, Segmented } from '../components/ui'
 import { CLI } from '../site'
 import type { Issue } from '../../registry/assembly/spec'
@@ -10,6 +12,7 @@ import { useTheme } from '../theme'
 import { thumb } from '../registry'
 
 export function ExamplesIndex() {
+  usePageMeta('Example plants', 'Oil and gas plants assembled from the Deck Twin registry with a single plant.json, wired port to port. Use them as starting points or as references for your agent.')
   const theme = useTheme()
   return (
     <div className="mx-auto max-w-[1280px] px-6 py-10">
@@ -43,6 +46,7 @@ export function ExamplePage({ name }: { name: string }) {
   const [labels, setLabels] = useState(true)
   const [env, setEnv] = useState<'studio' | 'day' | 'night'>('day')
   const [issues, setIssues] = useState<Issue[]>([])
+  usePageMeta(ex?.spec.name ?? 'Example not found', ex?.spec.description ?? '')
   if (!ex) return <NotFound what="example" />
   return (
     <div className="mx-auto max-w-[1440px] px-6 py-8">
@@ -57,7 +61,7 @@ export function ExamplePage({ name }: { name: string }) {
       </p>
       <div className="mt-5 grid grid-cols-1 gap-5 lg:grid-cols-[minmax(0,1fr)_420px]">
         <div className="relative h-[420px] overflow-hidden sm:h-[620px] rounded-xl border border-border shadow-sm">
-          <PlantView spec={ex.spec} labels={labels} env={env} onIssues={setIssues} className="absolute inset-0" />
+          <ClientPlant spec={ex.spec} labels={labels} env={env} onIssues={setIssues} className="absolute inset-0" />
           <div className="absolute top-3 right-3 flex items-center gap-2">
             {ex.spec.sea && (
               <div className="rounded-md bg-surface shadow-sm">

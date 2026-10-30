@@ -104,7 +104,7 @@ function withWorkers(run: () => string, done: (msg: string) => void, tries = 8) 
   const st = useStore.getState()
   if (!st.workers) st.setWorkers(true)
   if (!Object.keys(workerPose).length) {
-    if (tries <= 0) return done('Field workers did not come on deck — try again')
+    if (tries <= 0) return done('Field workers did not come on deck: try again')
     setTimeout(() => withWorkers(run, done, tries - 1), 400)
     return
   }
@@ -121,7 +121,7 @@ function sendInto(zone: 0 | 1, pick: string, planned?: Plan | null): string {
   if (r === false) return 'The field workers are not on deck yet'
   setWorkerTask(w.id, zone === 1 ? `Drill: Zone 1 at ${target.face}, no gas monitor` : `Drill: entering ${target.face} (Zone 0), no permit`)
   useCctv.getState().setSelected(cam.id)
-  return `✓ ${w.name} walking to ${target.face} — ${target.volume.reason} (Zone ${zone}), ~${Math.max(3, Math.round(dist / 1.3))} s. ${cam.id} is on the main monitor.`
+  return `✓ ${w.name} walking to ${target.face}: ${target.volume.reason} (Zone ${zone}), ~${Math.max(3, Math.round(dist / 1.3))} s. ${cam.id} is on the main monitor.`
 }
 
 function removeHardHat(pick: string): string {
@@ -138,7 +138,7 @@ function removeHardHat(pick: string): string {
   setPpeOverride(w.id, { hardHat: false })
   const cam = seen(w)
   if (cam) useCctv.getState().setSelected(cam.id)
-  return `✓ ${w.name} took the hard hat off${cam ? ` — ${cam.id} is on the main monitor` : ' (not on a camera right now)'}.`
+  return `✓ ${w.name} took the hard hat off${cam ? `: ${cam.id} is on the main monitor` : ' (not on a camera right now)'}.`
 }
 
 function restoreAll(): string {
@@ -156,7 +156,7 @@ export function HazardAreasPanel() {
   return (
     <Box
       className="hz-panel"
-      title="Hazardous areas — Zone 0 / 1 / 2 (IEC 60079-10-1, gas)"
+      title="Hazardous areas: Zone 0 / 1 / 2 (IEC 60079-10-1, gas)"
       right={
         <button className={layer ? 'on' : ''} onClick={() => setLayer('hazAreas', !layer)} title="Layers → Hazardous areas (Zone 0/1/2)" data-hz-layer>
           {layer ? 'Zones shown in 3D' : 'Show zones in 3D'}
@@ -221,9 +221,9 @@ function Matrix() {
               {CLASSIFICATION.map((c) => (
                 <tr key={c.source}>
                   <td>{c.what}</td>
-                  <td className="dim">{c.z0 ?? '—'}</td>
-                  <td className="dim">{c.z1 ?? '—'}</td>
-                  <td className="dim">{c.z2 ?? '—'}</td>
+                  <td className="dim">{c.z0 ?? '-'}</td>
+                  <td className="dim">{c.z1 ?? '-'}</td>
+                  <td className="dim">{c.z2 ?? '-'}</td>
                 </tr>
               ))}
             </tbody>
@@ -274,11 +274,11 @@ function People() {
         <Kpi label="In Z0" value={String(n(0))} bad={active.some((v) => v.kind === 'zone0Entry')} title="People in Zone 0 now" />
         <Kpi label="In Z1" value={String(n(1))} title="People in Zone 1 now" />
         <Kpi label="In Z2" value={String(n(2))} title="People in Zone 2 now" />
-        <Kpi label="Violations" value={String(active.length)} abn={active.length > 0} title="Violations now — tracked by worn tag (RTLS), camera-independent" />
+        <Kpi label="Violations" value={String(active.length)} abn={active.length > 0} title="Violations now: tracked by worn tag (RTLS), camera-independent" />
         <Kpi label="On camera" value={`${confirmed}/${active.length}`} title="Violations a CCTV detection has confirmed" />
       </div>
       {!workersOn ? (
-        <p className="h-note">Field workers are off — nobody on the decks to track. The drill buttons below turn them on.</p>
+        <p className="h-note">Field workers are off: nobody on the decks to track. The drill buttons below turn them on.</p>
       ) : rows.length === 0 ? (
         <p className="h-note">Nobody in a classified area right now.</p>
       ) : (
@@ -303,7 +303,7 @@ function People() {
                   <td className="mono" title={p.reason}>
                     {p.tag}
                   </td>
-                  <td>{p.zone === 0 && !p.permit ? <b className="hz-bad">No entry — no permit</b> : p.missing.length ? <span className="hz-bad">{p.missing.map((k) => SHORT[k]).join(', ')}</span> : <span className="dim">compliant</span>}</td>
+                  <td>{p.zone === 0 && !p.permit ? <b className="hz-bad">No entry: no permit</b> : p.missing.length ? <span className="hz-bad">{p.missing.map((k) => SHORT[k]).join(', ')}</span> : <span className="dim">compliant</span>}</td>
                   <td className="act">
                     <button onClick={() => flyToWorker(id)} title="Show the person in 3D (zones on)">
                       3D
@@ -353,7 +353,7 @@ function Drills() {
           <option value="auto">Auto (nearest on camera)</option>
           {ROSTER.map((w) => (
             <option key={w.id} value={w.id}>
-              {w.name} — {w.platform} {w.level}
+              {w.name} - {w.platform} {w.level}
             </option>
           ))}
         </select>
@@ -401,7 +401,7 @@ function Violations() {
         </span>
       </div>
       {rows.length === 0 ? (
-        <p className="h-note">No hazardous-area violations yet. Tracked from the worn personnel tags (RTLS) — camera-independent; a camera that sees the person confirms it and draws the box.</p>
+        <p className="h-note">No hazardous-area violations yet. Tracked from the worn personnel tags (RTLS): camera-independent; a camera that sees the person confirms it and draws the box.</p>
       ) : (
         <div className="scroll hz-log">
           <table className="h-tbl">

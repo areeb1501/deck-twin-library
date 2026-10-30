@@ -200,7 +200,7 @@ function EmailModal({ alert, onClose }: { alert: Alert; onClose: () => void }) {
       <div className="al-modal" onClick={(e) => e.stopPropagation()} data-email={alert.id}>
         <div className="al-modal-h">
           <b>Email draft</b>
-          <span className="al-status queued">{alert.status === 'suppressed' ? 'suppressed (not queued)' : 'outbox — not sent'}</span>
+          <span className="al-status queued">{alert.status === 'suppressed' ? 'suppressed (not queued)' : 'outbox, not sent'}</span>
           <span className="grow" />
           <button onClick={() => void navigator.clipboard?.writeText(`To: ${alert.email.to.join(', ')}\nSubject: ${alert.email.subject}\n\n${alert.email.text}`)}>Copy</button>
           <button onClick={onClose}>Close</button>
@@ -382,7 +382,7 @@ function InvestigationHead({ run }: { run: InvestigationRun }) {
   return (
     <div className={`al-invhead ${run.status}`}>
       {run.status === 'running' ? <i className="al-spin" /> : <span className="al-dot done" />}
-      <span>{run.status === 'running' ? `Investigating — ${run.pending ?? 'starting'}` : 'Investigation complete'}</span>
+      <span>{run.status === 'running' ? `Investigating: ${run.pending ?? 'starting'}` : 'Investigation complete'}</span>
     </div>
   )
 }
@@ -413,7 +413,7 @@ function ReportBox({ run }: { run: InvestigationRun }) {
           <li key={e}>{e}</li>
         ))}
       </ul>
-      <div className="h-sec">Recommended actions (advisory — the operator decides)</div>
+      <div className="h-sec">Recommended actions (advisory: the operator decides)</div>
       <ol>
         {r.actions.map((a) => (
           <li key={a}>{a}</li>

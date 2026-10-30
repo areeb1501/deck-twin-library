@@ -176,7 +176,7 @@ const usd = (v: number) => `$${Math.round(v).toLocaleString('en-US')}`
 export const fmtEta = (t: number) => fmtClock(t).slice(0, -3)
 /** real days, compact */
 export function fmtDays(days: number) {
-  if (!Number.isFinite(days)) return '—'
+  if (!Number.isFinite(days)) return '-'
   if (days < 1) return `${Math.max(0, Math.round(days * 24))} h`
   return days < 10 ? `${days.toFixed(1)} d` : `${Math.round(days)} d`
 }
@@ -450,7 +450,7 @@ function createPo(x: Tx, part: SparePart, qty: number, mode: PoMode, o: OrderOpt
   const day = dayOf(x)
   if (!(qty > 0) || !Number.isFinite(qty)) return { po: null, why: 'Quantity must be positive' }
   const heli = mode === 'emergency' || !!o.heli
-  if (heli && part.kg * qty > L.heliKg) return { po: null, why: `${fmtQty(qty)} × ${part.short ?? part.name} = ${Math.round(part.kg * qty)} kg — over the helicopter's ${L.heliKg.toLocaleString('en-US')} kg limit; send it by boat` }
+  if (heli && part.kg * qty > L.heliKg) return { po: null, why: `${fmtQty(qty)} × ${part.short ?? part.name} = ${Math.round(part.kg * qty)} kg: over the helicopter's ${L.heliKg.toLocaleString('en-US')} kg limit; send it by boat` }
   const by = o.by ?? 'Materials coordinator'
   const d = { boat: boatOf(x), heli: heliOf(x) }
   let po: PurchaseOrder
@@ -460,7 +460,7 @@ function createPo(x: Tx, part: SparePart, qty: number, mode: PoMode, o: OrderOpt
     setStk(x, part.id, { ...lvl, base: lvl.base - qty })
     const id = nextPoId(x)
     const stage: PoStage = o.stage ?? 'atBase'
-    po = { id, partId: part.id, qty, mode, stage, heli, wo: o.wo, raisedAt: t, raisedBy: by, eta: 0, material: 0, premium: 0, freight: 0, history: [{ t, stage, text: o.note ?? `Transfer from base stock — ${heli ? 'helicopter' : 'next sailing'}` }] }
+    po = { id, partId: part.id, qty, mode, stage, heli, wo: o.wo, raisedAt: t, raisedBy: by, eta: 0, material: 0, premium: 0, freight: 0, history: [{ t, stage, text: o.note ?? `Transfer from base stock: ${heli ? 'helicopter' : 'next sailing'}` }] }
     move(x, { partId: part.id, qty: -qty, kind: 'transfer', ref: id, text: `Base → offshore (${heli ? 'helicopter' : 'supply vessel'})${o.wo ? ` for ${o.wo}` : ''}` })
   } else {
     const lead = leadOf(part, mode)
@@ -489,7 +489,7 @@ function createPo(x: Tx, part: SparePart, qty: number, mode: PoMode, o: OrderOpt
         {
           t,
           stage,
-          text: `${o.note ? `${o.note} — ` : ''}${mode === 'standard' ? 'standard' : mode === 'expedite' ? `expedited (+${Math.round(part.expeditePremium * 100)} %)` : `emergency: expedited (+${Math.round(part.expeditePremium * 100)} %) + helicopter`}, ${part.vendor}, lead ${lead} d${needsApproval ? ` — ${usd(material + premium)} is over the ${usd(limit)} approval limit` : ''}`,
+          text: `${o.note ? `${o.note}: ` : ''}${mode === 'standard' ? 'standard' : mode === 'expedite' ? `expedited (+${Math.round(part.expeditePremium * 100)} %)` : `emergency: expedited (+${Math.round(part.expeditePremium * 100)} %) + helicopter`}, ${part.vendor}, lead ${lead} d${needsApproval ? `: ${usd(material + premium)} is over the ${usd(limit)} approval limit` : ''}`,
         },
       ],
     }
@@ -516,9 +516,9 @@ function advance(x: Tx) {
     if (!part) continue
     if (po.stage === 'ordered') {
       const tr = transitDays(leadOf(part, po.mode))
-      putPo(x, poNote({ ...po, stage: 'inTransit', stageEndsAt: t + tr * day }, t, `Shipped by ${part.vendor} — ${fmtDays(tr)} to the supply base`, 'inTransit'))
+      putPo(x, poNote({ ...po, stage: 'inTransit', stageEndsAt: t + tr * day }, t, `Shipped by ${part.vendor}: ${fmtDays(tr)} to the supply base`, 'inTransit'))
     } else {
-      putPo(x, poNote({ ...po, stage: 'atBase', stageEndsAt: undefined }, t, po.heli ? 'At the supply base — helicopter requested' : 'At the supply base — booked on the next sailing', 'atBase'))
+      putPo(x, poNote({ ...po, stage: 'atBase', stageEndsAt: undefined }, t, po.heli ? 'At the supply base: helicopter requested' : 'At the supply base: booked on the next sailing', 'atBase'))
     }
     x.etas = true
   }
@@ -599,7 +599,7 @@ function allocate(x: Tx) {
       }
     if (uncovered > 0 && stk(x, partId).base > 0) {
       const q = Math.min(stk(x, partId).base, uncovered)
-      const r = createPo(x, part, q, 'transfer', { wo: firstWo, by: 'MRP (shortage)', note: `Shortage for ${firstWo} — transfer from base stock on the next sailing` })
+      const r = createPo(x, part, q, 'transfer', { wo: firstWo, by: 'MRP (shortage)', note: `Shortage for ${firstWo}: transfer from base stock on the next sailing` })
       if (r.po) {
         uncovered -= q
         rec('auto', 'sparesTransfer', list[idx[0]]?.tag, `${r.po.id}: ${fmtQty(q)} × ${part.short ?? part.name} base → offshore for ${firstWo}`)
@@ -608,7 +608,7 @@ function allocate(x: Tx) {
     if (uncovered > 0) {
       const q = Math.ceil(uncovered - 1e-9)
       const r = createPo(x, part, q, 'standard', { wo: firstWo, by: 'MRP (shortage)', note: `Shortage requisition for ${firstWo}` })
-      if (r.po) rec('auto', 'sparesShortage', list[idx[0]]?.tag, `${r.po.id}: ${q} × ${part.short ?? part.name} for ${firstWo} — ${STAGE_SHORT[r.po.stage]}, ETA ${fmtEta(r.po.eta)}`)
+      if (r.po) rec('auto', 'sparesShortage', list[idx[0]]?.tag, `${r.po.id}: ${q} × ${part.short ?? part.name} for ${firstWo}: ${STAGE_SHORT[r.po.stage]}, ETA ${fmtEta(r.po.eta)}`)
     }
   }
   if (changed) setRsv(x, list)
@@ -656,7 +656,7 @@ export function shortages(d: Pick<SparesData, 'reservations' | 'orders'> = D()):
 
 /** "on order PO-45000001, ETA D129 06:00 ≈ 128 d" */
 function whereText(info: ShortInfo | undefined, t: number, day: number): string {
-  if (!info?.po) return 'no supply arranged — order it on the Spares & supply page'
+  if (!info?.po) return 'no supply arranged: order it on the Spares & supply page'
   return `${STAGE_SHORT[info.po.stage]} ${info.po.id}, ETA ${fmtEta(info.po.eta)} ≈ ${fmtDays(Math.max(0, info.po.eta - t) / day)}`
 }
 
@@ -683,7 +683,7 @@ function reserveFor(x: Tx, w: WorkOrder, who: Who = 'auto') {
   mod.stats.raised++
   if (ok) mod.stats.firstPass++
   const names = mine.map((r) => `${fmtQty(r.qty)} × ${pOf(x, r.partId)?.short ?? r.partId}${r.kitted ? '' : ' (SHORT)'}`).join(', ')
-  rec(who, 'sparesReserve', w.tag, `${w.id} (${mode}): ${names}${ok ? ' — kitted from the offshore store' : ''}`)
+  rec(who, 'sparesReserve', w.tag, `${w.id} (${mode}): ${names}${ok ? ': kitted from the offshore store' : ''}`)
 }
 
 function issueFor(x: Tx, woId: string, why: string) {
@@ -696,7 +696,7 @@ function issueFor(x: Tx, woId: string, why: string) {
     const q = Math.min(r.qty, Math.max(0, lvl.offshore))
     setStk(x, r.partId, { ...lvl, offshore: lvl.offshore - q })
     x.add.partsIssued += q * (part?.unitCost ?? 0)
-    move(x, { partId: r.partId, qty: -q, kind: 'issue', ref: woId, text: `${fmtQty(q)} ${part?.uom ?? ''} ${part?.short ?? r.partId} issued to ${woId} (${r.tag}) — ${why}${q < r.qty ? ` · ${fmtQty(r.qty - q)} short` : ''}` })
+    move(x, { partId: r.partId, qty: -q, kind: 'issue', ref: woId, text: `${fmtQty(q)} ${part?.uom ?? ''} ${part?.short ?? r.partId} issued to ${woId} (${r.tag}): ${why}${q < r.qty ? ` · ${fmtQty(r.qty - q)} short` : ''}` })
     return { ...r, kitted: true, issued: true }
   })
   setRsv(x, list)
@@ -709,7 +709,7 @@ function releaseFor(x: Tx, woId: string, why: string) {
   setRsv(x, res.filter((r) => !(r.wo === woId && !r.issued)))
   for (const r of mine) move(x, { partId: r.partId, qty: 0, kind: 'adjust', ref: woId, text: `Reservation for ${woId} released (${why})` })
   // orders raised for the WO stay open — the stock goes to the store
-  for (const po of ords(x)) if (po.wo === woId && isOpenPo(po)) putPo(x, poNote({ ...po, wo: undefined }, x.t, `${woId} ${why} — delivery goes to stock`))
+  for (const po of ords(x)) if (po.wo === woId && isOpenPo(po)) putPo(x, poNote({ ...po, wo: undefined }, x.t, `${woId} ${why}: delivery goes to stock`))
 }
 
 /** reconcile with the work-order list: WOs raised without the hook, WOs closed without completion / cancel */
@@ -750,7 +750,7 @@ function gate(w: WorkOrder): string | null {
   }
   const part = partById(worst.partId)
   const more = short.length > 1 ? ` (+${short.length - 1} more line${short.length > 2 ? 's' : ''})` : ''
-  return `${w.id}: awaiting spares — ${part?.short ?? part?.name ?? worst.partId} (${whereText(info.get(`${worst.wo}|${worst.partId}`), t, day)})${more}`
+  return `${w.id}: awaiting spares, ${part?.short ?? part?.name ?? worst.partId} (${whereText(info.get(`${worst.wo}|${worst.partId}`), t, day)})${more}`
 }
 
 // ================================================================= the plugin step
@@ -776,7 +776,7 @@ function consume(x: Tx, dt: number) {
     if (left <= 0 && !mod.stockoutSeen.has(id)) {
       mod.stockoutSeen.add(id)
       const p = pOf(x, id)
-      move(x, { partId: id, qty: 0, kind: 'consume', text: `STOCK-OUT offshore — ${p?.short ?? id} (usage continues unmet until the next delivery)` })
+      move(x, { partId: id, qty: 0, kind: 'consume', text: `STOCK-OUT offshore: ${p?.short ?? id} (usage continues unmet until the next delivery)` })
       rec('auto', 'sparesStockout', p?.fits[0], `${p?.short ?? id} out of stock offshore`)
     } else if (left > 0) mod.stockoutSeen.delete(id)
   }
@@ -845,12 +845,12 @@ function stepBoat(x: Tx) {
       if (t >= b.until) {
         if (hs > L.hsLimit) {
           mod.holdRemain = L.boatAlongside * day
-          setBoat(x, { ...b, state: 'weatherHold', since: t, until: t, progress: 0, note: `Waiting on weather — Hs ${hs.toFixed(1)} m > ${L.hsLimit.toFixed(1)} m offload limit` })
+          setBoat(x, { ...b, state: 'weatherHold', since: t, until: t, progress: 0, note: `Waiting on weather: Hs ${hs.toFixed(1)} m > ${L.hsLimit.toFixed(1)} m offload limit` })
         } else setBoat(x, { ...b, state: 'alongside', since: t, until: t + L.boatAlongside * day, progress: 0, note: undefined })
       } else x.boat = { ...b, progress: legProgress(b, t) }
       break
     case 'weatherHold': {
-      const note = `Waiting on weather — Hs ${hs.toFixed(1)} m > ${L.hsLimit.toFixed(1)} m offload limit`
+      const note = `Waiting on weather: Hs ${hs.toFixed(1)} m > ${L.hsLimit.toFixed(1)} m offload limit`
       if (hs <= L.hsLimit - L.hsResume) setBoat(x, { ...b, state: 'alongside', since: t, until: t + Math.max(mod.holdRemain, day * 0.02), progress: 0, note: undefined })
       else if (b.note !== note) x.boat = { ...b, note }
       break
@@ -858,7 +858,7 @@ function stepBoat(x: Tx) {
     case 'alongside':
       if (hs > L.hsLimit) {
         mod.holdRemain = Math.max(0, b.until - t)
-        setBoat(x, { ...b, state: 'weatherHold', since: t, until: t, progress: 0, note: `Offload suspended — Hs ${hs.toFixed(1)} m > ${L.hsLimit.toFixed(1)} m` })
+        setBoat(x, { ...b, state: 'weatherHold', since: t, until: t, progress: 0, note: `Offload suspended: Hs ${hs.toFixed(1)} m > ${L.hsLimit.toFixed(1)} m` })
       } else if (t >= b.until) {
         for (const id of b.cargo) {
           const po = ords(x).find((o) => o.id === id)
@@ -908,7 +908,7 @@ function stepHeli(x: Tx) {
       }
       const wind = windNow().speed
       if (wind > L.heliWind) {
-        const note = `Grounded — wind ${wind.toFixed(0)} m/s > ${L.heliWind} m/s`
+        const note = `Grounded: wind ${wind.toFixed(0)} m/s > ${L.heliWind} m/s`
         if (h.note !== note || h.next !== t) x.heli = { ...h, note, next: t }
         break
       }
@@ -963,7 +963,7 @@ function mrp(x: Tx) {
     if (pos > p.rop) continue
     const q = Math.max(1, Math.ceil(p.max - pos - 1e-9))
     const r = createPo(x, p, q, 'standard', { by: 'MRP (min/max)', note: `Position ${fmtQty(pos)} ≤ reorder point ${p.rop}` })
-    if (r.po) rec('auto', 'sparesMrp', p.fits[0], `${r.po.id}: ${q} × ${p.short ?? p.name} (${usd(r.po.material)}) — ${r.po.stage === 'requisition' ? 'requisition awaiting approval' : 'auto-approved, PO placed'}`)
+    if (r.po) rec('auto', 'sparesMrp', p.fits[0], `${r.po.id}: ${q} × ${p.short ?? p.name} (${usd(r.po.material)}): ${r.po.stage === 'requisition' ? 'requisition awaiting approval' : 'auto-approved, PO placed'}`)
   }
 }
 
@@ -1029,7 +1029,7 @@ function dgsPo(dgs: SparePart, d: Pick<SparesData, 'boat' | 'heli'>, t: number, 
     material: dgs.unitCost,
     premium: 0,
     freight: 0,
-    history: [{ t, stage: 'ordered', text: `Standard PO placed ${DGS_PO_AGE_DAYS} d before this session with ${dgs.vendor} — manufacturing slot, ${remain} d to go (simulated)` }],
+    history: [{ t, stage: 'ordered', text: `Standard PO placed ${DGS_PO_AGE_DAYS} d before this session with ${dgs.vendor}: manufacturing slot, ${remain} d to go (simulated)` }],
   }
   return { ...po, eta: etaOf(po, dgs, d, day, t) }
 }
@@ -1078,7 +1078,7 @@ export function previewOrder(partId: string, qty: number, mode: PoMode, heli = f
   const none: OrderPreview = { why: null, material: 0, premium: 0, freight: 0, total: 0, eta: t, days: 0, heli: h, approval: false }
   if (!part) return { ...none, why: `${partId}: no such material` }
   if (!(qty > 0)) return { ...none, why: 'Quantity must be positive' }
-  if (h && part.kg * qty > L.heliKg) return { ...none, why: `${Math.round(part.kg * qty)} kg — over the ${L.heliKg} kg helicopter limit` }
+  if (h && part.kg * qty > L.heliKg) return { ...none, why: `${Math.round(part.kg * qty)} kg: over the ${L.heliKg} kg helicopter limit` }
   if (mode === 'transfer' && (d.stock[partId]?.base ?? 0) + 1e-9 < qty) return { ...none, why: `Only ${fmtQty(d.stock[partId]?.base ?? 0)} ${part.uom} at the base` }
   const lead = leadOf(part, mode)
   const material = mode === 'transfer' ? 0 : part.unitCost * qty
@@ -1098,7 +1098,7 @@ export function previewExpedite(poId: string, heli = false): { why: string | nul
   const part = partById(po.partId)
   if (!part) return { ...r0, why: 'no such material' }
   if (po.stage === 'onBoat' || po.stage === 'onHeli') return { ...r0, why: `${STAGE_SHORT[po.stage]}` }
-  if (heli && part.kg * po.qty > L.heliKg) return { ...r0, why: `${Math.round(part.kg * po.qty)} kg — over the helicopter limit` }
+  if (heli && part.kg * po.qty > L.heliKg) return { ...r0, why: `${Math.round(part.kg * po.qty)} kg: over the helicopter limit` }
   let tBase: number
   let premium = 0
   if (po.stage === 'atBase') tBase = t
@@ -1121,7 +1121,7 @@ function place(partId: string, qty: number, mode: PoMode, opts: OrderOpts = {}):
     const wo = opts.wo ?? waitingWoFor(x, partId)
     const r = createPo(x, part, qty, mode, { ...opts, wo })
     if (!r.po) return { id: null, why: r.why }
-    rec(opts.who ?? 'operator', mode === 'transfer' ? 'sparesTransfer' : 'sparesOrder', part.fits[0], `${r.po.id}: ${fmtQty(qty)} × ${part.short ?? part.name} — ${mode}${r.po.heli ? ' + helicopter' : ''}, ${STAGE_SHORT[r.po.stage]}, ETA ${fmtEta(r.po.eta)}${wo ? ` (for ${wo})` : ''}`)
+    rec(opts.who ?? 'operator', mode === 'transfer' ? 'sparesTransfer' : 'sparesOrder', part.fits[0], `${r.po.id}: ${fmtQty(qty)} × ${part.short ?? part.name}: ${mode}${r.po.heli ? ' + helicopter' : ''}, ${STAGE_SHORT[r.po.stage]}, ETA ${fmtEta(r.po.eta)}${wo ? ` (for ${wo})` : ''}`)
     return { id: r.po.id, why: null }
   })
 }
@@ -1130,11 +1130,11 @@ function approve(poId: string, opts: { by?: string; who?: Who } = {}): string | 
   return withTx((x) => {
     const po = ords(x).find((o) => o.id === poId)
     if (!po) return `${poId}: no such order`
-    if (po.stage !== 'requisition') return `${poId} is ${PO_STAGE_LABEL[po.stage]} — only a requisition can be approved`
+    if (po.stage !== 'requisition') return `${poId} is ${PO_STAGE_LABEL[po.stage]}: only a requisition can be approved`
     const part = pOf(x, po.partId)
     if (!part) return `${poId}: unknown material`
     const lead = leadOf(part, po.mode)
-    putPo(x, poNote({ ...po, stage: 'ordered', stageEndsAt: x.t + (lead - transitDays(lead)) * dayOf(x) }, x.t, `Approved by ${opts.by ?? 'Asset manager'} — PO placed with ${part.vendor}`, 'ordered'))
+    putPo(x, poNote({ ...po, stage: 'ordered', stageEndsAt: x.t + (lead - transitDays(lead)) * dayOf(x) }, x.t, `Approved by ${opts.by ?? 'Asset manager'}: PO placed with ${part.vendor}`, 'ordered'))
     if (po.premium) x.add.premiums += po.premium
     rec(opts.who ?? 'operator', 'sparesApprove', part.fits[0], `${poId}: ${part.short ?? part.name} ${usd(po.material + po.premium)} approved`)
     return null
@@ -1146,12 +1146,12 @@ function cancelPo(poId: string, opts: { who?: Who } = {}): string | null {
     const po = ords(x).find((o) => o.id === poId)
     if (!po) return `${poId}: no such order`
     if (!isOpenPo(po)) return `${poId} is ${PO_STAGE_LABEL[po.stage]}`
-    if (po.stage === 'onBoat' || po.stage === 'onHeli') return `${poId} is ${STAGE_SHORT[po.stage]} — it can't be recalled`
-    if (po.stage === 'atBase' && po.mode !== 'transfer') return `${poId} is already at the supply base — it ships on the next sailing`
+    if (po.stage === 'onBoat' || po.stage === 'onHeli') return `${poId} is ${STAGE_SHORT[po.stage]}: it can't be recalled`
+    if (po.stage === 'atBase' && po.mode !== 'transfer') return `${poId} is already at the supply base: it ships on the next sailing`
     if (po.mode === 'transfer') {
       const lvl = stk(x, po.partId)
       setStk(x, po.partId, { ...lvl, base: lvl.base + po.qty })
-      move(x, { partId: po.partId, qty: po.qty, kind: 'transfer', ref: poId, text: 'Transfer cancelled — back to base stock' })
+      move(x, { partId: po.partId, qty: po.qty, kind: 'transfer', ref: poId, text: 'Transfer cancelled: back to base stock' })
     }
     putPo(x, poNote({ ...po, stage: 'cancelled', stageEndsAt: undefined }, x.t, po.stage === 'ordered' || po.stage === 'inTransit' ? 'Cancelled (vendor cancellation terms apply)' : 'Cancelled', 'cancelled'))
     rec(opts.who ?? 'operator', 'sparesCancel', pOf(x, po.partId)?.fits[0], `${poId} cancelled`)
@@ -1169,18 +1169,18 @@ function expedite(poId: string, opts: { heli?: boolean; by?: string; who?: Who }
     const t = x.t
     const day = dayOf(x)
     const heli = !!opts.heli
-    if (po.stage === 'onBoat' || po.stage === 'onHeli') return `${poId} is ${STAGE_SHORT[po.stage]} — ETA ${fmtEta(po.eta)}`
-    if (heli && part.kg * po.qty > L.heliKg) return `${poId}: ${Math.round(part.kg * po.qty)} kg — over the helicopter's ${L.heliKg} kg limit`
+    if (po.stage === 'onBoat' || po.stage === 'onHeli') return `${poId} is ${STAGE_SHORT[po.stage]}: ETA ${fmtEta(po.eta)}`
+    if (heli && part.kg * po.qty > L.heliKg) return `${poId}: ${Math.round(part.kg * po.qty)} kg: over the helicopter's ${L.heliKg} kg limit`
     const by = opts.by ?? 'Asset manager'
     if (po.stage === 'atBase') {
-      if (!heli) return po.heli ? `${poId} is already waiting for the helicopter` : `${poId} is at the supply base — it sails on the next boat (ETA ${fmtEta(po.eta)}); expedite with the helicopter to fly it out now`
+      if (!heli) return po.heli ? `${poId} is already waiting for the helicopter` : `${poId} is at the supply base: it sails on the next boat (ETA ${fmtEta(po.eta)}); expedite with the helicopter to fly it out now`
       if (po.heli) return `${poId} is already waiting for the helicopter`
       putPo(x, poNote({ ...po, heli: true, mode: po.mode === 'transfer' ? 'transfer' : 'emergency' }, t, `Switched to helicopter by ${by}`))
-      rec(opts.who ?? 'operator', 'sparesExpedite', part.fits[0], `${poId}: ${part.short ?? part.name} — fly out from the base now`)
+      rec(opts.who ?? 'operator', 'sparesExpedite', part.fits[0], `${poId}: ${part.short ?? part.name}: fly out from the base now`)
       return null
     }
     const already = po.mode !== 'standard'
-    if (already && (!heli || po.heli)) return `${poId} is already expedited${po.heli ? ' by helicopter' : ''} — ETA ${fmtEta(po.eta)}`
+    if (already && (!heli || po.heli)) return `${poId} is already expedited${po.heli ? ' by helicopter' : ''}: ETA ${fmtEta(po.eta)}`
     let next: PurchaseOrder = { ...po, heli: po.heli || heli }
     const notes: string[] = []
     if (!already) {
@@ -1190,8 +1190,8 @@ function expedite(poId: string, opts: { heli?: boolean; by?: string; who?: Who }
       const newBase = t + part.expediteDays * day
       if (newBase < oldBase) {
         next = { ...next, stage: 'ordered', stageEndsAt: t + (part.expediteDays - transitDays(part.expediteDays)) * day }
-        notes.push(`exchange unit / vendor priority slot — ${part.expediteDays} d to the base`)
-      } else notes.push('already sooner than the expedited lead — premium for priority handling')
+        notes.push(`exchange unit / vendor priority slot: ${part.expediteDays} d to the base`)
+      } else notes.push('already sooner than the expedited lead: premium for priority handling')
       next = { ...next, premium, mode: next.heli ? 'emergency' : 'expedite' }
       x.add.premiums += premium
       notes.push(`premium ${usd(premium)} (+${Math.round(part.expeditePremium * 100)} %)`)
@@ -1202,7 +1202,7 @@ function expedite(poId: string, opts: { heli?: boolean; by?: string; who?: Who }
     next = poNote(next, t, `Expedited by ${by}: ${notes.join('; ')}`, next.stage !== po.stage ? next.stage : 'note')
     next = { ...next, eta: etaOf(next, part, { boat: boatOf(x), heli: heliOf(x) }, day, t) }
     putPo(x, next)
-    rec(opts.who ?? 'operator', 'sparesExpedite', part.fits[0], `${poId}: ${part.short ?? part.name} expedited${heli ? ' + helicopter' : ''} — ETA ${fmtEta(next.eta)} (was ${fmtEta(po.eta)}), premium ${usd(next.premium)}`)
+    rec(opts.who ?? 'operator', 'sparesExpedite', part.fits[0], `${poId}: ${part.short ?? part.name} expedited${heli ? ' + helicopter' : ''}: ETA ${fmtEta(next.eta)} (was ${fmtEta(po.eta)}), premium ${usd(next.premium)}`)
     return null
   })
 }
@@ -1216,7 +1216,7 @@ function setStock(partId: string, patch: Partial<StockLevel>, opts: { who?: Who;
     const lvl = stk(x, partId)
     const next = { ...lvl, offshore: Math.max(0, patch.offshore ?? lvl.offshore), base: Math.max(0, patch.base ?? lvl.base) }
     setStk(x, partId, next)
-    move(x, { partId, qty: next.offshore + next.base - lvl.offshore - lvl.base, kind: 'adjust', text: `Stock set: offshore ${fmtQty(next.offshore)}, base ${fmtQty(next.base)}${opts.why ? ` — ${opts.why}` : ' (instructor / demo)'}` })
+    move(x, { partId, qty: next.offshore + next.base - lvl.offshore - lvl.base, kind: 'adjust', text: `Stock set: offshore ${fmtQty(next.offshore)}, base ${fmtQty(next.base)}${opts.why ? `: ${opts.why}` : ' (instructor / demo)'}` })
     rec(opts.who ?? 'instructor', 'sparesStock', part.fits[0], `${part.short ?? part.name}: offshore ${fmtQty(lvl.offshore)} → ${fmtQty(next.offshore)}, base ${fmtQty(lvl.base)} → ${fmtQty(next.base)}`)
     return null
   })
@@ -1321,7 +1321,7 @@ export function coverFor(tag: string, failureMode?: string): SpareCover {
     const m = indexOf(d.parts).byTag.get(tag)
     ids = m ? [...new Set([...m.entries()].filter(([k]) => k !== 'PM').flatMap(([, v]) => v))] : []
   }
-  if (!ids.length) return { status: 'notStocked', partIds: [], waitDays: 0, note: mode ? `no catalogue part for ${tag} — ${mode}` : `no catalogue parts for ${tag}` }
+  if (!ids.length) return { status: 'notStocked', partIds: [], waitDays: 0, note: mode ? `no catalogue part for ${tag}: ${mode}` : `no catalogue parts for ${tag}` }
   const rank: Record<SpareCover['status'], number> = { onboard: 0, base: 1, onOrder: 2, none: 3, notStocked: 4 }
   const info = shortages(d)
   const kittedBy = new Map<string, number>()
@@ -1344,7 +1344,7 @@ export function coverFor(tag: string, failureMode?: string): SpareCover {
     } else if (s.offshore - (kittedBy.get(id) ?? 0) + 1e-9 >= (p.perJob || 1)) c = { st: 'onboard', w: 0, n: `${name}: ${fmtQty(s.offshore)} offshore` }
     else if (s.base + 1e-9 >= (p.perJob || 1)) {
       const w = Math.max(0, arrival(d.boat, day, t, false) - t) / day
-      c = { st: 'base', w, n: `${name}: at the base — ${fmtDays(w)} by the next sailing (≈ ${fmtDays(heliS('out', day) / day)} by helicopter)` }
+      c = { st: 'base', w, n: `${name}: at the base, ${fmtDays(w)} by the next sailing (≈ ${fmtDays(heliS('out', day) / day)} by helicopter)` }
     } else {
       const oo = (openOrders(d.orders).get(id) ?? []).slice().sort((a, b) => a.eta - b.eta)[0]
       c = oo ? { st: 'onOrder', w: Math.max(0, oo.eta - t) / day, n: `${name}: ${STAGE_SHORT[oo.stage]} ${oo.id}, ETA ${fmtEta(oo.eta)}` } : { st: 'none', w: p.leadDays + L.boatEvery / 2 + L.boatSail, n: `${name}: none in stock or on order (standard lead ${p.leadDays} d)` }
@@ -1352,7 +1352,7 @@ export function coverFor(tag: string, failureMode?: string): SpareCover {
     if (!best || c.w > best.w || (c.w === best.w && rank[c.st] > rank[best.st])) best = c
   }
   if (!best) return { status: 'notStocked', partIds: ids, waitDays: 0, note: `no stock record for ${tag}` }
-  return { status: best.st, partIds: ids, waitDays: best.w, note: worstCase ? `worst case over failure modes — ${best.n}` : best.n }
+  return { status: best.st, partIds: ids, waitDays: best.w, note: worstCase ? `worst case over failure modes: ${best.n}` : best.n }
 }
 
 /** materials status of a work order (Maintenance page badge / detail) */
@@ -1405,7 +1405,7 @@ export function woMaterialsMap(d: Pick<SparesData, 'reservations' | 'orders' | '
       m.state = 'awaiting'
       const worst = short.reduce((a, b) => ((b.eta ?? Infinity) > (a.eta ?? Infinity) ? b : a))
       m.eta = worst.eta
-      m.text = `awaiting spares — ${worst.name}${worst.eta !== undefined ? `, ETA ${fmtEta(worst.eta)}` : ', no supply'}${short.length > 1 ? ` (+${short.length - 1})` : ''}`
+      m.text = `awaiting spares: ${worst.name}${worst.eta !== undefined ? `, ETA ${fmtEta(worst.eta)}` : ', no supply'}${short.length > 1 ? ` (+${short.length - 1})` : ''}`
     } else if (m.lines.every((l) => l.issued)) {
       m.state = 'issued'
       m.text = 'parts issued'

@@ -278,10 +278,10 @@ function useLegend(host: HTMLElement | null) {
       `repeating-linear-gradient(45deg, ${HAZ_COLOR[z]} 0 2px, ${HAZ_COLOR[z]}${dense ? '55' : '30'} 2px ${dense ? 5 : 7}px)${cross ? `, repeating-linear-gradient(-45deg, ${HAZ_COLOR[z]} 0 2px, transparent 2px 5px)` : ''}`
     el.innerHTML = [
       '<div style="font-weight:600;margin-bottom:3px">Hazardous areas · IEC 60079-10-1 (gas)</div>',
-      `<div>${sw(0, hatch(0, true, true))}<b>Zone 0</b> — continuous (vessels, vent tips)</div>`,
-      `<div>${sw(1, hatch(1, true))}<b>Zone 1</b> — likely in normal operation</div>`,
-      `<div>${sw(2, hatch(2, false))}<b>Zone 2</b> — not likely, short duration</div>`,
-      `<div>${sw(null, 'transparent')}Unclassified — safe area</div>`,
+      `<div>${sw(0, hatch(0, true, true))}<b>Zone 0</b>: continuous (vessels, vent tips)</div>`,
+      `<div>${sw(1, hatch(1, true))}<b>Zone 1</b>: likely in normal operation</div>`,
+      `<div>${sw(2, hatch(2, false))}<b>Zone 2</b>, not likely, short duration</div>`,
+      `<div>${sw(null, 'transparent')}Unclassified: safe area</div>`,
       '<div style="opacity:.7;margin-top:3px;font-size:10px">No Zone 3 (dust zones 20/21/22 n/a offshore). Screening extents, API RP 505 / EI 15.</div>',
     ].join('')
     host.appendChild(el)

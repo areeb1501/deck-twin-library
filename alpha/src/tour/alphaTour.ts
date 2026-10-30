@@ -58,7 +58,7 @@ export const ALPHA_TOUR: Stop[] = [
     id: 'whp-fly',
     title: 'Wellhead platform WHP-N',
     where: 'WHP-N · EL +28',
-    say: 'Forty metres north of Alpha: six wells, a production and test manifold, a multiphase meter, desander, chemical injection and a small temporary refuge. Nobody lives here — it is run from Alpha’s control room and visited by day. We land on its deck and walk back to Alpha.',
+    say: 'Forty metres north of Alpha: six wells, a production and test manifold, a multiphase meter, desander, chemical injection and a small temporary refuge. Nobody lives here, it is run from Alpha’s control room and visited by day. We land on its deck and walk back to Alpha.',
     fly: { pos: [58, 46, -118], target: [12, 28, -74], hold: 9 },
   },
   {
@@ -70,18 +70,18 @@ export const ALPHA_TOUR: Stop[] = [
       start: { level: 'production', at: [12, -63.5], face: [6, -72] },
       beats: [
         { goto: [9.6, -74], say: 'Into the well bay.' },
-        { look: 'XT-N104', kb: true, hold: 8, say: () => `Well N-04 — flowing ${n0(r()?.wells['XT-N104']?.oil ?? 0)} bbl/d of oil through its choke. The card explains the tree and its ideal operating window.` },
+        { look: 'XT-N104', kb: true, hold: 8, say: () => `Well N-04: flowing ${n0(r()?.wells['XT-N104']?.oil ?? 0)} bbl/d of oil through its choke. The card explains the tree and its ideal operating window.` },
         { goto: [14, -76.5] },
         { look: 'M-N200', hold: 6, say: 'The production manifold gathers all six wells into one header; any single well can be switched to the test header to be measured on its own.' },
         { goto: [18.6, -82.4] },
-        { look: 'V-N240', hold: 6, say: 'The multiphase flow meter measures a test well’s oil, gas and water without separating them — that is how each well’s rate on the Operations page is known.' },
+        { look: 'V-N240', hold: 6, say: 'The multiphase flow meter measures a test well’s oil, gas and water without separating them: that is how each well’s rate on the Operations page is known.' },
         { goto: [12, -21], say: 'Across the 40 m north bridge: production, water injection, firewater, instrument air and the vent line run along its west side, cables on the east.' },
       ],
     },
   },
   {
     id: 'cellar',
-    title: 'Cellar deck — the wellheads',
+    title: 'Cellar deck: the wellheads',
     where: 'Alpha cellar deck · EL +20',
     say: 'Alpha’s own wells come up through the cellar deck: five producing trees and, under the rig, the blowout preventer on the well being drilled. The east stair tower takes us down.',
     walk: {
@@ -92,11 +92,11 @@ export const ALPHA_TOUR: Stop[] = [
         { goto: [15.5, -10.6] },
         { look: 'P-6400A', hold: 6, say: 'Seawater lift pump A: a long-shaft pump hung in a caisson down into the sea, supplying cooling water to the plant. B stands by and starts automatically if A trips.' },
         { goto: [1.3, -7.6] },
-        { look: 'XT-140', kb: true, hold: 8, say: () => `Well A-04 — ${n0(r()?.wells['XT-140']?.oil ?? 0)} bbl/d. The flowline rises from the wing valve to the production manifold on the deck above.` },
+        { look: 'XT-140', kb: true, hold: 8, say: () => `Well A-04: ${n0(r()?.wells['XT-140']?.oil ?? 0)} bbl/d. The flowline rises from the wing valve to the production manifold on the deck above.` },
         { goto: [6.0, -8.6] },
         { look: 'BOP-100', hold: 7, say: () => `The BOP stack on well A-06: annular and ram preventers that can close in the well if it kicks while drilling. Drilling is ${sim().knobs.drilling ? 'under way right now' : 'paused'}.` },
         { goto: [-3.5, 8.6] },
-        { look: 'X-1900', hold: 5, say: 'The wellhead hydraulic control panel keeps every tree’s safety valves open — lose its pressure and the wells shut in.' },
+        { look: 'X-1900', hold: 5, say: 'The wellhead hydraulic control panel keeps every tree’s safety valves open: lose its pressure and the wells shut in.' },
         { goto: [-29.3, 9.6], say: 'Across the cellar to the west stair tower.' },
         { stair: ST_W, from: -8, to: 0, off: [-29.3, 9.6], say: 'Up to the production deck.' },
       ],
@@ -104,7 +104,7 @@ export const ALPHA_TOUR: Stop[] = [
   },
   {
     id: 'production',
-    title: 'Production deck — the process',
+    title: 'Production deck: the process',
     where: 'Alpha production deck · EL +28',
     say: 'Following the oil: from the manifold through three-phase separation, cooling and export pumping to the pipeline, then the gas through scrubbing and compression, and the produced water through degassing to the sea.',
     walk: {
@@ -113,7 +113,7 @@ export const ALPHA_TOUR: Stop[] = [
         { goto: [-26.6, -4.0] },
         { look: 'M-1000', hold: 6, say: 'The production / test manifold: every Alpha and WHP-N well arrives here and is routed to the HP or the test separator.' },
         { goto: [-8.6, -3.4] },
-        { look: 'V-1100', kb: true, hold: 9, say: () => `The HP separator splits the well stream into gas, oil and water, held at ${sim().knobs.hpPressure} barg — try changing that knob on the Operations page.` },
+        { look: 'V-1100', kb: true, hold: 9, say: () => `The HP separator splits the well stream into gas, oil and water, held at ${sim().knobs.hpPressure} barg: try changing that knob on the Operations page.` },
         { goto: [5, -4.0] },
         { look: 'V-1300', hold: 6, say: 'The LP separator flashes off the last gas so the crude is stable enough to export.' },
         { goto: [19.4, -11.6] },
@@ -121,7 +121,7 @@ export const ALPHA_TOUR: Stop[] = [
         { goto: [20.2, -14.4] },
         { look: 'ESDV-1601', at: [22, 1.9, -15.45], hold: 5, say: 'One export header: level control LV-1301, the export shutdown valve ESDV-1601, then down through the deck and across the west bridge to RP’s fiscal meter, pig launcher and riser.' },
         { goto: [3.6, 3.5] },
-        { look: 'K-2200', kb: true, hold: 9, say: () => `The export gas compressor at ${sim().knobs.compressorSpeed} % speed lifts the separator gas to pipeline pressure — ${n1(r()?.gasExport ?? 0)} MMscfd exported. If it trips, the gas goes to flare.` },
+        { look: 'K-2200', kb: true, hold: 9, say: () => `The export gas compressor at ${sim().knobs.compressorSpeed} % speed lifts the separator gas to pipeline pressure: ${n1(r()?.gasExport ?? 0)} MMscfd exported. If it trips, the gas goes to flare.` },
         { goto: [-22.5, 3.6] },
         { look: 'V-4100', hold: 6, say: () => `Produced water: hydrocyclones and this degasser clean ${n0(r()?.water ?? 0)} bbl/d of water to below 30 mg/l oil before it goes back to the sea.` },
         { goto: [-29.3, 9.6], say: 'Back to the west stair tower, up to the weather deck.' },
@@ -131,7 +131,7 @@ export const ALPHA_TOUR: Stop[] = [
   },
   {
     id: 'weather',
-    title: 'Weather deck — power & the rig',
+    title: 'Weather deck: power & the rig',
     where: 'Alpha weather deck · EL +38',
     say: 'The top deck carries the power station, the electrical rooms, the crane and the drilling rig’s substructure.',
     walk: {
@@ -163,7 +163,7 @@ export const ALPHA_TOUR: Stop[] = [
     walk: {
       start: { level: 'production', at: [6, 21], face: [6, 60] },
       beats: [
-        { goto: [6, 59], say: 'Across the 40 m south bridge — diesel, potable water and firewater ride along it.' },
+        { goto: [6, 59], say: 'Across the 40 m south bridge: diesel, potable water and firewater ride along it.' },
         { open: 'B-9300' },
         { goto: [-3, 61.4] },
         { goto: [-3, 64.0], speed: 1.8, say: 'Into the central control room.' },

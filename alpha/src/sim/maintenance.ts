@@ -41,7 +41,7 @@ export const WO_FLOW: WoStatus[] = ['raised', 'approved', 'planned', 'isolated',
 export const WO_STATUS_LABEL: Record<WoStatus, string> = {
   raised: 'Raised',
   approved: 'Approved',
-  planned: 'Planned — permit requested',
+  planned: 'Planned: permit requested',
   isolated: 'Isolated',
   inProgress: 'In progress',
   complete: 'Complete',
@@ -484,7 +484,7 @@ function raise(tag: string, o: RaiseOpts): { id: string | null; why: string | nu
   const wo: WorkOrder = {
     id,
     tag,
-    title: o.title ?? (o.type === 'preventive' && cls ? PM_TITLE[cls] : `${WO_TYPE_LABEL[o.type]} maintenance — ${eq.name}`),
+    title: o.title ?? (o.type === 'preventive' && cls ? PM_TITLE[cls] : `${WO_TYPE_LABEL[o.type]} maintenance: ${eq.name}`),
     type: o.type,
     priority: o.priority ?? (o.type === 'corrective' ? 2 : 3),
     status: 'raised',
@@ -501,7 +501,7 @@ function raise(tag: string, o: RaiseOpts): { id: string | null; why: string | nu
   }
   setM((m) => ({ wos: [wo, ...m.wos].slice(0, 400), seq: { ...m.seq, wo: seq } }))
   rec(o.who ?? 'operator', 'woRaise', tag, `${id} ${WO_TYPE_LABEL[o.type]} P${wo.priority}: ${wo.title}`)
-  mlog(`${id} raised for ${tag} — ${wo.title} (P${wo.priority}, by ${wo.raisedBy})`, o.type === 'corrective' ? 'warn' : 'info', id)
+  mlog(`${id} raised for ${tag}: ${wo.title} (P${wo.priority}, by ${wo.raisedBy})`, o.type === 'corrective' ? 'warn' : 'info', id)
   mat('onRaise', wo)
   return { id, why: null }
 }
@@ -509,7 +509,7 @@ function raise(tag: string, o: RaiseOpts): { id: string | null; why: string | nu
 function approve(id: string): string | null {
   const w = woById(id)
   if (!w) return `${id}: no such work order`
-  if (w.status !== 'raised') return `${id} is ${WO_STATUS_LABEL[w.status]} — only a raised WO can be approved`
+  if (w.status !== 'raised') return `${id} is ${WO_STATUS_LABEL[w.status]}: only a raised WO can be approved`
   woStatus(id, 'approved', 'Maintenance supervisor')
   rec('operator', 'woApprove', w.tag, id)
   return null
@@ -529,7 +529,7 @@ function buildIsolation(tag: string, type: PermitType): { items: IsoItem[]; warn
   const items: IsoItem[] = []
   const warnings: string[] = []
   const machine = !!eq && !!classOf(eq)
-  if (machine) items.push({ tag, kind: 'machine', action: type === 'electrical' ? 'Motor / drive isolated at the switchboard — locked and tagged (LOTO), prove dead' : 'Stopped, driver isolated at the switchboard — locked and tagged (LOTO)', done: false })
+  if (machine) items.push({ tag, kind: 'machine', action: type === 'electrical' ? 'Motor / drive isolated at the switchboard: locked and tagged (LOTO), prove dead' : 'Stopped, driver isolated at the switchboard: locked and tagged (LOTO)', done: false })
   if (type !== 'electrical') {
     const plan = planIsolation(p, tag, type === 'confined' ? 'positive' : 'valve', graphOf(p))
     if (plan) {
@@ -537,14 +537,14 @@ function buildIsolation(tag: string, type: PermitType): { items: IsoItem[]; warn
       for (const pt of plan.points) {
         if (pt.type === 'psv') items.push({ tag: pt.tag, kind: 'manual', action: pt.action, done: false, note: pt.note })
         else if (sv[pt.tag]) items.push({ tag: pt.tag, kind: 'valve', action: `${pt.verify ? 'Verify closed' : 'Close'} from the DCS, actuator supply isolated, locked closed`, done: false, note: pt.second ? `double block with ${pt.second}` : undefined })
-        else items.push({ tag: pt.tag, kind: 'manual', action: `Manual isolation — field operator to ${pt.verify ? 'verify closed' : 'close'} and lock (${pt.type}, ${pt.nps}")`, done: false, note: pt.second ? `double block with ${pt.second}` : undefined })
+        else items.push({ tag: pt.tag, kind: 'manual', action: `Manual isolation: field operator to ${pt.verify ? 'verify closed' : 'close'} and lock (${pt.type}, ${pt.nps}")`, done: false, note: pt.second ? `double block with ${pt.second}` : undefined })
       }
       for (const b of plan.blinds) items.push({ tag: `${b.equipment}/${b.nozzle}`, kind: 'blind', action: `Fit spade at ${b.nozzle} (${b.name}, ${b.nps}" Class ${b.rating})`, done: false })
       if (plan.drains.length || plan.vents.length) items.push({ tag: 'DRAIN', kind: 'check', action: `Depressurise / drain the envelope (${[...plan.drains, ...plan.vents].slice(0, 3).join('; ')})`, done: false })
       if (plan.proving.length) items.push({ tag: 'PROVE', kind: 'check', action: `Prove zero energy on ${plan.proving.slice(0, 3).join(', ')}`, done: false })
       warnings.push(...plan.warnings)
       if (plan.alsoIsolated.length) warnings.push(`Also inside the envelope: ${plan.alsoIsolated.join(', ')}`)
-    } else if (!machine) warnings.push(`${tag}: no isolation plan in the model — isolate per the site procedure`)
+    } else if (!machine) warnings.push(`${tag}: no isolation plan in the model, isolate per the site procedure`)
   }
   if (type === 'hot') items.push({ tag: 'GAS TEST', kind: 'check', action: 'Gas test at the worksite: 0 % LEL, continuous monitor, fire watch posted', done: false })
   if (type === 'confined') items.push({ tag: 'ENTRY', kind: 'check', action: 'Atmosphere test (O₂ 20.9 %, 0 % LEL, H₂S 0 ppm), standby man and rescue plan', done: false })
@@ -587,14 +587,14 @@ function plan(id: string, type?: PermitType): string | null {
 export function simopsBlock(type: PermitType, platform: PlatformId): string | null {
   const s = S()
   const esd = (s.shutdowns ?? []).find((x) => !x.resetAt && (x.level === 'APS' || (x.level === 'ESD1' && x.platform === platform)))
-  if (esd) return `${esd.level} on ${esd.platform} — all permits suspended`
+  if (esd) return `${esd.level} on ${esd.platform}: all permits suspended`
   if (type !== 'hot') return null
   const p = plant()
   const ga = s.result?.platforms?.[platform]?.ga
-  if (ga && ga !== 'normal') return `General alarm (${ga}) on ${platform} — hot work suspended`
-  for (const z of Object.values(s.fg ?? {})) if (z.gas !== 'normal' && zonePlatform(p, z.zone) === platform) return `Gas detected in zone ${z.zone} (${z.gas}) on ${platform} — hot work suspended`
+  if (ga && ga !== 'normal') return `General alarm (${ga}) on ${platform}: hot work suspended`
+  for (const z of Object.values(s.fg ?? {})) if (z.gas !== 'normal' && zonePlatform(p, z.zone) === platform) return `Gas detected in zone ${z.zone} (${z.gas}) on ${platform}: hot work suspended`
   const gasAlarm = (s.alarms ?? []).find((a) => a.active && a.kind === 'fg' && a.platform === platform && /gas/i.test(a.text))
-  if (gasAlarm) return `Gas alarm ${gasAlarm.tag} on ${platform} — hot work suspended`
+  if (gasAlarm) return `Gas alarm ${gasAlarm.tag} on ${platform}: hot work suspended`
   return null
 }
 
@@ -616,7 +616,7 @@ function issue(pid: string): string | null {
   const isMachine = p.isolations.some((i) => i.kind === 'machine')
   if (isMachine && (st === 'running' || st === 'starting')) {
     const o = partnerOf(p.tag)
-    return `${p.tag} is ${st} — ${o ? `change over to ${o} and ` : ''}stop it before the isolation is applied`
+    return `${p.tag} is ${st}: ${o ? `change over to ${o} and ` : ''}stop it before the isolation is applied`
   }
   const done: string[] = []
   const t = s.t
@@ -628,7 +628,7 @@ function issue(pid: string): string | null {
       // a shared isolation point already locked closed by another permit counts (multi-lock hasp)
       const lk = S().lockouts?.[i.tag]
       if (i.kind === 'valve' && lk && lk.position === 'closed') {
-        i.note = `shared — also locked by ${lk.by}`
+        i.note = `shared: also locked by ${lk.by}`
         continue
       }
       rollback(pid, done)
@@ -637,8 +637,8 @@ function issue(pid: string): string | null {
     done.push(i.tag)
     if (i.kind === 'machine') Object.assign(i, { done: true, at: t, by: 'operator' as const })
   }
-  patchPermit(pid, (x) => ({ ...x, status: 'issued', issuedAt: t, isolations: items, log: [...x.log, { t, text: `Issued — ${done.length} lock-out(s) applied from the DCS` }] }))
-  rec('operator', 'permitIssue', p.tag, `${pid} ${PERMIT_LABEL[p.type]} — locked out ${done.join(', ') || 'nothing'}`)
+  patchPermit(pid, (x) => ({ ...x, status: 'issued', issuedAt: t, isolations: items, log: [...x.log, { t, text: `Issued: ${done.length} lock-out(s) applied from the DCS` }] }))
+  rec('operator', 'permitIssue', p.tag, `${pid} ${PERMIT_LABEL[p.type]}: locked out ${done.join(', ') || 'nothing'}`)
   mlog(`${pid} issued for ${p.tag} (${PERMIT_LABEL[p.type]})`, 'info', pid)
   return null
 }
@@ -668,9 +668,9 @@ function startWork(id: string): string | null {
   const w = woById(id)
   if (!w) return `${id}: no such work order`
   const p = w.permit ? M().permits[w.permit] : undefined
-  if (!p || (p.status !== 'issued' && p.status !== 'suspended')) return `${id}: no issued permit — work cannot start`
-  if (p.status === 'suspended') return `${p.id} is suspended (${p.suspendReason}) — re-validate it first`
-  if (!isolationComplete(p)) return `${id}: isolation not in place — ${p.isolations.filter((i) => !i.done).map((i) => i.tag).join(', ')} outstanding`
+  if (!p || (p.status !== 'issued' && p.status !== 'suspended')) return `${id}: no issued permit, work cannot start`
+  if (p.status === 'suspended') return `${p.id} is suspended (${p.suspendReason}): re-validate it first`
+  if (!isolationComplete(p)) return `${id}: isolation not in place, ${p.isolations.filter((i) => !i.done).map((i) => i.tag).join(', ')} outstanding`
   const lk = S().lockouts?.[w.tag]
   if (p.isolations.some((i) => i.kind === 'machine') && lk?.by !== p.id) return `${id}: ${w.tag} is not locked out under ${p.id}`
   if (w.status !== 'isolated') return `${id} is ${WO_STATUS_LABEL[w.status]}`
@@ -702,8 +702,8 @@ function closePermit(pid: string, why: string, who: OperatorAction['who']): stri
     }
   }
   const t = s.t
-  patchPermit(pid, (x) => ({ ...x, status: 'closed', closedAt: t, log: [...x.log, { t, text: `${why} — released ${released.join(', ') || 'no lock-outs'}${restore.length ? `; ${restore.join(', ')}` : ''}` }] }))
-  rec(who, 'permitSignOff', p.tag, `${pid} ${why}; released ${released.join(', ') || '—'}`)
+  patchPermit(pid, (x) => ({ ...x, status: 'closed', closedAt: t, log: [...x.log, { t, text: `${why}: released ${released.join(', ') || 'no lock-outs'}${restore.length ? `; ${restore.join(', ')}` : ''}` }] }))
+  rec(who, 'permitSignOff', p.tag, `${pid} ${why}; released ${released.join(', ') || '-'}`)
   return released
 }
 
@@ -711,8 +711,8 @@ function closePermit(pid: string, why: string, who: OperatorAction['who']): stri
 function returnToService(id: string): string | null {
   const w = woById(id)
   if (!w) return `${id}: no such work order`
-  if (w.status !== 'complete') return `${id} is ${WO_STATUS_LABEL[w.status]} — the work is not complete`
-  if (w.permit) closePermit(w.permit, 'Signed off — work complete, equipment handed back', 'operator')
+  if (w.status !== 'complete') return `${id} is ${WO_STATUS_LABEL[w.status]}: the work is not complete`
+  if (w.permit) closePermit(w.permit, 'Signed off: work complete, equipment handed back', 'operator')
   const s = S()
   let note = 'permit signed off, lock-outs released'
   if (runOf(w.tag) === 'tripped') {
@@ -732,9 +732,9 @@ function signOff(pid: string): string | null {
   if (p.status === 'closed') return `${pid} is already closed`
   const w = woById(p.wo)
   if (w?.status === 'complete') return returnToService(w.id)
-  if (w?.status === 'inProgress') return `${p.wo} is in progress — the work must be complete (or the WO cancelled) before ${pid} is signed off`
+  if (w?.status === 'inProgress') return `${p.wo} is in progress: the work must be complete (or the WO cancelled) before ${pid} is signed off`
   closePermit(pid, 'Signed off before work started', 'operator')
-  if (w && isOpen(w)) woStatus(w.id, 'approved', 'CCR operator', `${pid} signed off unused — re-plan to continue`)
+  if (w && isOpen(w)) woStatus(w.id, 'approved', 'CCR operator', `${pid} signed off unused: re-plan to continue`)
   if (w) patchWo(w.id, (x) => ({ ...x, permit: undefined }))
   return null
 }
@@ -743,9 +743,9 @@ function suspend(pid: string, reason: string, who: OperatorAction['who'] = 'oper
   const p = M().permits[pid]
   if (!p || p.status !== 'issued') return `${pid} is not live`
   const t = S().t
-  patchPermit(pid, (x) => ({ ...x, status: 'suspended', suspendedAt: t, suspendReason: reason, log: [...x.log, { t, text: `SUSPENDED — ${reason}` }] }))
+  patchPermit(pid, (x) => ({ ...x, status: 'suspended', suspendedAt: t, suspendReason: reason, log: [...x.log, { t, text: `SUSPENDED: ${reason}` }] }))
   rec(who, 'permitSuspend', p.tag, `${pid}: ${reason}`)
-  mlog(`${pid} (${PERMIT_LABEL[p.type]}, ${p.tag}) SUSPENDED — ${reason}`, 'warn', pid)
+  mlog(`${pid} (${PERMIT_LABEL[p.type]}, ${p.tag}) SUSPENDED: ${reason}`, 'warn', pid)
   return null
 }
 
@@ -764,7 +764,7 @@ function revalidate(pid: string): string | null {
 function cancel(id: string, why = 'cancelled by the operator'): string | null {
   const w = woById(id)
   if (!w || !isOpen(w)) return `${id} is not open`
-  if (w.status === 'complete') return `${id} is complete — return it to service instead`
+  if (w.status === 'complete') return `${id} is complete: return it to service instead`
   if (w.permit) closePermit(w.permit, `WO cancelled (${why})`, 'operator')
   woStatus(id, 'cancelled', 'CCR operator', why)
   mat('onCancel', woById(id))
@@ -833,7 +833,7 @@ export const maint = {
   raiseFor(tag: string, by = 'CCR operator') {
     const h = M().health[tag]
     const type: WoType = h && (h.stage === 'alert' || h.stage === 'alarm') ? 'condition' : 'corrective'
-    return raise(tag, { type, priority: h?.stage === 'alarm' ? 2 : 3, by, title: h?.mode && type === 'condition' ? `CM: ${h.mode} — investigate & repair` : undefined })
+    return raise(tag, { type, priority: h?.stage === 'alarm' ? 2 : 3, by, title: h?.mode && type === 'condition' ? `CM: ${h.mode}: investigate & repair` : undefined })
   },
 }
 
@@ -871,7 +871,7 @@ function cmText(tag: string, h: Health) {
   const sp = SIGNALS[h.cls][i]
   const v = h.sig[i]
   const value = `${v.toFixed(v < 10 ? 1 : 0)} ${sp.unit}`
-  return { tag, value, text: `${tag} condition monitoring ${h.stage === 'alarm' ? 'alarm' : 'alert'} — ${sp.label} ${value}${h.mode ? ` (${h.mode})` : ''}` }
+  return { tag, value, text: `${tag} condition monitoring ${h.stage === 'alarm' ? 'alarm' : 'alert'}: ${sp.label} ${value}${h.mode ? ` (${h.mode})` : ''}` }
 }
 
 /** engine hook: standing CM conditions, reconciled by the engine like its own alarms (P3) */
@@ -948,21 +948,21 @@ function step(dt: number, t: number) {
         const est = cd.mttrH * trainingFactor()
         const work = est * (0.8 + 0.5 * rnd())
         s.trip?.(tag, `FAILURE: ${mode ?? cd.failures[0]}`, { local: true, repairH: work })
-        rec('auto', 'failure', tag, `${mode} — tripped at degradation 100 %`)
+        rec('auto', 'failure', tag, `${mode}: tripped at degradation 100 %`)
         const cbm = (openBy.get(tag) ?? []).find((w) => w.type === 'condition' && (w.status === 'raised' || w.status === 'approved' || w.status === 'planned' || w.status === 'isolated'))
         if (cbm) {
           // too late — the condition-based job becomes a breakdown repair
-          patchWo(cbm.id, (w) => ({ ...w, type: 'corrective', priority: 1, title: `FAILURE: ${mode} — repair`, failureMode: mode, failure: true, estH: est, workH: work, deferredBoe: (impactBoeD(tag) * est) / 24, history: [...w.history, { t, status: 'note', by: 'auto', note: 'machine failed before the work was done — now a corrective repair' }] }))
-        } else toRaise.push([tag, { type: 'corrective', priority: impactBoeD(tag) > 0 ? 1 : 2, title: `FAILURE: ${mode} — repair`, by: AUTO_TRIP, estH: est, workH: work, failureMode: mode, failure: true, who: 'auto' }])
+          patchWo(cbm.id, (w) => ({ ...w, type: 'corrective', priority: 1, title: `FAILURE: ${mode}: repair`, failureMode: mode, failure: true, estH: est, workH: work, deferredBoe: (impactBoeD(tag) * est) / 24, history: [...w.history, { t, status: 'note', by: 'auto', note: 'machine failed before the work was done: now a corrective repair' }] }))
+        } else toRaise.push([tag, { type: 'corrective', priority: impactBoeD(tag) > 0 ? 1 : 2, title: `FAILURE: ${mode}: repair`, by: AUTO_TRIP, estH: est, workH: work, failureMode: mode, failure: true, who: 'auto' }])
       } else {
         if (degr >= ALERT && stage === 'normal') {
           stage = 'alert'
-          rec('auto', 'cmAlert', tag, `${mode} — condition monitoring alert`)
-          if (!hasOpen(tag, ['condition', 'corrective'])) toRaise.push([tag, { type: 'condition', priority: 2, title: `CM: ${mode ?? 'degradation'} — investigate & repair`, by: 'Auto (condition monitoring)', failureMode: mode, who: 'auto' }])
+          rec('auto', 'cmAlert', tag, `${mode}: condition monitoring alert`)
+          if (!hasOpen(tag, ['condition', 'corrective'])) toRaise.push([tag, { type: 'condition', priority: 2, title: `CM: ${mode ?? 'degradation'}: investigate & repair`, by: 'Auto (condition monitoring)', failureMode: mode, who: 'auto' }])
         }
         if (degr >= ALARM && stage === 'alert') {
           stage = 'alarm'
-          rec('auto', 'cmAlarm', tag, `${mode} — condition monitoring alarm`)
+          rec('auto', 'cmAlarm', tag, `${mode}: condition monitoring alarm`)
           escalate.push(tag)
         }
       }
@@ -1009,7 +1009,7 @@ function step(dt: number, t: number) {
     if (health[tag].failedOpen) continue
     if (hasOpen(tag, ['corrective']) || toRaise.some(([x, o]) => x === tag && o.type === 'corrective')) continue
     const left = mm?.repairUntil ? Math.max(0.1, (mm.repairUntil - t) / 3600) : estimateH(tag, 'corrective')
-    toRaise.push([tag, { type: 'corrective', priority: impactBoeD(tag) > 0 ? 1 : 2, title: `Trip repair — ${cause.replace(/^FAILURE:\s*/i, '')}`, by: AUTO_TRIP, estH: left, workH: left, failureMode: cause, who: 'auto' }])
+    toRaise.push([tag, { type: 'corrective', priority: impactBoeD(tag) > 0 ? 1 : 2, title: `Trip repair: ${cause.replace(/^FAILURE:\s*/i, '')}`, by: AUTO_TRIP, estH: left, workH: left, failureMode: cause, who: 'auto' }])
   }
 
   const sameAlarms = Object.keys(cmAlarms).length === Object.keys(m0.cmAlarms).length && Object.entries(cmAlarms).every(([k, v]) => m0.cmAlarms[k] === v)
@@ -1067,8 +1067,8 @@ function stepPermits(t: number, dt: number) {
         restoreHealth(w)
         // a PM that hasn't started yet is done with this job
         for (const o of M().wos) if (o.id !== w.id && o.tag === w.tag && o.type === 'preventive' && (o.status === 'raised' || o.status === 'approved')) woStatus(o.id, 'cancelled', 'Planner', `combined with ${w.id}`)
-        rec('auto', 'woComplete', w.tag, `${w.id} complete — ${fmtH(actualH)} h`)
-        mlog(`${w.id} ${w.tag} work complete — sign the permit off to return it to service`, 'info', w.id)
+        rec('auto', 'woComplete', w.tag, `${w.id} complete: ${fmtH(actualH)} h`)
+        mlog(`${w.id} ${w.tag} work complete: sign the permit off to return it to service`, 'info', w.id)
       } else patchWo(w.id, (x) => ({ ...x, actualH }))
     }
   }
@@ -1115,7 +1115,7 @@ function stepShiftLog(t: number) {
   const sdNow: Record<string, { resetAt?: number }> = {}
   for (const sd of s.shutdowns ?? []) {
     sdNow[sd.id] = { resetAt: sd.resetAt }
-    if (!prevSd[sd.id]) add.push({ t: sd.at, kind: 'shutdown', tag: sd.id, text: `${sd.level} ${sd.platform}${sd.zone ? ` ${sd.zone}` : ''} — ${sd.cause}`, platform: sd.platform, resetAt: sd.resetAt })
+    if (!prevSd[sd.id]) add.push({ t: sd.at, kind: 'shutdown', tag: sd.id, text: `${sd.level} ${sd.platform}${sd.zone ? ` ${sd.zone}` : ''}: ${sd.cause}`, platform: sd.platform, resetAt: sd.resetAt })
     else if (sd.resetAt && !prevSd[sd.id].resetAt) shift = shift.map((e) => (e.kind === 'shutdown' && e.tag === sd.id ? { ...e, resetAt: sd.resetAt } : e))
   }
   for (const id of Object.keys(prevSd)) if (!sdNow[id]) add.push({ t, kind: 'sdCleared', tag: id, text: `${id} cleared (platform restarted)` })

@@ -5,8 +5,10 @@ import { LIBRARY, PID, librarySymbolUrl, symbolUrl } from '../pid'
 import type { LibrarySymbol } from '../../registry/pid/types'
 import { Crumbs, FilterInput, Segmented, Select, Toolbar } from '../components/ui'
 import { useQueryState } from '../url'
+import { usePageMeta } from '../meta'
 
 export function Symbols() {
+  usePageMeta('P&ID symbols', `${LIBRARY.symbols.length} P&ID symbols: what each one looks like, what it means, and which Deck Twin 3D component it becomes.`)
   const [tab, setTab] = useQueryState<'legend' | 'components'>('view', LIBRARY.symbols.length ? 'legend' : 'components')
   return (
     <div className="mx-auto max-w-[1440px] px-6 py-10 lg:px-10">
@@ -108,14 +110,15 @@ function Legend() {
 }
 
 /** The selected symbol: drawing, meaning, variants and its 3D component. Shared by the desktop side panel and the phone page. */
-function SymbolDetail({ sel }: { sel: LibrarySymbol }) {
+function SymbolDetail({ sel, page }: { sel: LibrarySymbol; page?: boolean }) {
+  const Name = page ? 'h1' : 'div'
   return (
     <>
       <div className="shrink-0 border-b border-border p-5 pb-4">
         <div className="flex h-36 items-center justify-center rounded-lg border border-border p-4">
-          <img src={librarySymbolUrl(sel.svg)} alt="" className="sym max-h-full max-w-full" />
+          <img src={librarySymbolUrl(sel.svg)} alt={`${sel.name} P&ID symbol`} className="sym max-h-full max-w-full" />
         </div>
-        <div className="mt-3 text-lg leading-6 font-semibold tracking-tight">{sel.name}</div>
+        <Name className="mt-3 text-lg leading-6 font-semibold tracking-tight">{sel.name}</Name>
         <div className="mt-0.5 text-xs text-muted-fg">{sel.standard}</div>
       </div>
       <div className="min-h-0 flex-1 space-y-3 overflow-y-auto px-5 py-4 text-[14px]">
@@ -149,12 +152,13 @@ function SymbolDetail({ sel }: { sel: LibrarySymbol }) {
 export function SymbolPage({ id }: { id: string }) {
   const sel = LIBRARY.symbols.find((x) => x.id === decodeURIComponent(id))
   const cat = LIBRARY.categories.find((c) => c.id === sel?.category)
+  usePageMeta(sel ? `${sel.name} P&ID symbol` : 'Symbol not found', sel?.meaning ?? '')
   return (
     <div className="mx-auto max-w-[720px] px-6 py-6 lg:py-10">
       <Crumbs items={[{ label: 'P&ID symbols', href: '/symbols' }, ...(cat ? [{ label: cat.title, href: `/symbols?category=${cat.id}` }] : []), { label: sel?.name ?? 'Not found' }]} />
       {sel ? (
         <div className="flex flex-col overflow-hidden rounded-xl border border-border bg-surface">
-          <SymbolDetail sel={sel} />
+          <SymbolDetail sel={sel} page />
         </div>
       ) : (
         <div className="py-16 text-center">

@@ -58,7 +58,7 @@ export function RiskPage() {
       <div className="rk-top">
         <RiskNow now={now} />
         <Box title="Risk trend" right={<TrendLegend />}>
-          <TrendChart history={history} peak={cons && sc ? { value: cons.riskPeak, label: `what-if peak · ${sc.title}` } : null} />
+          <TrendChart history={history} peak={cons && sc ? { value: cons.riskPeak, label: `what-if peak · ${sc.title}` }: null} />
         </Box>
       </div>
       <Contributors now={now} />
@@ -93,7 +93,7 @@ function LiveStrip({ live, now }: { live: LiveView; now: RiskSnapshot | null }) 
       <span className="rk-live-cell">
         <span className="dim">Risk</span>
         <span className="mono rk-big" style={{ color: band && band !== 'low' ? BAND_COLOR[band] : undefined }}>
-          {typeof risk === 'number' ? Math.round(risk) : '—'}
+          {typeof risk === 'number' ? Math.round(risk) : '-'}
         </span>
         {band && <span className="dim">{band}</span>}
       </span>
@@ -140,11 +140,11 @@ function RiskNow({ now }: { now: RiskSnapshot | null }) {
   const usedCats = useMemo(() => CATS.filter((c) => rows.some((r) => (r.sums[c] ?? 0) > 0)), [rows])
 
   return (
-    <Box title="Risk now — what is driving it" className="rk-now">
+    <Box title="Risk now: what is driving it" className="rk-now">
       {!now ? (
         <div className="rk-empty">
           <Gauge score={null} />
-          <p className="h-note">The risk engine has not scored the plant yet — it publishes after the first simulation ticks. Leave the clock running.</p>
+          <p className="h-note">The risk engine has not scored the plant yet: it publishes after the first simulation ticks. Leave the clock running.</p>
         </div>
       ) : (
         <div className="rk-now-body">
@@ -183,7 +183,7 @@ function RiskNow({ now }: { now: RiskSnapshot | null }) {
             })}
             <div className="rk-cats">
               {usedCats.length === 0 ? (
-                <span className="dim">No risk contributors — every platform is in its normal envelope.</span>
+                <span className="dim">No risk contributors: every platform is in its normal envelope.</span>
               ) : (
                 usedCats.map((c) => (
                   <span key={c} className="rk-cat">
@@ -232,7 +232,7 @@ function Gauge({ score }: { score: number | null }) {
       {v !== null && v > 0.5 && <path d={arc(0, v)} stroke={band === 'low' ? '#b9bdc1' : BAND_COLOR[band!]} strokeWidth={9} fill="none" />}
       {v !== null && <circle cx={nx} cy={ny} r={5.5} fill="#1d1f22" stroke={band === 'low' ? '#d7d9db' : BAND_COLOR[band!]} strokeWidth={2} />}
       <text x={cx} y={cy - 6} textAnchor="middle" className="rk-gauge-n" fill={band && band !== 'low' ? BAND_COLOR[band] : '#d7d9db'}>
-        {v === null ? '—' : Math.round(v)}
+        {v === null ? '-' : Math.round(v)}
       </text>
       <text x={cx} y={cy + 10} textAnchor="middle" className="rk-gauge-l">
         {v === null ? 'FIELD RISK' : `FIELD · ${band!.toUpperCase()}`}
@@ -250,7 +250,7 @@ function Contributors({ now }: { now: RiskSnapshot | null }) {
   const maxPts = Math.max(1, ...list.map((c) => c.points))
   return (
     <Box
-      title={`Risk contributors${list.length ? ` — ${list.length}` : ''}`}
+      title={`Risk contributors${list.length ? `: ${list.length}` : ''}`}
       right={
         list.length > 12 ? (
           <button onClick={() => setAll((a) => !a)} style={{ padding: '1px 8px' }}>
@@ -291,7 +291,7 @@ function Contributors({ now }: { now: RiskSnapshot | null }) {
                       {RISK_CATEGORY_LABEL[c.category]}
                     </span>
                   </td>
-                  <td>{c.tag ? <TagLink tag={c.tag} /> : <span className="dim">—</span>}</td>
+                  <td>{c.tag ? <TagLink tag={c.tag} /> : <span className="dim">-</span>}</td>
                   <td className="wrap">{c.text}</td>
                   <td className="act">
                     {plantItem && (
@@ -386,7 +386,7 @@ function TrendChart({ history, peak }: { history: RiskHistoryPoint[]; peak: { va
         <svg viewBox={`0 0 ${W} ${H}`} className="rk-trend">
           <BandBack Y={(v) => PAD.t + (1 - v / 100) * (H - PAD.t - PAD.b)} />
         </svg>
-        <span>{history.length === 0 ? 'No risk history yet — the trend fills in as the simulation runs.' : 'Collecting the first points…'}</span>
+        <span>{history.length === 0 ? 'No risk history yet: the trend fills in as the simulation runs.' : 'Collecting the first points…'}</span>
       </div>
     )
   }
@@ -509,7 +509,7 @@ function niceStep(raw: number) {
 function WhatIf({ pick, setPick, sc, cons, live }: { pick: string; setPick: (id: string) => void; sc: Scenario | null; cons: Consequence | null; live: LiveView | null }) {
   const preds = useMemo(() => Object.fromEntries(SCENARIOS.map((s) => [s.id, predictConsequence(s).worstShutdown])), [])
   return (
-    <Box title="What-if — rehearse a scenario before it happens" className="rk-whatif">
+    <Box title="What-if: rehearse a scenario before it happens" className="rk-whatif">
       <div className="rk-wi">
         <div className="rk-list" role="listbox" aria-label="Scenarios">
           {SCENARIOS.map((s) => {
@@ -546,7 +546,7 @@ function Detail({ sc, cons, live }: { sc: Scenario; cons: Consequence; live: Liv
   const isLive = live?.id === sc.id
   const run = () => {
     const r = useScenario.getState().start(sc.id, 5)
-    setMsg(r ?? `✓ ${sc.title} running at 5× — watch the trend and the live strip`)
+    setMsg(r ?? `✓ ${sc.title} running at 5×: watch the trend and the live strip`)
   }
   const brief = () => {
     useScenario.getState().setView({ kind: 'brief', id: sc.id })
@@ -634,7 +634,7 @@ function Detail({ sc, cons, live }: { sc: Scenario; cons: Consequence; live: Liv
         <div className="rk-side">
           <div className="h-sec">Initiating event</div>
           <p className="rk-init">{cons.initiating}</p>
-          <div className="h-sec">Barriers — what stops the escalation</div>
+          <div className="h-sec">Barriers: what stops the escalation</div>
           <ol className="rk-barriers">
             {cons.barriers.map((b, i) => (
               <li key={i}>

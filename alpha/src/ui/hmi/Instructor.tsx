@@ -67,7 +67,7 @@ function releasePoints(plant: Plant): ReleasePoint[] {
   })
 }
 
-const resultMsg = (r: string | null, what: string) => (r === NOT_READY ? r : `✓ ${what}${r ? ` — ${r}` : ''}`)
+const resultMsg = (r: string | null, what: string) => (r === NOT_READY ? r : `✓ ${what}${r ? `: ${r}` : ''}`)
 
 export function Instructor() {
   const plant = usePlant()
@@ -78,7 +78,7 @@ export function Instructor() {
   return (
     <div className="h-grid">
       <p className="h-note">
-        Instructor station. Faults go straight into the running simulation; the operator sees them the way the plant would show them — alarms, trips, shutdowns, F&G. Use the clock speed in the
+        Instructor station. Faults go straight into the running simulation; the operator sees them the way the plant would show them: alarms, trips, shutdowns, F&G. Use the clock speed in the
         header to let an incident develop.
       </p>
       <Msg text={msg} />
@@ -116,7 +116,7 @@ function Release({ kind, points, zones, inject }: { kind: 'gas' | 'fire'; points
           <option value="all">All zones</option>
           {zones.map((z) => (
             <option key={z.id} value={z.id}>
-              {z.id} — {z.name}
+              {z.id} - {z.name}
             </option>
           ))}
         </select>
@@ -174,7 +174,7 @@ function TripBox({ plant, inject }: { plant: Plant; inject: Inject }) {
         <select value={tag} onChange={(e) => setTag(e.target.value)}>
           {list.map((e) => (
             <option key={e.tag} value={e.tag}>
-              {e.tag} — {e.name}
+              {e.tag} - {e.name}
             </option>
           ))}
         </select>
@@ -320,9 +320,9 @@ function Wind() {
 function describe(f: Fault): string {
   switch (f.kind) {
     case 'gasRelease':
-      return `Gas release ${fmt(f.rateKgS, 1)} kg/s${f.label ? ` — ${f.label}` : ''}`
+      return `Gas release ${fmt(f.rateKgS, 1)} kg/s${f.label ? `: ${f.label}` : ''}`
     case 'fire':
-      return `Fire ${fmt(f.sizeMW)} MW${f.label ? ` — ${f.label}` : ''}`
+      return `Fire ${fmt(f.sizeMW)} MW${f.label ? `: ${f.label}` : ''}`
     case 'trip':
       return `Trip ${f.tag} (${f.cause})${f.local ? ' · local reset' : ''}${f.repairH ? ` · repair ${f.repairH} h` : ''}`
     case 'valveStuck':
@@ -352,7 +352,7 @@ function Incidents() {
   const done = incidents.filter((i) => i.cleared !== undefined)
   return (
     <Box
-      title={`Active incidents — ${active.length}`}
+      title={`Active incidents: ${active.length}`}
       right={
         armReset ? (
           <span className="h-row" style={{ textTransform: 'none', letterSpacing: 0 }}>

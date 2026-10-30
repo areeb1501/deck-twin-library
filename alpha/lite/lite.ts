@@ -86,7 +86,7 @@ export function render(tier: Exclude<Tier, 'full'>) {
   root.innerHTML = `
     <main class="lite">
       <header class="lite-top">
-        ${logo}<span class="lite-brand">Deck Twin</span><span class="lite-tag">Light view</span><a class="lite-about" href="/alpha/">About this demo</a>
+        ${logo}<span class="lite-brand">Deck Twin</span><span class="lite-tag">Light view</span>
       </header>
       <section class="lite-hero">
         <span class="lite-eyebrow">Offshore digital twin</span>

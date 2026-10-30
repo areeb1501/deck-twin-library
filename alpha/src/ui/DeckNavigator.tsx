@@ -39,7 +39,7 @@ const ALPHA: Deck[] = [
     walk: { level: 'production', at: [0, 3.5], face: [-10, 3.5] },
   },
   {
-    id: 'cellar', label: 'Cellar deck — wellheads', el: 'EL +20',
+    id: 'cellar', label: 'Cellar deck: wellheads', el: 'EL +20',
     blurb: 'Christmas trees and the BOP on the conductors, flowlines rising to the manifold, caisson pumps, HPU. Production deck cut away.',
     view: { pos: [30, 40, 22], target: [2, 21, -8], ceiling: false, cut: -0.8 },
     walk: { level: 'cellar', at: [0, -7], face: [0, -12] },
@@ -62,7 +62,7 @@ const ALPHA: Deck[] = [
     walk: { level: 'production', at: [BRIDGE_W.walk.x0 - 0.8, (BRIDGE_W.walk.z0 + BRIDGE_W.walk.z1) / 2], face: [-90, (BRIDGE_W.walk.z0 + BRIDGE_W.walk.z1) / 2] },
   },
   {
-    id: 'rp-cellar', label: 'RP cellar deck — riser tops & riser ESDVs', el: 'EL +20',
+    id: 'rp-cellar', label: 'RP cellar deck: riser tops & riser ESDVs', el: 'EL +20',
     blurb: 'Oil and gas export riser tops with their topsides ESD valves and hang-offs, the boat-landing ladder and the stair up to the main deck.',
     view: { pos: [-60, 24.6, -21], target: [-78, 20.6, -6], ceiling: true, box: { min: [RP.deck.x0 - 2, -14, RP.deck.z0 - 4], max: [RP.deck.x1 + 2, -0.8, RP.deck.z1 + 2] } },
     walk: { level: 'cellar', at: [-80, -14], face: [-75, -7] },
@@ -74,7 +74,7 @@ const ALPHA: Deck[] = [
     walk: { level: 'production', at: [(BRIDGE_NN.walk.x0 + BRIDGE_NN.walk.x1) / 2, WI.deck.z1 - 0.8], face: [12, -145] },
   },
   {
-    id: 'wi-cellar', label: 'WI cellar deck — seawater lift pumps', el: 'EL +20',
+    id: 'wi-cellar', label: 'WI cellar deck: seawater lift pumps', el: 'EL +20',
     blurb: 'The two seawater lift caisson pumps with their discharge header rising to the filters, the boat-landing ladder and the stair up to the main deck.',
     view: { pos: [-16, 25, -120], target: [5, 20.5, -144], ceiling: true, box: { min: [WI.deck.x0 - 4, -14, WI.deck.z0 - 2], max: [WI.deck.x1 + 2, -0.8, WI.deck.z1 + 2] } },
     walk: { level: 'cellar', at: [6.5, -140], face: [3, -145] },

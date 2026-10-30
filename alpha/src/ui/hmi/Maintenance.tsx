@@ -49,7 +49,7 @@ const TABS: [Tab, string][] = [
 ]
 const PTYPES = Object.keys(PERMIT_LABEL) as PermitType[]
 const WTYPES = Object.keys(WO_TYPE_LABEL) as WoType[]
-const hrs = (h: number | undefined | null) => (typeof h === 'number' && Number.isFinite(h) ? (h >= 100 ? h.toFixed(0) : h >= 10 ? h.toFixed(1) : h.toFixed(2)) : '—')
+const hrs = (h: number | undefined | null) => (typeof h === 'number' && Number.isFinite(h) ? (h >= 100 ? h.toFixed(0) : h >= 10 ? h.toFixed(1) : h.toFixed(2)) : '-')
 const say = (r: string | null, ok: string) => r ?? `✓ ${ok}`
 /** materials status of every work order (sim/spares.ts reservations), memoised on the spares store */
 function useWoMats() {
@@ -154,15 +154,15 @@ function RaiseForm({ prefill, onRaised }: { prefill: Prefill | null; onRaised: (
   const [prio, setPrio] = useState<1 | 2 | 3 | 4>(3)
   const [ptype, setPtype] = useState<PermitType>('cold')
   const [title, setTitle] = useState('')
-  const [msg, setMsg] = useState<string | null>(prefill ? `${prefill.tag} selected from the 3D view — raise a work order, then approve and plan it to request the permit` : null)
+  const [msg, setMsg] = useState<string | null>(prefill ? `${prefill.tag} selected from the 3D view: raise a work order, then approve and plan it to request the permit` : null)
   return (
     <Box title="Raise a work order">
       <div className="h-row" data-raise>
         <select value={tag} onChange={(e) => setTag(e.target.value)} data-f="tag">
-          <option value="">— equipment —</option>
+          <option value="">Select equipment</option>
           {tags.map((e) => (
             <option key={e.tag} value={e.tag}>
-              {e.tag} — {e.name}
+              {e.tag} - {e.name}
             </option>
           ))}
         </select>
@@ -294,8 +294,8 @@ function WoBacklog({ wos, sel, pick, prefill }: { wos: WorkOrder[]; sel: string 
                   <td className="mono dim">{fmtClock(w.raisedAt)}</td>
                   <td className="dim">{w.raisedBy}</td>
                   <td className="num">{hrs(w.estH)}</td>
-                  <td className="num">{w.actualH ? hrs(w.actualH) : '—'}</td>
-                  <td className="num">{w.deferredBoe ? fmt(w.deferredBoe) : '—'}</td>
+                  <td className="num">{w.actualH ? hrs(w.actualH) : '-'}</td>
+                  <td className="num">{w.deferredBoe ? fmt(w.deferredBoe) : '-'}</td>
                 </tr>
               ))}
             </tbody>
@@ -331,7 +331,7 @@ function WoDetail({ id, close }: { id: string | null; close: () => void }) {
   if (!w) {
     return (
       <aside className="faceplate mt-detail">
-        <div className="h-empty">Select a work order — its lifecycle, permit and isolation certificate show here.</div>
+        <div className="h-empty">Select a work order: its lifecycle, permit and isolation certificate show here.</div>
       </aside>
     )
   }
@@ -353,12 +353,12 @@ function WoDetail({ id, close }: { id: string | null; close: () => void }) {
         </button>
       </div>
       <div className="sub">
-        <TagLink tag={w.tag} /> — {w.title}
+        <TagLink tag={w.tag} /> - {w.title}
       </div>
       <div className="mt-flow">
         {WO_FLOW.map((k, i) => (
           <span key={k} className={w.status === 'cancelled' ? 'x' : i < idx ? 'done' : i === idx ? 'on' : ''} title={WO_STATUS_LABEL[k]}>
-            {WO_STATUS_LABEL[k].replace(' — permit requested', '')}
+            {WO_STATUS_LABEL[k].replace(': permit requested', '')}
           </span>
         ))}
         {w.status === 'cancelled' && <span className="on">Cancelled</span>}
@@ -391,7 +391,7 @@ function WoDetail({ id, close }: { id: string | null; close: () => void }) {
           {hrs(w.actualH)} / {hrs(w.estH)} h est.
         </dd>
         <dt>Deferred (est.)</dt>
-        <dd>{w.deferredBoe ? `${fmt(w.deferredBoe)} boe` : 'none — spare available'}</dd>
+        <dd>{w.deferredBoe ? `${fmt(w.deferredBoe)} boe` : 'none: spare available'}</dd>
         {st && (
           <>
             <dt>Machine</dt>
@@ -415,7 +415,7 @@ function WoDetail({ id, close }: { id: string | null; close: () => void }) {
             <dd className="sp-matlines" data-wo-mat={mats.get(w.id)!.state}>
               {mats.get(w.id)!.lines.map((l) => (
                 <div key={l.partId} className={!l.kitted && !l.issued ? 'short' : ''}>
-                  {l.qty} × {l.name} — {l.where}
+                  {l.qty} × {l.name} - {l.where}
                   {!l.kitted && !l.issued && l.eta !== undefined ? `, ETA ${fmtEta(l.eta)}` : ''}
                 </div>
               ))}
@@ -449,8 +449,8 @@ function WoDetail({ id, close }: { id: string | null; close: () => void }) {
                 </option>
               ))}
             </select>
-            <button onClick={() => act(maint.plan(w.id, pt), `${w.id} planned — permit requested`)} data-act="plan">
-              Plan — request permit
+            <button onClick={() => act(maint.plan(w.id, pt), `${w.id} planned: permit requested`)} data-act="plan">
+              Plan: request permit
             </button>
           </>
         )}
@@ -466,7 +466,7 @@ function WoDetail({ id, close }: { id: string | null; close: () => void }) {
                 Stop {w.tag}
               </button>
             )}
-            <button className="warn" onClick={() => act(maint.issue(permit.id), `${permit.id} issued — isolation applied`)} data-act="issue">
+            <button className="warn" onClick={() => act(maint.issue(permit.id), `${permit.id} issued: isolation applied`)} data-act="issue">
               Issue permit
             </button>
           </>
@@ -483,7 +483,7 @@ function WoDetail({ id, close }: { id: string | null; close: () => void }) {
         )}
         {w.status === 'complete' && (
           <button className="warn" onClick={() => act(maint.returnToService(w.id), `${w.id} returned to service`)} data-act="rts">
-            Return to service — sign off permit
+            Return to service: sign off permit
           </button>
         )}
         {isOpen(w) && w.status !== 'complete' && (
@@ -497,7 +497,7 @@ function WoDetail({ id, close }: { id: string | null; close: () => void }) {
           </button>
         )}
       </div>
-      {isOpen(w) && w.status !== 'inProgress' && w.status !== 'complete' && w.type !== 'preventive' && mats.get(w.id)?.state === 'awaiting' && <div className="h-msg">Work cannot start: {mats.get(w.id)!.text} — expedite or transfer on the Spares &amp; supply page</div>}
+      {isOpen(w) && w.status !== 'inProgress' && w.status !== 'complete' && w.type !== 'preventive' && mats.get(w.id)?.state === 'awaiting' && <div className="h-msg">Work cannot start: {mats.get(w.id)!.text}: expedite or transfer on the Spares &amp; supply page</div>}
       <Msg text={msg} />
       {permit && <PermitCard p={permit} say={setMsg} />}
       <h5 className="mt-h5">History</h5>
@@ -505,7 +505,7 @@ function WoDetail({ id, close }: { id: string | null; close: () => void }) {
         {[...w.history].reverse().map((x, i) => (
           <div key={i}>
             <span className="mono dim">{fmtClock(x.t, false)}</span> {x.status === 'note' ? '' : <b>{WO_STATUS_LABEL[x.status]}</b>} <span className="dim">{x.by}</span>
-            {x.note ? ` — ${x.note}` : ''}
+            {x.note ? `: ${x.note}` : ''}
           </div>
         ))}
       </div>
@@ -530,7 +530,7 @@ function PermitCard({ p, say: setMsg }: { p: Permit; say: (m: string | null) => 
       {p.status === 'suspended' && (
         <div className="h-msg">
           Suspended: {p.suspendReason}
-          {block ? ' — still active, cannot re-validate yet' : ' — condition cleared, re-validate to resume'}
+          {block ? ': still active, cannot re-validate yet' : ': condition cleared, re-validate to resume'}
         </div>
       )}
       <div className="btns" style={{ margin: '6px 0' }}>
@@ -644,7 +644,7 @@ function PermitList({ permits, pick }: { permits: Permit[]; pick: (wo: string) =
                   <span className={`mt-pst ${p.status}`}>{p.status}</span>
                   {p.suspendReason && <div className="dim wrap">{p.suspendReason}</div>}
                 </td>
-                <td className="mono dim">{p.issuedAt !== undefined ? fmtClock(p.issuedAt) : '—'}</td>
+                <td className="mono dim">{p.issuedAt !== undefined ? fmtClock(p.issuedAt) : '-'}</td>
                 <td className="num">
                   {p.isolations.filter((i) => i.done).length}/{p.isolations.length}
                 </td>
@@ -680,7 +680,7 @@ function HealthBar({ h }: { h: Health }) {
 }
 
 function Spark({ data, lim }: { data: number[]; lim: number[] }) {
-  if (data.length < 2) return <span className="faint">—</span>
+  if (data.length < 2) return <span className="faint">-</span>
   const lo = Math.min(...data, ...lim)
   const hi = Math.max(...data, ...lim)
   const pad = (hi - lo) * 0.08 || 1
@@ -727,7 +727,7 @@ function CmTable({ health, wos, pick }: { health: Record<string, Health>; wos: W
       }
     >
       <p className="h-note">
-        Degradation follows the P-F curve: signals stay quiet, then rise — alert ≈ half way (a condition-based WO is raised), alarm ≈ three quarters (P3 alarm), then functional failure (trip). Degradation only advances while the machine runs; changing over to the standby buys time. Repairing before failure takes about half the MTTR and avoids the trip.
+        Degradation follows the P-F curve: signals stay quiet, then rise, alert ≈ half way (a condition-based WO is raised), alarm ≈ three quarters (P3 alarm), then functional failure (trip). Degradation only advances while the machine runs; changing over to the standby buys time. Repairing before failure takes about half the MTTR and avoids the trip.
       </p>
       <table className="h-tbl mt-tbl" data-tbl="cm">
         <thead>
@@ -774,7 +774,7 @@ function CmTable({ health, wos, pick }: { health: Record<string, Health>; wos: W
                 <td>
                   <Spark data={trendOf(h)} lim={[sp.alert, sp.alarm]} />
                 </td>
-                <td className="num">{ttf === null ? '—' : ttf === 0 ? 'failed' : `${hrs(ttf)} h`}</td>
+                <td className="num">{ttf === null ? '-' : ttf === 0 ? 'failed' : `${hrs(ttf)} h`}</td>
                 <td className="wrap dim">{h.stage !== 'normal' || h.degr > 0.25 ? h.mode : ''}</td>
                 <td>
                   {w ? (
@@ -802,7 +802,7 @@ function CmTable({ health, wos, pick }: { health: Record<string, Health>; wos: W
                       <button onClick={() => setMsg(say(maint.seed(h.tag, 0.3), `${h.tag}: fault seeded`))} data-act="seed" title="Start a developing fault (30 %)">
                         Seed
                       </button>
-                      <button className="danger" onClick={() => setMsg(say(maint.seed(h.tag, 1), `${h.tag} fails at the next step if running`))} data-act="fail" title="Degradation to 100 % — the machine fails while running">
+                      <button className="danger" onClick={() => setMsg(say(maint.seed(h.tag, 1), `${h.tag} fails at the next step if running`))} data-act="fail" title="Degradation to 100 %: the machine fails while running">
                         Fail
                       </button>
                     </>
@@ -866,7 +866,7 @@ function PmTable({ wos, pick }: { wos: WorkOrder[]; pick: (id: string) => void }
                   </span>
                 </td>
                 <td className={`num ${f >= 1 ? 'mt-bad' : f >= 0.9 ? 'mt-abn' : ''}`}>{f >= 1 ? `overdue ${hrs(since - iv)}` : hrs(iv - since)}</td>
-                <td className="mono dim">{p.lastAt !== undefined ? fmtClock(p.lastAt) : '—'}</td>
+                <td className="mono dim">{p.lastAt !== undefined ? fmtClock(p.lastAt) : '-'}</td>
                 <td className="num">{p.count || ''}</td>
                 <td>
                   {w ? (

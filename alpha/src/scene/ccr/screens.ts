@@ -120,7 +120,7 @@ function overview(g: G, s: Snap) {
         { label: 'Fuel gas', value: r?.fuelGas, unit: 'MMscfd', d: 1, max: 10 },
         { label: 'Produced water', value: r?.water, unit: 'bbl/d', max: 40000 },
       ]
-  box(g, 12, 54, 600, 322, whp ? 'PRODUCTION — WHP-N AND FIELD' : 'FIELD PRODUCTION')
+  box(g, 12, 54, 600, 322, whp ? 'PRODUCTION: WHP-N AND FIELD' : 'FIELD PRODUCTION')
   rows.forEach((row, i) => {
     const y = 76 + i * 49
     text(g, row.label, 26, y + 18, { font: sans(18, true), color: C.text })
@@ -230,7 +230,7 @@ function tagValue(g: G, x: number, y: number, w: number, tag: string, value: str
 }
 
 function mimicAlpha(g: G, s: Snap) {
-  head(g, s, 'PROCESS — SEPARATION, COMPRESSION, EXPORT', alertOf(s.platforms.filter((p) => p.id === 'Alpha')))
+  head(g, s, 'PROCESS: SEPARATION, COMPRESSION, EXPORT', alertOf(s.platforms.filter((p) => p.id === 'Alpha')))
   const p = s.p
   const r = s.r
   const V = (tag: string) => valveOf(s, tag)
@@ -352,7 +352,7 @@ function utilities(g: G, s: Snap, y: number) {
 }
 
 function mimicWhp(g: G, s: Snap) {
-  head(g, s, 'WHP-N — WELLS, MANIFOLD, METERING, EXPORT', alertOf(s.platforms.filter((p) => p.id === 'WHP-N')))
+  head(g, s, 'WHP-N: WELLS, MANIFOLD, METERING, EXPORT', alertOf(s.platforms.filter((p) => p.id === 'WHP-N')))
   const V = (tag: string) => valveOf(s, tag)
   const wells = Object.keys(s.r?.wells ?? {}).filter((t) => /^XT-N/.test(t))
   const tags = wells.length ? wells.sort() : s.plant.equipment.filter((e) => e.kind === 'xmasTree' && /^XT-N/.test(e.tag)).map((e) => e.tag)
@@ -420,7 +420,7 @@ const PANES: Pen[][] = [
 ]
 
 function trend(g: G, s: Snap) {
-  head(g, s, s.focus === 'WHP-N' ? 'TRENDS — FIELD EXPORT AND HP SEPARATOR' : 'TRENDS — EXPORT, FLARE, HP SEPARATOR, AIR')
+  head(g, s, s.focus === 'WHP-N' ? 'TRENDS: FIELD EXPORT AND HP SEPARATOR' : 'TRENDS: EXPORT, FLARE, HP SEPARATOR, AIR')
   const hist = s.history.filter((h) => typeof h.t === 'number')
   const t1 = hist.length ? (hist[hist.length - 1].t as number) : s.t
   const t0 = Math.max(0, Math.min(hist.length ? (hist[0].t as number) : t1, t1 - 60))
@@ -642,7 +642,7 @@ function fgmap(g: G, s: Snap) {
   const whpOnly = s.focus === 'WHP-N' && i.zones.some((z) => z.platform === 'WHP-N')
   const zones = whpOnly ? i.zones.filter((z) => z.platform === 'WHP-N') : i.zones
   const worst = Math.max(0, ...zones.map((z) => sev(s.fg[z.id])))
-  head(g, s, whpOnly ? 'FIRE & GAS — WHP-N ZONE STATUS' : 'FIRE & GAS — ZONE STATUS', worst >= 3 ? 'red' : worst >= 2 ? 'amber' : null)
+  head(g, s, whpOnly ? 'FIRE & GAS: WHP-N ZONE STATUS' : 'FIRE & GAS: ZONE STATUS', worst >= 3 ? 'red' : worst >= 2 ? 'amber' : null)
   const MX0 = 14
   const MY0 = 56
   const MW = 690
@@ -689,7 +689,7 @@ function alarmSummary(g: G, s: Snap) {
   const whp = s.focus === 'WHP-N'
   const rate = s.k.alarmRate
   const flood = rate != null && rate >= 10
-  head(g, s, whp ? 'ALARM SUMMARY — WHP-N' : 'ALARM SUMMARY', flood ? 'amber' : null)
+  head(g, s, whp ? 'ALARM SUMMARY: WHP-N' : 'ALARM SUMMARY', flood ? 'amber' : null)
   const all = s.alarms
   // counts strip
   const vis = all ? all.filter((a) => (!whp || a.platform === 'WHP-N') && a.state !== 'shelved' && (a.active || isUnack(a))) : []
@@ -721,7 +721,7 @@ function alarmSummary(g: G, s: Snap) {
   if (!all) {
     // engine without an alarm list yet: show the trip / warning event log instead
     const ev = s.events.filter((e) => e.level !== 'info').slice(0, 13)
-    text(g, 'Alarm list not available from the simulation yet — showing the event log', 14, H - 14, { font: sans(13, true), color: C.diag })
+    text(g, 'Alarm list not available from the simulation yet: showing the event log', 14, H - 14, { font: sans(13, true), color: C.diag })
     if (!ev.length) text(g, 'NO EVENTS', W / 2, 330, { font: sans(24, true), color: C.faint, align: 'center' })
     ev.forEach((e, i) => {
       const y = y0 + i * rowH
@@ -784,7 +784,7 @@ function esd(g: G, s: Snap) {
   const list = (s.shutdowns ?? []).filter((d) => !whp || d.platform === 'WHP-N')
   const latched = list.filter((d) => d.resetAt == null)
   const top = latched.reduce<ShutdownLevel | null>((a, d) => (!a || SHUTDOWN_RANK[d.level] > SHUTDOWN_RANK[a] ? d.level : a), null)
-  head(g, s, whp ? 'SHUTDOWN STATUS — WHP-N' : 'SHUTDOWN / ESD STATUS', top ? (SHUTDOWN_RANK[top] >= SHUTDOWN_RANK.ESD2 ? 'red' : 'amber') : null)
+  head(g, s, whp ? 'SHUTDOWN STATUS: WHP-N' : 'SHUTDOWN / ESD STATUS', top ? (SHUTDOWN_RANK[top] >= SHUTDOWN_RANK.ESD2 ? 'red' : 'amber') : null)
   // hierarchy strip
   LEVELS.forEach((l, i) => {
     const x = 12 + i * 122

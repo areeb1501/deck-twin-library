@@ -7,6 +7,7 @@ Two pages, served unlisted on the library site:
 | `/alpha/` | Landing page (`index.html`, `landing/`): plain HTML and CSS, no WebGL |
 | `/alpha/demo/` | The twin (`demo/index.html`, `src/`, `bridge/`, `lite/`), a copy of `../../deck-twin` |
 
+- The twin draws its UI at 90 % here (`twin-scale` in `demo/index.html`, set by `lite/boot.ts`). The 3D viewport isn't scaled, so picking and the canvas size are unchanged.
 - The landing page carries the library site's nav (plain HTML in `index.html`, so a new site tab goes in both places). Search and ⌘K open a dialog on the page itself (`landing/search.ts`), with the site's ranking and the same results. It fetches `/r/index.json` on first use. It has no theme toggle: the page is dark only.
 - Linked from the library home page since 2026-10-30, at the user's request. Still not in the sitemap, robots.txt or llms.txt.
 - `noindex, nofollow` meta tags in both pages, plus an `X-Robots-Tag` header from `../public/_headers`.
@@ -16,7 +17,7 @@ Two pages, served unlisted on the library site:
 
 ## Media
 
-Clips and stills are in the private R2 bucket `deck-twin-alpha-media`, under `v1/`, served at `/alpha/media/*` by `worker.js`, which also sets noindex and handles the range requests Safari needs for video. The bucket has no public URL. They were cut from `../../deck-twin/video/out/clips`: 1280 to 1920 px wide, H.264 with no sound, each with a same-named `.webp` poster. Objects are cached as immutable, so a changed file needs a new name or a `v2/`. In dev, `/alpha/media` proxies to the live site. `landing/media.sh` rebuilds and uploads the whole set; change `SET` in it for a new version.
+Clips and stills are in the private R2 bucket `deck-twin-alpha-media`, under `v2/`, served at `/alpha/media/*` by `worker.js`, which also sets noindex and handles the range requests Safari needs for video. The bucket has no public URL. They were cut from `../../deck-twin/video/out/clips`: 1280 to 1920 px wide, H.264 with no sound, each with a same-named `.webp` poster. The two long films, `hero-flyover` (25.6 s) and `walk-bridge` (13 s), have `data-film` in `index.html`: each also has `.av1.mp4` and a small `-sm.mp4` cut, and a baked dissolve so the loop has no jump. Objects are cached as immutable, so a changed file needs a new name or a `v2/`. In dev, `/alpha/media` proxies to the live site. `landing/media.sh` rebuilds and uploads the whole set; change `SET` in it for a new version.
 
 ## Phones and small screens
 

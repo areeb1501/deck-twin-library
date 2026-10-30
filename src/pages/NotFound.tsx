@@ -7,10 +7,12 @@ import { LIBRARY } from '../pid'
 import { DOCS } from './docs'
 import { markHits, searchSite } from '../components/Shell'
 import { useTheme } from '../theme'
+import { usePageMeta } from '../meta'
 
 const guess = (path: string) => decodeURIComponent(path.split('/').filter(Boolean).pop() ?? '').replace(/[-_.]+/g, ' ').trim()
 
 export function NotFound({ what = 'page' }: { what?: string }) {
+  usePageMeta('Page not found', 'This page is not on the drawing. Search the Deck Twin library or start from one of its main sections.')
   const theme = useTheme()
   const [path, go] = useLocation()
   const [q, setQ] = useState(() => guess(path))

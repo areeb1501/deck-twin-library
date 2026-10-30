@@ -71,7 +71,7 @@ export function HandoverPage() {
     <div className="ho" data-handover>
       <div className="ho-head">
         <div>
-          <h2>Shift handover — {plant.name}</h2>
+          <h2>Shift handover:{plant.name}</h2>
           <div className="dim">
             {fmtClock(since)} → {fmtClock(t)} · {(span / 3600).toFixed(1)} h {span < WINDOW - 1 ? '(session so far)' : '(last 12 h)'} · generated from the simulation, the maintenance system and the audit trail
           </div>
@@ -108,7 +108,7 @@ export function HandoverPage() {
               <tr key={k}>
                 <td>{LOSS_LABEL[k]}</td>
                 <td className="num">{fmt(loss(k))}</td>
-                <td className="num">{lossTot ? `${fmt((loss(k) / lossTot) * 100, 0)} %` : '—'}</td>
+                <td className="num">{lossTot ? `${fmt((loss(k) / lossTot) * 100, 0)} %` : '-'}</td>
               </tr>
             ))}
             {!LOSSES.some((k) => loss(k) > 0.5) && (
@@ -138,8 +138,8 @@ export function HandoverPage() {
                 {events.map((e, i) => (
                   <tr key={i}>
                     <td className="mono">{fmtClock(e.t, false)}</td>
-                    <td className="mono">{e.kind === 'shutdown' ? e.text.split(' — ')[0] : e.tag}</td>
-                    <td className="wrap">{e.kind === 'shutdown' ? e.text.split(' — ').slice(1).join(' — ') : e.text}</td>
+                    <td className="mono">{e.kind === 'shutdown' ? e.text.split(' - ')[0] : e.tag}</td>
+                    <td className="wrap">{e.kind === 'shutdown' ? e.text.split(' - ').slice(1).join(' - ') : e.text}</td>
                     <td className={e.resetAt !== undefined ? 'ok' : 'no'}>{e.resetAt !== undefined ? `yes ${fmtClock(e.resetAt, false)}` : 'NO'}</td>
                   </tr>
                 ))}
@@ -206,7 +206,7 @@ export function HandoverPage() {
                       <Prio p={a.priority} />
                     </td>
                     <td className="wrap">{a.text}</td>
-                    <td className="mono dim">until {a.shelvedUntil !== undefined ? fmtClock(a.shelvedUntil, false) : '—'}</td>
+                    <td className="mono dim">until {a.shelvedUntil !== undefined ? fmtClock(a.shelvedUntil, false) : '-'}</td>
                   </tr>
                 ))}
               </tbody>
@@ -243,7 +243,7 @@ export function HandoverPage() {
                     <td className="wrap">{w.title}</td>
                     <td className="dim">{WO_TYPE_LABEL[w.type]}</td>
                     <td>{WO_STATUS_LABEL[w.status]}</td>
-                    <td className={p?.status === 'suspended' ? 'no' : ''}>{p ? `${p.id} ${PERMIT_LABEL[p.type]} · ${p.status}${p.suspendReason ? ` (${p.suspendReason})` : ''}` : '—'}</td>
+                    <td className={p?.status === 'suspended' ? 'no' : ''}>{p ? `${p.id} ${PERMIT_LABEL[p.type]} · ${p.status}${p.suspendReason ? ` (${p.suspendReason})` : ''}` : '-'}</td>
                     <td className="num">
                       {w.actualH.toFixed(1)} / {w.estH.toFixed(1)}
                     </td>
@@ -308,8 +308,8 @@ export function HandoverPage() {
       </div>
 
       <div className="ho-sign">
-        <div>Off-going CCR operator — name / signature</div>
-        <div>On-coming CCR operator — name / signature</div>
+        <div>Off-going CCR operator: name / signature</div>
+        <div>On-coming CCR operator: name / signature</div>
       </div>
     </div>
   )

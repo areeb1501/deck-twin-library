@@ -108,7 +108,7 @@ export function Alarms() {
         </button>
       </div>
 
-      <Box title={`Alarm list — ${rows.length} of ${alarms.length}`} right={pages > 1 ? <Pager pg={pg} pages={pages} set={setPage} /> : null}>
+      <Box title={`Alarm list: ${rows.length} of ${alarms.length}`} right={pages > 1 ? <Pager pg={pg} pages={pages} set={setPage} /> : null}>
         {view.length === 0 ? (
           <div className="h-empty">{alarms.length ? 'No alarms match the filter.' : 'No alarms. The plant is in normal operation.'}</div>
         ) : (

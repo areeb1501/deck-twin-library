@@ -105,9 +105,9 @@ function renderStatus(r: J): string {
   const sd = arr(r.shutdowns)
   const plats = Object.entries((r.platforms as Record<string, J>) ?? {})
   const lines = [
-    `Oil export ${r.oilExportBpd ?? '—'} bbl/d, gas export ${r.gasExportMMscfd ?? '—'} MMscfd, flare ${r.flareMMscfd ?? '—'} MMscfd.`,
-    `Production efficiency ${r.efficiencyPct ?? '—'} % now (session PE ${r.pePct ?? '—'} %), availability ${r.availabilityPct ?? '—'} %.`,
-    sd.length ? `Latched shutdowns: ${sd.map((s) => `${s.level} ${s.platform}${s.zone ? ` (${s.zone})` : ''} — ${s.cause}`).join('; ')}.` : 'No latched shutdowns.',
+    `Oil export ${r.oilExportBpd ?? '-'} bbl/d, gas export ${r.gasExportMMscfd ?? '-'} MMscfd, flare ${r.flareMMscfd ?? '-'} MMscfd.`,
+    `Production efficiency ${r.efficiencyPct ?? '-'} % now (session PE ${r.pePct ?? '-'} %), availability ${r.availabilityPct ?? '-'} %.`,
+    sd.length ? `Latched shutdowns: ${sd.map((s) => `${s.level} ${s.platform}${s.zone ? ` (${s.zone})` : ''}: ${s.cause}`).join('; ')}.` : 'No latched shutdowns.',
   ]
   const ga = plats.filter(([, p]) => p.ga && p.ga !== 'normal')
   if (ga.length) lines.push(`General alarm: ${ga.map(([k, p]) => `${k} ${p.ga}`).join(', ')}.`)
@@ -119,7 +119,7 @@ function renderRisk(r: J): string {
   const contrib = arr(r.contributors)
   const head = r.platform ? `${r.platform} risk is ${r.score}/100 (${r.band}).` : `Field risk is ${r.field}/100 (${r.band}). ${arr(r.platforms).map((p) => `${p.platform} ${p.score}`).join(' · ')}.`
   const why = contrib.length ? ` Top contributors: ${contrib.map((c) => `${c.text} (+${c.points})`).join('; ')}.` : ' Nothing is adding risk right now.'
-  return head + why + (r.source === 'fallback-estimate' ? ' (Estimate — the live risk engine has not reported yet.)' : '')
+  return head + why + (r.source === 'fallback-estimate' ? ' (Estimate: the live risk engine has not reported yet.)' : '')
 }
 function renderAlarms(r: J): string {
   const a = arr(r.alarms)
@@ -137,7 +137,7 @@ function renderEquipment(r: J): string {
   const metrics = arr(r.metrics)
   const off = metrics.filter((m) => m.state !== 'normal')
   const parts = [
-    `${r.tag} — ${r.name} (${r.kind}) on ${r.platform}${r.zoneName ? `, zone ${r.zoneName}` : ''}.`,
+    `${r.tag}: ${r.name} (${r.kind}) on ${r.platform}${r.zoneName ? `, zone ${r.zoneName}` : ''}.`,
     r.runState ? `Run state: ${r.runState}${r.tripCause ? ` (trip: ${r.tripCause})` : ''}.` : '',
     v ? `Valve ${v.position} % open, commanded ${v.command}${v.fault ? `, FAULT ${v.fault}` : ''}${v.by ? ` (by ${v.by})` : ''}.` : '',
     h ? `Health ${h.stage}, degradation ${h.degradationPct} %${h.mode ? ` (${h.mode})` : ''}${h.timeToFailureH !== null ? `, ~${h.timeToFailureH} running h to failure` : ''}.` : '',
@@ -152,7 +152,7 @@ function renderSensor(r: J): string {
   if (r.error) return String(r.error)
   const l = (r.limits as J | null) ?? {}
   const d = r.drift as J | null
-  return `${r.tag} (${r.type} on ${r.on ?? '?'}) reads ${r.value} ${r.unit} — ${r.state}. Limits: LL ${l.loLo ?? '—'} · L ${l.lo ?? '—'} · H ${l.hi ?? '—'} · HH ${l.hiHi ?? '—'}. Recent range ${r.min ?? '—'} … ${r.max ?? '—'}.${d ? ` Drifting ${d.ratePerHour} ${r.unit}/h — ~${d.minutesToTrip} min to the trip at ${d.limit}.` : ''}`
+  return `${r.tag} (${r.type} on ${r.on ?? '?'}) reads ${r.value} ${r.unit}: ${r.state}. Limits: LL ${l.loLo ?? '-'} · L ${l.lo ?? '-'} · H ${l.hi ?? '-'} · HH ${l.hiHi ?? '-'}. Recent range ${r.min ?? '-'} … ${r.max ?? '-'}.${d ? ` Drifting ${d.ratePerHour} ${r.unit}/h: ~${d.minutesToTrip} min to the trip at ${d.limit}.` : ''}`
 }
 function renderShutdown(r: J): string {
   const sd = arr(r.shutdowns)
@@ -160,7 +160,7 @@ function renderShutdown(r: J): string {
   return sd
     .map((s) => {
       const ce = s.causeEffect as J | null
-      return `${s.level}${s.zone ? ` (${s.zone})` : ''} since ${s.since}: ${s.cause}. ${s.reset ? `Reset at ${s.reset} — restart the platform when ready.` : s.resettable ? 'The cause has cleared — it can be reset.' : 'Not resettable yet — the cause is still present.'}${ce ? ` C&E effects: ${(ce.effects as string[]).slice(0, 3).join('; ')}.` : ''}`
+      return `${s.level}${s.zone ? ` (${s.zone})` : ''} since ${s.since}: ${s.cause}. ${s.reset ? `Reset at ${s.reset}: restart the platform when ready.` : s.resettable ? 'The cause has cleared: it can be reset.' : 'Not resettable yet: the cause is still present.'}${ce ? ` C&E effects: ${(ce.effects as string[]).slice(0, 3).join('; ')}.` : ''}`
     })
     .join(' ')
 }
@@ -171,7 +171,7 @@ function renderFg(r: J, cams: J | null): string {
   const parts = [
     z.length ? `Abnormal zones: ${z.map((x) => `${x.name}: gas ${x.gas}, fire ${x.fire}${x.deluge ? ', deluge' : ''}`).join('; ')}.` : `No gas or fire in the ${r.zonesChecked} zones checked.`,
     d.length ? `Detectors in alarm: ${d.slice(0, 6).map((x) => `${x.tag} ${x.value} (${x.state})`).join(', ')}.` : '',
-    inh.length ? `Inhibited: ${inh.map((x) => x.tag).join(', ')} — out of the voting.` : '',
+    inh.length ? `Inhibited: ${inh.map((x) => x.tag).join(', ')}: out of the voting.` : '',
     arr(r.faulted).length ? `Faulted: ${arr(r.faulted).map((x) => x.tag).join(', ')}.` : '',
   ]
   if (cams) {
@@ -199,7 +199,7 @@ function renderErosion(r: J): string {
   const al = f.filter((x) => x.aligned)
   const show = (al.length ? al : f).slice(0, 3)
   return `${al.length ? `${al.length} zone(s) with three or more barriers weakened at once` : 'No aligned barriers, but some layers are weakened'}: ${show
-    .map((x) => `${x.zoneName} — ${arr(x.layers).map((l) => l.text).join('; ')}`)
+    .map((x) => `${x.zoneName}: ${arr(x.layers).map((l) => l.text).join('; ')}`)
     .join(' | ')}.${al.length ? ` Suggested: ${(show[0].actions as string[]).slice(0, 2).join('; ')}.` : ''}`
 }
 function renderDrift(r: J): string {
@@ -216,7 +216,7 @@ function renderInsights(r: J): string {
   const lines = [String(r.headline ?? '')]
   if (list.length) lines.push(`Top findings: ${list.slice(0, 4).map((x, i) => `${i + 1}. ${x.title}${Number(x.usdPerDay) > 0 && x.area !== 'safety' ? ` (${usd(x.usdPerDay)}/d)` : ''}`).join(' ')}`)
   else lines.push('Nothing stands out right now.')
-  return `${lines.filter(Boolean).join(' ')} (From simulated data — see Asset & economics → Insights.)`
+  return `${lines.filter(Boolean).join(' ')} (From simulated data: see Asset & economics → Insights.)`
 }
 function renderSpares(r: J): string {
   const parts = arr(r.parts)
@@ -234,11 +234,11 @@ function renderSpares(r: J): string {
     lines.push(short.length ? `Parts short or below their reorder point: ${short.map((x) => `${x.id} ${x.name} (${x.offshore} offshore, ${x.base} base)`).join('; ')}.` : 'No part is short or below its reorder point.')
   }
   if (Number(r.awaitingMaterials) > 0) lines.push(`${r.awaitingMaterials} work order(s) are waiting for materials.`)
-  return `${lines.join(' ')} (Simulated stock — see Spares & supply.)`
+  return `${lines.join(' ')} (Simulated stock: see Spares & supply.)`
 }
 const usd = (v: unknown) => {
   const n = Number(v)
-  if (!Number.isFinite(n)) return '—'
+  if (!Number.isFinite(n)) return '-'
   const a = Math.abs(n)
   return `${n < 0 ? '−' : ''}$${a >= 1e6 ? `${(a / 1e6).toFixed(2)} M` : a >= 1e3 ? `${(a / 1e3).toFixed(0)} k` : a.toFixed(0)}`
 }
@@ -250,15 +250,15 @@ function renderValue(r: J): string {
   return [
     `At the assumed price deck ($${deck.oilUsdBbl}/bbl oil, $${deck.gasUsdMMBtu}/MMBtu gas) the field earns ${usd(r.revenueUsdD)}/d, cash margin ${usd(r.cashUsdD)}/d, lifting cost $${r.liftingCostUsdBoe}/boe, carbon intensity ${r.intensityKgBoe} kgCO2e/boe.`,
     def.length ? `Deferred revenue this session: ${def.map((d) => `${String(d.category)} ${usd(d.usd)}`).join(', ')}${Number(s.awaitingSparesUsd) > 0 ? ` (of which ${usd(s.awaitingSparesUsd)} waiting for spares)` : ''}.` : 'Nothing deferred this session yet.',
-    risks.length ? `Most at risk over 30 days: ${risks.slice(0, 3).map((a) => `${a.tag} ${usd(a.exposureUsd)} (P ${a.pFail30d} %, spare ${a.spare}) — ${a.action}`).join('; ')}.` : '',
-    '(Simulated economics — see Asset & economics.)',
+    risks.length ? `Most at risk over 30 days: ${risks.slice(0, 3).map((a) => `${a.tag} ${usd(a.exposureUsd)} (P ${a.pFail30d} %, spare ${a.spare}): ${a.action}`).join('; ')}.` : '',
+    '(Simulated economics: see Asset & economics.)',
   ]
     .filter(Boolean)
     .join(' ')
 }
 
 const HELP =
-  'Ask me about the live plant: "How is the plant doing?", "What is at risk in dollars?", "Do we have a dry gas seal cartridge?", "What is the risk on Alpha?", "Tell me about K-2200", "What alarms are active?", "Why did Alpha shut down?", "Any gas?", "Is hot work safe now?", "What happens if P-1500A trips?", "Any hidden barrier erosion?", "Is anything drifting towards a trip?". I only read the twin — I never operate it.'
+  'Ask me about the live plant: "How is the plant doing?", "What is at risk in dollars?", "Do we have a dry gas seal cartridge?", "What is the risk on Alpha?", "Tell me about K-2200", "What alarms are active?", "Why did Alpha shut down?", "Any gas?", "Is hot work safe now?", "What happens if P-1500A trips?", "Any hidden barrier erosion?", "Is anything drifting towards a trip?". I only read the twin, I never operate it.'
 
 /** tags mentioned in a text that are real plant items */
 function tagsInText(text: string, traceId: string, known: Set<string>): string[] {
@@ -350,10 +350,10 @@ export function localAnswer(question: string, traceId: string): { text: string; 
           const chain = arr(cq.chain)
           const dboe = (cq.deferredBoe as J) ?? {}
           parts.push(
-            `Closest scenario: "${r.title}". ${chain.length ? `Likely chain: ${chain.slice(0, 5).map((s) => `${s.t} ${s.text}`).join(' → ')}.` : ''} Worst case ${cq.worstShutdown ?? '—'} on ${arr(cq.platforms).join(', ') || '—'}; deferred ≈ ${dboe.unmitigated ?? '—'} boe unmitigated vs ${dboe.ideal ?? '—'} with a good response; risk peak ~${cq.riskPeak ?? '—'}. ${arr(cq.barriers).length ? `What stops it: ${(cq.barriers as unknown as string[]).slice(0, 3).join('; ')}.` : ''}`,
+            `Closest scenario: "${r.title}". ${chain.length ? `Likely chain: ${chain.slice(0, 5).map((s) => `${s.t} ${s.text}`).join(' → ')}.` : ''} Worst case ${cq.worstShutdown ?? '-'} on ${arr(cq.platforms).join(', ') || '-'}; deferred ≈ ${dboe.unmitigated ?? '-'} boe unmitigated vs ${dboe.ideal ?? '-'} with a good response; risk peak ~${cq.riskPeak ?? '-'}. ${arr(cq.barriers).length ? `What stops it: ${(cq.barriers as unknown as string[]).slice(0, 3).join('; ')}.` : ''}`,
           )
         } else {
-          parts.push(`Closest scenario: "${r.title}" — ${r.summary} What stops it escalating: ${(r.expected as string[]).slice(0, 3).join('; ')}. A good response defers about ${r.idealDeferredBoe} boe.`)
+          parts.push(`Closest scenario: "${r.title}": ${r.summary} What stops it escalating: ${(r.expected as string[]).slice(0, 3).join('; ')}. A good response defers about ${r.idealDeferredBoe} boe.`)
         }
         break
       }
@@ -406,7 +406,7 @@ export async function ask(question: string): Promise<ChatMessage> {
       useChat.setState({ busy: false })
       return msg
     } catch (e) {
-      addTrace(traceId, { actor: 'assistant', kind: 'decide', text: `Model unavailable (${e instanceof Error ? e.message : String(e)}) — falling back to the local planner` })
+      addTrace(traceId, { actor: 'assistant', kind: 'decide', text: `Model unavailable (${e instanceof Error ? e.message : String(e)}): falling back to the local planner` })
     }
   }
   try {
@@ -421,7 +421,7 @@ export async function ask(question: string): Promise<ChatMessage> {
   } catch (e) {
     const err = e instanceof Error ? e.message : String(e)
     addTrace(traceId, { actor: 'assistant', kind: 'answer', text: `Failed: ${err}` })
-    msg = push({ role: 'assistant', text: `Sorry — I could not work that out (${err}).`, traceId })
+    msg = push({ role: 'assistant', text: `Sorry: I could not work that out (${err}).`, traceId })
   } finally {
     useChat.setState({ busy: false })
   }

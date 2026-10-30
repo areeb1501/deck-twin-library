@@ -57,7 +57,7 @@ export function Trends() {
         </label>
       </div>
       {hist.length < 2 ? (
-        <div className="h-placeholder">The historian has no data yet — trends fill as the simulation runs.</div>
+        <div className="h-placeholder">The historian has no data yet: trends fill as the simulation runs.</div>
       ) : (
         SERIES.filter((s) => on.includes(s.k)).map((s) => <Strip key={s.k} s={s} pts={pts} t0={t0} t1={tMax} />)
       )}

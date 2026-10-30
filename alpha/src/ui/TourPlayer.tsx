@@ -48,7 +48,7 @@ export function TourPlayer() {
       {t.line && !t.done && <p className="tour-line">{t.line}</p>}
       {t.takenOver && (
         <p className="tour-line muted">
-          You have the controls — walk and look around. <b>Resume</b> carries on from here.
+          You have the controls: walk and look around. <b>Resume</b> carries on from here.
         </p>
       )}
       <div className="tour-strip">

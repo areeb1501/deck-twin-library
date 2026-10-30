@@ -68,7 +68,7 @@ export function PasswordGate({ children }: { children: ReactNode }) {
         <div className="gate-eyebrow">Alpha field · offshore digital twin</div>
         <h1>
           Deck Twin
-          <span>Production, asset risk and value — live, in one model of the field.</span>
+          <span>Production, asset risk and value: live, in one model of the field.</span>
         </h1>
         <ul className="gate-points">
           <li>Five-platform field simulated in real time</li>
