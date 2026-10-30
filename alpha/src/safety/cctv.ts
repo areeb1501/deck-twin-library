@@ -1,7 +1,7 @@
 /**
  * CCTV: hazardous-area cameras and simulated PPE / hazard detections (plan 07).
  *
- *  - CAMERAS: eight cameras aimed at the high-risk equipment. Ex d explosion-proof PTZ colour cameras
+ *  - CAMERAS: fifteen cameras aimed at the high-risk equipment and critical areas. Ex d explosion-proof PTZ colour cameras
  *    (stainless housings, ATEX / IECEx Zone 1, IP68) and thermal / multispectral flame-detection
  *    cameras. WORLD coordinates (deck-local + [0, 28, 0]); the target is computed from the watched
  *    equipment in the plant.
@@ -73,6 +73,14 @@ const SPECS: Spec[] = [
   { id: 'CCTV-N01', name: 'WHP-N well bay', platform: 'WHP-N', type: 'ptz', watches: ['XT-N101', 'XT-N102', 'XT-N103', 'XT-N104', 'XT-N105', 'XT-N106'], mount: [12.5, 7, -66.5], floor: 0, zones: ['N-WELL'] },
   { id: 'CCTV-R01', name: 'RP pig launchers & metering', platform: 'RP', type: 'ptz', watches: ['L-R110', 'L-R210', 'X-R150'], mount: [-73.5, 7, -3.2], floor: 0, zones: ['R-PROC'] },
   { id: 'CCTV-L01', name: 'South bridge / LQ entrance', platform: 'LQ', type: 'ptz', watches: ['B-9300'], mount: [9.6, 6, 62], floor: 0, aim: [6, 0.9, 42], zones: ['B-S', 'LQ-MAIN'], fov: 34 },
+  // ---- more critical areas: relief & firewater, gas treatment, flare, drilling, the satellites, emergency power
+  { id: 'CCTV-A06', name: 'Flare KO drum & firewater pumps', platform: 'Alpha', type: 'ptz', watches: ['V-2400', 'B-7100', 'B-7200'], mount: [26, 7.4, 3.4], floor: 0, aim: [15.5, 1.6, 13.5], fov: 52 },
+  { id: 'CCTV-A07', name: 'Produced water & TEG dehydration', platform: 'Alpha', type: 'ptz', watches: ['X-4200', 'V-4100', 'T-5300', 'C-5350'], mount: [-6.5, 7.6, 3.2], floor: 0, fov: 52 },
+  { id: 'CCTV-A08', name: 'Flare tip (stack monitoring, from LQ)', platform: 'Alpha', type: 'thermal', watches: ['V-2400'], mount: [20.4, 7.2, 61.2], floor: 0, aim: [76, 62, 28], fov: 16 },
+  { id: 'CCTV-A09', name: 'Drill floor & rotary table', platform: 'Alpha', type: 'ptz', watches: ['DR-100'], mount: [-5, 23.5, -4], floor: 10, aim: [3, 18.4, -13], fov: 50 },
+  { id: 'CCTV-N02', name: 'WHP-N test manifold, MPFM & vent KO', platform: 'WHP-N', type: 'ptz', watches: ['M-N210', 'V-N240', 'V-N290'], mount: [24, 6.5, -71.5], floor: 0, fov: 50 },
+  { id: 'CCTV-W01', name: 'WI injection pumps & deaerator', platform: 'WI', type: 'thermal', watches: ['P-W310A', 'P-W310B', 'V-W320'], mount: [10.5, 6.5, -131.5], floor: 0, fov: 50 },
+  { id: 'CCTV-L02', name: 'Emergency generator room (LQ)', platform: 'LQ', type: 'ptz', watches: ['B-9310', 'V-9330'], mount: [2.6, 6.2, 71.2], floor: 0, aim: [-3, 1.4, 78.5], fov: 56 },
 ]
 
 function buildCameras(plant: Plant): CctvCameraEx[] {

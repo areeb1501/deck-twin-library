@@ -113,3 +113,10 @@
 .hmi .cctv-prompt.on { color: #e8ecef; border-color: var(--c); background: rgba(255, 255, 255, 0.05); }
 .hmi .cctv-prompt:not(.on) { background: transparent; color: #8a9399; }
 .hmi .cctv-prompt.on i { opacity: 1; }
+
+/* camera groups above the wall */
+.hmi .cctv-main { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.hmi .cctv-groups { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; }
+.hmi .cctv-groups button { font-size: 11.5px; padding: 2px 8px; }
+.hmi .cctv-groups .small { margin-left: 6px; }
+.hmi .cctv-tile.thermal .cctv-segtag { bottom: 52px; }

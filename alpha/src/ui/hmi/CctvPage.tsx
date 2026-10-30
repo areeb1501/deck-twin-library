@@ -10,10 +10,10 @@
  *  - Right column: the call-up, the detection log (Walk to), and the detector-model card. Detections are
  *    simulated from the twin's ground truth today; SAM 3.1 on a Modal GPU is the planned replacement.
  */
-import { memo, useEffect, useMemo, useRef } from 'react'
+import { memo, useEffect, useMemo, useRef, useState } from 'react'
 import { Box, Kpi } from './common'
 import { EMPTY_ARR, EMPTY_OBJ, useS } from './simApi'
-import { CAMERAS, FEED_H, FEED_INTERVAL_MS, FEED_W, SEG_BY_ID, SEG_CLASSES, cameraById, feedStats, registerFeed, segFrames, unregisterFeed, useCctv, type CctvCameraEx, type SegInstance } from '../../safety/cctv'
+import { CAMERAS, FEED_H, FEED_INTERVAL_MS, FEED_W, SEG_BY_ID, SEG_CLASSES, cameraById, feedCanvases, feedStats, registerFeed, segFrames, unregisterFeed, useCctv, type CctvCameraEx, type SegInstance } from '../../safety/cctv'
 import { useWorkers } from '../../safety/workers'
 import { DETECTION_LABEL, type Detection, type DetectionKind, type WorkerInfo } from '../../safety/types'
 import { fmtClock, type DetectorSim, type ZoneStatus } from '../../sim/types'
@@ -23,6 +23,15 @@ import { zoneById, zoneDetectors, GAS_HIGH, GAS_LOW, OGD_HIGH, OGD_LOW, OGD_MAX,
 import { walkToTag } from '../walkTo'
 import './cctv.css'
 
+const GROUPS: [string, string][] = [
+  ['all', 'All cameras'],
+  ['Alpha', 'Alpha'],
+  ['WHP-N', 'WHP-N'],
+  ['RP', 'RP'],
+  ['WI', 'WI'],
+  ['LQ', 'LQ'],
+  ['thermal', 'Thermal / flame'],
+]
 const BIG_W = 960
 const BIG_H = 540
 const KIND_CLASS: Record<DetectionKind, string> = { person: 'person', noHardHat: 'ppe', noVest: 'ppe', restrictedZone: 'ppe', fire: 'fire', gasCloud: 'gas' }
@@ -40,15 +49,29 @@ export function CctvPage() {
 
   const bigId = callUp ?? selected
   const big = cameraById(bigId) ?? CAMERAS[0]
-  const small = CAMERAS.filter((c) => c.id !== big.id)
+  const [group, setGroup] = useState<string>('all')
+  const small = CAMERAS.filter((c) => c.id !== big.id && (group === 'all' || (group === 'thermal' ? c.type === 'thermal' : c.platform === group)))
 
   return (
     <div className="cctv">
+      <div className="cctv-main">
+      <div className="cctv-groups" role="group" aria-label="Camera groups">
+        {GROUPS.map(([k, label]) => {
+          const n = CAMERAS.filter((c) => k === 'all' || (k === 'thermal' ? c.type === 'thermal' : c.platform === k)).length
+          return n ? (
+            <button key={k} className={group === k ? 'on' : ''} onClick={() => setGroup(k)} data-cam-group={k}>
+              {label} <span className="dim">{n}</span>
+            </button>
+          ) : null
+        })}
+        <span className="dim small">{CAMERAS.length} hazardous-area cameras · only the tiles on screen are rendered</span>
+      </div>
       <div className="cctv-wall" role="region" aria-label="CCTV camera wall">
         <Tile key={`big-${big.id}`} cam={big} big calledUp={callUp === big.id} />
         {small.map((c, i) => (
           <Tile key={c.id} cam={c} slot={i} />
         ))}
+      </div>
       </div>
       <div className="cctv-side">
         <CallUpBox />
@@ -75,8 +98,8 @@ const Tile = memo(function Tile({ cam, big, calledUp, slot }: { cam: CctvCameraE
   }, [cam.id])
   const w = big ? BIG_W : FEED_W
   const h = big ? BIG_H : FEED_H
-  // small tiles fill the right-hand column (3) and the bottom row (4) around the big monitor
-  const style = big ? undefined : slot! < 3 ? { gridColumn: 4, gridRow: slot! + 1 } : { gridColumn: slot! - 2, gridRow: 4 }
+  // small tiles fill the right-hand column (3) beside the big monitor, then rows of 4 below it
+  const style = big ? undefined : slot! < 3 ? { gridColumn: 4, gridRow: slot! + 1 } : { gridColumn: 1 + ((slot! - 3) % 4), gridRow: 4 + Math.floor((slot! - 3) / 4) }
   return (
     <div
       className={`cctv-tile ${big ? 'big' : ''} ${calledUp ? 'callup' : ''} ${cam.type}`}
@@ -460,7 +483,7 @@ function ModelBox() {
   const ppe = now.filter((d) => d.kind === 'noHardHat' || d.kind === 'noVest').length
   const hazards = now.filter((d) => d.kind === 'fire' || d.kind === 'gasCloud').length
   const per = 1000 / FEED_INTERVAL_MS
-  const others = Math.max(1, CAMERAS.length - 1)
+  const others = Math.max(1, feedCanvases.size - 1)
   const bigFps = feedStats.get(selected)?.fps
   return (
     <Box title="Detector model">

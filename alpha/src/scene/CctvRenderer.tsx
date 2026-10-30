@@ -29,6 +29,7 @@ import { levelAt, walkLevels } from './Walk'
 import { flameHeight } from '../sim/fg'
 import { ALPHA_DECK, LQ, RP, WHP, WI } from '../model/site'
 import type { Incident } from '../sim/types'
+import { FLARE, flareTip } from './env/topsides'
 import { disposeSegCtx, makeSegCtx, renderSeg, type SegCtx } from './cctvSeg'
 import { SEG_CLASSES, type SegClassId } from '../safety/cctv'
 
@@ -446,6 +447,8 @@ function heatBlobs(cam3: THREE.PerspectiveCamera, w: number, h: number, hot: Pla
     cs.set(x, y, z).applyMatrix4(cam3.matrixWorldInverse)
     if (cs.z > -0.5) return
     const dist = -cs.z
+    // a source right next to the lens (the machine the camera is mounted on) would fill the frame
+    if (dist < 6) return
     v.set(x, y, z).project(cam3)
     if (Math.abs(v.x) > 1.3 || Math.abs(v.y) > 1.3) return
     const pxPerM = h / 2 / Math.tan(THREE.MathUtils.degToRad(cam3.fov / 2)) / dist
@@ -457,6 +460,11 @@ function heatBlobs(cam3: THREE.PerspectiveCamera, w: number, h: number, hot: Pla
     const r = e.kind === 'gasTurbineGenerator' ? 2.2 : e.kind === 'compressorPackage' ? 1.6 : 0.8
     proj(e.position[0], e.position[1] + DECK_WORLD_Y + 1, e.position[2], r, heat)
   }
+  // the flare: white-hot tip, bigger with the flaring rate (stack-monitoring camera)
+  const flare = (useSim.getState() as { result?: { flare?: number } | null }).result?.flare ?? 0.4
+  const tip = flareTip()
+  const fd = FLARE.dir
+  proj(tip[0] + fd.x * 3.4, tip[1] + fd.y * 3.4 + 1.5, tip[2] + fd.z * 3.4, Math.min(9, 2.2 + flare / 8), 0.9 + Math.min(1, flare / 25) * 0.8)
   const incidents = (useSim.getState() as { incidents?: Incident[] }).incidents ?? []
   for (const inc of incidents) {
     if (inc.cleared !== undefined || !inc.pos || inc.fault.kind !== 'fire' || !inc.burning) continue
