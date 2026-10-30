@@ -1,7 +1,9 @@
-import { lazy, Suspense, useEffect, useMemo, useState, type ComponentProps, type ReactNode } from 'react'
+import { useMemo, type ReactNode } from 'react'
 import { Link } from 'wouter'
 import { CATEGORIES, ITEMS, byCategory, thumb } from '../registry'
 import { EXAMPLES } from '../plants'
+import { ClientPlant } from '../viewer/ClientPlant'
+import { usePageMeta } from '../meta'
 import { Code, Command } from '../components/ui'
 import { AgentLine, PromptCard } from '../components/PromptCard'
 import { CLI } from '../site'
@@ -22,20 +24,9 @@ const PLANT_SNIPPET = `{
 const BODIES = ['ASME', 'API', 'IEC', 'ISO', 'EN', 'NFPA', 'DNV', 'NORSOK', 'ISA', 'TEMA']
 
 declare const __SYMBOL_COUNT__: number
-const PlantView = lazy(() => import('../viewer/PlantView').then((m) => ({ default: m.PlantView })))
-
-// The 3D view loads after the page is on screen, and only in the browser.
-function HeroPlant(props: ComponentProps<typeof PlantView>) {
-  const [ready, setReady] = useState(false)
-  useEffect(() => setReady(true), [])
-  return ready ? (
-    <Suspense fallback={null}>
-      <PlantView {...props} />
-    </Suspense>
-  ) : null
-}
 
 export function Home() {
+  usePageMeta(null, 'Standards-based three.js components for oil & gas digital twins. Copy, paste, assemble.')
   const theme = useTheme()
   const hero = EXAMPLES.find((e) => e.name === 'separation-train') ?? EXAMPLES[0]
   const heroSpec = useMemo(() => (hero?.spec.camera ? { ...hero.spec, camera: { ...hero.spec.camera, radius: hero.spec.camera.radius * 0.78 } } : hero?.spec), [hero])
@@ -90,7 +81,7 @@ export function Home() {
                 </Link>
               )}
             </div>
-            <div className="relative h-[360px] sm:h-[520px] lg:h-[620px]">{heroSpec ? <HeroPlant spec={heroSpec} className="absolute inset-0" /> : null}</div>
+            <div className="relative h-[360px] sm:h-[520px] lg:h-[620px]">{heroSpec ? <ClientPlant spec={heroSpec} className="absolute inset-0" /> : null}</div>
           </div>
         </div>
       </section>

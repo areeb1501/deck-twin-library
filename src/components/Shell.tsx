@@ -47,13 +47,14 @@ const NAV = [
 ] as const
 
 function DocsLayout({ drawer, closeDrawer, children }: { drawer: boolean; closeDrawer: () => void; children: ReactNode }) {
-  const [collapsed, setCollapsedState] = useState(() => {
+  const [collapsed, setCollapsedState] = useState(false)
+  useEffect(() => {
     try {
-      return localStorage.getItem(SIDEBAR_KEY) === 'closed'
+      if (localStorage.getItem(SIDEBAR_KEY) === 'closed') setCollapsedState(true)
     } catch {
-      return false
+      /* storage blocked */
     }
-  })
+  }, [])
   const setCollapsed = (c: boolean) => {
     setCollapsedState(c)
     try {

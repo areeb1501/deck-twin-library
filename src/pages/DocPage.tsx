@@ -4,6 +4,7 @@ import { Link, useLocation } from 'wouter'
 import { marked, type Tokens } from 'marked'
 import { highlight } from 'sugar-high'
 import { DOCS, docSource } from './docs'
+import { usePageMeta } from '../meta'
 
 const NotFound = lazy(() => import('./NotFound').then((m) => ({ default: m.NotFound })))
 
@@ -63,6 +64,7 @@ function Doc({ slug }: { slug: string }) {
   const article = useRef<HTMLElement>(null)
   const active = useActiveHeading(article, html)
   const i = DOCS.findIndex((d) => d.slug === slug)
+  usePageMeta(DOCS[i].title, md.replace(/```[\s\S]*?```/g, '').split('\n').find((line) => /^[A-Za-z`]/.test(line)) ?? '')
   return (
     <div className="mx-auto flex max-w-[1180px] gap-12 px-6 pt-10 pb-16 lg:px-12 lg:pt-16">
       <div className="min-w-0 flex-1">

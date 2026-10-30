@@ -6,6 +6,7 @@ import { Controls, frac } from '../viewer/Controls'
 import { Badge, Code, Command, Crumbs, RichText, Tabs } from '../components/ui'
 import { add, CLI, SITE } from '../site'
 import { PID, symbolUrl } from '../pid'
+import { usePageMeta } from '../meta'
 import { NotFound } from './NotFound'
 
 export function ComponentPage({ name }: { name: string }) {
@@ -15,6 +16,7 @@ export function ComponentPage({ name }: { name: string }) {
 }
 
 function Detail({ item }: { item: Item }) {
+  usePageMeta(`${item.title} 3D model`, item.description)
   const [mod, setMod] = useState<ComponentModule | null>(null)
   const [source, setSource] = useState('')
   const [values, setValues] = useState<Record<string, unknown>>({})

@@ -24,7 +24,7 @@
   "scripts": {
     "dev": "vite",
     "registry": "tsx scripts/build-registry.ts",
-    "build": "npm run registry && tsc -b && vite build && tsx scripts/prerender-home.ts",
+    "build": "npm run registry && tsc -b && vite build && vite build --ssr src/entry-prerender.tsx --outDir node_modules/.prerender --logLevel warn && tsx scripts/prerender.ts",
     "typecheck": "tsc -b",
     "shoot": "node scripts/shoot.mjs",
     "thumbs": "node scripts/thumbs.mjs",

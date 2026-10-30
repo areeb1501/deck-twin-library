@@ -1,12 +1,10 @@
-// The library site's Worker. It serves the prerendered home page at /, serves demo media from the private R2 bucket at /alpha/media/*
-// with the same noindex rule as the rest of /alpha, and hands everything else to the static assets. Range requests matter: Safari won't
-// play video without them.
+// The library site's Worker. It serves demo media from the private R2 bucket at /alpha/media/*, with the same noindex rule as
+// the rest of /alpha, and hands everything else to the static assets. Range requests matter: Safari won't play video without them.
 const PREFIX = '/alpha/media/'
 
 export default {
   async fetch(request, env) {
     const { pathname } = new URL(request.url)
-    if (pathname === '/') return env.ASSETS.fetch(new Request(new URL('/home', request.url), request))
     if (!pathname.startsWith(PREFIX)) return env.ASSETS.fetch(request)
     const head = request.method === 'HEAD'
     if (!head && request.method !== 'GET') return new Response('Method not allowed', { status: 405, headers: { Allow: 'GET, HEAD' } })

@@ -4,6 +4,7 @@ import { CATEGORIES, ITEMS, thumb, type Item } from '../registry'
 import { Combobox, FilterInput, Select, Toolbar } from '../components/ui'
 import { useQueryState } from '../url'
 import { useTheme } from '../theme'
+import { usePageMeta } from '../meta'
 
 // Supplier names are free text: group brands under their company ("SLB (Cameron)", "Emerson Fisher" → "SLB", "Emerson") and skip non-suppliers.
 const raw = (i: Item) => (i.vendors ?? []).filter((v) => !/^fabricated/i.test(v)).map((v) => v.replace(/\s*\(.*\)\s*$/, '').trim())
@@ -17,6 +18,7 @@ const SUPPLIERS = (() => {
 })()
 
 export function ComponentsIndex() {
+  usePageMeta('Components', `${ITEMS.length} parametric three.js components for oil & gas plants: piping, valves, vessels, rotating equipment, wellheads and more, sized from public engineering standards.`)
   const [q, setQ] = useQueryState('q', '')
   const [cat, setCat] = useQueryState('category', 'all')
   const [supplier, setSupplier] = useQueryState('supplier', '')
