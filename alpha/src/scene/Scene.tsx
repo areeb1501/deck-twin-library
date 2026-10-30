@@ -26,6 +26,7 @@ import { NozzleMarkers } from '../ui/builder/NozzleMarkers'
 import { WalkDriver, leaveWalk } from './Walk'
 import { CraneCabDriver } from './CraneCab'
 import { Workers } from './Workers'
+import { CctvRenderer } from './CctvRenderer'
 import { IsolationOverlay } from './IsolationOverlay'
 import { FireGasOverlay } from './FireGasOverlay'
 import { FgCoverageOverlay } from './FgCoverageOverlay'
@@ -438,6 +439,7 @@ export function Scene() {
         {/* after Plant (which holds the walker) so the person draws this frame's pose */}
         <WalkAvatar />
         <FieldWorkers />
+        {offshore && <CctvRenderer />}
       </Suspense>
     </Canvas>
   )

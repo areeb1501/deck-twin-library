@@ -116,7 +116,7 @@ export interface Alert {
   ack?: { t: number; by: string }
 }
 
-export type TraceActor = 'sensor' | 'rule' | 'risk' | 'cctv' | 'assistant' | 'operator' | 'muse'
+export type TraceActor = 'sensor' | 'rule' | 'risk' | 'cctv' | 'assistant' | 'operator' | 'model' | 'tool'
 export type TraceKind = 'observe' | 'assess' | 'decide' | 'act' | 'notify' | 'answer'
 /** one auditable step of a detection / decision / notification chain */
 export interface TraceStep {
