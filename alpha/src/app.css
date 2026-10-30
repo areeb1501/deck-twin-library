@@ -395,3 +395,31 @@
 .kb-live > div { display: grid; padding: 5px 7px; border: 1px solid var(--ui-line); border-radius: 6px; }
 .app.walking .panel.kb { left: 12px; }
 .mm-stair { fill: rgba(255,212,121,0.55); }
+
+/* guided tour */
+.tour-btn { font-weight: 600; }
+.tour-btn:not(.on) { color: #ffd479; }
+.tour {
+  position: absolute; z-index: 13; left: 50%; bottom: 14px; transform: translateX(-50%); width: min(560px, calc(100vw - 32px));
+  padding: 12px 14px 10px; border-radius: 11px; background: var(--ui-bg); border: 1px solid var(--ui-line);
+  backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px); box-shadow: 0 8px 28px rgba(0,0,0,0.35);
+}
+.app:has(.tour) .walk-hint, .app:has(.tour) .hint, .app:has(.tour) .legend { display: none; }
+.tour-head { display: flex; align-items: center; gap: 8px; }
+.tour-badge { font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.08em; color: #ffd479; font-weight: 600; }
+.tour-x { margin-left: auto; }
+.tour-title { font-size: 16px; font-weight: 600; letter-spacing: -0.01em; margin: 4px 0 4px; }
+.tour-say { margin: 0; font-size: 12.5px; line-height: 1.5; color: #d6d9dc; }
+.tour-line { margin: 7px 0 0; font-size: 12.5px; line-height: 1.45; padding: 6px 9px; border-left: 2px solid #ffd479; background: rgba(255,212,121,0.06); border-radius: 0 6px 6px 0; }
+.tour-line.muted { border-left-color: #8ec5ff; background: rgba(142,197,255,0.06); }
+.tour-strip { display: flex; gap: 4px; margin: 10px 0 8px; }
+.tour-dot { flex: 1; height: 5px; padding: 0; border: none; border-radius: 3px; background: rgba(255,255,255,0.12); cursor: pointer; position: relative; overflow: hidden; }
+.tour-dot.past { background: rgba(255,212,121,0.55); }
+.tour-dot.on { background: rgba(255,255,255,0.18); }
+.tour-dot i { position: absolute; left: 0; top: 0; bottom: 0; background: #ffd479; transition: width .2s linear; }
+.tour-dot:hover { background: rgba(255,255,255,0.3); }
+.tour-ctl { display: flex; gap: 6px; align-items: center; }
+.tour-ctl > button { background: rgba(255,255,255,0.05); border: 1px solid var(--ui-line); padding: 5px 10px; border-radius: 6px; cursor: pointer; }
+.tour-ctl > button:disabled { opacity: 0.4; cursor: default; }
+.tour-ctl .tour-play { min-width: 92px; background: #f2f3f4; color: #111; font-weight: 600; }
+.tour-rate { margin-left: auto; }

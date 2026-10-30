@@ -1,8 +1,10 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { SERVICE } from '../model/catalog'
 import { useStore, type CameraPreset, type LayerId } from '../state/store'
 import { findItemIn, usePlant } from '../state/plantStore'
 import { DeckNavigator } from './DeckNavigator'
+import { startTour, exitTour, useTour } from '../tour/engine'
+import { ALPHA_TOUR } from '../tour/alphaTour'
 
 const PRESETS: [CameraPreset, string][] = [
   ['overview', 'Platform'],
@@ -45,9 +47,24 @@ export function Toolbar() {
   const [menu, setMenu] = useState<'layers' | 'section' | 'views' | 'decks' | null>(null)
   const walk = useStore((s) => s.walk)
   const setWalk = useStore((s) => s.setWalk)
+  const plant = usePlant()
+  const touring = useTour((s) => s.on)
+  // the tour's routes are laid out on the Alpha field
+  const tourable = plant.deck.site === 'offshoreAlpha' && !!plant.deck.walk?.some((l) => l.id === 'drillfloor')
+  // another plant loaded mid-tour: the tour's routes don't apply to it
+  useEffect(() => {
+    if (!tourable && useTour.getState().on) exitTour()
+  }, [tourable])
 
   return (
     <div className="toolbar">
+      {tourable && (
+        <div className="seg">
+          <button className={`tour-btn ${touring ? 'on' : ''}`} onClick={(e) => (e.currentTarget.blur(), touring ? exitTour() : (setMenu(null), startTour(ALPHA_TOUR)))} title="One-click guided tour of the whole field: fly-overs and a walk through every deck, with live data">
+            {touring ? 'End tour' : '▶ Guided tour'}
+          </button>
+        </div>
+      )}
       <div className="seg">
         <button className={walk ? 'on' : ''} onClick={() => setWalk(!walk)} title="Walk through the deck with the arrow keys and inspect what you look at (G)">
           {walk ? 'Exit walk' : 'Walk'}

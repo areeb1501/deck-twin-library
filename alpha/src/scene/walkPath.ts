@@ -1,0 +1,231 @@
+/**
+ * Routes for the walker's autopilot (guided tour):
+ *   · planPath  — A* across one walk level (same walkable test the walker uses), kept off the
+ *                 equipment where there is room, then string-pulled into a few straight legs
+ *   · stairPath — the flights of a stair / ladder between two heights, as hard anchors: onto each
+ *                 flight in its lane, off it onto the landing, across to the next lane
+ */
+import type { Plant, PlanRect } from '../model/types'
+import { blockers, walkable, walkLevels, type AutoPt } from './Walk'
+import { walkSurfaces } from './walkSurfaces'
+import { DECK } from './structure/deckConst'
+import { RACK } from './structure/rack'
+
+const CELL = 0.4
+
+/** A* across level `li` from → to; null when there is no way (the points snap to the nearest free cell). */
+export function planPath(p: Plant, li: number, from: [number, number], to: [number, number], doors?: Record<string, boolean>): AutoPt[] | null {
+  const lv = walkLevels(p)[li]
+  if (!lv) return null
+  const block = [...blockers(p, li, doors), ...steel(p, lv.y)]
+  const ok = (x: number, z: number) => walkable(p, li, block, x, z)
+  // search a window around the two points first; the whole level if that fails
+  for (const margin of [16, Infinity]) {
+    const r = search(lv.areas, ok, from, to, margin)
+    if (r) return r.map(([x, z]) => ({ x, z, y: lv.y }))
+  }
+  return null
+}
+
+/** Alpha steel the walker would otherwise walk through (the walk test lets you; a tour shouldn't): jacket legs, deck columns, rack posts */
+function steel(p: Plant, y: number): PlanRect[] {
+  if ((p.deck.site ?? 'offshoreAlpha') !== 'offshoreAlpha') return []
+  const sq = (x: number, z: number, r: number): PlanRect => ({ x0: x - r, x1: x + r, z0: z - r, z1: z + r })
+  const out: PlanRect[] = []
+  if (y === -8 || y === 0 || y === 10) for (const [x, z] of DECK.legs) out.push(sq(x, z, DECK.legOD / 2 + 0.4))
+  if (y === 0) {
+    for (const [x, z] of DECK.columns) out.push(sq(x, z, 0.6))
+    for (const x of RACK.bents) for (const z of [RACK.zMin, RACK.zMax]) out.push(sq(x, z, 0.5))
+  }
+  return out
+}
+
+function search(areas: PlanRect[], ok: (x: number, z: number) => boolean, from: [number, number], to: [number, number], margin: number): [number, number][] | null {
+  const bx0 = Math.max(Math.min(...areas.map((a) => a.x0)), Math.min(from[0], to[0]) - margin)
+  const bx1 = Math.min(Math.max(...areas.map((a) => a.x1)), Math.max(from[0], to[0]) + margin)
+  const bz0 = Math.max(Math.min(...areas.map((a) => a.z0)), Math.min(from[1], to[1]) - margin)
+  const bz1 = Math.min(Math.max(...areas.map((a) => a.z1)), Math.max(from[1], to[1]) + margin)
+  const W = Math.max(1, Math.ceil((bx1 - bx0) / CELL))
+  const H = Math.max(1, Math.ceil((bz1 - bz0) / CELL))
+  const cx = (i: number) => bx0 + (i + 0.5) * CELL
+  const cz = (j: number) => bz0 + (j + 0.5) * CELL
+  const free = new Uint8Array(W * H)
+  for (let j = 0; j < H; j++) for (let i = 0; i < W; i++) free[j * W + i] = ok(cx(i), cz(j)) ? 1 : 0
+  // cells within ~0.8 m of an obstacle cost more: the route keeps to the middle of aisles and bridges
+  const near = new Uint8Array(W * H)
+  for (let j = 0; j < H; j++)
+    for (let i = 0; i < W; i++) {
+      if (!free[j * W + i]) continue
+      let n = 0
+      for (let dj = -2; dj <= 2 && !n; dj++)
+        for (let di = -2; di <= 2; di++) {
+          const a = i + di
+          const b = j + dj
+          if (a < 0 || b < 0 || a >= W || b >= H || !free[b * W + a]) {
+            n = 1
+            break
+          }
+        }
+      near[j * W + i] = n
+    }
+  const cellOf = (x: number, z: number): number => {
+    const i = Math.min(W - 1, Math.max(0, Math.floor((x - bx0) / CELL)))
+    const j = Math.min(H - 1, Math.max(0, Math.floor((z - bz0) / CELL)))
+    return j * W + i
+  }
+  /** nearest free cell (rings outward) */
+  const snap = (c: number) => {
+    if (free[c]) return c
+    const i0 = c % W
+    const j0 = (c - i0) / W
+    for (let r = 1; r < 25; r++)
+      for (let dj = -r; dj <= r; dj++)
+        for (let di = -r; di <= r; di++) {
+          if (Math.max(Math.abs(di), Math.abs(dj)) !== r) continue
+          const a = i0 + di
+          const b = j0 + dj
+          if (a >= 0 && b >= 0 && a < W && b < H && free[b * W + a]) return b * W + a
+        }
+    return -1
+  }
+  const s = snap(cellOf(from[0], from[1]))
+  const g = snap(cellOf(to[0], to[1]))
+  if (s < 0 || g < 0) return null
+  const gi = g % W
+  const gj = (g - gi) / W
+  const h = (c: number) => Math.hypot((c % W) - gi, Math.floor(c / W) - gj)
+  const cost = new Float32Array(W * H).fill(Infinity)
+  const prev = new Int32Array(W * H).fill(-1)
+  const heap = new Heap()
+  cost[s] = 0
+  heap.push(s, h(s))
+  let found = false
+  while (heap.size) {
+    const c = heap.pop()
+    if (c === g) {
+      found = true
+      break
+    }
+    const i = c % W
+    const j = (c - i) / W
+    for (let dj = -1; dj <= 1; dj++)
+      for (let di = -1; di <= 1; di++) {
+        if (!di && !dj) continue
+        const a = i + di
+        const b = j + dj
+        if (a < 0 || b < 0 || a >= W || b >= H) continue
+        const n = b * W + a
+        if (!free[n]) continue
+        if (di && dj && (!free[j * W + a] || !free[b * W + i])) continue // no corner cutting
+        const nc = cost[c] + (di && dj ? Math.SQRT2 : 1) * (near[n] ? 3 : 1)
+        if (nc < cost[n]) {
+          cost[n] = nc
+          prev[n] = c
+          heap.push(n, nc + h(n))
+        }
+      }
+  }
+  if (!found) return null
+  const cells: number[] = []
+  for (let c = g; c >= 0; c = prev[c]) cells.push(c)
+  cells.reverse()
+  const pts = cells.map((c) => [cx(c % W), cz(Math.floor(c / W))] as [number, number])
+  pts[pts.length - 1] = ok(to[0], to[1]) ? to : pts[pts.length - 1]
+  // string-pull: keep the farthest point still in plain sight (and not grazing obstacles the grid path avoided)
+  const clear = (a: [number, number], b: [number, number]) => {
+    const d = Math.hypot(b[0] - a[0], b[1] - a[1])
+    const n = Math.ceil(d / 0.15)
+    for (let k = 1; k < n; k++) {
+      const x = a[0] + ((b[0] - a[0]) * k) / n
+      const z = a[1] + ((b[1] - a[1]) * k) / n
+      if (!ok(x, z)) return false
+      const t = (k / n) * d
+      if (near[cellOf(x, z)] && t > 0.8 && d - t > 0.8) return false
+    }
+    return true
+  }
+  const out: [number, number][] = []
+  let i = 0
+  while (i < pts.length - 1) {
+    let j = pts.length - 1
+    while (j > i + 1 && !clear(pts[i], pts[j])) j--
+    out.push(pts[j])
+    i = j
+  }
+  return out
+}
+
+/** binary min-heap of cell ids by priority */
+class Heap {
+  private ids: number[] = []
+  private ps: number[] = []
+  get size() {
+    return this.ids.length
+  }
+  push(id: number, p: number) {
+    const { ids, ps } = this
+    let i = ids.length
+    ids.push(id)
+    ps.push(p)
+    while (i > 0) {
+      const u = (i - 1) >> 1
+      if (ps[u] <= ps[i]) break
+      ;[ids[u], ids[i]] = [ids[i], ids[u]]
+      ;[ps[u], ps[i]] = [ps[i], ps[u]]
+      i = u
+    }
+  }
+  pop() {
+    const { ids, ps } = this
+    const top = ids[0]
+    const li = ids.pop()!
+    const lp = ps.pop()!
+    if (ids.length) {
+      ids[0] = li
+      ps[0] = lp
+      let i = 0
+      for (;;) {
+        const l = 2 * i + 1
+        const r = l + 1
+        let m = i
+        if (l < ids.length && ps[l] < ps[m]) m = l
+        if (r < ids.length && ps[r] < ps[m]) m = r
+        if (m === i) break
+        ;[ids[m], ids[i]] = [ids[i], ids[m]]
+        ;[ps[m], ps[i]] = [ps[i], ps[m]]
+        i = m
+      }
+    }
+    return top
+  }
+}
+
+/**
+ * The flights (and ladders) inside `rect` between heights `fromY` and `toY`, in walking order, as
+ * anchor points: just before each flight in its lane, just past its end on the landing. Walking from
+ * one flight's end to the next one's start crosses the landing to the other lane.
+ */
+export function stairPath(p: Plant, rect: PlanRect, fromY: number, toY: number): AutoPt[] {
+  const lo = Math.min(fromY, toY) - 0.01
+  const hi = Math.max(fromY, toY) + 0.01
+  const up = toY > fromY
+  const runs = walkSurfaces(p)
+    .filter((s) => (s.kind === 'flight' || s.kind === 'ladder') && s.y0 !== s.y1)
+    .filter((s) => {
+      const mx = (s.x0 + s.x1) / 2
+      const mz = (s.z0 + s.z1) / 2
+      return mx >= rect.x0 && mx <= rect.x1 && mz >= rect.z0 && mz <= rect.z1 && Math.min(s.y0, s.y1) >= lo && Math.max(s.y0, s.y1) <= hi
+    })
+    .sort((a, b) => (Math.min(a.y0, a.y1) - Math.min(b.y0, b.y1)) * (up ? 1 : -1))
+  const out: AutoPt[] = []
+  for (const s of runs) {
+    const lowAtA = s.y0 < s.y1
+    const [e0, e1] = up === lowAtA ? [s.a, s.b] : [s.b, s.a]
+    const [h0, h1] = up === lowAtA ? [s.y0, s.y1] : [s.y1, s.y0]
+    const dir = Math.sign(e1 - e0)
+    const mid = s.axis === 'x' ? (s.z0 + s.z1) / 2 : (s.x0 + s.x1) / 2
+    const at = (u: number, y: number): AutoPt => (s.axis === 'x' ? { x: u, z: mid, y } : { x: mid, z: u, y })
+    out.push(at(e0 - dir * 0.3, h0), at(e1 + dir * 0.35, h1))
+  }
+  return out
+}

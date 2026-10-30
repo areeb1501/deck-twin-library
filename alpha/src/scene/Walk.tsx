@@ -51,6 +51,35 @@ export const walkPose = {
 }
 if (import.meta.env.DEV) (window as unknown as Record<string, unknown>).__walkPose = walkPose
 
+/** a point on an autopilot route: plan position + the deck-local floor height expected there */
+export interface AutoPt {
+  x: number
+  z: number
+  y: number
+}
+/**
+ * Autopilot (guided tour): while `active`, the walker follows `path` on its own — turning toward the
+ * next point, slowing for sharp turns, climbing whatever stairs the points lead up — then turns to
+ * `face` (an equipment tag or a plan point). Keyboard input is ignored meanwhile; the tour pauses
+ * itself when a movement key is pressed.
+ */
+export const walkAuto = {
+  active: false,
+  path: [] as AutoPt[],
+  /** walking speed, m/s */
+  speed: 3,
+  /** when the path is done: turn toward this tag (or point) */
+  face: null as string | [number, number, number] | null,
+  /** true once the walker is facing `face` (or immediately, with no face) */
+  facing: false,
+  /** stuck counter: snaps to a deck waypoint after no progress (counted, the tour test fails on them) */
+  stuck: 0,
+  snaps: 0,
+  /** called when the user takes over (movement key, level key, drag to look) */
+  onInterrupt: null as null | (() => void),
+}
+if (import.meta.env.DEV) (window as unknown as Record<string, unknown>).__walkAuto = walkAuto
+
 const forward = (yaw: number, pitch = 0) =>
   new THREE.Vector3(-Math.sin(yaw) * Math.cos(pitch), Math.sin(pitch), -Math.cos(yaw) * Math.cos(pitch))
 
@@ -126,7 +155,7 @@ function insideModule(p: Plant, li: number, x: number, z: number) {
 }
 
 /** what blocks walking on a level: equipment standing on it (padded; modules as walls with door gaps) + the level's obstacles */
-function blockers(p: Plant, li: number, doors: Record<string, boolean> = useSim.getState().doors): PlanRect[] {
+export function blockers(p: Plant, li: number, doors: Record<string, boolean> = useSim.getState().doors): PlanRect[] {
   const levels = walkLevels(p)
   const fps = footprints(p.equipment, PAD)
   return [
@@ -138,7 +167,7 @@ function blockers(p: Plant, li: number, doors: Record<string, boolean> = useSim.
     ...(levels[li]?.obstacles ?? []),
   ]
 }
-function walkable(p: Plant, li: number, block: PlanRect[], x: number, z: number) {
+export function walkable(p: Plant, li: number, block: PlanRect[], x: number, z: number) {
   const lv = walkLevels(p)[li]
   return !!lv && inside(lv.areas.map((a) => ({ x0: a.x0 - 1e-6, x1: a.x1 + 1e-6, z0: a.z0 - 1e-6, z1: a.z1 + 1e-6 })), x, z) && !inside(block, x, z)
 }
@@ -241,10 +270,12 @@ export function WalkDriver({ controls, root }: { controls: React.RefObject<Camer
         return
       }
       if (/^[1-9]$/.test(k) && Number(k) <= levels.length) {
+        if (walkAuto.active) walkAuto.onInterrupt?.()
         useStore.getState().setWalkLevel(Number(k) - 1)
         return
       }
       if (!MOVE_KEYS.has(k)) return
+      if (walkAuto.active && k !== 'shift') walkAuto.onInterrupt?.()
       keys.current.add(k)
       if (k.startsWith('arrow') || k.startsWith('page')) e.preventDefault()
     }
@@ -273,6 +304,7 @@ export function WalkDriver({ controls, root }: { controls: React.RefObject<Camer
     const down = (e: PointerEvent) => (last = { x: e.clientX, y: e.clientY })
     const move = (e: PointerEvent) => {
       if (!last || !e.buttons) return
+      if (walkAuto.active && Math.hypot(e.clientX - last.x, e.clientY - last.y) > 2) walkAuto.onInterrupt?.()
       walkPose.yaw += (e.clientX - last.x) * 0.0045
       walkPose.pitch = THREE.MathUtils.clamp(walkPose.pitch + (e.clientY - last.y) * 0.0045, -1.4, 1.4)
       last = { x: e.clientX, y: e.clientY }
@@ -313,61 +345,143 @@ export function WalkDriver({ controls, root }: { controls: React.RefObject<Camer
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [focus])
 
+  // stand on whichever deck or stair surface here is closest to the current feet height
+  const floorAt = (x: number, z: number): { h: number; li: number | null } | null => {
+    let best: { h: number; li: number | null } | null = null
+    let bd = STEP
+    // on a ladder you are on the ladder, not on the deck it stands on
+    const onLadder = surfaces.some((s) => s.kind === 'ladder' && x >= s.x0 && x <= s.x1 && z >= s.z0 && z <= s.z1)
+    if (!onLadder)
+      levels.forEach((lv, i) => {
+        const d = Math.abs(lv.y - walkPose.floor)
+        if (d <= bd && walkable(plant, i, blockAll[i], x, z)) (bd = d), (best = { h: lv.y, li: i })
+      })
+    for (const s of surfaces) {
+      if (x < s.x0 || x > s.x1 || z < s.z0 || z > s.z1) continue
+      const h = surfaceHeight(s, x, z)
+      const d = Math.abs(h - walkPose.floor)
+      if (d < bd) (bd = d), (best = { h, li: null })
+    }
+    return best
+  }
+  const tryMove = (x: number, z: number) => {
+    const f = floorAt(x, z)
+    if (!f) return false
+    walkPose.x = x
+    walkPose.z = z
+    walkPose.floor = f.h
+    // stepping off a stair onto a deck makes that deck the current level (minimap, gaze, buildings)
+    if (f.li !== null && f.li !== walkPose.level) {
+      walkPose.level = f.li
+      useStore.getState().setWalkLevel(f.li)
+    }
+    return true
+  }
+  /** move by (dx, dz) in small sub-steps (never through a wall, never past a stair tread), sliding along obstacles */
+  const move = (dx: number, dz: number) => {
+    const n = Math.max(1, Math.ceil(Math.hypot(dx, dz) / 0.15))
+    for (let i = 0; i < n; i++) {
+      const sx = dx / n
+      const sz = dz / n
+      if (!tryMove(walkPose.x + sx, walkPose.z + sz)) if (!tryMove(walkPose.x + sx, walkPose.z)) tryMove(walkPose.x, walkPose.z + sz)
+    }
+  }
+  const turnToward = (yaw: number, rate: number) => {
+    let d = yaw - walkPose.yaw
+    d = Math.atan2(Math.sin(d), Math.cos(d))
+    walkPose.yaw += Math.sign(d) * Math.min(Math.abs(d), rate)
+    return Math.abs(d)
+  }
+
+  /** autopilot: follow the route, then face the target */
+  const autopilot = (dt: number) => {
+    const A = walkAuto
+    const pt = A.path[0]
+    if (pt) {
+      const dx = pt.x - walkPose.x
+      const dz = pt.z - walkPose.z
+      const dist = Math.hypot(dx, dz)
+      if (dist < 0.25) {
+        A.path.shift()
+        A.stuck = 0
+        return
+      }
+      const off = turnToward(Math.atan2(-dx, -dz), 3.2 * Math.max(1, A.speed / 3.2) * dt)
+      // ease the view level while walking (stairs: look a little up or down the flight)
+      const next = A.path[1] ?? pt
+      const slope = Math.atan2(next.y - walkPose.floor, Math.max(1.5, Math.hypot(next.x - walkPose.x, next.z - walkPose.z)))
+      walkPose.pitch += (THREE.MathUtils.clamp(slope * 0.6, -0.35, 0.35) - 0.05 - walkPose.pitch) * Math.min(1, dt * 3)
+      const v = A.speed * Math.max(0, Math.cos(Math.min(off, Math.PI / 2))) ** 2
+      const step = Math.min(dist, v * dt)
+      const f = forward(walkPose.yaw)
+      const x0 = walkPose.x
+      const z0 = walkPose.z
+      move(f.x * step, f.z * step)
+      const progress = Math.hypot(walkPose.x - x0, walkPose.z - z0)
+      A.stuck = off < 0.5 && progress < step * 0.3 ? A.stuck + dt : 0
+      if (A.stuck > 1.2) {
+        // jammed: jump to the next point that is on a deck (never mid-flight)
+        const k = A.path.findIndex((p) => levels.some((l) => Math.abs(l.y - p.y) < 0.01))
+        const to = A.path[Math.max(0, k)]
+        console.warn(`[tour] walker stuck at ${walkPose.x.toFixed(1)},${walkPose.z.toFixed(1)} → snapping to ${to.x.toFixed(1)},${to.z.toFixed(1)}`)
+        walkPose.x = to.x
+        walkPose.z = to.z
+        walkPose.floor = to.y
+        const li = levels.findIndex((l) => Math.abs(l.y - to.y) < 0.01)
+        if (li >= 0 && li !== walkPose.level) (walkPose.level = li), useStore.getState().setWalkLevel(li)
+        A.path.splice(0, Math.max(0, k) + 1)
+        A.stuck = 0
+        A.snaps++
+      }
+      A.facing = false
+      return
+    }
+    // route done: turn toward the target
+    if (!A.face) {
+      A.facing = true
+      return
+    }
+    let c: THREE.Vector3 | null = null
+    if (typeof A.face === 'string') {
+      const tag = A.face
+      const b = allBoxes.find((x) => x.tag === tag)?.box
+      if (b) c = b.getCenter(new THREE.Vector3())
+    } else c = new THREE.Vector3(A.face[0], DECK_WORLD_Y + A.face[1], A.face[2])
+    if (!c) {
+      A.facing = true
+      return
+    }
+    const off = turnToward(Math.atan2(-(c.x - walkPose.x), -(c.z - walkPose.z)), 2.4 * Math.max(1, A.speed / 3.2) * dt)
+    const eyeY = DECK_WORLD_Y + walkPose.floor + EYE
+    const pitch = THREE.MathUtils.clamp(Math.atan2(c.y - eyeY, Math.max(2, Math.hypot(c.x - walkPose.x, c.z - walkPose.z))), -0.6, 0.6)
+    walkPose.pitch += (pitch - walkPose.pitch) * Math.min(1, dt * 3)
+    A.facing = off < 0.06 && Math.abs(pitch - walkPose.pitch) < 0.06
+  }
+
   const ray = useMemo(() => new THREE.Ray(), [])
   const hit = useMemo(() => new THREE.Vector3(), [])
   useFrame((_, dt) => {
     const c = controls.current
     if (!c) return
     dt = Math.min(dt, 0.25) // keep walking speed honest on slow frames without big jumps after a stall
-    const k = keys.current
-    const speed = (k.has('shift') ? RUN : WALK) * dt
-    if (k.has('arrowleft') || k.has('a')) walkPose.yaw += TURN * dt
-    if (k.has('arrowright') || k.has('d')) walkPose.yaw -= TURN * dt
-    if (k.has('pageup')) walkPose.pitch = Math.min(1.4, walkPose.pitch + LOOK * dt)
-    if (k.has('pagedown')) walkPose.pitch = Math.max(-1.4, walkPose.pitch - LOOK * dt)
-    let mf = 0
-    let ms = 0
-    if (k.has('arrowup') || k.has('w')) mf += 1
-    if (k.has('arrowdown') || k.has('s')) mf -= 1
-    if (k.has('e')) ms += 1
-    if (k.has('q')) ms -= 1
-    if (mf || ms) {
-      const f = forward(walkPose.yaw)
-      const dx = (f.x * mf - f.z * ms) * speed
-      const dz = (f.z * mf + f.x * ms) * speed
-      // slide along obstacles: try the full step, then each axis alone
-      // stand on whichever deck or stair surface here is closest to the current feet height
-      const floorAt = (x: number, z: number): { h: number; li: number | null } | null => {
-        let best: { h: number; li: number | null } | null = null
-        let bd = STEP
-        // on a ladder you are on the ladder, not on the deck it stands on
-        const onLadder = surfaces.some((s) => s.kind === 'ladder' && x >= s.x0 && x <= s.x1 && z >= s.z0 && z <= s.z1)
-        if (!onLadder) levels.forEach((lv, i) => {
-          const d = Math.abs(lv.y - walkPose.floor)
-          if (d <= bd && walkable(plant, i, blockAll[i], x, z)) (bd = d), (best = { h: lv.y, li: i })
-        })
-        for (const s of surfaces) {
-          if (x < s.x0 || x > s.x1 || z < s.z0 || z > s.z1) continue
-          const h = surfaceHeight(s, x, z)
-          const d = Math.abs(h - walkPose.floor)
-          if (d < bd) (bd = d), (best = { h, li: null })
-        }
-        return best
+    if (walkAuto.active) autopilot(dt)
+    else {
+      const k = keys.current
+      const speed = (k.has('shift') ? RUN : WALK) * dt
+      if (k.has('arrowleft') || k.has('a')) walkPose.yaw += TURN * dt
+      if (k.has('arrowright') || k.has('d')) walkPose.yaw -= TURN * dt
+      if (k.has('pageup')) walkPose.pitch = Math.min(1.4, walkPose.pitch + LOOK * dt)
+      if (k.has('pagedown')) walkPose.pitch = Math.max(-1.4, walkPose.pitch - LOOK * dt)
+      let mf = 0
+      let ms = 0
+      if (k.has('arrowup') || k.has('w')) mf += 1
+      if (k.has('arrowdown') || k.has('s')) mf -= 1
+      if (k.has('e')) ms += 1
+      if (k.has('q')) ms -= 1
+      if (mf || ms) {
+        const f = forward(walkPose.yaw)
+        move((f.x * mf - f.z * ms) * speed, (f.z * mf + f.x * ms) * speed)
       }
-      const tryMove = (x: number, z: number) => {
-        const f = floorAt(x, z)
-        if (!f) return false
-        walkPose.x = x
-        walkPose.z = z
-        walkPose.floor = f.h
-        // stepping off a stair onto a deck makes that deck the current level (minimap, gaze, buildings)
-        if (f.li !== null && f.li !== walkPose.level) {
-          walkPose.level = f.li
-          useStore.getState().setWalkLevel(f.li)
-        }
-        return true
-      }
-      if (!tryMove(walkPose.x + dx, walkPose.z + dz)) if (!tryMove(walkPose.x + dx, walkPose.z)) tryMove(walkPose.x, walkPose.z + dz)
     }
     // step up onto a module's raised floor when inside it
     const onDeck = Math.abs(walkPose.floor - (levels[walkPose.level]?.y ?? 0)) < 0.05
@@ -395,7 +509,7 @@ export function WalkDriver({ controls, root }: { controls: React.RefObject<Camer
         if (near && !sim.doors[key]) {
           sim.setDoor(key, true)
           ds.auto.add(key)
-        } else if (!near && d > 4.5 && ds.auto.has(key) && sim.doors[key]) {
+        } else if (!near && d > 4.5 && !walkAuto.active && ds.auto.has(key) && sim.doors[key]) {
           sim.setDoor(key, false)
           ds.auto.delete(key)
         }
@@ -420,7 +534,8 @@ export function WalkDriver({ controls, root }: { controls: React.RefObject<Camer
       c.setLookAt(cam.x, cam.y, cam.z, tgt.x, tgt.y, tgt.z, false)
     } else c.setLookAt(eye.x, eye.y, eye.z, look.x, look.y, look.z, false)
 
-    // gaze → inspected equipment (with dwell)
+    // gaze → inspected equipment (with dwell); the tour sets what is inspected itself
+    if (walkAuto.active) return
     ray.set(eye, forward(walkPose.yaw, walkPose.pitch))
     let best: string | null = null
     let bestD = GAZE_RANGE

@@ -15,6 +15,7 @@ import { OperationsPanel } from './ui/OperationsPanel'
 import { OpsTicker } from './ui/OpsTicker'
 import { EyeOverlay } from './ui/Eyes'
 import { KnowledgeCard } from './ui/KnowledgeCard'
+import { TourPlayer } from './ui/TourPlayer'
 import { useSim } from './state/sim'
 import './app.css'
 
@@ -92,6 +93,7 @@ export default function App() {
       <WalkHud />
       <OpsTicker />
       <KnowledgeCard />
+      <TourPlayer />
       <div className="hint muted small">Drag to orbit · Shift + drag to pan · scroll to zoom · click to inspect · X x-ray · C section · F frame · Esc clear</div>
     </div>
   )
