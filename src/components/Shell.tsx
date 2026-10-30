@@ -9,33 +9,42 @@ import { useScrollMemory } from '../url'
 import { Command, Segmented } from './ui'
 import { setTheme, useTheme, type Theme } from '../theme'
 
-// Site shell: marketing pages get the top header and full footer; docs and component pages get the docs layout,
-// a full-height sidebar with the search on top and the theme toggle at the bottom.
+// Site shell: the same top header on every route. Marketing pages add the full footer; docs and component pages add
+// the sidebar and a slim footer.
 export function Shell({ children }: { children: ReactNode }) {
   const [loc] = useLocation()
   useScrollMemory()
   const docs = loc.startsWith('/docs') || loc.startsWith('/components')
+  const [drawer, setDrawer] = useState(false)
+  useEffect(() => setDrawer(false), [loc])
   return (
-    <>
+    <div className="flex min-h-full flex-col [--header-h:3.5rem]">
+      <Header onDocsMenu={docs ? () => setDrawer(true) : undefined} />
       {docs ? (
-        <DocsLayout>{children}</DocsLayout>
+        <DocsLayout drawer={drawer} closeDrawer={() => setDrawer(false)}>
+          {children}
+        </DocsLayout>
       ) : (
-        <div className="flex min-h-full flex-col [--header-h:3.5rem]">
-          <Header />
+        <>
           <main className="flex-1">{children}</main>
           <Footer />
-        </div>
+        </>
       )}
       <SearchDialog />
-    </>
+    </div>
   )
 }
 
 const SIDEBAR_KEY = 'deck-twin-sidebar'
+const NAV = [
+  ['/docs', 'Docs'],
+  ['/components', 'Components'],
+  ['/symbols', 'P&ID symbols'],
+  ['/examples', 'Examples'],
+  ['/playground', 'Playground'],
+] as const
 
-function DocsLayout({ children }: { children: ReactNode }) {
-  const [loc] = useLocation()
-  const [drawer, setDrawer] = useState(false)
+function DocsLayout({ drawer, closeDrawer, children }: { drawer: boolean; closeDrawer: () => void; children: ReactNode }) {
   const [collapsed, setCollapsedState] = useState(() => {
     try {
       return localStorage.getItem(SIDEBAR_KEY) === 'closed'
@@ -52,32 +61,31 @@ function DocsLayout({ children }: { children: ReactNode }) {
       /* storage blocked */
     }
   }
-  useEffect(() => setDrawer(false), [loc])
   return (
-    <div className="flex min-h-full [--header-h:3.5rem] lg:[--header-h:0px]">
+    <div className="flex min-h-0 flex-1">
       {!collapsed && (
-        <aside className="sticky top-0 hidden h-screen w-[280px] shrink-0 flex-col border-r border-border bg-deep lg:flex">
-          <SidebarPanel action={<IconButton label="Collapse sidebar" onClick={() => setCollapsed(true)} icon={<PanelIcon />} />} />
+        <aside className="sticky top-14 hidden h-[calc(100vh-3.5rem)] w-[280px] shrink-0 flex-col border-r border-border bg-deep lg:flex">
+          <div className="absolute top-3 right-3 z-10">
+            <IconButton label="Collapse sidebar" onClick={() => setCollapsed(true)} icon={<PanelIcon />} />
+          </div>
+          <SidebarPanel />
         </aside>
       )}
       {drawer && (
         <div className="fixed inset-0 z-50 lg:hidden" role="dialog" aria-modal="true" aria-label="Navigation">
-          <div className="absolute inset-0 bg-black/50 light:bg-[rgb(16_18_27/0.3)]" onClick={() => setDrawer(false)} />
+          <div className="absolute inset-0 bg-black/50 light:bg-[rgb(16_18_27/0.3)]" onClick={closeDrawer} />
           <aside className="absolute inset-y-0 left-0 flex w-[min(300px,86vw)] flex-col border-r border-border bg-panel">
-            <SidebarPanel action={<IconButton label="Close menu" onClick={() => setDrawer(false)} icon={<CloseIcon />} />} />
+            <div className="flex h-14 shrink-0 items-center justify-between border-b border-border px-4">
+              <Brand />
+              <IconButton label="Close menu" onClick={closeDrawer} icon={<CloseIcon />} />
+            </div>
+            <SidebarPanel drawer />
           </aside>
         </div>
       )}
       <div className="flex min-w-0 flex-1 flex-col">
-        <div className="sticky top-0 z-40 flex h-14 items-center gap-2 border-b border-border bg-bg px-4 lg:hidden">
-          <IconButton label="Open menu" onClick={() => setDrawer(true)} icon={<MenuIcon />} />
-          <Brand />
-          <div className="ml-auto">
-            <SearchButton variant="icon" />
-          </div>
-        </div>
         {collapsed && (
-          <div className="fixed top-4 left-4 z-40 hidden lg:block">
+          <div className="fixed top-[4.25rem] left-3 z-30 hidden lg:block">
             <IconButton label="Expand sidebar" onClick={() => setCollapsed(false)} icon={<PanelIcon />} className="border border-border bg-bg" />
           </div>
         )}
@@ -91,8 +99,10 @@ function DocsLayout({ children }: { children: ReactNode }) {
 function Brand() {
   return (
     <Link href="/" className="flex min-w-0 items-center gap-2 rounded-md">
-      <Logo className="h-[22px] w-[22px] shrink-0" />
-      <span className="truncate text-[15px] font-semibold tracking-[-0.01em] text-ink">Deck Twin</span>
+      <span className="logo-gloss shrink-0">
+        <Logo className="h-[22px] w-[22px]" />
+      </span>
+      <span className="nav-wordmark truncate">Deck Twin</span>
     </Link>
   )
 }
@@ -112,68 +122,49 @@ const PanelIcon = () => (
     <path d="M6 2.5v11" />
   </svg>
 )
-const MenuIcon = () => (
-  <svg {...svg}>
-    <path d="M2.5 5h11M2.5 11h11" />
-  </svg>
-)
 const CloseIcon = () => (
   <svg {...svg}>
     <path d="m4 4 8 8M12 4l-8 8" />
   </svg>
 )
 
-function Header() {
+function Header({ onDocsMenu }: { onDocsMenu?: () => void }) {
   const [loc] = useLocation()
-  const nav = [
-    ['/docs', 'Docs'],
-    ['/components', 'Components'],
-    ['/symbols', 'P&ID symbols'],
-    ['/examples', 'Examples'],
-    ['/playground', 'Playground'],
-  ] as const
   const [menu, setMenu] = useState(false)
   useEffect(() => setMenu(false), [loc])
   return (
-    <header className="sticky top-0 z-40 border-b border-border bg-bg">
+    <header className="site-header sticky top-0 z-40">
       <div className="flex h-14 items-center px-5 lg:px-6">
-        <Link href="/" className="flex shrink-0 items-center gap-2 rounded-md pr-2">
-          <Logo className="h-[22px] w-[22px]" />
-          <span className="text-[15px] font-semibold tracking-[-0.01em] text-ink">Deck Twin</span>
-          <span className="hidden rounded border border-border px-1.5 py-px font-mono text-[10.5px] text-muted-fg lg:inline">v{VERSION}</span>
-        </Link>
-        <nav className="ml-4 hidden items-center gap-0.5 md:flex lg:ml-6">
-          {nav.map(([href, label]) => {
+        <div className="shrink-0 pr-2">
+          <Brand />
+        </div>
+        <nav aria-label="Main" className="ml-4 hidden items-center gap-1 md:flex lg:ml-7">
+          {NAV.map(([href, label]) => {
             const on = loc.startsWith(href)
             return (
-              <Link
-                key={href}
-                href={href}
-                aria-current={on ? 'page' : undefined}
-                className={`rounded-md px-2.5 py-1.5 text-[13.5px] font-medium whitespace-nowrap transition-colors ${on ? 'bg-muted text-ink' : 'text-fg-3 hover:bg-muted/70 hover:text-ink'}`}
-              >
-                {label}
+              <Link key={href} href={href} aria-current={on ? 'page' : undefined} className="nav-link">
+                <span className="nav-text">{label}</span>
               </Link>
             )
           })}
         </nav>
         <div className="ml-auto flex items-center gap-2">
-          <SearchButton variant="header" />
+          <SearchButton />
           <ThemeToggle />
-          <span className="mx-1.5 hidden h-5 w-px bg-border lg:block" />
-          <Link href="/docs/installation" className="hidden h-8 items-center rounded-full bg-ink px-3.5 text-[13px] font-medium text-on-ink transition-colors hover:bg-ink-2 lg:flex">
+          <span className="mx-1.5 hidden h-5 w-px bg-border xl:block" />
+          <Link href="/docs/installation" className="nav-cta hidden h-8 shrink-0 items-center rounded-full px-3.5 text-[13px] font-semibold whitespace-nowrap xl:flex">
             Get started
           </Link>
-          <button onClick={() => setMenu((m) => !m)} aria-label="Menu" aria-expanded={menu} className="flex h-8 w-8 items-center justify-center rounded-md text-ink transition-colors hover:bg-muted md:hidden">
+          <button onClick={() => (onDocsMenu ? onDocsMenu() : setMenu((m) => !m))} aria-label="Menu" aria-expanded={menu} className={`flex h-8 w-8 items-center justify-center rounded-md text-ink transition-colors hover:bg-muted ${onDocsMenu ? 'lg:hidden' : 'md:hidden'}`}>
             <svg viewBox="0 0 16 16" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" aria-hidden>
               {menu ? <path d="m4 4 8 8M12 4l-8 8" /> : <path d="M2.5 5.5h11M2.5 10.5h11" />}
             </svg>
           </button>
         </div>
       </div>
-      {menu && (
+      {menu && !onDocsMenu && (
         <nav className="border-t border-border bg-panel px-3 py-2 md:hidden">
-          {nav.map(([href, label]) => (
+          {NAV.map(([href, label]) => (
             <Link key={href} href={href} className={`block rounded-md px-3 py-2.5 text-[15px] font-medium ${loc.startsWith(href) ? 'bg-muted text-ink' : 'text-fg-3'}`}>
               {label}
             </Link>
@@ -315,7 +306,8 @@ function Footer() {
   )
 }
 
-function SidebarPanel({ action }: { action: ReactNode }) {
+/** Docs tree. In the phone drawer it also carries the site links and the theme switch, which the header hides there. */
+function SidebarPanel({ drawer = false }: { drawer?: boolean }) {
   const [loc] = useLocation()
   const ref = useRef<HTMLElement>(null)
   const current = loc.startsWith('/components/') ? ITEMS.find((i) => `/components/${i.name}` === loc)?.category : undefined
@@ -347,15 +339,8 @@ function SidebarPanel({ action }: { action: ReactNode }) {
   )
   return (
     <>
-      <div className="flex items-center gap-2 px-4 pt-4 pb-3">
-        <Brand />
-        <span className="ml-auto" />
-        {action}
-      </div>
-      <div className="px-4 pb-3">
-        <SearchButton variant="sidebar" />
-      </div>
-      <nav ref={ref} aria-label="Docs" className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 pt-2 pb-8">
+      <nav ref={ref} aria-label="Docs" className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 pt-4 pb-8">
+        {drawer && <div className="md:hidden"><Section title="Site">{NAV.map(([href, label]) => item(href, label))}</Section></div>}
         <Section title="Getting started">{DOCS.map((d) => item(`/docs/${d.slug}`, d.title))}</Section>
         <Section title="Components">
           {item('/components', `All components (${ITEMS.length})`)}
@@ -380,16 +365,13 @@ function SidebarPanel({ action }: { action: ReactNode }) {
             )
           })}
         </Section>
-        <Section title="More">
-          {item('/examples', 'Example plants')}
-          {item('/symbols', 'P&ID symbols')}
-          {item('/playground', 'Playground')}
-        </Section>
       </nav>
-      <div className="flex items-center justify-between border-t border-border px-4 py-3">
-        <span className="font-mono text-[11.5px] text-muted-fg">v{VERSION}</span>
-        <ThemePicker />
-      </div>
+      {drawer && (
+        <div className="flex items-center justify-between border-t border-border px-4 py-3 md:hidden">
+          <span className="font-mono text-[11.5px] text-muted-fg">v{VERSION}</span>
+          <ThemePicker />
+        </div>
+      )}
     </>
   )
 }
@@ -479,25 +461,10 @@ const keycaps = (
   </span>
 )
 
-/** Opens the one search dialog. Header: compact field on wide screens; sidebar: full-width field; icon: phones. */
-function SearchButton({ variant }: { variant: 'header' | 'sidebar' | 'icon' }) {
-  const common = { onClick: openSearch, 'aria-label': 'Search docs and components', 'aria-keyshortcuts': MAC ? 'Meta+K' : 'Control+K' }
-  if (variant === 'sidebar')
-    return (
-      <button {...common} className="flex h-9 w-full items-center gap-2 rounded-lg border border-border bg-bg px-3 text-[14px] text-muted-fg transition-colors hover:border-line-strong hover:text-ink">
-        {searchIcon}
-        <span>Search</span>
-        {keycaps}
-      </button>
-    )
-  if (variant === 'icon')
-    return (
-      <button {...common} className="flex h-8 w-8 items-center justify-center rounded-md text-muted-fg transition-colors hover:bg-hover hover:text-ink">
-        {searchIcon}
-      </button>
-    )
+/** Opens the one search dialog: a compact field on wide screens, an icon on narrow ones. */
+function SearchButton() {
   return (
-    <button {...common} className="flex h-8 w-8 items-center justify-center gap-2 rounded-md text-muted-fg transition-colors hover:bg-muted hover:text-ink lg:w-60 lg:justify-start lg:border lg:border-border lg:bg-muted/60 lg:px-2.5 lg:hover:border-line-strong lg:hover:bg-hover">
+    <button onClick={openSearch} aria-label="Search docs and components" aria-keyshortcuts={MAC ? 'Meta+K' : 'Control+K'} className="flex h-8 w-8 items-center justify-center gap-2 rounded-md text-muted-fg transition-colors hover:bg-muted hover:text-ink lg:w-44 lg:justify-start lg:rounded-full lg:border lg:border-border lg:bg-muted/60 lg:px-3 lg:hover:border-line-strong lg:hover:bg-hover xl:w-56">
       {searchIcon}
       <span className="hidden text-left text-[13px] lg:inline">Search</span>
       <span className="hidden lg:contents">{keycaps}</span>
