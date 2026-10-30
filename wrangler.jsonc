@@ -3,6 +3,11 @@
   "name": "deck-twin-library",
   "compatibility_date": "2026-10-29",
   "main": "alpha/worker.js",
+  "workers_dev": true,
+  "routes": [
+    { "pattern": "decktwin.com", "custom_domain": true },
+    { "pattern": "www.decktwin.com", "custom_domain": true }
+  ],
   "assets": {
     "directory": "./dist",
     "binding": "ASSETS",
