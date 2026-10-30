@@ -305,7 +305,7 @@ function AlphaMimic({ plant, pick, sel, marks }: { plant: Plant; pick: Pick; sel
         <path className="ln thin" d="M710,70 V24" />
         <ValveSym tag="BDV-2201" x={710} y={46} vertical plant={plant} labelSide="right" {...P} />
         <ValveSym tag="ESDV-2301" x={806} y={70} plant={plant} labelSide="above" {...P} />
-        <Conn x={850} y={70} text="Gas export riser" />
+        <Conn x={850} y={70} text="Gas export → RP" />
         <Val x={876} y={92} v={r?.gasExport} d={1} unit="MMscfd" />
         {/* fuel gas off-take */}
         <path className="ln thin" d="M750,70 V108 H800" />
@@ -342,7 +342,7 @@ function AlphaMimic({ plant, pick, sel, marks }: { plant: Plant; pick: Pick; sel
         <Mach tag="P-1500A" x={716} y={272} label="right" {...P} />
         <Mach tag="P-1500B" x={716} y={328} label="right" {...P} />
         <ValveSym tag="ESDV-1601" x={820} y={300} plant={plant} labelSide="above" {...P} />
-        <Conn x={880} y={300} text="Oil export pipeline" />
+        <Conn x={880} y={300} text="Oil export → RP" />
         <Val x={906} y={322} v={r?.oilExport} unit="bbl/d" />
 
         {/* ---------- produced water */}

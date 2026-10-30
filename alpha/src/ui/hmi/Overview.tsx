@@ -21,8 +21,8 @@ export function Overview() {
     <div className="h-grid">
       <p className="h-note">
         <b>What the plant does.</b> Wells on Alpha and on the WHP-N wellhead platform flow to the production manifold. The HP separator V-1100 splits oil, gas and water;
-        oil is degassed in the LP separator V-1300, cooled and pumped to the export pipeline by P-1500A/B. Gas is scrubbed and compressed by K-2200 to the gas export riser and
-        feeds the fuel gas that drives the turbine generators GT-8100A/B. Produced water is treated and dumped overboard. Gas the plant cannot take goes to flare. The LQ
+        oil is degassed in the LP separator V-1300, cooled and pumped by P-1500A/B over the west bridge to RP, where it is metered and goes down the export riser. Gas is scrubbed,
+        compressed by K-2200 and dried in the TEG contactor before it follows the same route to RP; it also feeds the fuel gas that drives the turbine generators GT-8100A/B. Produced water is treated and dumped overboard. Gas the plant cannot take goes to flare. The LQ
         platform holds the control room, the emergency generator and the accommodation.
       </p>
 

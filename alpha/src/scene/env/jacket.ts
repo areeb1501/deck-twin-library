@@ -2,8 +2,9 @@
  * Steel jacket substructure (WORLD coordinates, sea level y = 0).
  * 4 legs OD 1.8 m, vertical through the topsides, battered 1:10 (both directions) below
  * the transition at y = 19 down to the seabed (~ -62). Horizontal frames at +12, -10, -30, -55,
- * X-braced faces, conductor guide frames + 6 well conductors, export risers on the east face with
- * riser guards, boat landing on the south face.
+ * X-braced faces, conductor guide frames + 6 well conductors, a spare J-tube on the east face with its
+ * guard, boat landing on the south face. Alpha has no export risers: oil and gas leave over the west bridge
+ * and go down RP's risers (model/rpSite.ts).
  * Fabrication detail (jacketDetail.ts): node cans + brace stubs + crossing cans at every joint, stand-off
  * anodes below the waterline, barge bumpers on the four legs, two J-tubes (power + fibre) down the west
  * face, caisson guides for the seawater-lift / firewater pump caissons and for the drain / disposal / dump
@@ -40,8 +41,6 @@ export const JACKET = {
   conductorOD: 0.762,
   /** risers: deck-local top point for the lead's piping (x, y, z in DECK coordinates) */
   risers: [
-    { tag: '8"-PO-EXPORT-RISER', service: 'oil' as const, nps: 8, z: -6.5 },
-    { tag: '8"-PG-EXPORT-RISER', service: 'gas' as const, nps: 8, z: 14.75 },
     { tag: '10"-WI-SPARE-JTUBE', service: 'water' as const, nps: 10, z: 3.2 },
   ],
   riserOffset: 3.0,
@@ -71,8 +70,7 @@ export const ALPHA_CAISSONS = [
   { id: 'P-6400A', x: 14, z: -6.5, r: 0.45, bottom: -10, plant: true, guides: [12, -10] },
   { id: 'P-6400B', x: 17, z: -6.5, r: 0.45, bottom: -10, plant: true, guides: [12, -10] },
   { id: 'P-7101A', x: 27.2, z: 11.5, r: 0.5, bottom: -10, plant: true, guides: [12, -10] },
-  // (the 8" gas riser at x 27, z 14.75 runs through this caisson above about +12 m: bottom guide only)
-  { id: 'P-7101B', x: 27.2, z: 15, r: 0.5, bottom: -10, plant: true, guides: [-10] },
+  { id: 'P-7101B', x: 27.2, z: 15, r: 0.5, bottom: -10, plant: true, guides: [12, -10] },
   { id: 'PW-disposal', x: -29.1, z: 12.8, r: 0.36, bottom: -14, plant: false, guides: [12, -10] },
   { id: 'OD-sump', x: -15.6, z: 13.4, r: 0.6, bottom: -16, plant: false, guides: [12, -10] },
   { id: 'CD-caisson', x: -11.2, z: 15.8, r: 0.3, bottom: -12, plant: false, guides: [12, -10] },

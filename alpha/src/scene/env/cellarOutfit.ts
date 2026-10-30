@@ -306,10 +306,9 @@ function jTubeTails(get: OutfitGet) {
   for (const z of [3.0, 4.6]) boxMinMax(get('steelDark'), [-25.42, Y, z - 0.05], [-25.18, Y + 1.42, z + 0.05])
 }
 
-/** hang-off clamp + guard barrier where the oil riser and the spare J-tube pass through the cellar deck */
+/** hang-off clamp + guard barrier where the spare J-tube passes through the cellar deck */
 function riserHangOffs(get: OutfitGet) {
   for (const r of JACKET.risers) {
-    if (r.service === 'gas') continue // runs through the P-7101B caisson head (plant clash, reported)
     const x = 27.0
     const z = r.z
     const R = r.nps * 0.0254 * 0.5 + 0.01

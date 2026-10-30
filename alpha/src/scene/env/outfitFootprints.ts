@@ -18,7 +18,6 @@ export const CELLAR_OUTFIT_FOOTPRINTS: PlanRect[] = [
   { x0: 19.3, x1: 20.3, z0: -7.7, z1: -6.7 }, // seawater dump caisson head
   { x0: -7.2, x1: -5.2, z0: -19.7, z1: -18.2 }, // well-bay deluge valve set
   { x0: -25.7, x1: -24.9, z0: 1.6, z1: 6.1 }, // J-tube cable tails
-  { x0: 26.1, x1: 27.9, z0: -7.4, z1: -5.6 }, // oil riser hang-off + barrier
   { x0: 26.1, x1: 27.9, z0: 2.3, z1: 4.1 }, // spare J-tube hang-off + barrier
   { x0: 10.2, x1: 17.8, z0: 15.6, z1: 19.6 }, // laydown / toolbox area
   { x0: 8.5, x1: 9.4, z0: 18.5, z1: 19.6 }, // safety shower / eyewash

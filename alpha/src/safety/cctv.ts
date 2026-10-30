@@ -77,7 +77,7 @@ const EX_THERMAL = 'Ex d IIC T6 Gb · IP68'
 /** placements: rack-post brackets / module corners ~6–8 m up (below the weather deck steel at 9.4 m) */
 const SPECS: Spec[] = [
   { id: 'CCTV-A01', name: 'HP separator & manifold', platform: 'Alpha', type: 'ptz', watches: ['V-1100', 'M-1000', 'V-1200'], mount: [-27, 8.2, -3.2], floor: 0, aim: [-14, 1.4, -12], zones: ['A-P-SEP'], fov: 50 },
-  { id: 'CCTV-A02', name: 'Export pumps & pig launcher', platform: 'Alpha', type: 'ptz', watches: ['P-1500A', 'P-1500B', 'L-1600'], mount: [11.6, 7.6, -2.6], floor: 0, zones: ['A-P-EXP'] },
+  { id: 'CCTV-A02', name: 'Export pumps & export header', platform: 'Alpha', type: 'ptz', watches: ['P-1500A', 'P-1500B'], mount: [11.6, 7.6, -2.6], floor: 0, zones: ['A-P-EXP'] },
   { id: 'CCTV-A03', name: 'Gas compressor K-2200', platform: 'Alpha', type: 'thermal', watches: ['K-2200', 'E-2300'], mount: [11.6, 7.6, 2.6], floor: 0, zones: ['A-P-COMP'], fov: 40 },
   { id: 'CCTV-A04', name: 'Cellar deck well bay', platform: 'Alpha', type: 'thermal', watches: ['XT-110', 'XT-120', 'XT-130', 'XT-140', 'XT-150'], mount: [8, -2.6, -3.4], floor: -8, zones: ['A-C-WELL'], fov: 44 },
   { id: 'CCTV-A05', name: 'Turbine generators GT-8100A/B', platform: 'Alpha', type: 'ptz', watches: ['GT-8100A', 'GT-8100B'], mount: [-2.4, 16.8, 0.8], floor: 10, zones: ['A-W-PWR'] },

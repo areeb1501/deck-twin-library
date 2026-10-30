@@ -256,15 +256,28 @@ export function extendAlpha(A: AlphaArrays, K: AlphaConsts) {
   E('shellTube', 'E-5200', 'Fuel Gas Superheater', 'gasTreatment', [-4.2, 15.6], 0, { shellOd: 0.45, length: 2.8, elevation: 0.6, shellNps: 4, tubeNps: 2, rating: 600 }, {
     rename: { N3: 'Heating medium in', N4: 'Heating medium out' }, design: { notes: 'Superheats fuel gas 25 K above dew point for the turbines' },
   })
-  const wg = face('T-5300', 'N1')
-  const gt1 = L('8"-PG-5301-E9A-N', 'gas', 'gasTreatment', 8, [[wg[0] - 0.8, K.CELLAR, wg[2]], [wg[0] - 0.8, wg[1], wg[2]], wg], { offDeck: 'Wet gas from export compressor (cellar crossover)' }, eqEnd('T-5300', 'N1'))
+  // wet gas arrives on 8"-PG-2301 from the E-2300 aftercooler (model/plant.ts) into T-5300 N1
+  const wetGas = '8"-PG-2301-E9A-N'
+  // dry gas: north over the rack at 8.2 m (above the tier-2 pipes; fuel gas taken off on the way), out past
+  // the rack's north edge at x −6.6 (clear of the bents, the tier pipes and the escape aisle), down through the
+  // deck, then north and west under it to the west bridge, where it continues to RP's gas meter X-R250
   const dg = face('T-5300', 'N2')
-  const t2 = K.onTier(2, 8)
-  const gt2 = L('8"-PG-5302-E9A-N', 'gas', 'gasTreatment', 8, [dg, [dg[0], 8.2, dg[2]], [dg[0], 8.2, 0.6], [dg[0], t2, 0.6], [-6.0, t2, 0.6]], eqEnd('T-5300', 'N2'), { offDeck: 'Dry gas → export (rack, to K-2200 discharge)' })
+  const XD = -6.6
+  const GY = -2.3 // under the oil export header (y −1.6) where the two cross
+  const gt2 = L(
+    '8"-PG-5302-E9A-N',
+    'gas',
+    'gasTreatment',
+    8,
+    [dg, [dg[0], 8.2, dg[2]], [dg[0], 8.2, 0.6], [XD, 8.2, 0.6], [XD, 8.2, -2.35], [XD, GY, -2.35], [XD, GY, -15.9], [-28.6, GY, -15.9], [-28.6, -1.6, -15.9], [-29.4, -1.6, -15.9]],
+    eqEnd('T-5300', 'N2'),
+    { offDeck: 'West bridge → RP gas metering X-R250 (8"-PG-R2001)' },
+    { design: { pressure: '140 barg', temperature: '38 °C', notes: 'Dry export gas: T-5300 → fuel gas take-off → ESDV-2301 → west bridge → RP fiscal metering, pig launcher L-R210 and riser' } },
+  )
   const fi = face('V-5100', 'N1')
   // scrubber inlet faces south: come over the top, drop south of it and turn north into the nozzle
   const fs = fi[2] + 0.55
-  const fg1 = L('4"-FG-5303-D6A-N', 'gas', 'gasTreatment', 4, [[-9.5, t2, 0.6], [-9.5, 8.2, 0.6], [-9.5, 8.2, fs], [-9.5, fi[1], fs], [fi[0], fi[1], fs], fi], { line: gt2 }, eqEnd('V-5100', 'N1'))
+  const fg1 = L('4"-FG-5303-D6A-N', 'gas', 'gasTreatment', 4, [[-9.5, 8.2, 0.6], [-9.5, 8.2, fs], [-9.5, fi[1], fs], [fi[0], fi[1], fs], fi], { line: gt2 }, eqEnd('V-5100', 'N1'))
   const fg2 = L('4"-FG-5304-D6A-N', 'gas', 'gasTreatment', 4, orthoRoute(N('V-5100', 'N2'), N('E-5200', 'N1'), 4), eqEnd('V-5100', 'N2'), eqEnd('E-5200', 'N1'))
   const fgHdr = '6"-FG-9201-C3A-N'
   const fgY = lineBy.get(fgHdr)!.route[1][1]
@@ -277,8 +290,11 @@ export function extendAlpha(A: AlphaArrays, K: AlphaConsts) {
   const ri = face('C-5350', 'N1')
   const tg1 = L('2"-TG-5306-E9A-N', 'chemical', 'gasTreatment', 2, [rt, [-18.7, rt[1], rt[2]], [-18.7, rt[1], 15.05], [ri[0] + 0.45, rt[1], 15.05], [ri[0] + 0.45, rt[1], ri[2]], [ri[0] + 0.45, ri[1], ri[2]], ri], eqEnd('T-5300', 'N3'), eqEnd('C-5350', 'N1'))
   const tg2 = L('2"-TG-5307-E9A-N', 'chemical', 'gasTreatment', 2, orthoRoute(N('C-5350', 'N2'), N('T-5300', 'N5'), 2), eqEnd('C-5350', 'N2'), eqEnd('T-5300', 'N5'))
-  VA('ESDV-5301', 'esdv', gt1, 0.55, { actuator: 'pistonSpring', failAction: 'FC' })
-  VA('HV-5302', 'gate', gt2, 0.5, { actuator: 'gear' })
+  // fractions along the lines (placeOnLine): ESDV-5301 on the wet-gas rise into the contactor, ≈ 1.4 m above the
+  // deck; HV-5302 on the run north to the rack; ESDV-2301 (gas export ESDV) on the drop through the deck, ≈ 1.8 m up
+  VA('ESDV-5301', 'esdv', wetGas, 0.893, { actuator: 'pistonSpring', failAction: 'FC', up: [1, 0, 0] })
+  VA('HV-5302', 'gate', gt2, 0.0862, { actuator: 'gear' })
+  VA('ESDV-2301', 'esdv', gt2, 0.4621, { actuator: 'pistonSpring', failAction: 'FC', up: [1, 0, 0], design: { notes: 'Alpha gas export ESDV (platform boundary, line to RP), SIL 3' } })
   VA('HV-5303', 'ball', fg1, 0.75, { actuator: 'gear' })
   VA('PCV-5305', 'control', fg3, 0.35, { actuator: 'diaphragm', failAction: 'FC', design: { notes: 'Fuel gas pressure to 18 barg' } })
   VA('HV-5305', 'ball', fg3, 0.55, { actuator: 'lever' })
@@ -286,8 +302,8 @@ export function extendAlpha(A: AlphaArrays, K: AlphaConsts) {
   VA('LV-5306', 'control', tg1, 0.45, { actuator: 'diaphragm', failAction: 'FC' })
   VA('FV-5307', 'control', tg2, 0.6, { actuator: 'diaphragm', failAction: 'FO' })
   VA('NRV-5307', 'check', tg2, 0.8)
-  IL('AT-5302', 'AT', gt2, 0.35, { range: '-40–20', unit: '°C dew pt', nominal: -18, alarms: { hi: -10 } })
-  IL('FT-5302', 'FT', gt2, 0.8, { range: '0–80', unit: 'MMscfd', nominal: 51 })
+  IL('AT-5302', 'AT', gt2, 0.129, { range: '-40–20', unit: '°C dew pt', nominal: -18, alarms: { hi: -10 } })
+  IL('FT-5302', 'FT', gt2, 0.274, { range: '0–80', unit: 'MMscfd', nominal: 51 })
   IL('PT-5305', 'PT', fg3, 0.7, { range: '0–40', unit: 'barg', nominal: 18, alarms: { lo: 14, hi: 22 } })
   IL('TT-5304', 'TT', fg2, 0.85, { range: '0–100', unit: '°C', nominal: 46 })
   IL('TT-5305', 'TT', fg3, 0.8, { range: '0–100', unit: '°C', nominal: 48 })
@@ -384,12 +400,15 @@ export function extendAlpha(A: AlphaArrays, K: AlphaConsts) {
     rename: { N1: 'Methanol to XT-110', N2: 'Methanol to XT-130' }, design: { capacity: '2 × 4 m³', pressure: '345 barg discharge', notes: 'Hydrate inhibition at start-up' },
   })
   ;[['N1', 'XT-110'], ['N2', 'XT-130']].forEach(([nz, t], i) => {
-    // separate drops through the production deck, then along the cellar under-deck to the kill wing
+    // separate drops through the production deck (south of the export lines that leave under the deck at
+    // z −15.45 / −15.9), then along the cellar under-deck to the kill wing
     const a = face('C-5600', nz)
     const k = face(t, 'N2')
     const x = -22.2 + 0.4 * i
     const y = -4.9 - 0.4 * i
-    const l = L(`1"-MI-560${i + 1}-E9A-N`, 'chemical', 'wells', 1, [a, [x, a[1], a[2]], [x, y, a[2]], [x, y, k[2]], [k[0] - 0.55, y, k[2]], [k[0] - 0.55, k[1], k[2]], k], eqEnd('C-5600', nz), eqEnd(t, 'N2'))
+    const zD = -14.8
+    // jog south just under the deck girders (y −0.9, above the export lines), then down to the cellar run
+    const l = L(`1"-MI-560${i + 1}-E9A-N`, 'chemical', 'wells', 1, [a, [x, a[1], a[2]], [x, -0.9, a[2]], [x, -0.9, zD], [x, y, zD], [x, y, k[2]], [k[0] - 0.55, y, k[2]], [k[0] - 0.55, k[1], k[2]], k], eqEnd('C-5600', nz), eqEnd(t, 'N2'))
     VA(`XV-560${i + 1}`, 'needle', l, 0.85)
   })
 

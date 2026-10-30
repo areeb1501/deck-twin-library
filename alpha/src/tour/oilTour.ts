@@ -164,18 +164,20 @@ export const OIL_TOUR: Stop[] = [
     },
   },
   {
-    id: 'pig',
-    title: 'Pig launcher',
+    id: 'esdv',
+    title: 'Export shutdown valve',
     where: 'Alpha production deck · EL +28',
     say: 'The last item on Alpha before the oil leaves for RP.',
     walk: {
-      start: { level: 'production', at: [19.4, -11.6], face: [23, -6.5] },
+      start: { level: 'production', at: [19.4, -11.6], face: [22, -15.45] },
       beats: [
-        { goto: [23, -3.6] },
+        { goto: [20.2, -14.4] },
         {
-          look: 'L-1600',
-          hold: 7,
-          say: 'The oil flows straight past the launcher. Now and then a pig is loaded and pushed down the line by the oil to scrape out wax and water, or an intelligent pig inspects the pipe wall for corrosion.',
+          look: 'ESDV-1601',
+          at: [22, 1.9, -15.45],
+          hold: 8,
+          say: () =>
+            `Both pumps discharge into one export header. LV-1301 throttles it to hold the LP separator level, then ESDV-1601, now ${valveState('ESDV-1601')}, the platform-boundary shutdown valve, closes on a PSD or ESD. The line drops through the deck and runs under it to the west bridge.`,
         },
       ],
     },
@@ -186,7 +188,7 @@ export const OIL_TOUR: Stop[] = [
     where: 'West bridge · EL +28',
     say: 'The export oil line runs along the north side of the 40 m west bridge to the riser platform RP.',
     walk: {
-      start: { level: 'production', at: [23, -3.6], face: [-30, -13.5] },
+      start: { level: 'production', at: [20.2, -14.4], face: [-30, -13.5] },
       beats: [
         { goto: [-29, -13.5], say: 'Across Alpha to the west bridge landing.' },
         { goto: [-71, -13.5], say: () => `Along the bridge with the 10-inch oil export line beside us, carrying ${n0(r()?.oilExport ?? 0)} bbl/d.` },
@@ -236,7 +238,7 @@ export const OIL_TOUR: Stop[] = [
     where: 'Overview',
     say: () =>
       (r() ? `Live now: ${n0(r()!.oilExport)} bbl/d of oil exported at ${n1(r()!.efficiency)} % production efficiency. ` : '') +
-      'The separated gas went through scrubbing and compression to the gas export riser or to flare, and the produced water was cleaned and returned to the sea.',
+      'The separated gas took the same road: scrubbing, compression and TEG dehydration on Alpha, then over the bridge to RP’s gas meter and riser (or to flare when it cannot be exported). The produced water was cleaned and returned to the sea.',
     fly: { pos: [-30, 110, 120], target: [-62, 22, -12], hold: 12 },
   },
 ]

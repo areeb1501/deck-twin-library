@@ -576,10 +576,10 @@ const s8: Scenario = {
   difficulty: 'advanced',
   category: 'fire & gas',
   platforms: ['Alpha'],
-  summary: 'The pig launcher L-1600 closure seal starts to weep. Only one detector sees it — the F&G mapping shows this corner of the export area is poorly covered — so voting never confirms. The leak grows; left alone it ignites.',
+  summary: 'A low-point drain valve under the oil export header starts to weep. Only one detector sees it — the F&G mapping shows this corner of the export area is poorly covered — so voting never confirms. The leak grows; left alone it ignites.',
   objectives: ['Treat a single-detector alarm as real until proven otherwise', 'Investigate safely and fast', 'Take the decision to shut down manually at the right level (ESD2) before escalation'],
   briefing: [
-    'Normal operation. Pigging of the oil export line finished at 05:30; L-1600 was closed and pressurised by the night shift.',
+    'Normal operation. The night shift drained the oil export header for a valve change at the LV-1301 station and re-pressurised it at 05:30.',
     'F&G mapping (console → F&G, viewer → Layers → F&G heatmap) shows the export area A-P-EXP below its gas-coverage target.',
     'Wind SW 7 m/s.',
   ],
@@ -596,16 +596,17 @@ const s8: Scenario = {
     {
       id: 'leak1',
       at: 60,
-      label: 'L-1600 closure door seal weeping — 0.5 kg/s',
+      label: 'Export header low-point drain weeping — 0.5 kg/s',
       run: (c) => {
-        c.data.at = plainPos(c, 'L-1600') ?? plainPos(c, 'P-1500A')
-        release(c, 'inc1', { kind: 'gasRelease', at: c.data.at as [number, number, number], rateKgS: 0.5, source: 'L-1600', label: 'Pig launcher L-1600 closure seal' })
+        // under the 10" export header between the pumps and the LV-1301 station (deck-local), in zone A-P-EXP
+        c.data.at = [18.5, 1, -12] as [number, number, number]
+        release(c, 'inc1', { kind: 'gasRelease', at: c.data.at as [number, number, number], rateKgS: 0.5, source: '10"-PO-1601-D6A-N', label: 'Export header low-point drain' })
       },
     },
     { id: 'alarm', when: (c) => c.mark.leak1 !== undefined && zoneGas(c.s, c.data.zone as string) !== 'normal' },
     { id: 'isolated', when: (c) => latched(c.s, { platform: 'Alpha', since: c.t0 }).some((x) => x.level !== 'USD') },
-    { id: 'leak2', after: ['leak1', 480], only: (c) => c.mark.isolated === undefined, label: 'Seal failing — leak grows by 1.5 kg/s', run: (c) => void release(c, 'inc2', { kind: 'gasRelease', at: c.data.at as [number, number, number], rateKgS: 1.5, source: 'L-1600', label: 'L-1600 seal failing' }) },
-    { id: 'leak3', after: ['leak1', 960], only: (c) => c.mark.isolated === undefined, label: 'Seal blown — another 3 kg/s', run: (c) => void release(c, 'inc3', { kind: 'gasRelease', at: c.data.at as [number, number, number], rateKgS: 3, source: 'L-1600', label: 'L-1600 seal blown' }) },
+    { id: 'leak2', after: ['leak1', 480], only: (c) => c.mark.isolated === undefined, label: 'Drain valve failing — leak grows by 1.5 kg/s', run: (c) => void release(c, 'inc2', { kind: 'gasRelease', at: c.data.at as [number, number, number], rateKgS: 1.5, source: '10"-PO-1601-D6A-N', label: 'Export header drain failing' }) },
+    { id: 'leak3', after: ['leak1', 960], only: (c) => c.mark.isolated === undefined, label: 'Drain valve blown — another 3 kg/s', run: (c) => void release(c, 'inc3', { kind: 'gasRelease', at: c.data.at as [number, number, number], rateKgS: 3, source: '10"-PO-1601-D6A-N', label: 'Export header drain blown' }) },
     { id: 'confirmed', when: (c) => latched(c.s, { causeId: 'gas-confirmed', since: c.t0 }).length > 0 && c.mark.manual === undefined },
     { id: 'manual', when: (c) => latched(c.s, { platform: 'Alpha', causeId: 'manual', since: c.t0 }).length > 0 && c.mark.confirmed === undefined },
     {
@@ -613,17 +614,17 @@ const s8: Scenario = {
       after: ['leak1', 1200],
       only: (c) => c.mark.isolated === undefined && activeIncidents(c.s, 'gasRelease').length > 0,
       label: 'Unisolated leak ignites (hot surface) — 10 MW jet fire',
-      run: (c) => void release(c, 'fire', { kind: 'fire', at: c.data.at as [number, number, number], sizeMW: 10, source: 'L-1600', label: 'Ignited leak at L-1600' }),
+      run: (c) => void release(c, 'fire', { kind: 'fire', at: c.data.at as [number, number, number], sizeMW: 10, source: '10"-PO-1601-D6A-N', label: 'Ignited leak at the export header' }),
     },
   ],
   actions: [
-    cctv((c) => (activeIncidents(c.s, 'gasRelease').length ? 'CCTV camera 12: faint vapour haze at the L-1600 pig launcher closure — no flame' : 'CCTV camera 12: nothing visible at L-1600')),
+    cctv((c) => (activeIncidents(c.s, 'gasRelease').length ? 'CCTV camera 12: faint vapour haze under the oil export header — no flame' : 'CCTV camera 12: nothing visible under the export header')),
     {
       id: 'investigate',
       label: 'Field: investigate the gas alarm with a portable detector (approach from upwind)',
       who: 'field',
       delay: 240,
-      run: (c) => (activeIncidents(c.s, 'gasRelease').length ? 'Field operator: audible hiss at the L-1600 closure door, portable detector 45 % LEL at 2 m — LEAK CONFIRMED, withdrawing upwind' : 'Field operator: nothing found at L-1600, portable detector 0 % LEL'),
+      run: (c) => (activeIncidents(c.s, 'gasRelease').length ? 'Field operator: audible hiss at the export header low-point drain, portable detector 45 % LEL at 2 m — LEAK CONFIRMED, withdrawing upwind' : 'Field operator: nothing found at the export header, portable detector 0 % LEL'),
     },
     HOTWORK,
     MUSTER,

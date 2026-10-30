@@ -46,7 +46,7 @@ export type HazShape =
   /** horizontal cylinder (vessel shell): axis through (x, y, z) along the unit plan vector (ux, uz), ± half */
   | { kind: 'hcyl'; x: number; y: number; z: number; ux: number; uz: number; half: number; r: number }
 
-export type HazSource = 'pumpSeal' | 'compressor' | 'wellhead' | 'wellCentre' | 'pigTrap' | 'process' | 'interior' | 'vent' | 'flare' | 'turbine'
+export type HazSource = 'pumpSeal' | 'compressor' | 'wellhead' | 'wellCentre' | 'pigTrap' | 'process' | 'valve' | 'interior' | 'vent' | 'flare' | 'turbine'
 
 export interface HazVolume {
   id: string
@@ -79,6 +79,7 @@ export const CLASSIFICATION: { source: HazSource; what: string; z0?: string; z1?
   { source: 'wellCentre', what: 'Well centre: BOP stack, rotary table', z1: '1.5 m around', z2: '3 m around' },
   { source: 'pigTrap', what: 'Pig-trap closure door', z1: '1.5 m around the closure', z2: '3 m around the trap' },
   { source: 'process', what: 'HC vessels, exchangers, manifolds, metering / chemical skids: flanges, valves, instrument connections', z2: '3 m envelope' },
+  { source: 'valve', what: 'Control, ESD and blowdown valve stations on hydrocarbon lines (flanges, stem packing)', z2: '3 m around the valve' },
   { source: 'interior', what: 'Vessel / tank interiors (hydrocarbon)', z0: 'inside the shell — confined-space entry only' },
   { source: 'vent', what: 'Cold vent tips (elevated)', z0: '1 m', z1: '3 m', z2: '6 m' },
   { source: 'flare', what: 'Flare tip, unlit / flame-out case (elevated)', z0: '1 m', z1: '3 m', z2: '6 m' },
@@ -152,6 +153,9 @@ const TRAP_Z1 = 1.5
 const TIP = { z0: 1, z1: 3, z2: 6 }
 
 const hasHc = (e: Equipment) => HC_SYSTEMS.has(e.system) && !NOT_A_SOURCE.test(e.name)
+/** valve stations that are release sources on hydrocarbon lines */
+const VALVE_SOURCES = new Set(['control', 'esdv', 'bdv'])
+const HC_SERVICES = new Set(['oil', 'gas', 'multiphase'])
 
 /** rough top of an item, deck-local */
 function topOf(e: Equipment): number {
@@ -345,6 +349,23 @@ function classify(plant: Plant): HazVolume[] {
         return
     }
   })
+
+  // valve stations on hydrocarbon lines between the equipment (the export headers' control and ESD valves …):
+  // flanges and stem packing are secondary-grade sources → a Zone 2 envelope like the equipment's
+  const lineByTag = new Map(plant.lines.map((l) => [l.tag, l]))
+  for (const v of plant.valves) {
+    if (!VALVE_SOURCES.has(v.type)) continue
+    const l = lineByTag.get(v.line)
+    if (!l || !HC_SERVICES.has(l.service) || v.seg < 0) continue
+    const a = l.route[v.seg]
+    const b = l.route[v.seg + 1]
+    if (!a || !b) continue
+    const p: Vec3 = [a[0] + (b[0] - a[0]) * v.t, a[1] + (b[1] - a[1]) * v.t, a[2] + (b[2] - a[2]) * v.t]
+    const li = levelAt(levels, p[1])
+    const floor = levels[li]?.y ?? 0
+    if (p[1] < floor - 0.3) continue // under the deck plate: nobody walks there
+    add({ tag: v.tag, position: p }, 2, 'valve', `Valve station flanges and packing, ${v.tag} on ${v.line}`, { kind: 'cyl', x: p[0], z: p[2], r: R2, y0: floor, y1: p[1] + R2 }, li)
+  }
 
   // elevated tips: cold vents (model/vents.ts) and the Alpha flare (unlit / flame-out case)
   const tips: { tag: string; source: HazSource; what: string; p: Vec3 }[] = []

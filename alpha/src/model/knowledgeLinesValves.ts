@@ -551,7 +551,7 @@ const LINES: Knowledge[] = [
     useCases: [
       'HP to LP separator oil transfer',
       'LP separator to crude cooler and export pump suction',
-      'Export pump discharge to the pig launcher and export riser',
+      'Export pump discharge header → level control → export ESDV → west bridge to RP metering and riser',
       'Reject oil from produced water treatment back to the separators',
     ],
     parameters: [

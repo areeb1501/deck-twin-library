@@ -36,7 +36,7 @@ const POINTS: { label: string; tag: string; nozzle?: RegExp; dy?: number }[] = [
   { label: 'WHP-N well bay (XT-N103)', tag: 'XT-N103', dy: 1 },
   { label: 'WHP-N production manifold M-N200', tag: 'M-N200', dy: 1 },
   { label: 'WHP-N desander V-N230', tag: 'V-N230', dy: 1 },
-  { label: 'Oil export pig launcher L-1600 closure', tag: 'L-1600', dy: 1 },
+  { label: 'Oil export ESDV-1601 (export header)', tag: 'ESDV-1601' },
   // RP — riser & export platform (skipped while the platform is not in the plant)
   { label: 'RP oil riser topsides ESDV-R101', tag: 'ESDV-R101', dy: 1 },
   { label: 'RP gas riser topsides ESDV-R201', tag: 'ESDV-R201', dy: 1 },

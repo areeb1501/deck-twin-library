@@ -12,6 +12,7 @@ import { useStore } from '../state/store'
 import { useSim } from '../state/sim'
 import { moduleDoors, walkAuto, walkLevels, walkPose, type AutoPt } from '../scene/Walk'
 import { planPath, stairPath } from '../scene/walkPath'
+import { pickOf } from '../ui/hmi/nav'
 
 /** tour walking pace on decks and on stairs, m/s (×2 at double speed) */
 const WALK_SPEED = 3.2
@@ -283,7 +284,7 @@ function beginBeat(b: Beat) {
     walkAuto.path = []
     walkAuto.face = b.at ?? b.look
     walkAuto.active = st().playing
-    s.setLookAt({ tag: b.look, kind: 'equipment' })
+    s.setLookAt(pickOf(b.look) ?? { tag: b.look, kind: 'equipment' })
     s.setKbTag(b.kb ? b.look : null)
     if (b.say) set({ line: say(b.say) })
   } else if ('face' in b) {

@@ -8,11 +8,13 @@
  * Process summary
  *  Wells → M-1000 production manifold → ESDV-1001 → V-1100 HP 3-phase separator (35 barg operating, 42 barg design / PSV set)
  *    gas   → ESDV-2101 → V-2100 compressor suction scrubber → K-2200 export gas compressor
- *            → E-2300 aftercooler → ESDV-2301 → gas export riser
+ *            → E-2300 aftercooler → T-5300 TEG contactor (dehydration) → fuel gas take-off
+ *            → ESDV-2301 → under the deck to the west bridge → RP gas metering, pig launcher and riser
  *            (anti-surge recycle FV-2201 back to suction)
  *    oil   → LV-1101 (with block & bypass) → V-1300 LP separator (8 barg)
- *            → E-1400 crude cooler → P-1500A/B export pumps → LV-1301 → L-1600 pig launcher
- *            → ESDV-1601 → oil export riser
+ *            → E-1400 crude cooler → P-1500A/B export pumps → export header → LV-1301 → ESDV-1601
+ *            → under the deck to the west bridge → RP fiscal metering, pig launcher and riser
+ *  One export route: Alpha has no export risers or pig launchers of its own — RP carries them.
  *    water → LV-1102 → produced-water treatment (cellar deck)
  *  Test header → V-1200 test separator (gas to flare via PCV-1201, liquids to V-1300)
  *  All PSVs + PCV-1301 → 16" flare header on rack tier 2 → V-2400 flare KO drum → flare boom
@@ -27,7 +29,6 @@ import type {
   Instrument,
   Manifold,
   Module,
-  PigTrap,
   PipeLine,
   Plant,
   PumpPackage,
@@ -57,9 +58,11 @@ export const onTier = (tier: 1 | 2, nps: number) => RACK_TIER[tier] + SHOE + pip
 const OVER = 7.45
 /** cellar deck plate (EL +20 m) in deck-local Y — lines leaving downwards terminate into it */
 const CELLAR = -8.4
-/** export riser top flanges on the jacket east face (see env/jacket.ts RISER_TOPS) */
-const RISER_X = 27.0
-const RISER_TOP_Y = -0.7
+/** the oil export line leaves Alpha under the deck plate at the west edge and continues over the west bridge to
+ *  RP (it meets rpSite.ts's 10" oil line at its Alpha tie-in; the dry gas does the same at z −15.9, alphaSite.ts) */
+const EXPORT_Y = -1.6
+const EXPORT_X = -29.4
+const EXPORT_Z_OIL = -15.45
 const FLARE_Z = 1.5
 const FLARE_Y = onTier(2, 16)
 
@@ -223,24 +226,6 @@ function pump(tag: string, at: [number, number], rot: number): PumpPackage {
 const P1500A = pump('P-1500A', [15, -13.5], Math.PI)
 const P1500B = pump('P-1500B', [16, -10.5], Math.PI)
 
-const L1600: PigTrap = {
-  kind: 'pigTrap',
-  tag: 'L-1600',
-  name: 'Oil Export Pig Launcher',
-  system: 'oilExport',
-  majorBarrelNps: 10,
-  minorBarrelNps: 8,
-  length: 4.4,
-  elevation: 1.3,
-  position: [23, 1.3, -6.5],
-  rotationY: Math.PI,
-  nozzles: [],
-  design: { pressure: '96 barg', temperature: '60 °C', material: 'API 5L X65', notes: 'Quick-opening closure with pressure-warning interlock' },
-}
-L1600.nozzles.push(nozzle(L1600, 'N1', 'Outlet to export line', [-2.2, 0, 0], [-1, 0, 0], 8, 0.25, 600))
-L1600.nozzles.push(nozzle(L1600, 'N2', 'Kicker inlet', [1.0, pipeOD(10) / 2, 0], [0, 1, 0], 6, 0.3, 600))
-L1600.nozzles.push(nozzle(L1600, 'N3', 'Vent', [1.6, pipeOD(10) / 2, 0], [0, 1, 0], 2, 0.2, 600))
-L1600.nozzles.push(nozzle(L1600, 'N4', 'Drain', [1.4, -pipeOD(10) / 2, 0], [0, -1, 0], 2, 0.2, 600))
 
 const C1700: ChemSkid = {
   kind: 'chemSkid',
@@ -360,7 +345,7 @@ const LER: Module = {
   design: { notes: 'A60 fire-rated, pressurised. MCC, VSD for K-2200, UPS, F&G panel.' },
 }
 
-export const equipment: Equipment[] = [M1000, V1100, V1200, V1300, E1400, P1500A, P1500B, L1600, C1700, V2100, K2200, E2300, V2400, LER]
+export const equipment: Equipment[] = [M1000, V1100, V1200, V1300, E1400, P1500A, P1500B, C1700, V2100, K2200, E2300, V2400, LER]
 
 // ================================================================= LINES
 const eqByTag = new Map(equipment.map((e) => [e.tag, e]))
@@ -552,19 +537,36 @@ const L_SUCTB = add_({
   to: { equipment: 'P-1500B', nozzle: 'N1' },
 })
 
-// --- pump discharges → header → pig launcher kicker
+// --- pump discharges → export header → LV-1301 (LP separator level) → ESDV-1601 → under the deck → RP
 const dA = P('P-1500A', 'N2')
 const dB = P('P-1500B', 'N2')
-const kick = P('L-1600', 'N2')
 const HDR_Y = 3.2
+/** 10" export header: blind-flanged west end, both pump discharges tee in, then north to the level-control
+ *  station and ESDV-1601, down through the deck and west under it to the west bridge (continues to RP X-R150) */
+const L_EXPORT = add_({
+  tag: '10"-PO-1601-D6A-N',
+  service: 'oil',
+  system: 'oilExport',
+  nps: 10,
+  route: [
+    [13.6, HDR_Y, -12.0],
+    [22, HDR_Y, -12.0],
+    [22, HDR_Y, EXPORT_Z_OIL],
+    [22, EXPORT_Y, EXPORT_Z_OIL],
+    [EXPORT_X, EXPORT_Y, EXPORT_Z_OIL],
+  ],
+  from: { offDeck: 'Header end (blind flange)' },
+  to: { offDeck: 'West bridge → RP fiscal metering X-R150 (10"-PO-R1001)' },
+  design: { pressure: '96 barg', temperature: '48 °C', notes: 'Alpha oil export header: P-1500A/B → LV-1301 → ESDV-1601 → west bridge → RP fiscal metering, pig launcher L-R110 and riser' },
+})
 const L_DISCH = add_({
   tag: '6"-PO-1501-D6A-N',
   service: 'oil',
   system: 'oilExport',
   nps: 6,
-  route: [dA, [dA[0], HDR_Y, dA[2]], [dA[0], HDR_Y, -12.0], [kick[0], HDR_Y, -12.0], [kick[0], HDR_Y, kick[2]], kick],
+  route: [dA, [dA[0], HDR_Y, dA[2]], [dA[0], HDR_Y, -12.0]],
   from: { equipment: 'P-1500A', nozzle: 'N2' },
-  to: { equipment: 'L-1600', nozzle: 'N2' },
+  to: { line: L_EXPORT },
   design: { pressure: '96 barg', temperature: '48 °C' },
 })
 const L_DISCHB = add_({
@@ -574,18 +576,7 @@ const L_DISCHB = add_({
   nps: 6,
   route: [dB, [dB[0], HDR_Y, dB[2]], [dB[0], HDR_Y, -12.0]],
   from: { equipment: 'P-1500B', nozzle: 'N2' },
-  to: { line: L_DISCH },
-})
-const lo6 = P('L-1600', 'N1')
-const L_EXPORT = add_({
-  tag: '8"-PO-1601-D6A-N',
-  service: 'oil',
-  system: 'oilExport',
-  nps: 8,
-  route: [lo6, [RISER_X, lo6[1], lo6[2]], [RISER_X, RISER_TOP_Y, lo6[2]]],
-  from: { equipment: 'L-1600', nozzle: 'N1' },
-  to: { offDeck: 'Oil export riser → 16" pipeline to FSO' },
-  design: { pressure: '96 barg', temperature: '48 °C' },
+  to: { line: L_EXPORT },
 })
 
 // --- compression
@@ -649,16 +640,27 @@ const L_BLOWDOWN = add_({
   design: { notes: 'Compressor discharge blowdown to flare' },
 })
 const co = P('E-2300', 'N2')
+/** T-5300 TEG contactor wet-gas inlet N1 (built in alphaSite.ts: west face, 4.62 m up) */
+const TEG_IN: Vec3 = [-21.079, 4.62, 12.6]
+/** cooled compressed gas → down through the deck → west under it → up into the TEG contactor (dehydration) */
 const L_GEXP = add_({
   tag: '8"-PG-2301-E9A-N',
   service: 'gas',
   system: 'gasCompression',
   nps: 8,
   spec: 'E9A',
-  route: [co, [co[0], co[1], 14.75], [RISER_X, co[1], 14.75], [RISER_X, RISER_TOP_Y, 14.75]],
+  route: [
+    co,
+    [co[0], co[1], 14.75],
+    [co[0], EXPORT_Y, 14.75],
+    [TEG_IN[0] - 0.8, EXPORT_Y, 14.75],
+    [TEG_IN[0] - 0.8, EXPORT_Y, TEG_IN[2]],
+    [TEG_IN[0] - 0.8, TEG_IN[1], TEG_IN[2]],
+    TEG_IN,
+  ],
   from: { equipment: 'E-2300', nozzle: 'N2' },
-  to: { offDeck: 'Gas export riser → 14" pipeline' },
-  design: { pressure: '140 barg', temperature: '40 °C' },
+  to: { equipment: 'T-5300', nozzle: 'N1' },
+  design: { pressure: '140 barg', temperature: '40 °C', notes: 'Wet export gas from the aftercooler to the TEG contactor; dry gas leaves T-5300 on 8"-PG-5302 to export' },
 })
 const sl = P('V-2100', 'N3')
 const L_SCRLIQ = add_({
@@ -840,15 +842,16 @@ export const valves: Valve[] = [
   v({ tag: 'HV-1502A', type: 'gate', line: L_DISCH, seg: 0, t: 0.66, actuator: 'handwheel', up: [1, 0, 0] }),
   v({ tag: 'NRV-1501B', type: 'check', line: L_DISCHB, seg: 0, t: 0.32 }),
   v({ tag: 'HV-1502B', type: 'gate', line: L_DISCHB, seg: 0, t: 0.66, actuator: 'handwheel', up: [1, 0, 0] }),
-  v({ tag: 'LV-1301', type: 'control', line: L_DISCH, seg: 3, t: 0.3, actuator: 'diaphragm', failAction: 'FC', design: { notes: 'LP separator level → export flow' } }),
-  v({ tag: 'HV-1601', type: 'ball', line: L_DISCH, seg: 3, t: 0.62, actuator: 'gear' }),
-  v({ tag: 'ESDV-1601', type: 'esdv', line: L_EXPORT, seg: 1, t: 0.45, actuator: 'pistonSpring', failAction: 'FC', up: [-1, 0, 0], design: { notes: 'Riser ESDV, SIL 3' } }),
+  // export header: level-control station on the run north, ESDV-1601 on the drop through the deck (above the plate)
+  v({ tag: 'LV-1301', type: 'control', line: L_EXPORT, seg: 1, t: 0.3, actuator: 'diaphragm', failAction: 'FC', design: { notes: 'LP separator level → export flow' } }),
+  v({ tag: 'HV-1601', type: 'ball', line: L_EXPORT, seg: 1, t: 0.7, actuator: 'gear' }),
+  v({ tag: 'ESDV-1601', type: 'esdv', line: L_EXPORT, seg: 2, t: 0.27, actuator: 'pistonSpring', failAction: 'FC', up: [-1, 0, 0], design: { notes: 'Alpha oil export ESDV (platform boundary, line to RP), SIL 3' } }),
   v({ tag: 'XV-2201', type: 'ball', line: L_KSUCT, seg: 2, t: 0.55, actuator: 'electric' }),
   v({ tag: 'NRV-2201', type: 'check', line: L_KDIS, seg: 1, t: 0.42 }),
   v({ tag: 'BDV-2201', type: 'bdv', line: L_BLOWDOWN, seg: 1, t: 0.5, actuator: 'pistonSpring', failAction: 'FO', normally: 'closed', up: [-1, 0, 0] }),
   v({ tag: 'FV-2201', type: 'control', line: L_RECYCLE, seg: 0, t: 0.45, actuator: 'diaphragm', failAction: 'FO', design: { notes: 'Anti-surge valve, fast-stroking (< 2 s)' } }),
-  v({ tag: 'ESDV-2301', type: 'esdv', line: L_GEXP, seg: 1, t: 0.86, actuator: 'pistonSpring', failAction: 'FC' }),
-  v({ tag: 'HV-2302', type: 'gate', line: L_GEXP, seg: 1, t: 0.2, actuator: 'gear' }),
+  // ESDV-2301 (gas export ESDV) is on the dry-gas export line 8"-PG-5302 (alphaSite.ts)
+  v({ tag: 'HV-2302', type: 'gate', line: L_GEXP, seg: 4, t: 0.75, actuator: 'gear', up: [1, 0, 0] }),
   v({ tag: 'LV-2101', type: 'control', line: L_SCRLIQ, seg: 0, t: 0.5, actuator: 'diaphragm', failAction: 'FC' }),
   v({ tag: 'TCV-1401', type: 'control', line: '6"-CM-1411-A1A-N', seg: 0, t: 0.55, actuator: 'diaphragm', failAction: 'FO' }),
   v({ tag: 'HV-1412', type: 'butterfly', line: '6"-CM-1412-A1A-N', seg: 0, t: 0.45, actuator: 'gear' }),
@@ -887,18 +890,19 @@ export const instruments: Instrument[] = [
   { tag: 'TT-1401', type: 'TT', on: onLine(L_SUCT, 1, 0.25), dir: [0, 1, 0], range: '0–150', unit: '°C', nominal: 44 },
   { tag: 'PG-1501A', type: 'PG', on: onLine(L_DISCH, 0, 0.92), dir: [-1, 0, 0], range: '0–160', unit: 'barg', nominal: 92 },
   { tag: 'PG-1501B', type: 'PG', on: onLine(L_DISCHB, 0, 0.92), dir: [-1, 0, 0], range: '0–160', unit: 'barg', nominal: 0.4 },
-  { tag: 'PT-1501', type: 'PT', on: onLine(L_DISCH, 2, 0.12), dir: [0, 1, 0], range: '0–160', unit: 'barg', nominal: 91.5 },
-  { tag: 'FT-1501', type: 'FT', on: onLine(L_DISCH, 2, 0.75), dir: [0, 1, 0], range: '0–250', unit: 'm³/h', nominal: 158 },
-  { tag: 'PT-1601', type: 'PG', on: onLine(L_EXPORT, 0, 0.5), dir: [0, 1, 0], range: '0–160', unit: 'barg', nominal: 90 },
+  { tag: 'PT-1501', type: 'PT', on: onLine(L_EXPORT, 0, 0.345), dir: [0, 1, 0], range: '0–160', unit: 'barg', nominal: 91.5 },
+  { tag: 'FT-1501', type: 'FT', on: onLine(L_EXPORT, 0, 0.75), dir: [0, 1, 0], range: '0–250', unit: 'm³/h', nominal: 158 },
+  { tag: 'PT-1601', type: 'PG', on: onLine(L_EXPORT, 2, 0.1), dir: [1, 0, 0], range: '0–160', unit: 'barg', nominal: 90 },
   { tag: 'PT-2101', type: 'PT', on: onLine(L_KSUCT, 1, 0.08), dir: [0, 1, 0], range: '0–60', unit: 'barg', nominal: 40.6 },
   { tag: 'PDT-2101', type: 'PDT', on: { equipment: 'V-2100', at: [-6.95, 5.6, 6.5] }, dir: [1, 0, 0], range: '0–500', unit: 'mbar', nominal: 62, alarms: { hi: 250 } },
   { tag: 'LT-2101', type: 'LT', on: { equipment: 'V-2100', at: [-7.8, 1.6, 7.35] }, dir: [0, 0, 1], range: '0–1200', unit: 'mm', nominal: 240 },
   { tag: 'PT-2202', type: 'PT', on: onLine(L_KDIS, 1, 0.15), dir: [0, 1, 0], range: '0–200', unit: 'barg', nominal: 138.5, alarms: { hi: 145, hiHi: 150 } },
   { tag: 'TT-2202', type: 'TT', on: onLine(L_KDIS, 1, 0.28), dir: [0, 1, 0], range: '0–200', unit: '°C', nominal: 132 },
   { tag: 'FT-2201', type: 'FT', on: onLine(L_KSUCT, 1, 0.45), dir: [0, 1, 0], range: '0–80', unit: 'MMscfd', nominal: 51.8 },
-  { tag: 'TT-2301', type: 'TT', on: onLine(L_GEXP, 1, 0.1), dir: [0, 1, 0], range: '0–150', unit: '°C', nominal: 39 },
-  { tag: 'AT-2301', type: 'AT', on: onLine(L_GEXP, 1, 0.35), dir: [0, 1, 0], range: '-40–20', unit: '°C dew pt', nominal: -18 },
-  { tag: 'PT-2301', type: 'PT', on: onLine(L_GEXP, 1, 0.55), dir: [0, 1, 0], range: '0–200', unit: 'barg', nominal: 137.9 },
+  { tag: 'TT-2301', type: 'TT', on: onLine(L_GEXP, 0, 0.25), dir: [0, 1, 0], range: '0–150', unit: '°C', nominal: 39 },
+  { tag: 'PT-2301', type: 'PT', on: onLine(L_GEXP, 0, 0.6), dir: [0, 1, 0], range: '0–200', unit: 'barg', nominal: 137.9 },
+  // export dew point: on the dry gas after the TEG contactor (drop through the deck on 8"-PG-5302, alphaSite.ts)
+  { tag: 'AT-2301', type: 'AT', on: onLine('8"-PG-5302-E9A-N', 4, 0.495), dir: [1, 0, 0], range: '-40–20', unit: '°C dew pt', nominal: -18 },
   { tag: 'LT-2401', type: 'LT', on: { equipment: 'V-2400', at: [13.8, 1.9, 11.79] }, dir: [0, 0, 1], range: '0–2400', unit: 'mm', nominal: 420, alarms: { hi: 1200, hiHi: 1600 } },
   { tag: 'PT-2401', type: 'PT', on: onLine(L_FLARE, 0, 0.5), dir: [0, 1, 0], range: '0–5', unit: 'barg', nominal: 0.12 },
 ]
