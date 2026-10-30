@@ -7,7 +7,7 @@ Two pages, served unlisted on the library site:
 | `/alpha/` | Landing page (`index.html`, `landing/`): plain HTML and CSS, no WebGL |
 | `/alpha/demo/` | The twin (`demo/index.html`, `src/`, `bridge/`, `lite/`), a copy of `../../deck-twin` |
 
-- The landing page carries the library site's nav (plain HTML in `index.html`, so a new site tab goes in both places). Search and ⌘K go to `/?search=1`, which opens the site's search. It has no theme toggle: the page is dark only.
+- The landing page carries the library site's nav (plain HTML in `index.html`, so a new site tab goes in both places). Search and ⌘K open a dialog on the page itself (`landing/search.ts`), with the site's ranking and the same results. It fetches `/r/index.json` on first use. It has no theme toggle: the page is dark only.
 - Linked from the library home page since 2026-10-30, at the user's request. Still not in the sitemap, robots.txt or llms.txt.
 - `noindex, nofollow` meta tags in both pages, plus an `X-Robots-Tag` header from `../public/_headers`.
 - Tracked in git since 2026-10-30, so the repo must stay private: making it public exposes this code and the page. `../public/alpha/` (build output) and `../public/_headers` stay local, listed in `.git/info/exclude`.

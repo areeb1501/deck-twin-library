@@ -5,6 +5,7 @@
  */
 import '@fontsource-variable/inter'
 import './landing.css'
+import { initSearch } from './search'
 
 const MEDIA = '/alpha/media/v1'
 const connection = (navigator as Navigator & { connection?: { saveData?: boolean } }).connection
@@ -50,15 +51,9 @@ for (const img of document.querySelectorAll<HTMLImageElement>('img[data-still]')
   img.src = `${MEDIA}/${img.dataset.still}.webp`
 }
 
-// the site's search needs the whole component index, so it stays there: the button and the shortcut both go to it
 const mac = /mac|iphone|ipad|ipod/i.test(navigator.platform || navigator.userAgent)
 if (mac) document.querySelector('[data-mod]')!.textContent = '⌘'
-addEventListener('keydown', (e) => {
-  if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
-    e.preventDefault()
-    location.href = '/?search=1'
-  }
-})
+initSearch(document.querySelector<HTMLElement>('.top-search')!)
 
 const menuBtn = document.querySelector<HTMLButtonElement>('.top-menu-btn')!
 const menu = document.querySelector<HTMLElement>('.top-menu')!
