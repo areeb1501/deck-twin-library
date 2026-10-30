@@ -140,7 +140,7 @@ Tell the user:
 5. Intermediate: an onshore separation and compression train. Separator → pumps → cooler, gas → scrubber → compressor, on a pipe rack.
 6. Advanced: a crude export terminal. Metering and prover, tank farm in a bund, rack headers, loading pumps, marine loading arm and truck bay.
 
-The full `plant.json` schema is in [references/plant-json.md](references/plant-json.md).
+The full `plant.json` schema is in [references/plant-json.md](references/plant-json.md). Read its "The one format" table before writing a plant: `"items"` and `"lines"` only, with names, props and ports taken from the CLI. A plant isn't finished until `deck-twin check` is clean.
 [references/pid-symbols.md](references/pid-symbols.md) is generated from the registry and maps every component to its P&ID symbol, tag letters and datasheet fields.
 [references/pid-legend.md](references/pid-legend.md) is the full legend: every common P&ID symbol (valves, actuators, fail actions, fittings, line types, connectors, ISA bubbles, equipment, F&G, electrical), with how it is drawn, what it means and the component it maps to. Symbols marked *logical* are not hardware.
 `scripts/tile.py` cuts large P&ID scans into legible tiles (needs Pillow).

@@ -34,7 +34,7 @@ npx deck-twin <command>
 
 ## check
 
-`check` runs without a browser, using `/r/index.json`. It reports:
+`check` runs without a browser, using `/r/index.json`. A file in another format, for example one with `"equipment"` or `"deck"` instead of `"items"`, stops here with one clear error. Otherwise it reports:
 
 - **Unknown components**, with close matches.
 - **Duplicate tags.**

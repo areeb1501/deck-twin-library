@@ -22,6 +22,8 @@ A plant is a `plant.json`: a list of **items** (components placed in space) and 
 }
 ```
 
+This is the only plant format the registry and the CLI use. It is built from registry components, so an agent should take names, props and port ids from the CLI, never from memory. The JSON Schema at [/r/plant.schema.json](/r/plant.schema.json) carries the full list of component names, and `deck-twin check` is the final gate.
+
 ## Coordinates
 
 | Rule | Detail |

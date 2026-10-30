@@ -12,6 +12,7 @@ import { ToneMappingMode } from 'postprocessing'
 import { Suspense, memo, useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import * as THREE from 'three'
 import { usePlantStore } from '../state/plantStore'
+import { plantRenderer } from './customPlant'
 import type { PickData } from '../model/types'
 import { DECK_WORLD_Y, useStore, type CameraPreset } from '../state/store'
 import { setSectionBox, setXray } from '../three/materials'
@@ -266,7 +267,9 @@ function Plant() {
   const select = useStore((s) => s.select)
   const hover = useStore((s) => s.hover)
   const plant = usePlantStore((s) => s.plant)
-  const built = useMemo(() => buildPiping(plant), [plant])
+  const Custom = plant.custom && plantRenderer(plant.custom.renderer)
+  // a custom renderer draws its own pipes: the plant's lines stay as data for the tree and the inspector
+  const built = useMemo(() => buildPiping(plant.custom ? { ...plant, lines: [], valves: [], instruments: [] } : plant), [plant])
   const solid = useMemo(() => footprints(plant.equipment), [plant])
   const offshore = (plant.deck.site ?? 'offshoreAlpha') === 'offshoreAlpha'
   const [selObjs, setSelObjs] = useState<THREE.Object3D[]>([])
@@ -334,11 +337,11 @@ function Plant() {
       <group position={[0, offshore ? DECK_WORLD_Y : GRADE_Y, 0]}>
         {layers.structure && (
           <NoPick>
-            {offshore ? <DeckStructure solidAreas={solid} ceiling={layers.ceiling} /> : <GradePad plant={plant} />}
+            {offshore ? <DeckStructure solidAreas={solid} ceiling={layers.ceiling} /> : plant.deck.site !== 'none' && <GradePad plant={plant} />}
           </NoPick>
         )}
         <group ref={root} onPointerMove={onMove} onPointerOut={onOut} onClick={onClick}>
-          {layers.equipment && <EquipmentLayer equipment={plant.equipment} />}
+          {Custom ? layers.equipment && <Custom plant={plant} /> : layers.equipment && <EquipmentLayer equipment={plant.equipment} />}
           <Piping built={built} />
           {layers.instruments && <FireGasMounts built={built} />}
         </group>

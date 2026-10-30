@@ -25,6 +25,9 @@ export default defineConfig(({ command, mode }) => {
   return {
     base: '/alpha/',
     plugins: [react()],
+    // bridge/ reaches into ../registry, whose imports would otherwise resolve to a second React and three.js
+    resolve: { dedupe: ['react', 'react-dom', 'three', '@react-three/fiber', '@react-three/drei'] },
+    server: { fs: { allow: ['..'] } },
     define: { __DEMO_GATE__: JSON.stringify(demoGate(env, command === 'serve')) },
     build: { outDir: '../public/alpha', emptyOutDir: true, chunkSizeWarningLimit: 4000 },
   }

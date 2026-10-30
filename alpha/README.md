@@ -23,6 +23,22 @@ captures of the twin: renders via `?tick` plus `__snap` (camera presets, walk vi
 headless screenshots of the console pages.
 `lite/` sits outside `src/`, so `npm run refresh` keeps it.
 
+## Loading plant.json
+
+`bridge/` lets the twin load a library `plant.json` and draw the real registry components. It lives outside `src/` because a
+deck-twin build can't reach `../registry`, and `npm run refresh` keeps it. `lite/boot.ts` loads it before the app starts.
+
+| File | What |
+|---|---|
+| `bridge/index.ts` | Registers the format and the renderer with the engine's seams. Everything heavy loads on demand. |
+| `bridge/load.ts` | Runs `cli/check.mjs` and `resolve()`, the code behind `deck-twin check` and `<Plant>`, so a file that passes the CLI loads here. Builds the engine shell: one invisible proxy per item, plus data-only lines. |
+| `bridge/LibraryLayer.tsx` | Draws `<Plant>` in the plant root, measures each item, tags meshes for picking, and joins registry materials to the section box and x-ray. |
+| `bridge/brief.ts` | The rules behind the plant menu's *Agent rules* button. |
+
+Imported plants have no process model, so the ticker, alarm bar, Operations, maintenance and the console are hidden for them.
+
+Commit changes to `src/` in `../../deck-twin` first, with the same title here after `npm run refresh`.
+
 ## Commands (run in this folder)
 
 | Task | Command |

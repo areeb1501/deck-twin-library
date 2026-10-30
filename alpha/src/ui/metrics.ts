@@ -160,6 +160,8 @@ function equipmentSim(e: Equipment): Metric[] {
         sim(t, 'U', 'LV voltage', 'kV', Number(e.voltage.split('/')[1]?.split(' ')[0]) || 6.6, '0–15'),
       ]
     case 'proxy':
+      // imported items have no simulated readings
+      if (e.role === 'custom') return []
       return e.role === 'drillingRig'
         ? [
             sim(t, 'HL', 'Hook load', 't', 182, '0–450', { hi: 360 }),

@@ -240,8 +240,10 @@ export interface Transformer extends EquipmentBase {
  */
 export interface Proxy extends EquipmentBase {
   kind: 'proxy'
-  role: 'drillingRig' | 'bop' | 'crane' | 'ventStack'
+  role: 'drillingRig' | 'bop' | 'crane' | 'ventStack' | 'custom'
   size: Vec3
+  /** walkers can't pass through it (proxies are walk-through by default) */
+  solid?: boolean
 }
 
 export type Equipment =
@@ -357,8 +359,8 @@ export interface Plant {
     name: string
     elevation: number // EL above LAT of y=0
     extent: { minX: number; maxX: number; minZ: number; maxZ: number }
-    /** surroundings: the authored offshore jacket platform, or a plain onshore concrete pad */
-    site?: 'offshoreAlpha' | 'onshore'
+    /** surroundings: the authored offshore jacket platform, a plain onshore concrete pad, or nothing (the plant brings its own) */
+    site?: 'offshoreAlpha' | 'onshore' | 'none'
     /** walkthrough levels (default: one level at y = 0 over `extent`) */
     walk?: WalkLevel[]
   }
@@ -366,6 +368,8 @@ export interface Plant {
   lines: PipeLine[]
   valves: Valve[]
   instruments: Instrument[]
+  /** drawn by a registered renderer instead of the equipment and piping layers; `source` is the file it was loaded from (plan 14) */
+  custom?: { renderer: string; source: unknown }
 }
 
 export interface PlanRect {

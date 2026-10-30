@@ -698,6 +698,8 @@ function HazardZoneChip() {
   const rule = ZONE_RULES.find((r) => r.zone === (here ? here.zone : 'safe'))!
   const c = here ? HAZ_COLOR[here.zone] : null
   const needs = rule.ppe.length ? rule.ppe.map((k) => PPE_LABEL[k]).join(' · ') : 'site minimum PPE'
+  // hazardous areas are classified for the authored field only
+  if (plant.custom) return null
   return (
     <div
       className="hz-walk-chip"

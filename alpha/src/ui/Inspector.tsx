@@ -415,13 +415,13 @@ export function Inspector() {
         {section && <button onClick={() => setSection({ enabled: false })}>Clear cut</button>}
       </div>
       <div className="insp-body">
-        {eq && RUNS.has(eq.kind) && !(eq.kind === 'proxy' && eq.role === 'bop') && (
+        {eq && RUNS.has(eq.kind) && !(eq.kind === 'proxy' && (eq.role === 'bop' || eq.role === 'custom')) && (
           <section className="sec insp-run">
             <h4>Operation</h4>
             <RunControl tag={eq.tag} />
           </section>
         )}
-        {eq && eq.kind !== 'module' && <MaintBlock tag={eq.tag} />}
+        {eq && eq.kind !== 'module' && !plant.custom && <MaintBlock tag={eq.tag} />}
         {!inst && <Metrics tag={sel.tag} />}
         {eq && <EquipmentView eq={eq} />}
         {line && <LineView l={line} />}

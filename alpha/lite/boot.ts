@@ -29,6 +29,7 @@ function tier(): Tier {
 // Two separate loaders: merged into one import() expression, the bundler keeps only one branch's CSS
 // (the twin then loads unstyled). Each loader keeps its own stylesheet preload this way.
 async function loadTwin() {
+  await import('../bridge')
   await import('../src/main.tsx')
 }
 async function loadLite(t: Exclude<Tier, 'full'>) {

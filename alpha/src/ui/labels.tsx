@@ -86,7 +86,7 @@ export function LabelOverlay() {
             focus(e.tag)
           }}
         >
-          {RUNS.has(e.kind) && !(e.kind === 'proxy' && e.role === 'bop') && <span className={`chip-dot ${chipState(e.tag)}`} />}
+          {RUNS.has(e.kind) && !(e.kind === 'proxy' && (e.role === 'bop' || e.role === 'custom')) && <span className={`chip-dot ${chipState(e.tag)}`} />}
           {e.tag}
         </button>
       ))}

@@ -160,7 +160,7 @@ export function blockers(p: Plant, li: number, doors: Record<string, boolean> = 
   const fps = footprints(p.equipment, PAD)
   return [
     ...p.equipment.flatMap((e, i) => {
-      if (e.kind === 'proxy' || eqLevel(levels, e) !== li) return []
+      if ((e.kind === 'proxy' && !e.solid) || eqLevel(levels, e) !== li) return []
       if (e.kind === 'module') return moduleWalls(e, (id) => !!doors[`${e.tag}/${id}`])
       return [fps[i]]
     }),

@@ -164,6 +164,83 @@ if (CHECK) {
   process.exit(0)
 }
 
+// plant.json as a JSON Schema: the closed list of component names is what keeps agents from inventing them
+const componentNames = index.map((i) => (i as { name: string }).name).sort()
+const inlineNames = index.filter((i) => (i as { anchor?: string }).anchor === 'inline').map((i) => (i as { name: string }).name).sort()
+const vec3 = { type: 'array', items: { type: 'number' }, minItems: 3, maxItems: 3 }
+writeFileSync(
+  join(out, 'plant.schema.json'),
+  JSON.stringify(
+    {
+      $schema: 'https://json-schema.org/draft/2020-12/schema',
+      $id: `${SITE}/r/plant.schema.json`,
+      title: 'Deck Twin plant.json',
+      description: 'A plant built from registry components. Take component names, props and port ids from the CLI, and run `deck-twin check` on the result.',
+      type: 'object',
+      required: ['name', 'items'],
+      additionalProperties: false,
+      properties: {
+        $schema: { type: 'string' },
+        name: { type: 'string', minLength: 1 },
+        description: { type: 'string' },
+        source: { type: 'string', description: 'Drawing numbers or documents this plant was taken from.' },
+        items: { type: 'array', items: { $ref: '#/$defs/item' } },
+        lines: { type: 'array', items: { $ref: '#/$defs/line' } },
+        camera: { type: 'object', required: ['target', 'radius'], additionalProperties: false, properties: { target: vec3, radius: { type: 'number' }, direction: vec3 } },
+        sea: { type: 'object', required: ['level'], additionalProperties: false, properties: { level: { type: 'number', description: 'Mean sea level as plant y (-airGap for a jacket at y = 0).' }, depth: { type: 'number' }, waves: { type: 'number' } } },
+      },
+      $defs: {
+        item: {
+          type: 'object',
+          required: ['tag', 'component'],
+          additionalProperties: false,
+          properties: {
+            tag: { type: 'string', minLength: 1 },
+            component: { enum: componentNames },
+            props: { type: 'object', description: 'From `deck-twin info <name>`.' },
+            position: { ...vec3, description: '[x, y, z] metres: x east, y up, z south. y is the level the item stands on.' },
+            rotation: { type: 'number', description: 'Degrees about +Y.' },
+          },
+        },
+        line: {
+          type: 'object',
+          required: ['tag', 'from', 'to'],
+          additionalProperties: false,
+          properties: {
+            tag: { type: 'string', description: 'Line number: SIZE"-SERVICE-SEQ-CLASS-INSULATION, e.g. 8"-PG-2101-D6A-N.' },
+            from: { $ref: '#/$defs/end' },
+            to: { $ref: '#/$defs/end' },
+            service: { enum: ['oil', 'gas', 'multiphase', 'water', 'seawater', 'firewater', 'steam', 'air', 'nitrogen', 'chemical', 'flare', 'drain', 'fuel-gas', 'diesel', 'potable', 'cooling'] },
+            nps: { type: 'number' },
+            schedule: { type: 'string' },
+            insulated: { type: 'boolean' },
+            elevation: { type: 'number' },
+            order: { enum: ['xz', 'zx'] },
+            via: { type: 'array', items: vec3 },
+            supports: { type: 'boolean' },
+            inline: {
+              type: 'array',
+              items: {
+                type: 'object',
+                required: ['component'],
+                additionalProperties: false,
+                properties: { component: { enum: inlineNames }, at: { type: 'number', minimum: 0, maximum: 1 }, tag: { type: 'string' }, props: { type: 'object' } },
+              },
+            },
+          },
+        },
+        end: {
+          oneOf: [
+            { type: 'string', pattern: '^.+\\..+$', description: '"TAG.port", with the port id from `deck-twin info <name>`.' },
+            { type: 'object', required: ['at'], additionalProperties: false, description: 'Battery limit: where the line leaves the plot.', properties: { at: vec3, direction: vec3, label: { type: 'string' } } },
+          ],
+        },
+      },
+    },
+    null,
+    1,
+  ),
+)
 writeFileSync(join(out, 'index.json'), JSON.stringify({ name: 'deck-twin', homepage: SITE, categories: CATEGORIES, items: index }, null, 1))
 writeFileSync(
   join(out, 'registry.json'),

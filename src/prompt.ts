@@ -41,7 +41,7 @@ Machine index of every component: ${site}/r/index.json
 2. Read the drawing's own legend first, then match symbols with \`references/pid-legend.md\` and \`references/pid-symbols.md\`. Tag letters decide when a shape is ambiguous. Skip logical items: DCS/PLC bubbles, signal lines, notes.
 3. Make the equipment table, then map each row to a component with \`references/component-map.md\`.
 4. Size anything the drawing leaves out with \`references/sizing.md\`, and lay it out with \`references/layout.md\`.
-5. Write plant.json (schema: \`references/plant-json.md\`; patterns: \`references/examples.md\`).
+5. Write plant.json (schema: \`references/plant-json.md\`; patterns: \`references/examples.md\`). There is one format: \`"items"\` and \`"lines"\`, built from registry components. Never use \`"equipment"\`, \`"deck"\`, \`"nozzles"\` or \`"version"\`. JSON Schema: ${site}/r/plant.schema.json.
    - Put line numbers in each line's \`tag\`. Size, service, class and insulation are read from them.
    - Use battery limits \`{ "at": [x, y, z] }\` for lines that leave the drawing.
 6. Run \`deck-twin check plant.json\` and fix every error. Repeat until it is clean.
@@ -50,6 +50,7 @@ Machine index of every component: ${site}/r/index.json
 
 ## Rules
 
+- **One plant format.** plant.json follows \`references/plant-json.md\` exactly, and it isn't done until \`deck-twin check\` is clean.
 - **Names come from the CLI.** Use only component names from \`deck-twin list\` or \`search\`, and only props and port ids from \`deck-twin info <name>\`. Never invent them.
 - **Units:** metres, degrees, NPS in inches, ASME class numbers.
 - **Everything is wired.** Wire every process item in flow order. Nothing is decorative, unconnected or floating.

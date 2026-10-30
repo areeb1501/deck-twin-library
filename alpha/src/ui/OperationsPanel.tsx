@@ -118,7 +118,7 @@ export function OperationsPanel() {
   const [why, setWhy] = useState<string | null>(null)
   const { setChoke, setWell, setKnob, reset, setSpeed, resetShutdown, restart } = useSim.getState()
   const wells = useMemo(() => plant.equipment.filter((e) => e.kind === 'xmasTree'), [plant])
-  const has = (tg: string) => plant.equipment.some((e) => e.tag === tg)
+  const has = (tg: string) => !plant.custom && plant.equipment.some((e) => e.tag === tg)
   const tail = hist.slice(-240)
   const unack = alarms.filter((a) => a.state === 'unack').length
   const lossTotal = Object.values(kpis.losses).reduce((a, b) => a + b, 0)

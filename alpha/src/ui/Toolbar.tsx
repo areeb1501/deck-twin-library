@@ -100,9 +100,9 @@ export function Toolbar() {
       </div>
       {/* operate: run the plant */}
       <div className="seg" role="group" aria-label="Operate">
-        <button onClick={(e) => (e.currentTarget.blur(), setMenu(null), setHmi('economics'))} title="Open the control-room console: asset & economics, spares & supply, live dashboard, risk & what-if, CCTV & PPE, alerts & assistant, process, alarms, shutdowns, F&G, maintenance and scenarios" data-hmi-open>
+        {!plant.custom && <button onClick={(e) => (e.currentTarget.blur(), setMenu(null), setHmi('economics'))} title="Open the control-room console: asset & economics, spares & supply, live dashboard, risk & what-if, CCTV & PPE, alerts & assistant, process, alarms, shutdowns, F&G, maintenance and scenarios" data-hmi-open>
           Control room
-        </button>
+        </button>}
         {tourable && (
           <button className={workers ? 'on' : ''} onClick={(e) => (e.currentTarget.blur(), setWorkers(!workers))} title="Simulated field workers walking the decks — the CCTV PPE detector watches them" data-workers>
             Workers

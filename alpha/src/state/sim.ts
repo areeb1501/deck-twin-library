@@ -145,7 +145,8 @@ function getCtx(): Ctx {
   }
   const wells = plant.equipment.filter((e) => e.kind === 'xmasTree' && e.wellType !== 'waterInjector').map((e) => e.tag)
   const gtgs = plant.equipment.filter((e) => e.kind === 'gasTurbineGenerator').map((e) => e.tag)
-  ctxCache = { plant, alpha: eq.has(A.TAGS.sep), eq, machines, cls, partner, simValves, valveType, failAction, lineValves, sprayValve, deluge, wells, gtgs, _plat: new Map(), _zone: new Map(), _dets: null }
+  // an imported plant can reuse Alpha's tags: it still isn't the Alpha field, and gets no simulated readings
+  ctxCache = { plant, alpha: eq.has(A.TAGS.sep) && !plant.custom, eq, machines, cls, partner, simValves, valveType, failAction, lineValves, sprayValve, deluge, wells, gtgs, _plat: new Map(), _zone: new Map(), _dets: null }
   return ctxCache
 }
 function platOf(c: Ctx, tag: string): PlatformId {

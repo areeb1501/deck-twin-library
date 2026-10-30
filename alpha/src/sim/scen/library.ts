@@ -914,8 +914,8 @@ export const SCENARIOS: Scenario[] = [s1, s2, s3, s4, s5, s6, s7, s8, s9, s10, s
 export const SCENARIO_BY_ID: Record<string, Scenario> = Object.fromEntries(SCENARIOS.map((s) => [s.id, s]))
 
 /** null when the plant has what the scenario needs, else why not */
-export function unavailable(sc: Scenario, plant: { equipment: { tag: string }[]; valves: { tag: string }[] }): string | null {
-  if (!plant.equipment.some((e) => e.tag === A.TAGS.sep)) return 'needs the Alpha field (V-1100)'
+export function unavailable(sc: Scenario, plant: { equipment: { tag: string }[]; valves: { tag: string }[]; custom?: unknown }): string | null {
+  if (plant.custom || !plant.equipment.some((e) => e.tag === A.TAGS.sep)) return 'needs the Alpha field (V-1100)'
   if (!sc.requires) return null
   const missing = sc.requires.tags.filter((t) => !plant.equipment.some((e) => e.tag === t) && !plant.valves.some((v) => v.tag === t))
   return missing.length ? `${sc.requires.why} (missing ${missing.join(', ')})` : null

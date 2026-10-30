@@ -6,20 +6,26 @@ import './index.css'
 import App from './App.tsx'
 import { sandboxes } from './dev/sandboxes'
 import { PasswordGate } from './ui/PasswordGate'
+import { restoreSavedPlant } from './state/savedPlants'
 
 const key = new URLSearchParams(location.search).get('sandbox')
 const Sandbox = key ? sandboxes[key] : null
 
-createRoot(document.getElementById('root')!).render(
-  <StrictMode>
-    <PasswordGate>
-      {Sandbox ? (
-        <Suspense fallback={null}>
-          <Sandbox />
-        </Suspense>
-      ) : (
-        <App />
-      )}
-    </PasswordGate>
-  </StrictMode>,
-)
+// the saved plant goes in first, so a reload doesn't build the Alpha field only to swap it out
+const render = () =>
+  createRoot(document.getElementById('root')!).render(
+    <StrictMode>
+      <PasswordGate>
+        {Sandbox ? (
+          <Suspense fallback={null}>
+            <Sandbox />
+          </Suspense>
+        ) : (
+          <App />
+        )}
+      </PasswordGate>
+    </StrictMode>,
+  )
+
+if (Sandbox) render()
+else void restoreSavedPlant().finally(render)

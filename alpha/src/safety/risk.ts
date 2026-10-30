@@ -107,7 +107,7 @@ function plantCtx(): PlantCtx {
   pctx = {
     plant,
     offshore: (plant.deck.site ?? 'offshoreAlpha') === 'offshoreAlpha',
-    alpha: plant.equipment.some((e) => e.tag === 'V-1100'),
+    alpha: !plant.custom && plant.equipment.some((e) => e.tag === 'V-1100'),
     zones: new Map(zones.map((z) => [z.id, z])),
     dets,
     detByTag: new Map(dets.map((d) => [d.tag, d])),

@@ -18,6 +18,7 @@
   },
   "files": [
     "deck-twin.mjs",
+    "check.mjs",
     "README.md"
   ],
   "engines": {

@@ -166,6 +166,9 @@
 }
 .bf-title:hover, .bf-title:focus { border-color: var(--ui-line); background: rgba(255,255,255,0.03); }
 .plant-menu button:disabled { opacity: 0.4; cursor: default; }
+.plant-warn { width: 100%; font-size: 11px; color: #ffd9a0; background: rgba(255,180,60,0.08); border: 1px solid rgba(255,180,60,0.22); border-radius: 6px; padding: 5px 8px; max-height: 150px; overflow-y: auto; }
+.plant-warn summary { cursor: pointer; }
+.plant-warn div { margin-top: 4px; }
 .bf-btn {
   background: rgba(255,255,255,0.05); border: 1px solid var(--ui-line); padding: 5px 9px; border-radius: 6px;
   color: inherit; text-decoration: none;

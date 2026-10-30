@@ -61,6 +61,8 @@ export default function App() {
   const panels = useStore((s) => s.panels)
   const inCab = useStore((s) => !!s.craneCab)
   const [ops, setOps] = useState(false)
+  // an imported plant is viewed, walked and inspected: it has no process model behind it, so nothing here pretends to
+  const simulated = !plant.custom
   // the plant simulation steps twice a second (× the clock speed) for the whole session
   useEffect(() => {
     useSim.getState().tick(0.5)
@@ -101,12 +103,12 @@ export default function App() {
       <aside className="panel left">
         <div className="mode-switch seg">
           <button className={building || ops ? '' : 'on'} onClick={() => (setBuilding(false), setOps(false))}>Viewer</button>
-          <button className={ops && !building ? 'on' : ''} onClick={() => (setBuilding(false), setOps(true))} title="Production, availability and the knobs to run the plant">Operations</button>
+          {simulated && <button className={ops && !building ? 'on' : ''} onClick={() => (setBuilding(false), setOps(true))} title="Production, availability and the knobs to run the plant">Operations</button>}
           <button className={building ? 'on' : ''} onClick={() => (setOps(false), setBuilding(true))} title="Build your own plant from library components">Builder</button>
         </div>
         {building ? (
           <BuilderPanel />
-        ) : ops ? (
+        ) : ops && simulated ? (
           <>
             <header className="brand">
               <div className="brand-title">{plant.name} — operations</div>
@@ -131,11 +133,11 @@ export default function App() {
       <Legend />
       <HoverTip />
       <WalkHud />
-      <OpsTicker />
+      {simulated && <OpsTicker />}
       <KnowledgeCard />
       <TourPlayer />
-      <AlarmBanner />
-      <ScenarioChip />
+      {simulated && <AlarmBanner />}
+      {simulated && <ScenarioChip />}
       <CraneCabHud />
       <Hmi />
       <div className="hint muted small">Drag to orbit · Shift + drag to pan · scroll to zoom · click to inspect · X x-ray · C section · F frame · Esc clear</div>

@@ -1,6 +1,6 @@
 /**
  * The plant currently loaded in the viewer. Defaults to the authored Alpha production deck;
- * any plant JSON that follows src/model/types.ts can be loaded at runtime (Load plant…).
+ * any supported plant file can be loaded at runtime (Load…, see plantFormats.ts).
  */
 import { create } from 'zustand'
 import type { Plant } from '../model/types'
@@ -35,6 +35,7 @@ export function validatePlant(p: unknown): string[] {
   const errs: string[] = []
   const o = p as Partial<Plant>
   if (!o || typeof o !== 'object') return ['Not a JSON object']
+  if (!o.deck?.extent) errs.push('"deck" with an "extent" is required')
   for (const k of ['equipment', 'lines', 'valves', 'instruments'] as const) if (!Array.isArray(o[k])) errs.push(`"${k}" must be an array`)
   if (errs.length) return errs
   const eq = new Map(o.equipment!.map((e) => [e.tag, e]))

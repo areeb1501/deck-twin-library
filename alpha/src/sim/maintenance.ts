@@ -306,7 +306,7 @@ export function classOf(e: Equipment): A.MachineClass | null {
 const plant = () => usePlantStore.getState().plant
 const S = () => simMod.useSim.getState() as SimState
 const rnd = () => (typeof simMod.simRandom === 'function' ? simMod.simRandom() : Math.random())
-const isAlpha = (p: Plant) => p.equipment.some((e) => e.tag === A.TAGS.sep)
+const isAlpha = (p: Plant) => !p.custom && p.equipment.some((e) => e.tag === A.TAGS.sep)
 const platformOf = (p: Plant, tag: string): PlatformId => (isAlpha(p) ? platformOfTag(p, tag) : 'Plant')
 export function machineTags(p: Plant): { tag: string; cls: A.MachineClass }[] {
   const out: { tag: string; cls: A.MachineClass }[] = []
