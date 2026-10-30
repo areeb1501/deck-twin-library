@@ -58,7 +58,7 @@ export function Home() {
                 Browse components
               </Link>
               <a href="/alpha/" className="glass inline-flex h-11 items-center rounded-full px-6 text-[15px] font-medium text-ink ring-1 ring-border transition-[transform,background-color] duration-150 hover:bg-hover active:scale-[0.97]">
-                Simulate your own twin
+                Explore demo
               </a>
             </div>
             <AgentLine className="mx-auto mt-7 max-w-[720px]" />
