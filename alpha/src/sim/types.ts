@@ -11,12 +11,23 @@ import type { Vec3 } from '../model/types'
 export type RunState = 'running' | 'starting' | 'standby' | 'stopped' | 'tripped'
 
 /** Bridge-linked platforms of the field (other plants use 'Plant'). */
-export type PlatformId = 'Alpha' | 'WHP-N' | 'LQ' | 'Plant'
+export type PlatformId = 'Alpha' | 'WHP-N' | 'LQ' | 'RP' | 'WI' | 'Plant'
+/** the bridge-linked platforms of the Alpha field, in display order */
+export const FIELD_PLATFORMS: PlatformId[] = ['Alpha', 'WHP-N', 'RP', 'WI', 'LQ']
+export const PLATFORM_LABEL: Record<PlatformId, string> = {
+  Alpha: 'Alpha PDQ (process, drilling)',
+  'WHP-N': 'WHP-N wellhead platform',
+  RP: 'RP riser & export platform',
+  WI: 'WI water-injection platform',
+  LQ: 'LQ accommodation & CCR',
+  Plant: 'Plant',
+}
 
 /** NSTA / UKSS production-efficiency loss categories (what the deferred production is booked to). */
-export type LossCategory = 'wells' | 'oil' | 'gas' | 'power' | 'utilities' | 'controlSafety' | 'export' | 'planned'
+export type LossCategory = 'wells' | 'reservoir' | 'oil' | 'gas' | 'power' | 'utilities' | 'controlSafety' | 'export' | 'planned'
 export const LOSS_LABEL: Record<LossCategory, string> = {
   wells: 'Wells (choked back / shut in)',
+  reservoir: 'Reservoir support (water injection)',
   oil: 'Plant — oil system',
   gas: 'Plant — gas system & flaring',
   power: 'Plant — power generation',
@@ -183,6 +194,12 @@ export interface ProcessState {
   emergencyGen: RunState
   /** firewater ring main, barg */
   fwPressure: number
+  /** reservoir pressure support, 1 = initial (water injection holds it; production draws it down) */
+  reservoir: number
+  /** water injected, bwpd */
+  wiRate: number
+  /** cold vent to atmosphere (TEG still, riser blowdown on RP), MMscfd */
+  vent: number
 }
 
 export interface Constraint {
@@ -267,6 +284,54 @@ export interface Knobs {
   reliability: 'off' | 'realistic' | 'training'
   /** wind: direction it blows FROM (deg, 0 = north = −Z, clockwise), speed m/s */
   wind: { from: number; speed: number }
+  /** significant wave height, m (crane / supply-boat limits, ocean) */
+  seaState: number
+}
+
+/** Audit trail of what people (and automation) did — scenario scoring and shift handover read it */
+export interface OperatorAction {
+  id: number
+  t: number
+  who: 'operator' | 'field' | 'auto' | 'instructor' | 'scenario'
+  /** e.g. 'start', 'stop', 'resetTrip', 'localReset', 'setValve', 'ack', 'ackAll', 'shelve', 'initiate',
+   *  'resetShutdown', 'restart', 'setChoke', 'setWell', 'setKnob', 'inhibit', 'inject', 'lockOut', 'release' */
+  action: string
+  tag?: string
+  detail?: string
+}
+
+/** Equipment or a valve locked out under a permit (machine cannot start, valve cannot move) */
+export interface Lockout {
+  /** permit / work-order id that holds it */
+  by: string
+  /** planned work: deferred production is booked to 'planned' */
+  planned: boolean
+  at: number
+  /** valves: the position it is locked in */
+  position?: 'open' | 'closed'
+}
+
+/** Something that steps with the simulation (maintenance, scenarios, cranes …). Registered with
+ *  `registerSimPlugin`; `step` runs after every engine tick with the simulated seconds that passed. */
+export interface SimPlugin {
+  id: string
+  step: (dt: number, t: number) => void
+  reset?: () => void
+  /** alarm conditions the plugin holds right now (the engine reconciles them like its own: raise, return to normal, ack) */
+  alarms?: () => PluginAlarm[]
+  /** live value for an instrument / metric tag the plugin simulates (undefined = not mine) */
+  value?: (tag: string) => number | undefined
+}
+export interface PluginAlarm {
+  /** stable key for the condition, e.g. `CR-A1:ENGINE` */
+  key: string
+  tag: string
+  text: string
+  priority: AlarmPriority
+  kind?: Alarm['kind']
+  platform: PlatformId
+  zone?: string
+  value?: string
 }
 
 export interface HistoryPoint {
@@ -331,12 +396,22 @@ export interface SimState {
   /** inhibited (overridden) detectors — excluded from voting and coverage */
   inhibits: Record<string, boolean>
   incidents: Incident[]
+  /** operator / field / automation actions, newest first (capped) */
+  actions: OperatorAction[]
+  /** permits' lock-outs by equipment / valve tag */
+  lockouts: Record<string, Lockout>
 
   // ---- knobs
   setSpeed: (x: number) => void
   setChoke: (tag: string, v: number) => void
   setWell: (tag: string, on: boolean) => void
-  setKnob: <K extends 'hpPressure' | 'compressorSpeed' | 'drilling' | 'autoChangeover' | 'reliability' | 'wind'>(k: K, v: Knobs[K]) => void
+  setKnob: <K extends 'hpPressure' | 'compressorSpeed' | 'drilling' | 'autoChangeover' | 'reliability' | 'wind' | 'seaState'>(k: K, v: Knobs[K]) => void
+  /** lock a machine out (it is stopped) or a valve (commanded to `position`, then held) under a permit */
+  lockOut: (tag: string, by: string, opts?: { planned?: boolean; position?: 'open' | 'closed' }) => string | null
+  /** remove a lock-out (only the permit that set it) */
+  release: (tag: string, by: string) => string | null
+  /** record an action in the audit trail (UI that acts outside the engine API, e.g. ack from the banner) */
+  record: (a: Omit<OperatorAction, 'id' | 't'>) => void
   // ---- machines
   /** start / stop a machine; returns why it was refused (null = done) */
   start: (tag: string) => string | null

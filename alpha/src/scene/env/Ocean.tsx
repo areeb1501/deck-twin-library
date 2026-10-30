@@ -14,8 +14,14 @@ import * as THREE from 'three'
 import { registerMaterial } from '../../three/materials'
 import { DEEP, envTime } from './envShared'
 import { foamPoints } from './jacket'
+import { seaStateNow, windNow } from '../../sim/cranes'
 
-const MAX_FOAM = 32
+/** foam ring centres accepted from the jackets */
+const MAX_FOAM = 64
+/** ring centres the shader loops over per pixel (the nearest to the camera) */
+const FOAM_SLOTS = 32
+/** default significant wave height the wave table is tuned for, m */
+const HS_REF = 1.5
 
 const WAVES_GLSL = /* glsl */ `
 const int NW = 6;
@@ -29,6 +35,8 @@ const vec4 WAVES[6] = vec4[6](
   vec4(0.28, 0.96, 0.04, 6.7)
 );
 const float STEEP = 0.62;
+uniform float uAmp;  // Hs / 1.5 m
+uniform float uChop; // wind-driven capillary chop
 float waveFade(float L, float spacing) { return smoothstep(2.5 * spacing, 5.0 * spacing, L); }
 float pixFade(float L, float pix) { return smoothstep(5.0 * pix, 14.0 * pix, L); }
 vec3 gerstner(vec2 p, float t, float spacing, out float h) {
@@ -39,8 +47,8 @@ vec3 gerstner(vec2 p, float t, float spacing, out float h) {
     float k = 6.2831853 / w.w;
     float c = sqrt(9.81 / k);
     float f = k * (dot(dir, p) - c * t);
-    float a = w.z * waveFade(w.w, spacing);
-    float q = STEEP / (k * float(NW));
+    float a = w.z * uAmp * waveFade(w.w, spacing);
+    float q = STEEP * min(uAmp, 1.35) / (k * float(NW));
     d.xz += q * dir * cos(f) * waveFade(w.w, spacing);
     d.y += a * sin(f);
   }
@@ -56,10 +64,10 @@ vec3 gerstnerNormal(vec2 p, float t, float pix) {
     float c = sqrt(9.81 / k);
     float f = k * (dot(dir, p) - c * t);
     float fade = pixFade(w.w, pix);
-    float wa = k * w.z * fade;
+    float wa = k * w.z * uAmp * fade;
     n.x -= dir.x * wa * cos(f);
     n.z -= dir.y * wa * cos(f);
-    n.y -= (STEEP / float(NW)) * sin(f) * fade;
+    n.y -= (STEEP * min(uAmp, 1.35) / float(NW)) * sin(f) * fade;
   }
   // capillary / wind-chop detail (normal only)
   const vec4 DET[6] = vec4[6](
@@ -71,7 +79,7 @@ vec3 gerstnerNormal(vec2 p, float t, float pix) {
     vec2 dir = normalize(w.xy);
     float k = 6.2831853 / w.w;
     float f = k * dot(dir, p) - sqrt(9.81 * k) * t * 1.0;
-    float wa = k * w.z * pixFade(w.w, pix);
+    float wa = k * w.z * uChop * pixFade(w.w, pix);
     n.x -= dir.x * wa * cos(f);
     n.z -= dir.y * wa * cos(f);
   }
@@ -139,11 +147,16 @@ function makeOceanMaterial() {
     transparent: true,
     envMapIntensity: 1.0,
   })
-  const pts = foamPoints().slice(0, MAX_FOAM)
-  const foam = Array.from({ length: MAX_FOAM }, (_, i) => new THREE.Vector3(...(pts[i] ?? [1e5, 1e5, 0])))
+  const all = foamPoints()
+  if (all.length > MAX_FOAM) console.warn(`[Ocean] ${all.length} foam points, only the first ${MAX_FOAM} are used — raise MAX_FOAM`)
+  const pool = all.slice(0, MAX_FOAM).map((p) => new THREE.Vector3(...p))
+  const foam = Array.from({ length: FOAM_SLOTS }, (_, i) => (pool[i] ?? new THREE.Vector3(1e5, 1e5, 0)).clone())
+  m.userData.foam = { pool, slots: foam, at: new THREE.Vector2(1e9, 1e9), order: pool.map((_, i) => i), dist: new Float32Array(pool.length) }
+  m.userData.weather = { uAmp: { value: 1 }, uChop: { value: 1 }, uWhite: { value: 0.5 } }
   m.onBeforeCompile = (sh) => {
     sh.uniforms.uTime = envTime
     sh.uniforms.uFoam = { value: foam }
+    Object.assign(sh.uniforms, m.userData.weather)
     sh.uniforms.uDeep = { value: DEEP }
     sh.vertexShader = sh.vertexShader
       .replace('#include <common>', `#include <common>\nuniform float uTime;\nvarying vec3 vOWPos;\nvarying float vWaveH;\n${WAVES_GLSL}`)
@@ -160,13 +173,13 @@ function makeOceanMaterial() {
           d *= 1.0 - smoothstep(1200.0, 3200.0, camD);
           transformed += d;
           vOWPos = wp0.xyz + d;
-          vWaveH = h / 1.25;
+          vWaveH = h / (1.25 * max(uAmp, 0.3));
         }`,
       )
     sh.fragmentShader = sh.fragmentShader
       .replace(
         '#include <common>',
-        `#include <common>\nuniform float uTime;\nuniform vec3 uFoam[${MAX_FOAM}];\nuniform vec3 uDeep;\nvarying vec3 vOWPos;\nvarying float vWaveH;\n${WAVES_GLSL}\nfloat gFoam = 0.0;\nfloat gFres = 0.0;`,
+        `#include <common>\nuniform float uTime;\nuniform vec3 uFoam[${FOAM_SLOTS}];\nuniform vec3 uDeep;\nuniform float uWhite;\nvarying vec3 vOWPos;\nvarying float vWaveH;\n${WAVES_GLSL}\nfloat gFoam = 0.0;\nfloat gFres = 0.0;`,
       )
       .replace(
         '#include <color_fragment>',
@@ -174,14 +187,14 @@ function makeOceanMaterial() {
         {
           vec2 p = vOWPos.xz;
           float ring = 0.0;
-          for (int i = 0; i < ${MAX_FOAM}; i++) {
+          for (int i = 0; i < ${FOAM_SLOTS}; i++) {
             float d = length(p - uFoam[i].xy) - uFoam[i].z;
             ring = max(ring, 1.0 - smoothstep(0.0, 3.2, d));
           }
           float nn = oFbm(p * 0.85 + vec2(uTime * 0.21, uTime * 0.13));
           float nn2 = oFbm(p * 0.23 - vec2(uTime * 0.05, 0.0));
           float foam = smoothstep(0.42, 0.85, ring * (0.45 + nn));
-          foam = max(foam, smoothstep(0.62, 1.0, vWaveH) * smoothstep(0.58, 0.78, nn2) * 0.55);
+          foam = max(foam, smoothstep(0.62 - 0.1 * uWhite, 1.0, vWaveH) * smoothstep(0.58 - 0.12 * uWhite, 0.78, nn2) * (0.25 + 0.6 * uWhite));
           vec3 V = normalize(cameraPosition - vOWPos);
           gFres = pow(1.0 - clamp(V.y, 0.0, 1.0), 4.0);
           vec3 water = mix(diffuseColor.rgb, vec3(0.06, 0.32, 0.33), clamp(vWaveH * 0.5 + 0.25, 0.0, 1.0) * 0.35);
@@ -209,7 +222,7 @@ function makeOceanMaterial() {
         }`,
       )
   }
-  m.customProgramCacheKey = () => 'ocean-v1'
+  m.customProgramCacheKey = () => 'ocean-v2'
   m.name = 'env-ocean'
   registerMaterial(m, 'env')
   return m
@@ -220,10 +233,25 @@ export function Ocean() {
   const camera = useThree((s) => s.camera)
   const geometry = useMemo(() => polarGrid(), [])
   const material = useMemo(() => makeOceanMaterial(), [])
-  useFrame((state) => {
+  useFrame((state, dtRaw) => {
     envTime.value = state.clock.elapsedTime
     const m = ref.current
     if (m) m.position.set(camera.position.x, 0, camera.position.z)
+    // weather: ease towards the knobs
+    const w = material.userData.weather as Record<'uAmp' | 'uChop' | 'uWhite', { value: number }>
+    const k = Math.min(1, Math.min(dtRaw, 0.1) * 0.6)
+    const wind = windNow().speed
+    w.uAmp.value += (Math.max(0.05, seaStateNow() / HS_REF) - w.uAmp.value) * k
+    w.uChop.value += (0.55 + wind / 14 - w.uChop.value) * k
+    w.uWhite.value += (Math.min(1.4, Math.max(0, (wind - 4) / 10)) - w.uWhite.value) * k
+    // foam: the FOAM_SLOTS ring centres nearest the camera
+    const f = material.userData.foam as { pool: THREE.Vector3[]; slots: THREE.Vector3[]; at: THREE.Vector2; order: number[]; dist: Float32Array }
+    if (f.pool.length > FOAM_SLOTS && Math.hypot(camera.position.x - f.at.x, camera.position.z - f.at.y) > 8) {
+      f.at.set(camera.position.x, camera.position.z)
+      for (let i = 0; i < f.pool.length; i++) f.dist[i] = Math.hypot(f.pool[i].x - f.at.x, f.pool[i].y - f.at.y)
+      f.order.sort((a, b) => f.dist[a] - f.dist[b])
+      for (let i = 0; i < FOAM_SLOTS; i++) f.slots[i].copy(f.pool[f.order[i]])
+    }
   })
   return <mesh ref={ref} geometry={geometry} material={material} receiveShadow frustumCulled={false} renderOrder={-1} raycast={() => null} name="Ocean" />
 }

@@ -1,5 +1,6 @@
 /**
- * Shared animation primitives for equipment models.
+ * Shared animation primitives for equipment models. Their moving groups carry userData.noBatch so the
+ * static batcher (scene/perf/StaticBatcher) leaves them alone.
  *
  *   <Spinner tag="GT-8100A" axis="y" rpm={240}>…fan blades…</Spinner>
  *     rotates its children about a local axis while the equipment runs; spins up / coasts down.
@@ -48,7 +49,7 @@ export function Spinner({ tag, axis = 'y', rpm = 240, position, rotation, childr
     g.current.rotation[axis] = phase.current % (Math.PI * 2)
   })
   return (
-    <group position={position} rotation={rotation}>
+    <group position={position} rotation={rotation} userData={{ noBatch: true }}>
       <group ref={g}>{children}</group>
     </group>
   )
@@ -84,7 +85,7 @@ export function Door({ tag, id, hinge, rotationY = 0, openAngle = -1.75, childre
   })
   // doorRoot: the walker finds doors near it by this marker (world position = the hinge)
   return (
-    <group position={hinge} rotation-y={rotationY} userData={{ doorRoot: { tag, id } }}>
+    <group position={hinge} rotation-y={rotationY} userData={{ doorRoot: { tag, id }, noBatch: true }}>
       <group ref={leaf}>{children}</group>
     </group>
   )
@@ -102,5 +103,9 @@ export function Slider({ tag, id, from, to, children }: { tag: string; id: strin
     u.current += ((open ? 1 : 0) - u.current) * Math.min(1, dt * 3)
     g.current?.position.set(from[0] + (to[0] - from[0]) * u.current, from[1] + (to[1] - from[1]) * u.current, from[2] + (to[2] - from[2]) * u.current)
   })
-  return <group ref={g}>{children}</group>
+  return (
+    <group ref={g} userData={{ noBatch: true }}>
+      {children}
+    </group>
+  )
 }

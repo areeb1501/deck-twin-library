@@ -3,7 +3,7 @@ import type { PickData, Vec3 } from '../model/types'
 
 export type LayerId = 'equipment' | 'piping' | 'instruments' | 'structure' | 'ceiling' | 'environment' | 'labels' | 'flow' | 'fireGas' | 'fgCoverage'
 export type ViewMode = 'shaded' | 'xray'
-export type CameraPreset = 'overview' | 'deck' | 'plan' | 'rack' | 'separator' | 'compressor' | 'underdeck' | 'field' | 'rig' | 'wellbay' | 'lq' | 'bridge' | 'whp' | 'bridgeN'
+export type CameraPreset = 'overview' | 'deck' | 'plan' | 'rack' | 'separator' | 'compressor' | 'underdeck' | 'field' | 'rig' | 'wellbay' | 'lq' | 'bridge' | 'whp' | 'bridgeN' | 'rp' | 'wi'
 
 export interface FlyTo {
   /** camera position (world) */
@@ -43,6 +43,9 @@ interface State {
   walkStart: { level: string; at: [number, number]; face?: [number, number] } | null
   /** walk mode: index into the plant's walk levels */
   walkLevel: number
+  /** side panels shown (left: tree / operations / builder; right: inspector) — remembered */
+  panels: { left: boolean; right: boolean }
+  togglePanel: (side: 'left' | 'right' | 'both') => void
   /** control-room HMI (DCS console) open, on this page */
   hmi: string | null
   setHmi: (page: string | null) => void
@@ -68,6 +71,16 @@ interface State {
 }
 
 let nonce = 0
+
+function loadPanels(): { left: boolean; right: boolean } {
+  try {
+    const p = JSON.parse(localStorage.getItem('deck-twin.panels') ?? '')
+    if (typeof p?.left === 'boolean' && typeof p?.right === 'boolean') return p
+  } catch {
+    /* first visit */
+  }
+  return { left: true, right: true }
+}
 
 export const useStore = create<State>((set) => ({
   selected: null,
@@ -96,6 +109,15 @@ export const useStore = create<State>((set) => ({
   isolation: null,
   hmi: null,
   setHmi: (hmi) => set({ hmi }),
+  panels: loadPanels(),
+  togglePanel: (side) =>
+    set((s) => {
+      const p = s.panels
+      // "both": hide both if either is showing, else show both
+      const panels = side === 'both' ? (p.left || p.right ? { left: false, right: false } : { left: true, right: true }) : { ...p, [side]: !p[side] }
+      localStorage.setItem('deck-twin.panels', JSON.stringify(panels))
+      return { panels }
+    }),
   walkLevel: 0,
   walkStart: null,
   walkView: (localStorage.getItem('deck-twin.walkView') as 'first' | 'third') || 'third',

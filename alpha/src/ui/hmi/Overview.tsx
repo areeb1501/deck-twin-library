@@ -222,6 +222,7 @@ function Waterfall({ k }: { k: Kpis | undefined }) {
 
 const SHORT: Record<LossCategory, string> = {
   wells: 'Wells',
+  reservoir: 'Reservoir\nsupport',
   oil: 'Oil\nsystem',
   gas: 'Gas &\nflaring',
   power: 'Power\ngen.',

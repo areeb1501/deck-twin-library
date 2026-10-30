@@ -166,7 +166,7 @@ function overview(g: G, s: Snap) {
 
 function platformBlock(g: G, s: Snap, p: PlatformView, x: number, y: number, w: number, h: number, emph: boolean) {
   rect(g, x, y, w, h, C.panel, emph ? C.text : C.lineLight, emph ? 3 : 1.5)
-  const name = p.id === 'LQ' ? 'LQ  (CCR / quarters)' : p.id === 'Plant' ? s.plant.name : p.id === 'Alpha' ? 'ALPHA  (process)' : 'WHP-N  (wellhead)'
+  const name = p.id === 'LQ' ? 'LQ  (CCR / quarters)' : p.id === 'Plant' ? s.plant.name : p.id === 'Alpha' ? 'ALPHA  (process)' : p.id === 'RP' ? 'RP  (risers / export)' : p.id === 'WI' ? 'WI  (water injection)' : 'WHP-N  (wellhead)'
   text(g, name, x + 14, y + 20, { font: sans(19, true) })
   // run status
   const sd = p.shutdown
@@ -182,7 +182,7 @@ function platformBlock(g: G, s: Snap, p: PlatformView, x: number, y: number, w: 
   const gaOn = gaCol && s.blink
   rect(g, x + 12, y + 94, w - 24, 34, gaOn ? gaCol : C.well, gaCol ?? C.lineLight, gaCol ? 3 : 1.5)
   text(g, `GA  ${ga ? ga.toUpperCase() : '----'}`, x + w / 2, y + 111, { font: sans(18, true), color: gaOn && gaCol === C.p1 ? '#fff' : C.text, align: 'center' })
-  const prod = p.id === 'LQ' ? `Alarms ${p.alarms}` : `Oil ${fmt(p.oil)} bbl/d   Gas ${fmt(p.gas, 1)}   Alarms ${p.alarms}`
+  const prod = p.id === 'LQ' ? `Alarms ${p.alarms}` : p.id === 'WI' ? `Injecting ${fmt(s.p.wiRate ?? null)} bwpd   Alarms ${p.alarms}` : p.id === 'RP' ? `Export ${p.online ? 'open' : 'BLOCKED'}   Alarms ${p.alarms}` : `Oil ${fmt(p.oil)} bbl/d   Gas ${fmt(p.gas, 1)}   Alarms ${p.alarms}`
   text(g, prod, x + 14, y + 152, { font: sans(15), color: C.dim, max: w - 28 })
 }
 

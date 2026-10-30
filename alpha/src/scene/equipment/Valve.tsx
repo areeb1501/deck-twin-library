@@ -849,7 +849,7 @@ export function ValveModel(props: {
     <group>
       <KitMesh data={geo.fixed} />
       {mv && (
-        <group ref={mvRef}>
+        <group ref={mvRef} userData={{ noBatch: true }}>
           <KitMesh data={mv.built} />
         </group>
       )}

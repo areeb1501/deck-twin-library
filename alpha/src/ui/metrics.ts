@@ -3,13 +3,33 @@
  * on the item and on the lines attached to its nozzles. Quantities no instrument covers are filled
  * with simulated signals per equipment kind (flagged `simulated`) so every item has something to
  * inspect. Values come from the same simulated historian as the instruments (live.ts).
+ *
+ * Rotating machines: vibration, bearing / lube temperature and the machine-specific condition signal
+ * (polytropic efficiency, exhaust spread …) read the maintenance plugin's health state (sim/maintenance.ts),
+ * so walking up to a degrading pump shows its vibration rising along the P-F curve.
  */
 import type { Equipment, Instrument, PipeLine, Plant, Valve } from '../model/types'
+import { healthSeries, runOf, signalSpecs, type SigSpec } from '../sim/maintenance'
+import { craneMetrics } from '../sim/cranes'
 
 export interface Metric {
   inst: Instrument
   label: string
   simulated: boolean
+  /** live trend from the source (condition monitoring) instead of the historian, when it has one */
+  series?: () => number[] | undefined
+}
+
+/** a condition-monitoring signal of a machine: the live value comes from the maintenance plugin's
+ *  `value()` hook (engine procValue), the alarm limits apply while the machine runs */
+function cmMetric(tag: string, sp: SigSpec, i: number): Metric {
+  const falling = sp.alert < sp.n
+  const lim: Instrument['alarms'] = falling ? { lo: sp.alert, loLo: sp.alarm } : { hi: sp.alert, hiHi: sp.alarm }
+  const inst = { tag: `${tag}·CM${sp.key}`, type: 'PT', on: { equipment: tag }, unit: sp.unit, nominal: sp.n, range: `0–${Math.ceil(Math.max(sp.fail, sp.n) * 1.2)}` } as Instrument
+  const running = () => runOf(tag) === 'running'
+  // alarm limits only mean something while the machine runs (a stopped compressor has no efficiency)
+  Object.defineProperty(inst, 'alarms', { enumerable: true, get: () => (running() ? lim : undefined) })
+  return { inst, label: sp.label, simulated: true, series: () => (running() ? healthSeries(tag, i) : undefined) }
 }
 
 /** "42 barg" → 42; falls back when the design field is missing (builder plants). */
@@ -187,6 +207,8 @@ function valveSim(v: Valve): Metric[] {
 
 /** Metrics for any item tag, real instruments first, at most `max`. */
 export function metricsFor(plant: Plant, tag: string, max = 8): Metric[] {
+  const cm = craneMetrics(tag)
+  if (cm) return cm
   const eq = plant.equipment.find((e) => e.tag === tag)
   const out: Metric[] = []
   if (eq) {
@@ -195,7 +217,14 @@ export function metricsFor(plant: Plant, tag: string, max = 8): Metric[] {
     for (const i of plant.instruments) if ('equipment' in i.on && i.on.equipment === tag) (FG.has(i.type) ? fg : out).push(real(i))
     for (const l of connectedLines(plant, tag)) for (const i of plant.instruments) if ('line' in i.on && i.on.line === l.tag) out.push(real(i, l.tag))
     const have = new Set(out.map((m) => m.label.split(' · ')[0]))
-    for (const m of equipmentSim(eq)) if (!have.has(m.label.replace('Operating ', '').replace(/^(Oil|Liquid) level$/, 'Level'))) out.push(m)
+    const specs = signalSpecs(eq)
+    const replaced = new Set(specs?.flatMap((sp) => sp.replaces) ?? [])
+    for (const m of equipmentSim(eq)) if (!replaced.has(m.inst.tag.split('·')[1]) && !have.has(m.label.replace('Operating ', '').replace(/^(Oil|Liquid) level$/, 'Level'))) out.push(m)
+    if (specs) {
+      const cm = specs.map((sp, i) => cmMetric(tag, sp, i)).filter((m) => !out.some((o) => o.label === m.label))
+      // condition signals go in right after the real instruments so they are never cut by `max`
+      out.splice(out.filter((m) => !m.simulated).length, 0, ...cm)
+    }
     // process first; fire & gas detectors covering the item fill what's left (at least two shown)
     const room = Math.max(2, max - out.length)
     return [...out.slice(0, max - Math.min(2, fg.length)), ...fg.slice(0, room)].slice(0, max + 2)

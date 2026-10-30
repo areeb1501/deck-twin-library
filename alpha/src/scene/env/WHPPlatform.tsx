@@ -1,9 +1,8 @@
 /**
  * WHP-N wellhead platform + north bridge as a few batched, non-pickable env meshes.
- * Geometry: whpDeck.ts (jacket, conductors, decks, rails, stair, laydown, nav aids, bridge) and the
- * offshore pedestal crane from crane.ts, built at the origin and scaled down to a WHP-size crane on the
- * NE leg. Materials: the Surroundings env materials passed in (`mats`, same keys as Surroundings) plus a
- * few WHP-only ones created here (nav lanterns, ID boards, conductors, lights, cable tray).
+ * Geometry: whpDeck.ts (jacket, conductors, decks, rails, stair, laydown, nav aids, bridge). The pedestal
+ * crane CR-N1 is drawn and animated by Cranes.tsx. Materials: the Surroundings env materials passed in
+ * (`mats`, same keys as Surroundings) plus a few WHP-only ones created here (nav lanterns, ID boards, conductors, lights, cable tray).
  */
 import { useEffect, useMemo } from 'react'
 import * as THREE from 'three'
@@ -11,8 +10,6 @@ import { Batches } from '../structure/batch'
 import { structMats } from '../structure/structMaterials'
 import { envMat } from './envShared'
 import { buildWhp, type WhpKey } from './whpDeck'
-import { buildCrane } from './crane'
-import { WHP } from '../../model/site'
 
 /** batch key -> Surroundings material key or a WHP-only material (resolved in whpMaterials); null = not drawn */
 const MAT: Record<WhpKey, string | null> = {
@@ -44,7 +41,7 @@ const MAT: Record<WhpKey, string | null> = {
   navLight: 'whp:navLight',
   idBoard: 'whp:idBoard',
 }
-const NO_SHADOW = new Set<string>(['grating', 'lamp', 'navLight', 'cr:net', 'cr:light'])
+const NO_SHADOW = new Set<string>(['grating', 'lamp', 'navLight'])
 
 function idBoardTexture() {
   const c = document.createElement('canvas')
@@ -88,38 +85,9 @@ interface Part {
 function build(): Part[] {
   const B = new Batches<WhpKey>()
   buildWhp((k) => B.get(k))
-  const parts: Part[] = B.buildAll()
+  return B.buildAll()
     .filter((p) => MAT[p.key] !== null)
     .map((p) => ({ key: p.key, mat: MAT[p.key] as string, geometry: p.geometry }))
-
-  // pedestal crane: built at the origin, scaled to WHP size and moved onto the NE leg
-  const C = new Batches<string>()
-  const cg = (k: string) => C.get(`cr:${k}`)
-  buildCrane(
-    {
-      yellow: cg('yellow'),
-      white: cg('white'),
-      steel: cg('steel'),
-      steelDark: cg('steelDark'),
-      glass: cg('glass'),
-      soot: cg('soot'),
-      blue: cg('blue'),
-      net: cg('net'),
-      light: cg('light'),
-      rail: { rail: cg('yellow'), kick: cg('yellow') },
-    },
-    { x: 0, z: 0, deck: 0, heading: WHP.crane.heading },
-  )
-  const s = WHP.crane.scale
-  const m = new THREE.Matrix4().compose(new THREE.Vector3(WHP.crane.x, 28, WHP.crane.z), new THREE.Quaternion(), new THREE.Vector3(s, s, s))
-  const CMAT: Record<string, string> = { yellow: 'yellow', white: 'white', steel: 'steel', steelDark: 'steelDark', glass: 'glass', soot: 'soot', blue: 'blue', net: 'grating', light: 'avLight' }
-  for (const p of C.buildAll()) {
-    p.geometry.applyMatrix4(m)
-    p.geometry.computeBoundingSphere()
-    p.geometry.computeBoundingBox()
-    parts.push({ key: p.key, mat: CMAT[p.key.slice(3)], geometry: p.geometry })
-  }
-  return parts
 }
 
 const noRaycast = () => null

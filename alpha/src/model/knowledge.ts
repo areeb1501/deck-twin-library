@@ -10,9 +10,11 @@ import { EQUIPMENT_KNOWLEDGE } from './knowledgeEquipment'
 import { UTILITY_KNOWLEDGE } from './knowledgeUtilities'
 import { LINE_VALVE_KNOWLEDGE } from './knowledgeLinesValves'
 import { INSTRUMENT_KNOWLEDGE } from './knowledgeInstruments'
+import { CRANE_VENT_KNOWLEDGE } from './knowledgeCranesVents'
+import { RP_WI_KNOWLEDGE } from './knowledgeRpWi'
 
 export const KNOWLEDGE: Record<string, Knowledge> = Object.fromEntries(
-  [...EQUIPMENT_KNOWLEDGE, ...UTILITY_KNOWLEDGE, ...LINE_VALVE_KNOWLEDGE, ...INSTRUMENT_KNOWLEDGE].map((k) => [k.id, k]),
+  [...EQUIPMENT_KNOWLEDGE, ...UTILITY_KNOWLEDGE, ...LINE_VALVE_KNOWLEDGE, ...INSTRUMENT_KNOWLEDGE, ...RP_WI_KNOWLEDGE, ...CRANE_VENT_KNOWLEDGE].map((k) => [k.id, k]),
 )
 
 // ───────────────────────────── equipment ─────────────────────────────
@@ -27,6 +29,14 @@ const VESSELS: EqKind[] = ['horizontalVessel', 'verticalVessel']
 const NAME_RULES: { re: RegExp; id: string; kinds?: EqKind[]; except?: EqKind[] }[] = [
   // unmistakable roles, whatever kind they were modelled as
   { re: /crane/, id: 'crane' },
+  { re: /vent stack|cold vent/, id: 'vent-stack' },
+  // RP / WI (model/knowledgeRpWi.ts)
+  { re: /\bssiv\b|subsea isolation/, id: 'ssiv-panel' },
+  { re: /gas.*meter(ing)?|meter(ing)?.*gas/, id: 'metering-gas', except: ['pumpPackage', 'compressorPackage'] },
+  { re: /fiscal|custody/, id: 'metering-oil' },
+  { re: /deaerat/, id: 'deaerator' },
+  { re: /filtration|seawater filter|fine filter/, id: 'wi-filtration' },
+  { re: /water injection pump|injection pump|\bwi pump/, id: 'pump-water-injection', kinds: ['pumpPackage'] },
   { re: /multiphase (flow )?meter|\bmpfm\b/, id: 'mpfm' },
   { re: /temporary refuge|safe haven|muster (station|area)/, id: 'temporary-refuge' },
   { re: /desand|sand (separator|trap|cyclone|catcher)/, id: 'desander' },
@@ -184,6 +194,7 @@ const LINE_CODE: Record<string, string> = {
   LF: 'line-flare',
   VA: 'line-vent',
   VT: 'line-vent',
+  TV: 'tank-breather-vent', // atmospheric tank vent (gooseneck)
   SW: 'line-seawater',
   UW: 'line-utility-water',
   WU: 'line-utility-water',
@@ -259,6 +270,7 @@ const endText = (e: PipeLine['to']) => ('offDeck' in e ? e.offDeck : '')
 export function valveKnowledgeId(v: Valve, line?: PipeLine): string | null {
   const notes = `${v.design?.notes ?? ''} ${line?.design?.notes ?? ''}`.toLowerCase()
   if (v.type === 'control' && /anti-?surge|surge control/.test(notes)) return 'valve-antisurge'
+  if (v.type === 'esdv' && /riser esdv|riser esd/.test(notes)) return 'valve-riser-esdv'
   if (/^(xv|dv|udv|dlv)-/i.test(v.tag) && v.type !== 'check' && v.type !== 'psv' && line && line.service === 'firewater') {
     const deluge = line.sprayNozzles || /deluge|spray|sprinkler/.test(`${notes} ${endText(line.to)}`.toLowerCase())
     if (deluge) return 'valve-deluge'
@@ -309,6 +321,7 @@ export function instrumentKnowledgeId(i: Instrument, host: { line?: PipeLine; eq
     if (/h₂s|h2s/.test(unit) || (i.type === 'GD' && /ppm/.test(unit))) return 'inst-at-h2s'
     if (i.type === 'AT') {
       if (/sand/.test(unit)) return 'inst-sand-detector'
+      if (/o₂|o2|oxygen/.test(unit)) return 'inst-at-o2'
       if (/water ?cut|bs&w/.test(unit)) return 'inst-at-watercut'
       if (/oiw|oil/.test(unit)) return 'inst-at-oiw'
       if (/dew/.test(unit)) return airHost ? 'inst-at-air-dewpoint' : 'inst-at-dewpoint'

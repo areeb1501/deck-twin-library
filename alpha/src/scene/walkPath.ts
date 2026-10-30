@@ -6,10 +6,11 @@
  *                 flight in its lane, off it onto the landing, across to the next lane
  */
 import type { Plant, PlanRect } from '../model/types'
-import { blockers, walkable, walkLevels, type AutoPt } from './Walk'
+import { blockers, walkLevels, type AutoPt } from './Walk'
 import { walkSurfaces } from './walkSurfaces'
 import { DECK } from './structure/deckConst'
 import { RACK } from './structure/rack'
+import { RP, WI } from '../model/site'
 
 const CELL = 0.4
 
@@ -18,16 +19,37 @@ export function planPath(p: Plant, li: number, from: [number, number], to: [numb
   const lv = walkLevels(p)[li]
   if (!lv) return null
   const block = [...blockers(p, li, doors), ...steel(p, lv.y)]
-  const ok = (x: number, z: number) => walkable(p, li, block, x, z)
-  // search a window around the two points first; the whole level if that fails
-  for (const margin of [16, Infinity]) {
-    const r = search(lv.areas, ok, from, to, margin)
+  // The field level is ~130 × 240 m: grid only the bounding box of start + goal plus a margin (growing if
+  // that fails), and test cells only against the areas / blockers that overlap that box.
+  for (const margin of [16, 48, Infinity]) {
+    const box = searchBox(lv.areas, from, to, margin)
+    const hit = (r: PlanRect) => r.x1 > box.x0 && r.x0 < box.x1 && r.z1 > box.z0 && r.z0 < box.z1
+    const areas = lv.areas.filter(hit).map((a) => ({ x0: a.x0 - 1e-6, x1: a.x1 + 1e-6, z0: a.z0 - 1e-6, z1: a.z1 + 1e-6 }))
+    const bl = block.filter(hit)
+    const inside = (fs: PlanRect[], x: number, z: number) => fs.some((f) => x > f.x0 && x < f.x1 && z > f.z0 && z < f.z1)
+    // same test as Walk.tsx walkable(), on the clipped lists
+    const ok = (x: number, z: number) => inside(areas, x, z) && !inside(bl, x, z)
+    const r = search(box, ok, from, to)
     if (r) return r.map(([x, z]) => ({ x, z, y: lv.y }))
+    if (box.whole) break
   }
   return null
 }
 
-/** Alpha steel the walker would otherwise walk through (the walk test lets you; a tour shouldn't): jacket legs, deck columns, rack posts */
+/** search window: start + goal bounding box grown by `margin`, clipped to the level */
+function searchBox(areas: PlanRect[], from: [number, number], to: [number, number], margin: number) {
+  const ax0 = Math.min(...areas.map((a) => a.x0))
+  const ax1 = Math.max(...areas.map((a) => a.x1))
+  const az0 = Math.min(...areas.map((a) => a.z0))
+  const az1 = Math.max(...areas.map((a) => a.z1))
+  const x0 = Math.max(ax0, Math.min(from[0], to[0]) - margin)
+  const x1 = Math.min(ax1, Math.max(from[0], to[0]) + margin)
+  const z0 = Math.max(az0, Math.min(from[1], to[1]) - margin)
+  const z1 = Math.min(az1, Math.max(from[1], to[1]) + margin)
+  return { x0, x1, z0, z1, whole: x0 <= ax0 && x1 >= ax1 && z0 <= az0 && z1 >= az1 }
+}
+
+/** Steel the walker would otherwise walk through (the walk test lets you; a tour shouldn't): Alpha's jacket legs, deck columns, rack posts; the RP / WI legs through their cellar decks */
 function steel(p: Plant, y: number): PlanRect[] {
   if ((p.deck.site ?? 'offshoreAlpha') !== 'offshoreAlpha') return []
   const sq = (x: number, z: number, r: number): PlanRect => ({ x0: x - r, x1: x + r, z0: z - r, z1: z + r })
@@ -37,14 +59,13 @@ function steel(p: Plant, y: number): PlanRect[] {
     for (const [x, z] of DECK.columns) out.push(sq(x, z, 0.6))
     for (const x of RACK.bents) for (const z of [RACK.zMin, RACK.zMax]) out.push(sq(x, z, 0.5))
   }
+  // satellite legs (OD 1.4) stop under the main-deck plate, so they stand on the cellar decks only
+  if (y === RP.cellarY) for (const [x, z] of [...RP.legs, ...WI.legs]) out.push(sq(x, z, 0.7 + 0.4))
   return out
 }
 
-function search(areas: PlanRect[], ok: (x: number, z: number) => boolean, from: [number, number], to: [number, number], margin: number): [number, number][] | null {
-  const bx0 = Math.max(Math.min(...areas.map((a) => a.x0)), Math.min(from[0], to[0]) - margin)
-  const bx1 = Math.min(Math.max(...areas.map((a) => a.x1)), Math.max(from[0], to[0]) + margin)
-  const bz0 = Math.max(Math.min(...areas.map((a) => a.z0)), Math.min(from[1], to[1]) - margin)
-  const bz1 = Math.min(Math.max(...areas.map((a) => a.z1)), Math.max(from[1], to[1]) + margin)
+function search(box: { x0: number; x1: number; z0: number; z1: number }, ok: (x: number, z: number) => boolean, from: [number, number], to: [number, number]): [number, number][] | null {
+  const { x0: bx0, x1: bx1, z0: bz0, z1: bz1 } = box
   const W = Math.max(1, Math.ceil((bx1 - bx0) / CELL))
   const H = Math.max(1, Math.ceil((bz1 - bz0) / CELL))
   const cx = (i: number) => bx0 + (i + 0.5) * CELL
@@ -100,8 +121,13 @@ function search(areas: PlanRect[], ok: (x: number, z: number) => boolean, from: 
   cost[s] = 0
   heap.push(s, h(s))
   let found = false
+  // closed set: a cell is expanded once (the heuristic is consistent), stale heap entries are skipped —
+  // without it the grid of a field-wide window gets re-expanded thousands of times
+  const closed = new Uint8Array(W * H)
   while (heap.size) {
     const c = heap.pop()
+    if (closed[c]) continue
+    closed[c] = 1
     if (c === g) {
       found = true
       break
@@ -144,13 +170,32 @@ function search(areas: PlanRect[], ok: (x: number, z: number) => boolean, from: 
     }
     return true
   }
+  // from each kept point, the farthest point still in sight: galloping search forward (1, 2, 4, … cells),
+  // then bisection between the last visible and the first hidden one. O(n log n) sight tests, so long
+  // routes across the field (bridge to bridge, ~300 cells) stay fast.
   const out: [number, number][] = []
+  const last = pts.length - 1
   let i = 0
-  while (i < pts.length - 1) {
-    let j = pts.length - 1
-    while (j > i + 1 && !clear(pts[i], pts[j])) j--
-    out.push(pts[j])
-    i = j
+  while (i < last) {
+    let good = i + 1
+    let bad = -1
+    for (let step = 1; ; step *= 2) {
+      const j = Math.min(last, i + 1 + step)
+      if (clear(pts[i], pts[j])) {
+        good = j
+        if (j === last) break
+      } else {
+        bad = j
+        break
+      }
+    }
+    while (bad > good + 1) {
+      const m = (good + bad) >> 1
+      if (clear(pts[i], pts[m])) good = m
+      else bad = m
+    }
+    out.push(pts[good])
+    i = good
   }
   return out
 }

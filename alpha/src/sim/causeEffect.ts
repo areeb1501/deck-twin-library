@@ -61,6 +61,30 @@ export const CAUSE_EFFECT: CauseEffectRow[] = [
     effects: ['WHP-N well wing valves close', 'Bridge ESDV-N2003 closes'],
     loss: 'controlSafety',
   },
+  {
+    id: 'injector-shut',
+    cause: 'PSD / ESD on WHP-N (the water injector XT-N106 is shut in)',
+    level: 'PSD',
+    scope: 'platform',
+    effects: ['WI injection pumps stop', 'ESDV-W401 closes', 'Reservoir support lost until restart'],
+    loss: 'reservoir',
+  },
+  {
+    id: 'rp-export',
+    cause: 'RP riser ESD valve closed (RP PSD / ESD, riser leak)',
+    level: 'alarm',
+    scope: 'platform',
+    effects: ['Oil and gas export from Alpha blocked', 'K-2200 trips on high discharge pressure → gas to flare', 'HP separator level rises → LAHH-1101 PSD on Alpha'],
+    loss: 'export',
+  },
+  {
+    id: 'wi-lowflow',
+    cause: 'WI injection pumps running against a closed path / no seawater lift',
+    level: 'USD',
+    scope: 'unit',
+    effects: ['Injection pumps trip on low flow / low suction (30 s)'],
+    loss: 'reservoir',
+  },
   // ---------------------------------------------------------------- machinery (USD)
   {
     id: 'k2200-surge',

@@ -156,7 +156,8 @@ export function snapshot(focus: Focus, blink: boolean): Snap {
   const alpha = i.eq.has('V-1100') && i.eq.has('K-2200')
   const wells = r?.wells ?? {}
   const sumWells = (re: RegExp, k: 'oil' | 'gas') => Object.entries(wells).reduce((a, [tag, w]) => (re.test(tag) ? a + (w?.[k] ?? 0) : a), 0)
-  const ids: PlatformId[] = alpha ? ['Alpha', 'WHP-N', 'LQ'] : ['Plant']
+  // the field's platforms in display order; RP / WI only once they exist in the plant
+  const ids: PlatformId[] = alpha ? (['Alpha', 'WHP-N', 'RP', 'WI', 'LQ'] as PlatformId[]).filter((id) => (id !== 'RP' && id !== 'WI') || !!r?.platforms?.[id]) : ['Plant']
   const platforms: PlatformView[] = ids.map((id) => {
     const pr = r?.platforms?.[id]
     const sd = pr?.shutdown ?? (shutdowns ? highest(shutdowns, id) : null)

@@ -1,0 +1,94 @@
+/* Maintenance and Handover console pages — same ISA-101 grey palette as hmi.css */
+.mt-page { display: grid; grid-template-columns: minmax(0, 1fr) 380px; gap: 10px; align-items: start; }
+.mt-tabs { margin-bottom: 0; }
+.mt-tbl tr.click { cursor: pointer; }
+.mt-tbl tr.sel td { background: rgba(255,255,255,0.06); }
+.mt-tbl tr.sel td:first-child { box-shadow: inset 3px 0 0 var(--h-fg); }
+.mt-tbl tr.closed td { color: var(--h-faint); }
+.mt-tbl tr.alert td:first-child { box-shadow: inset 3px 0 0 var(--h-p3); }
+.mt-tbl tr.alarm td:first-child { box-shadow: inset 3px 0 0 var(--h-p2); }
+.mt-tbl tr.failed td:first-child { box-shadow: inset 3px 0 0 var(--h-p1); }
+.mt-tbl tr.suspended td { background: rgba(243,156,31,0.06); }
+.mt-tbl .ell { max-width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.mt-abn { color: #ffd7a0; }
+.mt-bad { color: #ffb8b2; font-weight: 600; }
+
+.mt-prio { font-family: var(--mono); font-size: 10.5px; padding: 0 5px; border-radius: 2px; border: 1px solid var(--h-line2); }
+.mt-prio.p1 { border-color: var(--h-p1); color: #ffb8b2; }
+.mt-prio.p2 { border-color: var(--h-p2); color: #ffd7a0; }
+.mt-st, .mt-pst { font-size: 10.5px; padding: 0 6px; border-radius: 2px; border: 1px solid var(--h-line2); white-space: nowrap; }
+.mt-st.inProgress, .mt-pst.issued { border-color: var(--h-fg); color: var(--h-fg); }
+.mt-st.complete { border-color: var(--h-ok); color: #c4ecd1; }
+.mt-st.returned, .mt-st.cancelled, .mt-pst.closed { color: var(--h-faint); border-style: dashed; }
+.mt-pst.suspended { border-color: var(--h-p2); color: #ffd7a0; font-weight: 600; }
+.mt-pst.requested { border-style: dashed; }
+
+.mt-detail { max-height: calc(100vh - 140px); overflow: auto; }
+.mt-detail .sub { white-space: normal; }
+.mt-detail dd select { padding: 0 4px; }
+.mt-flow { display: flex; flex-wrap: wrap; gap: 2px; margin: 6px 0 8px; }
+.mt-flow span { font-size: 10px; padding: 1px 5px; border: 1px solid var(--h-line); border-radius: 2px; color: var(--h-faint); }
+.mt-flow span.done { color: var(--h-dim); border-color: var(--h-line2); }
+.mt-flow span.on { color: #1d1f22; background: var(--h-fg); border-color: var(--h-fg); font-weight: 600; }
+.mt-flow span.x { text-decoration: line-through; }
+.mt-h5 { margin: 10px 0 4px; font-size: 10px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--h-dim); }
+.mt-hist { display: grid; gap: 2px; font-size: 11px; max-height: 160px; overflow: auto; }
+.mt-hist .warn { color: #ffd7a0; }
+.mt-permit { margin-top: 10px; padding: 8px; border: 1px solid var(--h-line2); border-radius: 3px; background: rgba(255,255,255,0.015); }
+.mt-permit.issued { border-color: #8d9297; }
+.mt-permit.suspended { border-color: var(--h-p2); }
+.mt-iso td { font-size: 11px; }
+.mt-iso tr.done td { color: var(--h-dim); }
+.mt-iso tr.pending td.mt-tick { color: var(--h-p2); }
+.mt-iso .mt-tick { width: 14px; text-align: center; font-weight: 700; }
+.mt-iso tr.done .mt-tick { color: var(--h-ok); }
+.mt-warn { margin: 6px 0 0; padding-left: 16px; color: #ffd7a0; font-size: 11px; }
+
+.mt-health { position: relative; display: inline-block; width: 70px; height: 12px; background: #1d1f22; border: 1px solid var(--h-line2); vertical-align: middle; }
+.mt-health i { position: absolute; left: 0; top: 0; bottom: 0; background: #8f9499; }
+.mt-health.alert i { background: var(--h-p3); }
+.mt-health.alarm i { background: var(--h-p2); }
+.mt-health.failed i { background: var(--h-p1); }
+.mt-health b { position: absolute; right: 3px; top: -1px; font-size: 9.5px; font-family: var(--mono); color: #fff; text-shadow: 0 0 2px #000, 0 0 2px #000; }
+.mt-spark { width: 110px; height: 24px; display: block; }
+.mt-spark path { fill: none; stroke: #c9ccd0; stroke-width: 1.3; vector-effect: non-scaling-stroke; }
+.mt-spark line { stroke-width: 1; vector-effect: non-scaling-stroke; stroke-dasharray: 3 2; }
+.mt-spark line.l1 { stroke: rgba(230,208,60,0.6); }
+.mt-spark line.l2 { stroke: rgba(243,156,31,0.7); }
+.mt-due { position: relative; display: inline-block; width: 90px; height: 8px; background: #1d1f22; border: 1px solid var(--h-line2); vertical-align: middle; }
+.mt-due i { position: absolute; left: 0; top: 0; bottom: 0; background: #8f9499; }
+.mt-due.due i { background: var(--h-p3); }
+.mt-due.over i { background: var(--h-p2); }
+.mt-cmalarms { display: grid; gap: 2px; padding: 6px 8px; border: 1px solid var(--h-p3); border-radius: 3px; background: rgba(230,208,60,0.06); font-size: 11.5px; }
+.mt-cmalarms .prio { width: 15px; height: 13px; font-size: 9px; }
+
+/* ---------------------------------------------------------------- handover report */
+.ho { max-width: 1180px; margin: 0 auto; display: grid; gap: 10px; }
+.ho-head { display: flex; align-items: flex-end; gap: 12px; }
+.ho-head h2 { margin: 0; font-size: 16px; }
+.ho-head .grow { flex: 1; }
+.ho-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; align-items: start; }
+.ho .h-tbl td { vertical-align: top; }
+.ho .ok { color: var(--h-ok); }
+.ho .no { color: #ffd7a0; }
+.ho-sign { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-top: 10px; color: var(--h-dim); }
+.ho-sign div { border-top: 1px solid var(--h-line2); padding-top: 4px; }
+
+@media print {
+  @page { size: A4; margin: 12mm; }
+  body * { visibility: hidden !important; }
+  .ho, .ho * { visibility: visible !important; }
+  html, body, #root, .app { height: auto !important; overflow: visible !important; background: #fff !important; }
+  .hmi { position: absolute !important; inset: 0 auto auto 0 !important; display: block !important; background: #fff !important; color: #000 !important; width: 100% !important; }
+  .hmi-head, .hmi-tabs, .ho-noprint { display: none !important; }
+  .hmi-body { overflow: visible !important; padding: 0 !important; }
+  .ho { position: absolute; left: 0; top: 0; width: 100%; max-width: none; color: #000; font-size: 10px; }
+  .ho .h-box { background: #fff !important; border-color: #999 !important; break-inside: avoid; }
+  .ho .h-box > h3 { color: #333 !important; }
+  .ho .h-tbl th { background: #fff !important; color: #333 !important; border-color: #999 !important; position: static; }
+  .ho .h-tbl td { border-color: #ccc !important; color: #000 !important; }
+  .ho .h-kpi { background: #fff !important; border-color: #999 !important; }
+  .ho .h-kpi .n, .ho .h-kpi .l, .ho .dim, .ho .faint, .ho .no, .ho .ok { color: #000 !important; }
+  .ho .wf text, .ho .wf text.v { fill: #000 !important; }
+  .ho-cols { grid-template-columns: 1fr 1fr; }
+}

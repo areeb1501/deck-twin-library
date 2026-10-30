@@ -25,6 +25,10 @@ import { FlareFlame } from './Flare'
 import { SupplyVessel } from './Vessel'
 import { LQPlatform } from './LQPlatform'
 import { WHPPlatform } from './WHPPlatform'
+import { SatellitePlatforms } from './SatellitePlatforms'
+import { Cranes } from './Cranes'
+import { Vents } from './Vents'
+import { Windsocks } from './Windsock'
 import { GaBeacons } from '../fx/GaBeacons'
 import { TripHalos } from '../fx/TripHalos'
 import { usePlantStore } from '../../state/plantStore'
@@ -216,6 +220,10 @@ export function Surroundings({ upperDeck = true, vessel = true }: SurroundingsPr
       {vessel && <SupplyVessel />}
       <LQPlatform mats={mats} />
       <WHPPlatform mats={mats} />
+      <SatellitePlatforms mats={mats} />
+      <Cranes mats={mats} upperDeck={upperDeck} />
+      <Vents upperDeck={upperDeck} />
+      <Windsocks upperDeck={upperDeck} />
     </group>
   )
 }

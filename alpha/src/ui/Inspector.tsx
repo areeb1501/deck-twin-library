@@ -10,6 +10,8 @@ import { FG_LABEL, VALVE_LABEL, kindLabel } from './TagTree'
 import { metricsFor, type Metric } from './metrics'
 import { isIsolatable } from '../model/isolation'
 import { RunControl } from './OperationsPanel'
+import { useSim } from '../state/sim'
+import { WO_STATUS_LABEL, isOpen, maint, useMaint, type WoStatus } from '../sim/maintenance'
 
 const RUNS = new Set(['pumpPackage', 'compressorPackage', 'gasTurbineGenerator', 'caissonPump', 'chemSkid', 'transformer', 'proxy'])
 
@@ -98,7 +100,7 @@ function alarmState(v: number, a: Instrument['alarms'] = {}) {
 
 function MetricCard({ m, t }: { m: Metric; t: number }) {
   const v = sample(m.inst, t)
-  const h = useMemo(() => history(m.inst, t, 60, 3), [m.inst, t])
+  const h = useMemo(() => m.series?.() ?? history(m.inst, t, 60, 3), [m, t])
   const a = m.inst.alarms ?? {}
   const state = alarmState(v, a)
   return (
@@ -298,6 +300,64 @@ function InstrumentView({ i }: { i: Instrument }) {
   )
 }
 
+/** Maintenance: machine health, open work orders / permits, raise a WO, open the permit workflow */
+function MaintBlock({ tag }: { tag: string }) {
+  const h = useMaint((s) => s.health[tag])
+  // derived strings: the work-order list changes every tick while any job is in progress (hours)
+  const woKey = useMaint((s) => s.wos.filter((w) => w.tag === tag && isOpen(w)).map((w) => `${w.id}|${w.priority}|${w.status}`).join(','))
+  const ptwKey = useMaint((s) => Object.values(s.permits).filter((p) => p.tag === tag && p.status !== 'closed').map((p) => `${p.id}|${p.status}`).join(','))
+  const lock = useSim((s) => s.lockouts?.[tag])
+  const open = woKey ? woKey.split(',').map((x) => x.split('|')) : []
+  const ptws = ptwKey ? ptwKey.split(',').map((x) => x.split('|')) : []
+  const [msg, setMsg] = useState<string | null>(null)
+  const toConsole = () => {
+    maint.focus(tag)
+    useStore.getState().setHmi('maintenance')
+  }
+  const pct = h ? Math.round((1 - h.degr) * 100) : null
+  const tone = !h ? '' : h.stage === 'failed' || h.stage === 'alarm' ? 'trip' : h.stage === 'alert' ? 'alarm' : 'ok'
+  return (
+    <section className="sec insp-maint" data-insp-maint={tag}>
+      <h4>Maintenance</h4>
+      {h && (
+        <div className="small" style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 6 }}>
+          <span>Health</span>
+          <span style={{ flex: 1, height: 6, borderRadius: 3, background: 'rgba(255,255,255,0.08)', overflow: 'hidden' }}>
+            <i style={{ display: 'block', height: '100%', width: `${pct}%`, background: tone === 'ok' ? '#8fd3a6' : tone === 'alarm' ? '#ffd479' : '#ff8a80' }} />
+          </span>
+          <span className="mono">{pct} %</span>
+          <span className={`pill ${tone}`}>{h.stage === 'normal' ? 'Normal' : h.stage === 'alert' ? 'CM alert' : h.stage === 'alarm' ? 'CM alarm' : 'Failed'}</span>
+        </div>
+      )}
+      {h?.mode && h.stage !== 'normal' && <div className="muted small">{h.mode}</div>}
+      <div className="small" style={{ margin: '4px 0 6px' }}>
+        {open.length ? open.map(([id, prio, st]) => <div key={id} className="mono">{id} · P{prio} · {WO_STATUS_LABEL[st as WoStatus]}</div>) : <span className="muted">No open work orders</span>}
+        {ptws.map(([id, st]) => (
+          <div key={id} className="mono">
+            {id} · {st}
+          </div>
+        ))}
+        {lock && <div className="mono" style={{ color: '#ffd479' }}>Locked out under {lock.by}</div>}
+      </div>
+      <div className="insp-actions" style={{ padding: 0 }}>
+        <button
+          data-act="insp-raise"
+          onClick={() => {
+            const r = maint.raiseFor(tag, 'Field / Inspector')
+            setMsg(r.why ?? `${r.id} raised`)
+          }}
+        >
+          Raise work order
+        </button>
+        <button data-act="insp-isolate" onClick={toConsole} title="Open the maintenance console with this tag: work order, permit and isolation certificate">
+          Isolate (permit)
+        </button>
+      </div>
+      {msg && <div className="muted small" style={{ marginTop: 4 }}>{msg}</div>}
+    </section>
+  )
+}
+
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <section className="sec">
@@ -361,6 +421,7 @@ export function Inspector() {
             <RunControl tag={eq.tag} />
           </section>
         )}
+        {eq && eq.kind !== 'module' && <MaintBlock tag={eq.tag} />}
         {!inst && <Metrics tag={sel.tag} />}
         {eq && <EquipmentView eq={eq} />}
         {line && <LineView l={line} />}

@@ -13,6 +13,7 @@ import { STAIR, STAIR_TOWERS } from './structure/stairs'
 import { LQ_DECK_STAIR } from './env/accommodation'
 import { LQ_ESCAPE_STAIR, LQ_HELI_Y, LQ_ROOF_Y } from './env/lqQuarters'
 import { WHP_STAIR } from './env/whpDeck'
+import { RP_STAIR, WI_STAIR } from './env/satDeck'
 import { LQ } from '../model/site'
 import { DECK_WORLD_Y } from '../state/store'
 
@@ -105,6 +106,9 @@ export function walkSurfaces(plant: Plant): WalkSurface[] {
     s.push({ x0: h.x + r, x1: h.x + h.r * Math.cos(Math.PI / 8), z0: h.z - 3.5, z1: h.z + 3.5, y0: LQ_HELI_Y - DECK_WORLD_Y, y1: LQ_HELI_Y - DECK_WORLD_Y, axis: 'x', a: 0, b: 1, kind: 'area' })
     // wellhead platform deck ↔ cellar
     s.push(...switchBack(WHP_STAIR, DECK_WORLD_Y))
+    // riser platform (north edge) and water-injection platform (west edge): deck ↔ cellar
+    s.push(...switchBack(RP_STAIR, DECK_WORLD_Y))
+    s.push(...switchBack(WI_STAIR, DECK_WORLD_Y))
     // drilling rig: NE caged ladder, weather deck (10) → drill floor (18), climbed facing west
     s.push({ x0: 9.45, x1: 10.7, z0: -17.9, z1: -17.1, y0: 10, y1: 18, axis: 'x', a: 10.7, b: 9.5, kind: 'ladder' })
   }

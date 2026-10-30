@@ -4,8 +4,15 @@
  * a camera-following horizon band that hides the sea/sky seam.
  *
  * The ONLY shadow-casting light in the scene is the sun directional light created here.
- * Its shadow frustum is fixed (static light + static target at world (0, 28, 0)); it does not
- * depend on any scene object, so it is unaffected by hiding topsides / ceiling / layers.
+ * The field spans x −98…+76, z −156…+86, too much for one sharp ortho shadow map, so the shadow frustum
+ * FOLLOWS the camera target (orbit target, or the walker's look point — both are CameraControls'
+ * target): ±56 m when close (2.7 cm texels at 4096²), growing in fixed steps with the camera distance
+ * so the overview shadows the whole field. The centre is snapped to a ~10 m grid that is a whole
+ * number of shadow texels in light space, so it only moves (and the on-demand shadow map is only
+ * re-rendered) when the target has moved ~10 m, and never shimmers.
+ *
+ * Weather: with high wind / sea state (knobs.wind, knobs.seaState) the haze and fog turn greyer and
+ * thicker, the sky more turbid and the sun weaker.
  */
 import { Environment, Lightformer, Sky } from '@react-three/drei'
 import { useFrame, useThree } from '@react-three/fiber'
@@ -14,6 +21,14 @@ import * as THREE from 'three'
 import { DEEP, FOG_DENSITY, HAZE, SUN_DIR } from './envShared'
 import { SHADOW_PROXY_LAYER } from '../structure/structMaterials'
 import { DECK_WORLD_Y } from '../../state/store'
+import { seaStateNow, windNow } from '../../sim/cranes'
+
+/** live haze colour (fog + horizon band), greyed by the weather */
+const HAZE_NOW = HAZE.clone()
+const STORM_GREY = new THREE.Color('#9aa4aa')
+/** shadow frustum half-sizes (m), picked by camera distance */
+const SHADOW_HALF = [56, 84, 126, 170]
+const SUN_DIST = 220
 
 const SKY = { turbidity: 2.4, rayleigh: 2.2, mieCoefficient: 0.003, mieDirectionalG: 0.8 }
 const SUN_POS = SUN_DIR.clone().multiplyScalar(1000)
@@ -24,7 +39,7 @@ function HorizonHaze() {
   const mat = useMemo(
     () =>
       new THREE.ShaderMaterial({
-        uniforms: { uHaze: { value: HAZE }, uDeep: { value: DEEP } },
+        uniforms: { uHaze: { value: HAZE_NOW }, uDeep: { value: DEEP } },
         vertexShader: /* glsl */ `
           varying vec3 vDir;
           void main() {
@@ -63,8 +78,88 @@ function HorizonHaze() {
   return <mesh ref={ref} geometry={geo} material={mat} renderOrder={-2} frustumCulled={false} raycast={() => null} />
 }
 
+/** light-space basis of the sun's shadow camera (lookAt from SUN_DIR towards the target) */
+const LZ = SUN_DIR.clone()
+const LX = new THREE.Vector3().crossVectors(new THREE.Vector3(0, 1, 0), LZ).normalize()
+const LY = new THREE.Vector3().crossVectors(LZ, LX)
+const _t = new THREE.Vector3()
+const _c = new THREE.Vector3()
+/** light-space depth of the deck centre (the target stays at this depth) */
+const D0 = DECK_WORLD_Y * LZ.y
+
+function ShadowFollow({ light, target, mapSize }: { light: React.RefObject<THREE.DirectionalLight | null>; target: THREE.Object3D; mapSize: number }) {
+  const gl = useThree((s) => s.gl)
+  const controls = useThree((s) => s.controls) as unknown as { getTarget?: (v: THREE.Vector3) => THREE.Vector3 } | null
+  const last = useRef({ a: NaN, b: NaN, half: 56 })
+  useFrame(({ camera }) => {
+    const l = light.current
+    if (!l) return
+    if (controls?.getTarget) controls.getTarget(_t)
+    else _t.set(0, DECK_WORLD_Y, 0)
+    const dist = camera.position.distanceTo(_t)
+    // frustum size: smallest step that covers ~0.6 × the view distance
+    let half = SHADOW_HALF[SHADOW_HALF.length - 1]
+    for (const h of SHADOW_HALF) if (h >= dist * 0.6) {
+      half = h
+      break
+    }
+    // hysteresis on the way down (don't flip-flop at a step boundary)
+    const prev = last.current.half
+    if (half < prev && dist * 0.6 > half * 0.85) half = prev
+    // snap the centre in light space: a whole number of texels, ~10 m (or more for big frusta)
+    const texel = (2 * half) / mapSize
+    const step = texel * Math.round(Math.max(10, half / 6) / texel)
+    _c.set(_t.x, DECK_WORLD_Y, _t.z)
+    const a = Math.round(_c.dot(LX) / step) * step
+    const b = Math.round(_c.dot(LY) / step) * step
+    if (a === last.current.a && b === last.current.b && half === prev) return
+    last.current = { a, b, half }
+    target.position.copy(LX).multiplyScalar(a).addScaledVector(LY, b).addScaledVector(LZ, D0)
+    target.updateMatrixWorld()
+    const reach = 1.2 * half + 70
+    const sunDist = Math.max(SUN_DIST, reach + 20)
+    l.position.copy(target.position).addScaledVector(SUN_DIR, sunDist)
+    const cam = l.shadow.camera
+    cam.left = -half
+    cam.right = half
+    cam.top = half
+    cam.bottom = -half
+    cam.near = Math.max(1, sunDist - reach)
+    cam.far = sunDist + reach
+    cam.updateProjectionMatrix()
+    l.shadow.normalBias = 0.035 * (half / 56)
+    gl.shadowMap.needsUpdate = true
+  })
+  return null
+}
+
+/** greyer, hazier sky / fog and a weaker sun in strong wind and high seas */
+function Weather({ light, sky }: { light: React.RefObject<THREE.DirectionalLight | null>; sky: React.RefObject<THREE.Mesh | null> }) {
+  const scene = useThree((s) => s.scene)
+  const st = useRef({ s: 0, applied: -1 })
+  useFrame((_, dtRaw) => {
+    const target = Math.min(1, Math.max(0, (windNow().speed - 12) / 14 + (seaStateNow() - 2.5) / 4))
+    const x = st.current
+    x.s += (target - x.s) * Math.min(1, Math.min(dtRaw, 0.1) * 0.5)
+    if (Math.abs(x.s - x.applied) < 0.004) return
+    x.applied = x.s
+    HAZE_NOW.copy(HAZE).lerp(STORM_GREY, x.s * 0.85)
+    const fog = scene.fog as THREE.FogExp2 | null
+    if (fog) {
+      fog.color.copy(HAZE_NOW)
+      fog.density = FOG_DENSITY * (1 + 2.2 * x.s)
+    }
+    if (light.current) light.current.intensity = 3.1 * (1 - 0.45 * x.s)
+    const u = (sky.current?.material as THREE.ShaderMaterial | undefined)?.uniforms
+    if (u?.turbidity) u.turbidity.value = SKY.turbidity + 9 * x.s
+    if (u?.rayleigh) u.rayleigh.value = SKY.rayleigh * (1 - 0.6 * x.s)
+  })
+  return null
+}
+
 export function SkyAndLights({ shadowMapSize = 4096 }: { shadowMapSize?: number }) {
   const lightRef = useRef<THREE.DirectionalLight>(null)
+  const skyRef = useRef<THREE.Mesh>(null)
   const scene = useThree((s) => s.scene)
   const target = useMemo(() => {
     const o = new THREE.Object3D()
@@ -91,7 +186,9 @@ export function SkyAndLights({ shadowMapSize = 4096 }: { shadowMapSize?: number 
   return (
     <>
       <fogExp2 attach="fog" args={[HAZE, FOG_DENSITY]} />
-      <Sky distance={4000} sunPosition={SUN_POS} {...SKY} />
+      <Sky ref={skyRef as never} distance={4000} sunPosition={SUN_POS} {...SKY} />
+      <ShadowFollow light={lightRef} target={target} mapSize={shadowMapSize} />
+      <Weather light={lightRef} sky={skyRef} />
       <HorizonHaze />
       <hemisphereLight args={['#c4d8ea', '#6d7c80', 0.4]} />
       {/* sea/deck bounce: lifts the undersides of decks and beams (no shadows) */}

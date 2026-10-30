@@ -19,6 +19,12 @@ import { TourPlayer } from './ui/TourPlayer'
 import { AlarmBanner } from './ui/AlarmBanner'
 import { Hmi } from './ui/hmi/Hmi'
 import { FgMappingLegend } from './ui/FgPanel'
+import { PanelHandles } from './ui/PanelHandles'
+// simulation plugins: they step with the engine whether or not their panels are open
+import './sim/cranes'
+import './sim/scenarios'
+import './sim/maintenance'
+import { ScenarioChip } from './ui/ScenarioChip'
 import { useSim } from './state/sim'
 import './app.css'
 
@@ -30,6 +36,7 @@ export default function App() {
   const setBuilding = useSpecStore((s) => s.setActive)
   const walking = useStore((s) => s.walk)
   const isolating = useStore((s) => !!s.isolation)
+  const panels = useStore((s) => s.panels)
   const [ops, setOps] = useState(false)
   // the plant simulation steps twice a second (× the clock speed) for the whole session
   useEffect(() => {
@@ -44,6 +51,10 @@ export default function App() {
       if (e.key === 'Escape' && s.isolation) return s.setIsolation(null)
       if (e.key === 'Escape') s.selected ? s.select(null) : s.walk ? s.setWalk(false) : s.setSection({ enabled: false })
       if (e.key === 'x') s.setViewMode(s.viewMode === 'xray' ? 'shaded' : 'xray')
+      // side panels: [ left · ] right · \ both
+      if (e.key === '[') return s.togglePanel('left')
+      if (e.key === ']') return s.togglePanel('right')
+      if (e.key === '\\') return s.togglePanel('both')
       if (s.walk) return // WASD / arrows belong to the walker
       if (e.key === 'g') s.setWalk(true)
       if (e.key === 's') s.setViewMode('shaded')
@@ -56,7 +67,7 @@ export default function App() {
   }, [])
 
   return (
-    <div className={`app ${building ? 'building' : ''} ${walking ? 'walking' : ''}`}>
+    <div className={`app ${building ? 'building' : ''} ${walking ? 'walking' : ''} ${panels.left ? '' : 'left-off'} ${panels.right ? '' : 'right-off'}`}>
       <div className="viewport">
         <Scene />
         <LabelOverlay />
@@ -91,6 +102,7 @@ export default function App() {
         )}
       </aside>
       <Toolbar />
+      <PanelHandles />
       {isolating ? <IsolationPanel /> : <Inspector />}
       <Legend />
       <HoverTip />
@@ -99,6 +111,7 @@ export default function App() {
       <KnowledgeCard />
       <TourPlayer />
       <AlarmBanner />
+      <ScenarioChip />
       <Hmi />
       <div className="hint muted small">Drag to orbit · Shift + drag to pan · scroll to zoom · click to inspect · X x-ray · C section · F frame · Esc clear</div>
     </div>

@@ -9,7 +9,7 @@ import CameraControlsImpl from 'camera-controls'
 import { LabelProjector } from '../ui/labels'
 import { EffectComposer, N8AO, Outline, SMAA, ToneMapping } from '@react-three/postprocessing'
 import { ToneMappingMode } from 'postprocessing'
-import { Suspense, useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from 'react'
+import { Suspense, memo, useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import * as THREE from 'three'
 import { usePlantStore } from '../state/plantStore'
 import type { PickData } from '../model/types'
@@ -28,7 +28,15 @@ import { IsolationOverlay } from './IsolationOverlay'
 import { FireGasOverlay } from './FireGasOverlay'
 import { FgCoverageOverlay } from './FgCoverageOverlay'
 import { GasCloud } from './GasCloud'
-import { FireGasMounts } from './FireGasMounts'
+import { AdaptiveQuality } from './perf/AdaptiveQuality'
+import { DetailCull } from './perf/DetailCull'
+import { StaticBatcher } from './perf/StaticBatcher'
+import { QUALITY, useQuality } from './perf/quality'
+import { patchN8AO } from './perf/n8aoFix'
+// perf: the plant re-renders on select / hover; keep its big static children from re-rendering with it
+const FireGasMounts = memo(FireGasMountsRaw)
+import { requestShadows, shadowTick } from './perf/shadows'
+import { FireGasMounts as FireGasMountsRaw } from './FireGasMounts'
 import { useSim } from '../state/sim'
 import { EyeProjector } from '../ui/Eyes'
 import type { ComponentType } from 'react'
@@ -93,9 +101,11 @@ const PRESETS: Record<CameraPreset, { pos: [number, number, number]; target: [nu
   separator: { pos: [-1.5, 35.5, -21], target: [-12.5, 30.8, -10] },
   compressor: { pos: [-2, 33, 17], target: [4.5, 30, 7] },
   underdeck: { pos: [36, 22, 44], target: [0, 27, 0] },
-  field: { pos: [210, 140, 70], target: [-6, 14, 4] },
+  field: { pos: [-188, 186, 150], target: [-26, 6, -34] }, // all five platforms: WI, WHP-N, RP, Alpha, LQ
   whp: { pos: [58, 46, -118], target: [12, 28, -74] },
   bridgeN: { pos: [12, 29.7, -22.5], target: [12, 29.5, -60] },
+  rp: { pos: [-48, 50, 18], target: [-84, 28, -14] },
+  wi: { pos: [52, 48, -110], target: [11, 29, -142] },
   rig: { pos: [88, 84, -80], target: [3, 64, -13] },
   wellbay: { pos: [14, 23, -2], target: [3, 21, -13] },
   lq: { pos: [52, 46, 112], target: [8, 34, 72] },
@@ -224,9 +234,12 @@ function Rig({ root }: { root: React.RefObject<THREE.Group | null> }) {
 function Effects({ selectedObjs }: { selectedObjs: THREE.Object3D[] }) {
   const viewMode = useStore((s) => s.viewMode)
   const section = useStore((s) => s.section.enabled)
+  const ao = useQuality((s) => QUALITY.ao[s.level])
+  // perf: the outline stays mounted — with an empty selection it renders nothing (OutlineEffect.update
+  // skips its depth / mask passes), and mounting it on select recompiled the effect shader (~1 s hitch)
   return (
     <EffectComposer autoClear={false} multisampling={0}>
-      <N8AO enabled={viewMode === 'shaded' && !section} halfRes aoRadius={1.1} distanceFalloff={0.6} intensity={2.2} quality="medium" />
+      <N8AO ref={patchN8AO} enabled={ao && viewMode === 'shaded' && !section} halfRes aoRadius={1.1} distanceFalloff={0.6} intensity={2.2} quality="medium" />
       <Outline selection={selectedObjs} edgeStrength={3.2} visibleEdgeColor={0xffffff} hiddenEdgeColor={0x000000} xRay={false} blur pulseSpeed={0} />
       <SMAA />
       <ToneMapping mode={ToneMappingMode.ACES_FILMIC} />
@@ -247,6 +260,7 @@ function Plant() {
   const solid = useMemo(() => footprints(plant.equipment), [plant])
   const offshore = (plant.deck.site ?? 'offshoreAlpha') === 'offshoreAlpha'
   const [selObjs, setSelObjs] = useState<THREE.Object3D[]>([])
+  const cullRoots = useMemo(() => [root], [])
 
   useLayoutEffect(() => setXray(viewMode === 'xray'), [viewMode])
   // with the weather deck hidden, everything that rises into it is cut cleanly at ceiling level
@@ -303,6 +317,8 @@ function Plant() {
   return (
     <>
       <Rig root={root} />
+      <DetailCull roots={cullRoots} />
+      <StaticBatcher root={root} />
       <LabelProjector equipment={plant.equipment} worldY={offshore ? DECK_WORLD_Y : GRADE_Y} />
       {!DEBUG.has('nofx') && <Effects selectedObjs={selObjs} />}
       <group position={[0, offshore ? DECK_WORLD_Y : GRADE_Y, 0]}>
@@ -357,16 +373,15 @@ function ShadowOnDemand() {
   const section = useStore((s) => s.section)
   const viewMode = useStore((s) => s.viewMode)
   const plant = usePlantStore((s) => s.plant)
-  const frames = useRef(0)
+  const first = useRef(true)
   useEffect(() => {
     gl.shadowMap.autoUpdate = false
-    frames.current = 90 // materials/shaders settle over the first frames
+    // perf: time-based settle window (perf/shadows.ts) — materials / lazy mounts settle over the first seconds
+    requestShadows(first.current ? 6000 : 2500)
+    first.current = false
   }, [gl, layers, section, viewMode, plant])
   useFrame(() => {
-    if (frames.current > 0) {
-      frames.current--
-      gl.shadowMap.needsUpdate = true
-    }
+    if (shadowTick(performance.now())) gl.shadowMap.needsUpdate = true
   })
   return null
 }
@@ -388,16 +403,17 @@ export function Scene() {
       dpr={[1, 1.75]}
       camera={{ fov: 38, near: 0.1, far: 12000, position: [92, 58, 112] }}
       gl={{ antialias: false, powerPreference: 'high-performance', stencil: false }}
-      onCreated={({ gl, scene }) => {
+      onCreated={({ gl, scene, camera }) => {
         gl.localClippingEnabled = true
         glRef = gl
-        if (import.meta.env.DEV) (window as unknown as Record<string, unknown>).__scene = scene
+        if (import.meta.env.DEV) Object.assign(window, { __scene: scene, __gl: gl, __camera: camera })
       }}
       onPointerMissed={(e) => {
         if ((e as MouseEvent).type === 'click') select(null)
       }}
     >
       <ShadowOnDemand />
+      <AdaptiveQuality />
       <Suspense fallback={null}>
         {DEBUG.has('nosky') ? <><color attach="background" args={['#9fb6c8']} /><hemisphereLight args={['#fff', '#555', 2]} /></> : <SkyAndLights />}
         {layers.environment && offshore && !DEBUG.has('noenv') && (

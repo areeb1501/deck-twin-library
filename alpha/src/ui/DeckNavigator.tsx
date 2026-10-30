@@ -6,14 +6,15 @@ import { usePlant } from '../state/plantStore'
 import { useStore } from '../state/store'
 import type { Vec3 } from '../model/types'
 import { walkLevels } from '../scene/Walk'
-import { BRIDGE_S, RIG_SLOT } from '../model/site'
+import { BRIDGE_NN, BRIDGE_S, BRIDGE_W, RIG_SLOT, RP, WI } from '../model/site'
 
 interface Deck {
   id: string
   label: string
   el: string
   blurb: string
-  view: { pos: Vec3; target: Vec3; ceiling: boolean; cut?: number }
+  /** cut: section-box top (deck-local y) over Alpha; box: an explicit section box (deck-local) instead */
+  view: { pos: Vec3; target: Vec3; ceiling: boolean; cut?: number; box?: { min: Vec3; max: Vec3 } }
   walk?: { level: string; at: [number, number]; face?: [number, number] }
 }
 
@@ -55,6 +56,30 @@ const ALPHA: Deck[] = [
     walk: { level: 'production', at: [12, -21], face: [12, -60] },
   },
   {
+    id: 'rp', label: 'West bridge & riser platform (RP)', el: 'EL +28',
+    blurb: '40 m bridge to RP: oil & gas fiscal metering, pig launchers, riser drops, riser blowdown to the cold vent, SSIV panel, temporary refuge, crane.',
+    view: { pos: [-48, 50, 18], target: [-84, 28, -14], ceiling: true },
+    walk: { level: 'production', at: [BRIDGE_W.walk.x0 - 0.8, (BRIDGE_W.walk.z0 + BRIDGE_W.walk.z1) / 2], face: [-90, (BRIDGE_W.walk.z0 + BRIDGE_W.walk.z1) / 2] },
+  },
+  {
+    id: 'rp-cellar', label: 'RP cellar deck — riser tops & riser ESDVs', el: 'EL +20',
+    blurb: 'Oil and gas export riser tops with their topsides ESD valves and hang-offs, the boat-landing ladder and the stair up to the main deck.',
+    view: { pos: [-60, 24.6, -21], target: [-78, 20.6, -6], ceiling: true, box: { min: [RP.deck.x0 - 2, -14, RP.deck.z0 - 4], max: [RP.deck.x1 + 2, -0.8, RP.deck.z1 + 2] } },
+    walk: { level: 'cellar', at: [-80, -14], face: [-75, -7] },
+  },
+  {
+    id: 'wi', label: 'North-north bridge & water-injection platform (WI)', el: 'EL +28',
+    blurb: '40 m bridge from WHP-N to WI: filtration, vacuum deaerator, 2 × 2.6 MW injection pumps, injection ESDV, chemical injection, local equipment room, crane.',
+    view: { pos: [52, 48, -110], target: [11, 29, -142], ceiling: true },
+    walk: { level: 'production', at: [(BRIDGE_NN.walk.x0 + BRIDGE_NN.walk.x1) / 2, WI.deck.z1 - 0.8], face: [12, -145] },
+  },
+  {
+    id: 'wi-cellar', label: 'WI cellar deck — seawater lift pumps', el: 'EL +20',
+    blurb: 'The two seawater lift caisson pumps with their discharge header rising to the filters, the boat-landing ladder and the stair up to the main deck.',
+    view: { pos: [-16, 25, -120], target: [5, 20.5, -144], ceiling: true, box: { min: [WI.deck.x0 - 4, -14, WI.deck.z0 - 2], max: [WI.deck.x1 + 2, -0.8, WI.deck.z1 + 2] } },
+    walk: { level: 'cellar', at: [6.5, -140], face: [3, -145] },
+  },
+  {
     id: 'lq', label: 'South bridge & accommodation platform', el: 'EL +28',
     blurb: '40 m bridge to the LQ: control room, emergency generator, quarters, helideck, telecom tower, lifeboats.',
     view: { pos: [52, 46, 112], target: [8, 34, 72], ceiling: true },
@@ -65,7 +90,8 @@ const ALPHA: Deck[] = [
 function show(d: Deck) {
   const s = useStore.getState()
   s.setLayer('ceiling', d.view.ceiling)
-  if (d.view.cut !== undefined) s.setSection({ enabled: true, min: [-31, -14, -21], max: [31, d.view.cut, 21] })
+  if (d.view.box) s.setSection({ enabled: true, min: d.view.box.min, max: d.view.box.max })
+  else if (d.view.cut !== undefined) s.setSection({ enabled: true, min: [-31, -14, -21], max: [31, d.view.cut, 21] })
   else s.setSection({ enabled: false })
   s.requestFlyTo(d.view.pos, d.view.target)
 }

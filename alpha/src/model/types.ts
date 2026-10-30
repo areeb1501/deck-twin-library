@@ -240,7 +240,7 @@ export interface Transformer extends EquipmentBase {
  */
 export interface Proxy extends EquipmentBase {
   kind: 'proxy'
-  role: 'drillingRig' | 'bop'
+  role: 'drillingRig' | 'bop' | 'crane' | 'ventStack'
   size: Vec3
 }
 

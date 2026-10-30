@@ -17,7 +17,7 @@ import { useEffect, useMemo, useRef } from 'react'
 import * as THREE from 'three'
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js'
 import type { PlatformId, PlatformResult } from '../../sim/types'
-import { ALPHA_DECK, BRIDGE_N, BRIDGE_S, CELLAR_FLOOR, LQ, WEATHER_FLOOR, WHP } from '../../model/site'
+import { ALPHA_DECK, BRIDGE_N, BRIDGE_S, CELLAR_FLOOR, LQ, RP, WEATHER_FLOOR, WHP, WI } from '../../model/site'
 import { DECK } from '../structure/deckConst'
 import { STAIR_TOWERS } from '../structure/stairs'
 import { platformGa } from './simRead'
@@ -73,6 +73,11 @@ function gaBeaconLayout(): Beacon[] {
   for (const leg of WHP.legs) {
     out.push(onLeg(leg, wc, 0, 'WHP-N', 0.75), onLeg(leg, wc, 0, 'WHP-N', 0.75, false, true))
     out.push(onLeg(leg, wc, WHP.cellarY, 'WHP-N', 0.75))
+  }
+  // RP and WI: on every leg at main and cellar deck, inboard and outboard
+  for (const [pf, id] of [[RP, 'RP'], [WI, 'WI']] as const) {
+    const c: [number, number] = [(pf.deck.x0 + pf.deck.x1) / 2, (pf.deck.z0 + pf.deck.z1) / 2]
+    for (const leg of pf.legs) out.push(onLeg(leg, c, 0, id, 0.75), onLeg(leg, c, 0, id, 0.75, false, true), onLeg(leg, c, pf.cellarY, id, 0.75))
   }
   P(WHP.deck.x0 + 0.35, 2.7, -80.6, 'WHP-N')
   return out
@@ -208,8 +213,8 @@ export function GaBeacons({ upperDeck = true }: { upperDeck?: boolean }) {
     const t = state.clock.elapsedTime
     const cam = state.camera as THREE.PerspectiveCamera
     ;(meshes.halo.material as THREE.ShaderMaterial).uniforms.uPx.value = (state.size.height * state.viewport.dpr) / (2 * Math.tan(THREE.MathUtils.degToRad((cam.fov ?? 38) / 2)))
-    const ga: Record<PlatformId, Ga> = { Alpha: platformGa('Alpha'), 'WHP-N': platformGa('WHP-N'), LQ: platformGa('LQ'), Plant: 'normal' }
-    const quiet = ga.Alpha === 'normal' && ga['WHP-N'] === 'normal' && ga.LQ === 'normal'
+    const ga: Record<PlatformId, Ga> = { Alpha: platformGa('Alpha'), 'WHP-N': platformGa('WHP-N'), LQ: platformGa('LQ'), RP: platformGa('RP'), WI: platformGa('WI'), Plant: 'normal' }
+    const quiet = ga.Alpha === 'normal' && ga['WHP-N'] === 'normal' && ga.LQ === 'normal' && ga.RP === 'normal' && ga.WI === 'normal'
     if (quiet && last.quiet) return
     last.quiet = quiet
     const { lens, halo } = meshes

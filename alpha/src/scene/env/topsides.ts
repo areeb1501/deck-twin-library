@@ -1,7 +1,7 @@
 /**
  * Everything standing ON the upper (weather) deck, world coordinates (deck plate top y = 38).
- * Lower-poly but well proportioned: living quarters + lifeboats, helideck, pedestal crane with
- * lattice boom + boom rest, turbine enclosures + exhaust stacks, switchgear module, containers,
+ * Lower-poly but well proportioned: living quarters + lifeboats, helideck, turbine enclosures + exhaust
+ * stacks, switchgear module, containers (the pedestal cranes are Cranes.tsx, the vent stack Vents.tsx),
  * perimeter guard rail. The flare boom is separate (kept when topsides are hidden). The drilling rig,
  * pipe deck, mud module and bulk silos are in drillingRig.ts.
  */
@@ -12,7 +12,7 @@ import { railPolyline, perimeterDistance, type RailBatches } from '../structure/
 import { ladder } from '../structure/ladder'
 import { STAIR_TOWERS, towerGap } from '../structure/stairs'
 import { DECK } from '../structure/deckConst'
-import { buildCrane, CRANE_PED } from './crane'
+import { CRANE_PED } from './crane'
 
 export const UD = 38 // weather-deck plate top, world
 export const QUARTERS = { x0: -29, x1: -15, z0: -12, z1: 6, storeys: 4, storey: 3.2 }
@@ -129,7 +129,7 @@ export function buildFlareBoom(steel: GeoBatch, lace: GeoBatch, dark: GeoBatch) 
 export function buildTopsides(tb: TopsideBatches) {
   // ---------------- jacket leg stubs above the weather deck (padeye caps)
   for (const [x, z] of DECK.legs) {
-    if (x > 20 && z < -10) continue // NE leg carries the crane pedestal
+    if ((x > 20 && z < -10) || (x < -20 && z > 10)) continue // NE + SW legs carry the crane pedestals
     place(tb.steel, cylClosed, [x, UD + 0.35, z], [0, 0, 0], [DECK.legOD / 2, 0.7, DECK.legOD / 2])
     box(tb.steel, [x, UD + 0.95, z], [0.08, 0.5, 0.6])
   }
@@ -245,23 +245,8 @@ export function buildTopsides(tb: TopsideBatches) {
     ladder(tb.steel, [-16, qTop + 0.25, 5.2], H.y - qTop - 0.25, [1, 0], true)
   }
 
-  // ---------------- pedestal crane (NE corner, on the jacket leg) — see crane.ts. Slewed so the boom is
-  // parked pointing SOUTH along the east side onto its rest at z = 9 (the derrick blocks a west park).
-  buildCrane(
-    {
-      yellow: tb.yellow,
-      white: tb.white,
-      steel: tb.steel,
-      steelDark: tb.steelDark,
-      glass: tb.glass,
-      soot: tb.soot,
-      blue: tb.blue,
-      net: tb.net,
-      light: tb.light ?? tb.red,
-      rail: tb.rail,
-    },
-    { x: CRANE.x, z: CRANE.z, deck: UD, heading: Math.PI / 2 },
-  )
+  // ---------------- pedestal cranes CR-A1 (NE leg) and CR-A2 (SW leg): drawn and animated by Cranes.tsx
+  // (geometry crane.ts, layout model/cranes.ts)
 
   // (turbine generators are plant equipment now: GT-8100A/B in model/alphaSite.ts)
 

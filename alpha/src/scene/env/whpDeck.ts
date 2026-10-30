@@ -19,7 +19,7 @@ import { bar, beamTOS, box, boxMinMax, place, spans, sphere, tube, unitCyl } fro
 import { SECTIONS, type SectionName } from '../../model/catalog'
 import { gratingRect, partition, plateRect, type GratingBatches, type Rect } from '../structure/panels'
 import { perimeterDistance, railPolyline, type RailBatches } from '../structure/handrail'
-import { BRIDGE_N, WHP } from '../../model/site'
+import { BRIDGE_N, BRIDGE_NN, WHP } from '../../model/site'
 import { buildWhpJacket, WHP_JACKET } from './whpJacket'
 import { buildLqStair, LQ_STAIR, type LqStairDef } from './lqStairs'
 import { buildNorthBridge } from './whpBridge'
@@ -188,6 +188,8 @@ function buildMainDeck(get: WhpGet, gb: GratingBatches, rb: RailBatches) {
   const gaps: [number, number][] = [
     gapBetween(RAIL_PTS, [BRIDGE_N.walk.x0, zS], [BRIDGE_N.walk.x1, zS]),
     gapBetween(RAIL_PTS, [D.x0 + e, stairGapZ[0]], [D.x0 + e, stairGapZ[1]]),
+    // north edge: landing of the north-north bridge to the WI platform
+    gapBetween(RAIL_PTS, [BRIDGE_NN.walk.x0, D.z0 + e], [BRIDGE_NN.walk.x1, D.z0 + e]),
   ]
   railPolyline(rb, RAIL_PTS, Y, gaps, true)
 }
@@ -298,7 +300,7 @@ function buildIdBoards(get: WhpGet) {
   for (const [x, z, alongZ] of [
     [D.x1 + 0.08, -73, true],
     [D.x0 - 0.08, -76.5, true],
-    [12, D.z0 - 0.08, false],
+    [19.5, D.z0 - 0.08, false], // north edge, east of the north-north bridge landing
   ] as [number, number, boolean][]) {
     const size: V3 = alongZ ? [0.04, 1.0, 2.8] : [2.8, 1.0, 0.04]
     box(get('idBoard'), [x, Y + 0.65, z], size)

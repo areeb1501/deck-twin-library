@@ -52,7 +52,7 @@
 import type { Instrument, Plant, PlanRect, Vec3 } from '../model/types'
 import type { PlatformId } from './types'
 import { footprints } from '../model/footprint'
-import { ALPHA_DECK, BRIDGE_N, BRIDGE_S, CELLAR_FLOOR, LQ, RIG_SLOT, WEATHER_FLOOR, WHP } from '../model/site'
+import { ALPHA_DECK, BRIDGE_N, BRIDGE_NN, BRIDGE_S, BRIDGE_W, CELLAR_FLOOR, LQ, RIG_SLOT, RP, WEATHER_FLOOR, WHP, WI } from '../model/site'
 
 export type DetectorType = 'FD' | 'GD' | 'OGD' | 'HD' | 'SD' | 'MAC'
 
@@ -190,12 +190,15 @@ const isOffshore = (plant: Plant) => (plant.deck.site ?? 'offshoreAlpha') === 'o
 
 const DRILL_FLOOR: PlanRect = { x0: RIG_SLOT[0] - 6.5, x1: RIG_SLOT[0] + 6.5, z0: RIG_SLOT[1] - 6.5, z1: RIG_SLOT[1] + 9.5 }
 const LIFEBOAT_DECK: PlanRect = { x0: 21, x1: 23.7, z0: 60, z1: 80 }
+/** bridge plan strips incl. the pipe-lane shelf and the cable tray */
+const BRIDGE_W_ZONE: PlanRect = { ...BRIDGE_W.walk, z0: Math.min(...BRIDGE_W.pipeLane.z) - 0.6, z1: BRIDGE_W.trayZ + 0.4 }
+const BRIDGE_NN_ZONE: PlanRect = { ...BRIDGE_NN.walk, x0: Math.min(...BRIDGE_NN.pipeLane.x) - 0.6, x1: BRIDGE_NN.trayX + 0.4 }
 /** Alpha field deck plates, top down */
 const FLOORS: { y: number; rects: PlanRect[] }[] = [
   { y: WEATHER_FLOOR + 8, rects: [DRILL_FLOOR] },
   { y: WEATHER_FLOOR, rects: [ALPHA_DECK] },
-  { y: 0, rects: [ALPHA_DECK, WHP.deck, LQ.deck, LIFEBOAT_DECK, BRIDGE_N.walk, BRIDGE_S.walk] },
-  { y: CELLAR_FLOOR, rects: [ALPHA_DECK, WHP.deck, LQ.deck] },
+  { y: 0, rects: [ALPHA_DECK, WHP.deck, LQ.deck, LIFEBOAT_DECK, BRIDGE_N.walk, BRIDGE_S.walk, RP.deck, WI.deck, BRIDGE_W.walk, BRIDGE_NN.walk] },
+  { y: CELLAR_FLOOR, rects: [ALPHA_DECK, WHP.deck, LQ.deck, RP.deck, WI.deck] },
 ]
 
 /** the deck plate a point stands on (deck-local y). Onshore plants have one grade level, 0. */
@@ -208,9 +211,15 @@ export function floorAt(p: Vec3, offshore = true): number {
 export function platformAt(p: Vec3): PlatformId {
   const [x, , z] = p
   if (inRect(WHP.deck, x, z)) return 'WHP-N'
+  if (inRect(RP.deck, x, z)) return 'RP'
+  if (inRect(WI.deck, x, z)) return 'WI'
   if (inRect(LQ.deck, x, z) || inRect(LIFEBOAT_DECK, x, z)) return 'LQ'
   if (inRect(ALPHA_DECK, x, z)) return 'Alpha'
   // bridges: the half nearer each platform belongs to it
+  if (inRect(BRIDGE_W_ZONE, x, z)) return x < (BRIDGE_W.walk.x0 + BRIDGE_W.walk.x1) / 2 ? 'RP' : 'Alpha'
+  if (inRect(BRIDGE_NN_ZONE, x, z)) return z < (BRIDGE_NN.walk.z0 + BRIDGE_NN.walk.z1) / 2 ? 'WI' : 'WHP-N'
+  if (x < ALPHA_DECK.x0 - 20) return 'RP'
+  if (z < WHP.deck.z0 - 20) return 'WI'
   if (z < 0) return z < -40 ? 'WHP-N' : 'Alpha'
   return z > 40 ? 'LQ' : 'Alpha'
 }
@@ -342,8 +351,8 @@ export function fireZones(plant: Plant): FireZone[] {
   let zs = zoneCache.get(plant)
   if (zs) return zs
   zs = []
-  const Z = (id: string, name: string, platform: PlatformId, y0: number, y1: number, rects: PlanRect[], kind: FireZone['kind'], note?: string) =>
-    zs!.push({ id, name, platform, y0, y1, rects, kind, targets: TARGETS[kind], note })
+  const Z = (id: string, name: string, platform: PlatformId, y0: number, y1: number, rects: PlanRect[], kind: FireZone['kind'], note?: string, targets: FireZone['targets'] = TARGETS[kind]) =>
+    zs!.push({ id, name, platform, y0, y1, rects, kind, targets, note })
   if (isOffshore(plant)) {
     const W = WEATHER_FLOOR
     const C = CELLAR_FLOOR
@@ -364,8 +373,21 @@ export function fireZones(plant: Plant): FireZone[] {
     Z('N-WELL', 'WHP-N · Well bay', 'WHP-N', 0, 12, [{ x0: -2, x1: 10, z0: -80, z1: -66 }], 'wellbay', 'Six wellheads & trees')
     Z('N-MAN', 'WHP-N · Manifolds & metering', 'WHP-N', 0, 12, [{ x0: 10, x1: 22, z0: -88, z1: -60 }], 'process', 'Production & test manifolds, desander, MPFM, vent KO drum')
     Z('N-UTIL', 'WHP-N · Utilities', 'WHP-N', 0, 12, [{ x0: -2, x1: 10, z0: -88, z1: -80 }, { x0: -2, x1: 10, z0: -66, z1: -60 }, { x0: 22, x1: 26, z0: -88, z1: -60 }], 'utility', 'Chemical injection, WHCP, refuge surroundings, laydown')
+    // ---- RP (normally unattended riser & export platform, west of Alpha). Graded like a process area:
+    //      high-pressure export oil + gas inventory at the launchers, meters and risers.
+    const rp = RP.deck
+    Z('R-PROC', 'RP · Export metering, pig launchers & risers', 'RP', 0, 12, [{ ...rp, x0: -86 }], 'process', 'Oil + gas fiscal meters, pig launchers, riser drops, riser blowdown (BDV-R203) to the cold vent')
+    Z('R-UTIL', 'RP · Refuge, SSIV panel & laydown', 'RP', 0, 12, [{ ...rp, x1: -86 }], 'utility', 'Temporary refuge / LER, SSIV hydraulic panel, IA receiver, pig handling, crane laydown')
+    Z('R-CEL', 'RP · Cellar deck risers & riser ESDVs', 'RP', C, 0, [{ x0: -84, x1: rp.x1, z0: -18, z1: rp.z1 }], 'process', 'Oil + gas riser tops, riser ESDVs (ESDV-R101 / R201), riser hang-offs')
+    // ---- WI (normally unattended water-injection platform, north of WHP-N). Little hydrocarbon (lube oil,
+    //      transformer / VSD electrics): flame graded as a utility area, gas not graded (HVAC-intake GDs only).
+    const WI_T: FireZone['targets'] = { flame1: 0.6, flame2: 0.4, gas1: 0, gas2: 0 }
+    Z('W-MAIN', 'WI · Injection pumps, deaerator & filtration', 'WI', 0, 12, [WI.deck], 'utility', 'Injection pumps (2.6 MW VSD motors), vacuum deaerator, filters, chemical injection, LER surroundings', WI_T)
+    Z('W-CEL', 'WI · Cellar deck seawater lift', 'WI', C, 0, [{ ...WI.deck, x1: 12, z1: -134 }], 'utility', 'Seawater lift caisson pumps (electric)', { flame1: 0.5, flame2: 0, gas1: 0, gas2: 0 })
     // ---- bridges
     Z('B-N', 'North bridge (Alpha ↔ WHP-N)', 'Alpha', 0, 4, [{ ...BRIDGE_N.walk, x0: BRIDGE_N.walk.x0 - 2.5 }], 'bridge', 'Walkway + pipe lane: export, water injection, IA, firewater, vent (welded)')
+    Z('B-W', 'West bridge (Alpha ↔ RP)', 'RP', 0, 4, [BRIDGE_W_ZONE], 'bridge', 'Walkway + pipe lane: oil export, gas export, IA, firewater (welded)')
+    Z('B-NN', 'North-north bridge (WHP-N ↔ WI)', 'WI', 0, 4, [BRIDGE_NN_ZONE], 'bridge', 'Walkway + pipe lane: water injection, IA, firewater (welded)')
     Z('B-S', 'South bridge (Alpha ↔ LQ)', 'LQ', 0, 4, [{ ...BRIDGE_S.walk, x1: BRIDGE_S.walk.x1 + 1.5 }], 'bridge', 'Walkway + pipe lane: diesel, potable water, firewater')
     // ---- LQ main deck
     Z('LQ-MAIN', 'LQ · Main deck utilities', 'LQ', 0, 20, [{ x0: -9, x1: 21, z0: 60, z1: 70 }, { x0: -9, x1: 3, z0: 70, z1: 86 }], 'lq', 'Diesel day tank, potable water, emergency generator & CCR surroundings')

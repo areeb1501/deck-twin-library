@@ -19,6 +19,10 @@ import { FgPage } from './FgPage'
 import { Trends } from './Trends'
 import { Machines } from './Machines'
 import { Instructor } from './Instructor'
+import { MaintenancePage } from './Maintenance'
+import { HandoverPage } from './Handover'
+import { ScenariosPage } from './Scenarios'
+import { CranesPanel } from './Cranes'
 import './hmi.css'
 
 const HMI_PAGES = [
@@ -29,7 +33,11 @@ const HMI_PAGES = [
   ['fg', 'F&G'],
   ['trends', 'Trends'],
   ['machines', 'Machines'],
+  ['maintenance', 'Maintenance'],
+  ['cranes', 'Cranes & weather'],
+  ['handover', 'Handover'],
   ['instructor', 'Instructor'],
+  ['scenarios', 'Scenarios'],
 ] as const
 
 const SPEEDS: [number, string][] = [
@@ -88,7 +96,11 @@ function Console({ page }: { page: string }) {
         {cur === 'fg' && <FgPage />}
         {cur === 'trends' && <Trends />}
         {cur === 'machines' && <Machines />}
+        {cur === 'maintenance' && <MaintenancePage />}
+        {cur === 'cranes' && <CranesPanel />}
+        {cur === 'handover' && <HandoverPage />}
         {cur === 'instructor' && <Instructor />}
+        {cur === 'scenarios' && <ScenariosPage />}
       </main>
     </div>
   )

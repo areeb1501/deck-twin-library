@@ -298,6 +298,45 @@ export function OperationsPanel() {
         </div>
       </Section>
 
+      {(has('X-R150') || has('P-W310A')) && (
+        <Section title="Export (RP) & water injection (WI)">
+          <div className="ops-proc small">
+            <Gauge label="Reservoir pressure support" value={proc.reservoir * 100} unit="%" lo={97} lolo={92} max={105} />
+            <Gauge label="Water injected" value={proc.wiRate / 1000} unit="k bwpd" lo={30} max={45} />
+            <Gauge label="Cold vent" value={proc.vent} unit="MMscfd" hi={1} max={5} />
+          </div>
+          <div className="muted small ops-note">
+            Oil and gas leave Alpha over the west bridge and down RP's risers — a closed riser ESDV blocks export. Water injection replaces what the wells take out;
+            without it the reservoir pressure, and the wells with it, decline over hours.
+          </div>
+          {['P-W300A', 'P-W300B', 'P-W310A', 'P-W310B'].filter(has).map((tg) => (
+            <Machine key={tg} tag={tg} />
+          ))}
+        </Section>
+      )}
+
+      <Section title="Weather">
+        <div className="ops-knob">
+          <span className="small">Wind from</span>
+          <input type="range" min={0} max={359} step={5} value={knobs.wind.from} onChange={(e) => setKnob('wind', { ...knobs.wind, from: Number(e.target.value) })} />
+          <span className="mono small ops-val">{knobs.wind.from}°</span>
+          <span className="muted small ops-val">{['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'][Math.round(knobs.wind.from / 45) % 8]}</span>
+        </div>
+        <div className="ops-knob">
+          <span className="small">Wind speed</span>
+          <input type="range" min={0} max={35} step={0.5} value={knobs.wind.speed} onChange={(e) => setKnob('wind', { ...knobs.wind, speed: Number(e.target.value) })} />
+          <span className="mono small ops-val">{knobs.wind.speed}</span>
+          <span className="muted small ops-val">m/s</span>
+        </div>
+        <div className="ops-knob">
+          <span className="small">Sea state Hs</span>
+          <input type="range" min={0.3} max={8} step={0.1} value={knobs.seaState} onChange={(e) => setKnob('seaState', Number(e.target.value))} />
+          <span className="mono small ops-val">{knobs.seaState.toFixed(1)}</span>
+          <span className="muted small ops-val">m</span>
+        </div>
+        <div className="muted small ops-note">Wind carries gas clouds and vent plumes; crane lifts stop above ~20 m/s (personnel ~13) or Hs ~3 m.</div>
+      </Section>
+
       {has('DR-100') && (
         <Section title="Drilling">
           <label className="check">

@@ -71,7 +71,10 @@ export function EyeProjector({ built }: { built: BuiltPiping }) {
       if (v.current.z > 1 || Math.abs(v.current.x) > 1.05 || Math.abs(v.current.y) > 1.05) continue
       eyes.push({ tag: c.tag, kind: c.kind, d: c.d, x: ((v.current.x + 1) / 2) * size.width, y: ((1 - v.current.y) / 2) * size.height })
     }
-    useEyes.setState({ eyes })
+    // perf: no React re-render when nothing moved (standing still, looking around a static scene)
+    const prev = useEyes.getState().eyes
+    const same = prev.length === eyes.length && prev.every((p, i) => p.tag === eyes[i].tag && Math.abs(p.x - eyes[i].x) < 0.5 && Math.abs(p.y - eyes[i].y) < 0.5 && Math.abs(p.d - eyes[i].d) < 0.05)
+    if (!same) useEyes.setState({ eyes })
   })
   return null
 }

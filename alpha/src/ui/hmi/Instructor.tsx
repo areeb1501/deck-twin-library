@@ -36,13 +36,31 @@ const POINTS: { label: string; tag: string; nozzle?: RegExp; dy?: number }[] = [
   { label: 'WHP-N well bay (XT-N103)', tag: 'XT-N103', dy: 1 },
   { label: 'WHP-N production manifold M-N200', tag: 'M-N200', dy: 1 },
   { label: 'WHP-N desander V-N230', tag: 'V-N230', dy: 1 },
+  { label: 'Oil export pig launcher L-1600 closure', tag: 'L-1600', dy: 1 },
+  // RP — riser & export platform (skipped while the platform is not in the plant)
+  { label: 'RP oil riser topsides ESDV-R101', tag: 'ESDV-R101', dy: 1 },
+  { label: 'RP gas riser topsides ESDV-R201', tag: 'ESDV-R201', dy: 1 },
+  { label: 'RP oil export metering X-R150', tag: 'X-R150', dy: 1 },
+  { label: 'RP gas export metering X-R250', tag: 'X-R250', dy: 1 },
+  { label: 'RP oil pig launcher L-R110', tag: 'L-R110', dy: 1 },
+  { label: 'RP gas pig launcher L-R210', tag: 'L-R210', dy: 1 },
+  // WI — water-injection platform
+  { label: 'WI injection pump P-W310A', tag: 'P-W310A', dy: 0.6 },
+  { label: 'WI injection pump P-W310B', tag: 'P-W310B', dy: 0.6 },
+  { label: 'WI seawater lift pump P-W300A', tag: 'P-W300A', dy: 0.6 },
+  { label: 'WI deaerator V-W320', tag: 'V-W320', dy: 1 },
 ]
 
 function releasePoints(plant: Plant): ReleasePoint[] {
   return POINTS.flatMap((p, i) => {
     const e = plant.equipment.find((x) => x.tag === p.tag)
     const nz = p.nozzle ? e?.nozzles.find((n) => p.nozzle!.test(n.name)) : undefined
-    const base = nz?.pos ?? tagPosition(plant, p.tag)
+    let base: Vec3 | null | undefined = nz?.pos
+    try {
+      base ??= tagPosition(plant, p.tag)
+    } catch {
+      base = null
+    }
     if (!base) return []
     const at: Vec3 = [base[0], base[1] + (p.dy ?? 0), base[2]]
     return [{ id: `rp${i}`, label: p.label, tag: p.tag, at, zone: zoneAt(plant, at)?.id ?? null }]

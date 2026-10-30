@@ -10,6 +10,8 @@ import { walkSurfaces } from '../scene/walkSurfaces'
 
 const W = 230
 const HMAX = 250
+/** the minimap shows at most this many metres around the walker (the field level is ~130 × 240 m) */
+const VIEW = 120
 
 export function WalkHud() {
   const walk = useStore((s) => s.walk)
@@ -69,10 +71,19 @@ function Minimap() {
   }, [])
   const levels = walkLevels(plant)
   const lv = levels[level] ?? levels[0]
-  const minX = Math.min(...lv.areas.map((a) => a.x0))
-  const maxX = Math.max(...lv.areas.map((a) => a.x1))
-  const minZ = Math.min(...lv.areas.map((a) => a.z0))
-  const maxZ = Math.max(...lv.areas.map((a) => a.z1))
+  // window: the whole level when it is small, else a VIEW-metre square following the walker (clamped to the level)
+  const lx0 = Math.min(...lv.areas.map((a) => a.x0))
+  const lx1 = Math.max(...lv.areas.map((a) => a.x1))
+  const lz0 = Math.min(...lv.areas.map((a) => a.z0))
+  const lz1 = Math.max(...lv.areas.map((a) => a.z1))
+  const win = (lo: number, hi: number, c: number) => {
+    const span = Math.min(VIEW, hi - lo)
+    const a = Math.max(lo, Math.min(hi - span, c - span / 2))
+    return [a, a + span]
+  }
+  const [minX, maxX] = win(lx0, lx1, walkPose.x)
+  const [minZ, maxZ] = win(lz0, lz1, walkPose.z)
+  const vis = (r: { x0: number; x1: number; z0: number; z1: number }) => r.x1 > minX && r.x0 < maxX && r.z1 > minZ && r.z0 < maxZ
   const k = Math.min(W / (maxX - minX), HMAX / (maxZ - minZ))
   const w = (maxX - minX) * k
   const h = (maxZ - minZ) * k
@@ -88,25 +99,26 @@ function Minimap() {
         width={w}
         height={h}
         viewBox={`0 0 ${w} ${h}`}
+        style={{ overflow: 'hidden' }}
         onClick={(ev) => {
           const r = (ev.currentTarget as SVGSVGElement).getBoundingClientRect()
           placeWalker(minX + (ev.clientX - r.left) / k, minZ + (ev.clientY - r.top) / k)
         }}
       >
-        {lv.areas.map((a, i) => (
+        {lv.areas.filter(vis).map((a, i) => (
           <rect key={`a${i}`} x={sx(a.x0)} y={sz(a.z0)} width={(a.x1 - a.x0) * k} height={(a.z1 - a.z0) * k} rx={2} className="mm-deck" />
         ))}
         {walkSurfaces(plant)
-          .filter((s) => s.kind !== 'area' && Math.min(s.y0, s.y1) <= lv.y + 0.05 && Math.max(s.y0, s.y1) >= lv.y - 0.05)
+          .filter((s) => s.kind !== 'area' && Math.min(s.y0, s.y1) <= lv.y + 0.05 && Math.max(s.y0, s.y1) >= lv.y - 0.05 && vis(s))
           .map((s, i) => (
             <rect key={`s${i}`} x={sx(s.x0)} y={sz(s.z0)} width={Math.max(1.5, (s.x1 - s.x0) * k)} height={Math.max(1.5, (s.z1 - s.z0) * k)} className="mm-stair" />
           ))}
-        {(lv.obstacles ?? []).map((a, i) => (
+        {(lv.obstacles ?? []).filter(vis).map((a, i) => (
           <rect key={`o${i}`} x={sx(a.x0)} y={sz(a.z0)} width={(a.x1 - a.x0) * k} height={(a.z1 - a.z0) * k} className="mm-obstacle" />
         ))}
         {fps.map((f, i) => {
           const e = plant.equipment[i]
-          if (e.kind === 'proxy' || levelAt(levels, e.position[1]) !== level) return null
+          if (e.kind === 'proxy' || levelAt(levels, e.position[1]) !== level || !vis(f)) return null
           return (
             <rect
               key={e.tag}

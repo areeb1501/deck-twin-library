@@ -1,6 +1,6 @@
 /** Places every equipment model at its position/rotation and tags it for picking. */
 import type { Equipment, PickData } from '../model/types'
-import type { ComponentType } from 'react'
+import { memo, type ComponentType } from 'react'
 import { ErrorBoundary } from '../ui/ErrorBoundary'
 
 // Resolved by name so the scene still renders (with a placeholder) while a model is being built.
@@ -65,7 +65,8 @@ function Model({ eq }: { eq: Equipment }) {
   }
 }
 
-export function EquipmentLayer({ equipment }: { equipment: Equipment[] }) {
+// perf: memo — the plant re-renders on select / hover / layer changes; the equipment list is stable
+export const EquipmentLayer = memo(function EquipmentLayer({ equipment }: { equipment: Equipment[] }) {
   return (
     <group>
       {equipment.map((eq) => (
@@ -82,4 +83,4 @@ export function EquipmentLayer({ equipment }: { equipment: Equipment[] }) {
       ))}
     </group>
   )
-}
+})

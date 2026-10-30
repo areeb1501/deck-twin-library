@@ -26,9 +26,26 @@ export const ALPHA_TOUR: Stop[] = [
     title: 'The Alpha field',
     where: 'Overview',
     say: () =>
-      `Three bridge-linked platforms in 62 m of water: the normally unattended wellhead platform WHP-N to the north, the Alpha drilling & production platform in the middle, and the accommodation platform (LQ) to the south. ` +
+      `Five bridge-linked platforms in 62 m of water: the Alpha drilling & production platform in the middle, the accommodation platform (LQ) to the south, the riser & export platform RP to the west, and to the north the wellhead platform WHP-N with the water-injection platform WI beyond it. ` +
       (r() ? `Right now the field exports ${n0(r()!.oilExport)} bbl/d of oil and ${n1(r()!.gasExport)} MMscfd of gas at ${n1(r()!.efficiency)} % production efficiency.` : ''),
-    fly: { pos: [210, 140, 70], target: [-6, 14, 4], hold: 10 },
+    fly: { pos: [-188, 186, 150], target: [-26, 6, -34], hold: 10 },
+  },
+  {
+    id: 'rp-fly',
+    title: 'Riser & export platform RP',
+    where: 'RP · EL +28, west bridge',
+    say: () =>
+      'Alpha’s stabilised oil and dry gas cross the west bridge to RP. There they are measured to custody-transfer accuracy on the fiscal meters, pass the pig launchers and go down the export risers through the riser ESD valves on the cellar deck. ' +
+      (r() ? `Right now ${n0(r()!.oilExport)} bbl/d of oil and ${n1(r()!.gasExport)} MMscfd of gas leave the field this way. ` : '') +
+      'On an emergency shutdown the riser ESDVs and the subsea isolation valves close, and the blowdown valve vents the riser topsides to the cold vent stack.',
+    fly: { pos: [-48, 50, 18], target: [-84, 28, -14], hold: 10 },
+  },
+  {
+    id: 'wi-fly',
+    title: 'Water-injection platform WI',
+    where: 'WI · EL +28, north of WHP-N',
+    say: 'Forty metres beyond WHP-N, WI lifts seawater with caisson pumps, filters it, strips the oxygen in the vacuum deaerator and pumps it to about 230 bar with two 2.6 MW injection pumps. The water crosses back over the bridge to the injector on WHP-N and holds the reservoir pressure up as the oil is produced.',
+    fly: { pos: [52, 48, -110], target: [11, 29, -142], hold: 10 },
   },
   {
     id: 'subsea',

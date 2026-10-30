@@ -446,6 +446,16 @@ export function extendAlpha(A: AlphaArrays, K: AlphaConsts) {
   IL('PT-9342', 'PT', br2, 0.3, { range: '0–10', unit: 'barg', nominal: 4.5 })
   LTon('LT-9330', 'V-9330', 72)
   LTon('LT-9320', 'T-9320', 64)
+  // atmospheric tank vents (N2): gooseneck to atmosphere — flame arrestor on the diesel tank, insect screen
+  // on the potable-water tank (outlet fittings drawn by scene/env/Vents.tsx)
+  const dvn = face('V-9330', 'N2')
+  L('2"-TV-9331-A1A-N', 'instrumentAir', 'accommodation', 2, [dvn, [dvn[0], 3.6, dvn[2]], [dvn[0] + 0.55, 3.6, dvn[2]], [dvn[0] + 0.55, 3.1, dvn[2]]], eqEnd('V-9330', 'N2'), { offDeck: 'Atmosphere (gooseneck + flame arrestor)' }, {
+    design: { notes: 'Diesel day tank breather vent, flame arrestor at the outlet (EN ISO 16852)' },
+  })
+  const pvn = face('T-9320', 'N2')
+  L('2"-TV-9321-A1A-N', 'instrumentAir', 'accommodation', 2, [pvn, [pvn[0], pvn[1] + 0.85, pvn[2]], [pvn[0], pvn[1] + 0.85, pvn[2] + 0.55], [pvn[0], pvn[1] + 0.4, pvn[2] + 0.55]], eqEnd('T-9320', 'N2'), { offDeck: 'Atmosphere (screened gooseneck)' }, {
+    design: { notes: 'Potable water tank breather vent, stainless insect screen' },
+  })
 
   // ================================================================ POWER GENERATION + ELECTRICAL (weather deck, EL +38)
   const WD = WEATHER_FLOOR

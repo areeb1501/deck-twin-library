@@ -8,7 +8,7 @@
  * open / closed / stuck flags (fx/ValveFlags), and the deluge spray pipes discharge water while their
  * deluge valve is open (fx/DelugeSpray).
  */
-import { useLayoutEffect, useMemo, useRef } from 'react'
+import { memo, useLayoutEffect, useMemo, useRef } from 'react'
 import * as THREE from 'three'
 import type { BuiltPiping, Joint, Support } from './build'
 import { GASKET, SERVICE, flange } from '../../model/catalog'
@@ -30,7 +30,8 @@ const tmpS = new THREE.Vector3()
 const woolMat = registerMaterial(new THREE.MeshStandardMaterial({ color: '#cbb878', roughness: 0.95, metalness: 0, side: THREE.DoubleSide }), 'internal')
 const bandMat = registerMaterial(new THREE.MeshStandardMaterial({ color: '#ffffff', roughness: 0.45, metalness: 0.1 }), 'detail')
 
-export function Piping({ built }: { built: BuiltPiping }) {
+// perf: memo — re-renders only when the built piping (or the layers it reads) change
+export const Piping = memo(function Piping({ built }: { built: BuiltPiping }) {
   const layers = useStore((s) => s.layers)
   const plant = usePlantStore((s) => s.plant)
   return (
@@ -74,7 +75,7 @@ export function Piping({ built }: { built: BuiltPiping }) {
         ))}
     </group>
   )
-}
+})
 
 function LineMesh({ b }: { b: BuiltPiping['lines'][number] }) {
   const m = materials()

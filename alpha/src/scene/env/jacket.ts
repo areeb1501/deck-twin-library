@@ -12,6 +12,7 @@ import { DECK } from '../structure/deckConst'
 import { DECK_WORLD_Y } from '../../state/store'
 import { lqFoamPoints } from './lqJacket'
 import { whpFoamPoints } from './whpJacket'
+import { rpFoamPoints, wiFoamPoints } from './satJacket'
 
 export const JACKET = {
   /** elevation where the legs change from vertical to battered */
@@ -70,6 +71,8 @@ export function foamPoints(): [number, number, number][] {
   out.push(...lqFoamPoints())
   // WHP-N legs + boat-landing piles
   out.push(...whpFoamPoints())
+  // RP legs, landing piles + export risers; WI legs, landing piles + lift-pump caissons
+  out.push(...rpFoamPoints(), ...wiFoamPoints())
   return out
 }
 

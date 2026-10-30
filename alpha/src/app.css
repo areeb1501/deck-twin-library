@@ -447,3 +447,32 @@
 .tour-ctl > button:disabled { opacity: 0.4; cursor: default; }
 .tour-ctl .tour-play { min-width: 92px; background: #f2f3f4; color: #111; font-weight: 600; }
 .tour-rate { margin-left: auto; }
+
+/* ---------------------------------------------------------------- collapsible side panels */
+.app.left-off .panel.left { display: none; }
+.app.right-off .panel.inspector { display: none; }
+.app.left-off .legend, .app.left-off .minimap { left: 12px; }
+@media (max-width: 1360px) { .app.left-off .toolbar { left: 50%; transform: translateX(-50%); } }
+.app.left-off .alarm-banner, .app.right-off .alarm-banner { width: min(860px, calc(100vw - 420px)); }
+.panel-handle {
+  position: absolute; z-index: 12; top: 50%; transform: translateY(-50%);
+  display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 10px 3px;
+  background: var(--ui-bg); backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px);
+  border: 1px solid var(--ui-line); color: #cfd3d6; cursor: pointer;
+  box-shadow: 0 6px 24px rgba(0,0,0,0.3); transition: background .12s, color .12s;
+}
+.panel-handle:hover { background: var(--ui-hover); color: var(--ui-fg); }
+.panel-handle .chev { font-size: 15px; line-height: 1; }
+.panel-handle .handle-label { writing-mode: vertical-rl; font-size: 11px; letter-spacing: .04em; max-height: 160px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.panel-handle.left { border-radius: 0 7px 7px 0; border-left: 0; }
+.panel-handle.left.open { left: 312px; }
+.panel-handle.left.closed { left: 0; }
+.app.building .panel-handle.left.open { left: 392px; }
+.panel-handle.right { border-radius: 7px 0 0 7px; border-right: 0; }
+.panel-handle.right.open { right: 372px; }
+.panel-handle.right.closed { right: 0; }
+.pop-head { font-size: 10.5px; text-transform: uppercase; letter-spacing: .07em; color: var(--ui-muted); font-weight: 600; padding: 4px 4px 2px; }
+.pop.views { left: 90px; max-height: calc(100vh - 90px); overflow: auto; }
+.pop.views .quick { padding: 0 4px 4px; }
+/* menus drop over the alarm banner */
+.toolbar { z-index: 13; }

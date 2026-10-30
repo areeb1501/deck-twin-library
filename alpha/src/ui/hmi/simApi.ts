@@ -81,4 +81,4 @@ export function causeEffect(): CauseEffectRow[] {
 export const fmt = (v: number | undefined | null, d = 0) =>
   typeof v === 'number' && Number.isFinite(v) ? v.toLocaleString(undefined, { maximumFractionDigits: d, minimumFractionDigits: d }) : '—'
 
-export const PLATFORMS: PlatformId[] = ['Alpha', 'WHP-N', 'LQ']
+export const PLATFORMS: PlatformId[] = ['Alpha', 'WHP-N', 'RP', 'WI', 'LQ']

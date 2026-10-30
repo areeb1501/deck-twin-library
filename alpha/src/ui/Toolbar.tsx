@@ -13,9 +13,11 @@ const PRESETS: [CameraPreset, string][] = [
 ]
 /** more views, in the Views menu */
 const MORE: [CameraPreset, string][] = [
-  ['field', 'Field — WHP-N, Alpha & LQ'],
+  ['field', 'Field — WI, WHP-N, RP, Alpha & LQ'],
   ['whp', 'Wellhead platform (WHP-N)'],
   ['bridgeN', 'North bridge'],
+  ['rp', 'Riser platform (RP)'],
+  ['wi', 'Water-injection platform (WI)'],
   ['rig', 'Drilling rig'],
   ['wellbay', 'Well bay (cellar deck)'],
   ['rack', 'Pipe rack'],
@@ -60,52 +62,52 @@ export function Toolbar() {
 
   return (
     <div className="toolbar">
-      {tourable && (
-        <div className="seg">
-          <button className={`tour-btn ${touring ? 'on' : ''}`} onClick={(e) => (e.currentTarget.blur(), touring ? exitTour() : (setMenu(null), startTour(ALPHA_TOUR)))} title="One-click guided tour of the whole field: fly-overs and a walk through every deck, with live data">
-            {touring ? 'End tour' : '▶ Guided tour'}
-          </button>
-        </div>
-      )}
-      <div className="seg">
+      {/* explore: move around the field */}
+      <div className="seg" role="group" aria-label="Explore">
         <button className={walk ? 'on' : ''} onClick={() => setWalk(!walk)} title="Walk through the deck with the arrow keys and inspect what you look at (G)">
           {walk ? 'Exit walk' : 'Walk'}
         </button>
-        <button className={menu === 'decks' ? 'on' : ''} onClick={() => setMenu(menu === 'decks' ? null : 'decks')} title="Go to a deck: drill floor, weather, production, cellar, seabed, LQ">
+        <button className={menu === 'decks' ? 'on' : ''} onClick={() => setMenu(menu === 'decks' ? null : 'decks')} title="Go to a deck on any platform">
           Decks ▾
         </button>
-      </div>
-      <div className="seg">
-        <button onClick={(e) => (e.currentTarget.blur(), setMenu(null), setHmi('overview'))} title="Open the control-room DCS console: live process, alarms, shutdowns, F&G, trends, machines and the instructor station" data-hmi-open>
-          Control room
-        </button>
-      </div>
-      <div className="seg">
-        {PRESETS.map(([k, label]) => (
-          <button key={k} onClick={() => preset(k)}>
-            {label}
-          </button>
-        ))}
-        <button className={menu === 'views' ? 'on' : ''} onClick={() => setMenu(menu === 'views' ? null : 'views')}>
+        <button className={menu === 'views' ? 'on' : ''} onClick={() => setMenu(menu === 'views' ? null : 'views')} title="Camera views: platform, deck, plan, each platform, key equipment">
           Views ▾
         </button>
       </div>
-      <div className="seg">
-        <button className={viewMode === 'shaded' ? 'on' : ''} onClick={() => setViewMode('shaded')} title="Shaded (S)">
-          Shaded
-        </button>
-        <button className={viewMode === 'xray' ? 'on' : ''} onClick={() => setViewMode('xray')} title="X-ray: see through shells, flow inside (X)">
+      {/* display: how the plant is drawn */}
+      <div className="seg" role="group" aria-label="Display">
+        <button className={viewMode === 'xray' ? 'on' : ''} onClick={() => setViewMode(viewMode === 'xray' ? 'shaded' : 'xray')} title="X-ray: see through shells, live flow inside (X)">
           X-ray
         </button>
-        <button className={section.enabled ? 'on' : ''} onClick={() => setMenu(menu === 'section' ? null : 'section')} title="Section box (C)">
+        <button className={section.enabled || menu === 'section' ? 'on' : ''} onClick={() => setMenu(menu === 'section' ? null : 'section')} title="Section box (C)">
           Section
         </button>
-        <button className={menu === 'layers' ? 'on' : ''} onClick={() => setMenu(menu === 'layers' ? null : 'layers')}>
-          Layers
+        <button className={menu === 'layers' ? 'on' : ''} onClick={() => setMenu(menu === 'layers' ? null : 'layers')} title="Layers: equipment, piping, structure, sea, labels, flow, F&G coverage and mapping">
+          Layers ▾
         </button>
+      </div>
+      {/* operate: run the plant */}
+      <div className="seg" role="group" aria-label="Operate">
+        <button onClick={(e) => (e.currentTarget.blur(), setMenu(null), setHmi('overview'))} title="Open the control-room DCS console: live process, alarms, shutdowns, F&G, maintenance, trends, instructor and scenarios" data-hmi-open>
+          Control room
+        </button>
+        {tourable && (
+          <button className={`tour-btn ${touring ? 'on' : ''}`} onClick={(e) => (e.currentTarget.blur(), touring ? exitTour() : (setMenu(null), startTour(ALPHA_TOUR)))} title="One-click guided tour of the whole field: fly-overs and a walk through every deck, with live data">
+            {touring ? 'End tour' : '▶ Tour'}
+          </button>
+        )}
       </div>
       {menu === 'views' && (
         <div className="pop views">
+          <div className="pop-head">Quick views</div>
+          <div className="quick">
+            {PRESETS.map(([k, label]) => (
+              <button key={k} onClick={() => (preset(k), setMenu(null))}>
+                {label}
+              </button>
+            ))}
+          </div>
+          <div className="pop-head">Places</div>
           {MORE.map(([k, label]) => (
             <button key={k} className="pop-item" onClick={() => (preset(k), setMenu(null))}>
               {label}

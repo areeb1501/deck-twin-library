@@ -41,6 +41,9 @@ import { GASKET, pipeOD } from './catalog'
 import { psvGeometry } from '../scene/equipment/Valve'
 import { extendAlpha } from './alphaSite'
 import { extendWHP } from './whpSite'
+import { extendRP } from './rpSite'
+import { extendWI } from './wiSite'
+import { extendCranes } from './cranes'
 import { ALPHA_WALK } from './site'
 
 // ---------------------------------------------------------------- pipe rack
@@ -900,6 +903,11 @@ export const instruments: Instrument[] = [
 // wells, utilities, produced water, gas treatment, the LQ platform and fire & gas (model/alphaSite.ts)
 extendAlpha({ equipment, lines, valves, instruments }, { FLARE_Y, FLARE_Z, OVER, CELLAR, onTier, flareHeader: L_FLARE, manifold: 'M-1000' })
 extendWHP({ equipment, lines, valves, instruments }, { flareHeader: L_FLARE, firewaterRing: '8"-FW-9001-F1A-N', CELLAR })
+// riser & export platform (west bridge) and water-injection platform (north of WHP-N): model/rpSite.ts, model/wiSite.ts
+extendRP({ equipment, lines, valves, instruments })
+extendWI({ equipment, lines, valves, instruments })
+// cranes and cold vent stacks on every platform (after the platforms, so their decks exist)
+extendCranes({ equipment, lines, valves, instruments })
 
 export const plant: Plant = {
   name: 'Alpha Platform',
