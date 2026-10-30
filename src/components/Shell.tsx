@@ -486,6 +486,13 @@ function SearchDialog() {
       if (e.key === 'Escape') setOpen(false)
     }
     const show = () => setOpen(true)
+    // a link from outside the app: /?search=1 opens the dialog
+    const url = new URL(location.href)
+    if (url.searchParams.has('search')) {
+      setOpen(true)
+      url.searchParams.delete('search')
+      history.replaceState(null, '', url)
+    }
     window.addEventListener('keydown', on)
     window.addEventListener(OPEN_SEARCH, show)
     return () => (window.removeEventListener('keydown', on), window.removeEventListener(OPEN_SEARCH, show))

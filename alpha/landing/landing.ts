@@ -50,6 +50,28 @@ for (const img of document.querySelectorAll<HTMLImageElement>('img[data-still]')
   img.src = `${MEDIA}/${img.dataset.still}.webp`
 }
 
+// the site's search needs the whole component index, so it stays there: the button and the shortcut both go to it
+const mac = /mac|iphone|ipad|ipod/i.test(navigator.platform || navigator.userAgent)
+if (mac) document.querySelector('[data-mod]')!.textContent = '⌘'
+addEventListener('keydown', (e) => {
+  if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+    e.preventDefault()
+    location.href = '/?search=1'
+  }
+})
+
+const menuBtn = document.querySelector<HTMLButtonElement>('.top-menu-btn')!
+const menu = document.querySelector<HTMLElement>('.top-menu')!
+const setMenu = (open: boolean) => {
+  menu.hidden = !open
+  menuBtn.setAttribute('aria-expanded', String(open))
+  menuBtn.closest('.top')!.classList.toggle('menu-open', open)
+}
+menuBtn.addEventListener('click', () => setMenu(!!menu.hidden))
+addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') setMenu(false)
+})
+
 const top = document.querySelector('.top')
 const hero = document.querySelector('.hero')
 if (top && hero) new IntersectionObserver(([e]) => top.classList.toggle('solid', !e.isIntersecting), { rootMargin: '-64px 0px 0px 0px' }).observe(hero)
