@@ -135,7 +135,7 @@ export function Segmented<T extends string>({ value, onChange, label, options }:
 
 export function Toolbar({ children, shown, total, onReset }: { children: ReactNode; shown: number; total: number; onReset?: () => void }) {
   return (
-    <div className="z-20 -mx-6 border-y border-border bg-bg/75 px-6 py-3 backdrop-blur-xl sm:sticky sm:top-14 lg:-mx-10 lg:px-10">
+    <div className="z-20 -mx-6 border-y border-border bg-bg px-6 py-3 sm:sticky sm:top-[var(--header-h,0px)] lg:-mx-10 lg:px-10">
       <div className="flex flex-wrap items-center gap-2.5">
         {children}
         {onReset && (

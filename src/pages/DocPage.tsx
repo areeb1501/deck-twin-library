@@ -1,12 +1,25 @@
-import { useEffect, useMemo, useState } from 'react'
+// Docs page: markdown bundled with the entry chunk and parsed in one pass, with copy / view as markdown and an "On this page" rail.
+import { lazy, Suspense, useEffect, useMemo, useRef, useState, type RefObject } from 'react'
 import { Link, useLocation } from 'wouter'
-import { marked } from 'marked'
+import { marked, type Tokens } from 'marked'
 import { highlight } from 'sugar-high'
-import { DOCS, loadDoc } from './docs'
-import { NotFound } from './NotFound'
+import { DOCS, docSource } from './docs'
+
+const NotFound = lazy(() => import('./NotFound').then((m) => ({ default: m.NotFound })))
+
+let seen = new Map<string, number>()
+const slug = (text: string) => {
+  const base = text.toLowerCase().replace(/<[^>]+>|`/g, '').replace(/&[a-z]+;/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'section'
+  const n = seen.get(base) ?? 0
+  seen.set(base, n + 1)
+  return n ? `${base}-${n}` : base
+}
 
 marked.use({
   renderer: {
+    heading({ tokens, depth, text }) {
+      return `<h${depth} id="${slug(text)}">${this.parser.parseInline(tokens)}</h${depth}>`
+    },
     code({ text, lang }) {
       const body = lang === 'tsx' || lang === 'ts' || lang === 'json' || lang === 'jsx' ? highlight(text) : text.replace(/&/g, '&amp;').replace(/</g, '&lt;')
       return `<pre><code>${body}</code></pre>`
@@ -20,46 +33,151 @@ marked.use({
   },
 })
 
+function render(md: string) {
+  seen = new Map()
+  const toc = marked
+    .lexer(md)
+    .filter((t): t is Tokens.Heading => t.type === 'heading')
+    .map((h) => ({ depth: h.depth, text: h.text.replace(/`/g, ''), id: slug(h.text) }))
+    .filter((h) => h.depth === 2 || h.depth === 3)
+  seen = new Map()
+  // the page title sits in its own row beside the markdown buttons, so it is lifted out of the body
+  const h1 = /^# (.+)\n/.exec(md)
+  return { title: h1 ? (marked.parseInline(h1[1]) as string) : '', html: marked.parse(h1 ? md.slice(h1[0].length) : md) as string, toc }
+}
+
 export function DocPage({ slug }: { slug: string }) {
-  if (!DOCS.some((d) => d.slug === slug)) return <NotFound what="doc" />
+  if (!DOCS.some((d) => d.slug === slug))
+    return (
+      <Suspense fallback={<div className="min-h-[70vh]" />}>
+        <NotFound what="doc" />
+      </Suspense>
+    )
   return <Doc slug={slug} />
 }
 
 function Doc({ slug }: { slug: string }) {
-  const [md, setMd] = useState('')
+  const md = docSource(slug)
+  const { title, html, toc } = useMemo(() => render(md), [md])
   const [, go] = useLocation()
-  useEffect(() => {
-    loadDoc(slug).then(setMd)
-  }, [slug])
-  const html = useMemo(() => marked.parse(md) as string, [md])
+  const article = useRef<HTMLElement>(null)
+  const active = useActiveHeading(article, html)
   const i = DOCS.findIndex((d) => d.slug === slug)
   return (
-    <div className="mx-auto max-w-3xl px-6 py-12 lg:px-10">
-      <article
-        className="prose-docs"
-        dangerouslySetInnerHTML={{ __html: html }}
-        onClick={(e) => {
-          const a = (e.target as HTMLElement).closest('a')
-          const href = a?.getAttribute('href')
-          if (href?.startsWith('/') && !href.startsWith('/r/') && !href.endsWith('.txt') && !href.endsWith('.md') && !href.endsWith('.json')) {
-            e.preventDefault()
-            go(href)
-          }
-        }}
-      />
-      <div className="mt-16 grid gap-4 border-t border-border pt-8 sm:grid-cols-2">
-        {i > 0 ? <Pager href={`/docs/${DOCS[i - 1].slug}`} hint="Previous" title={DOCS[i - 1].title} /> : <span />}
-        {i >= 0 && i < DOCS.length - 1 ? <Pager href={`/docs/${DOCS[i + 1].slug}`} hint="Next" title={DOCS[i + 1].title} right /> : <span />}
+    <div className="mx-auto flex max-w-[1180px] gap-12 px-6 pt-10 pb-16 lg:px-12 lg:pt-16">
+      <div className="min-w-0 flex-1">
+        <div className="mx-auto max-w-[760px]">
+          <div className="mb-4 flex flex-wrap items-center justify-between gap-x-6 gap-y-3">
+            <h1 className="text-[36px] leading-tight font-semibold tracking-[-0.035em] text-ink" dangerouslySetInnerHTML={{ __html: title }} />
+            <div className="flex shrink-0 gap-2">
+              <CopyMarkdown md={md} />
+              <ViewMarkdown slug={slug} />
+            </div>
+          </div>
+          <article
+            ref={article}
+            className="prose-docs"
+            dangerouslySetInnerHTML={{ __html: html }}
+            onClick={(e) => {
+              const a = (e.target as HTMLElement).closest('a')
+              const href = a?.getAttribute('href')
+              if (href?.startsWith('/') && !href.startsWith('/r/') && !href.endsWith('.txt') && !href.endsWith('.md') && !href.endsWith('.json')) {
+                e.preventDefault()
+                go(href)
+              }
+            }}
+          />
+          <div className="mt-16 grid gap-3 border-t border-border pt-8 sm:grid-cols-2">
+            {i > 0 ? <Pager href={`/docs/${DOCS[i - 1].slug}`} hint="Previous" title={DOCS[i - 1].title} /> : <span />}
+            {i >= 0 && i < DOCS.length - 1 ? <Pager href={`/docs/${DOCS[i + 1].slug}`} hint="Next" title={DOCS[i + 1].title} right /> : <span />}
+          </div>
+        </div>
       </div>
+      {toc.length > 1 && (
+        <nav aria-label="On this page" className="sticky top-[var(--header-h,0px)] hidden h-fit max-h-[calc(100vh-var(--header-h,0px))] w-52 shrink-0 overflow-y-auto pt-4 pb-10 xl:block">
+          <div className="mb-3 text-[13px] font-semibold text-ink">On this page</div>
+          <ul className="space-y-0.5 border-l border-border">
+            {toc.map((h) => (
+              <li key={h.id}>
+                <a
+                  href={`#${h.id}`}
+                  onClick={(e) => {
+                    e.preventDefault()
+                    document.getElementById(h.id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+                    history.replaceState(history.state, '', `#${h.id}`)
+                  }}
+                  className={`-ml-px block border-l py-1 text-[13px] leading-5 transition-colors ${h.depth === 3 ? 'pl-6' : 'pl-3'} ${active === h.id ? 'border-brand font-medium text-ink' : 'border-transparent text-muted-fg hover:text-ink'}`}
+                >
+                  {h.text}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </nav>
+      )}
     </div>
+  )
+}
+
+/** The h2 / h3 nearest the top of the viewport, for the rail's highlight. */
+function useActiveHeading(article: RefObject<HTMLElement | null>, html: string) {
+  const [active, setActive] = useState('')
+  useEffect(() => {
+    const heads = [...(article.current?.querySelectorAll<HTMLElement>('h2[id], h3[id]') ?? [])]
+    if (!heads.length) return
+    setActive(heads[0].id)
+    const io = new IntersectionObserver(
+      (entries) => {
+        const top = entries.filter((e) => e.isIntersecting).sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top)[0]
+        if (top) setActive((top.target as HTMLElement).id)
+      },
+      { rootMargin: '-64px 0px -70% 0px' },
+    )
+    heads.forEach((h) => io.observe(h))
+    return () => io.disconnect()
+  }, [article, html])
+  return active
+}
+
+const pill = 'h-8 shrink-0 items-center whitespace-nowrap gap-1.5 rounded-md border border-border px-2.5 text-[12.5px] font-medium text-fg-3 transition-colors hover:border-line-strong hover:text-ink'
+
+function CopyMarkdown({ md }: { md: string }) {
+  const [done, setDone] = useState(false)
+  return (
+    <button
+      className={`${pill} inline-flex`}
+      onClick={() =>
+        navigator.clipboard.writeText(md).then(() => {
+          setDone(true)
+          setTimeout(() => setDone(false), 1400)
+        })
+      }
+    >
+      <svg viewBox="0 0 16 16" className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" aria-hidden>
+        {done ? <path d="m3.5 8.5 3 3 6-7" strokeLinecap="round" /> : <><rect x="5.5" y="5.5" width="8" height="8" rx="1.5" /><path d="M10.5 5.5v-2a1 1 0 0 0-1-1h-6a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1h2" /></>}
+      </svg>
+      {done ? 'Copied' : 'Copy as Markdown'}
+    </button>
+  )
+}
+
+function ViewMarkdown({ slug }: { slug: string }) {
+  return (
+    <a href={`/docs/${slug}.md`} target="_blank" rel="noopener" className={`${pill} hidden sm:inline-flex`}>
+      <svg viewBox="0 0 16 16" className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+        <rect x="1.5" y="3.5" width="13" height="9" rx="1.5" />
+        <path d="M4 10V6l1.75 2L7.5 6v4M10.5 6v4M9 8.5l1.5 1.5L12 8.5" />
+      </svg>
+      View as Markdown
+    </a>
   )
 }
 
 function Pager({ href, hint, title, right }: { href: string; hint: string; title: string; right?: boolean }) {
   return (
-    <Link href={href} className={`group rounded-lg border border-border px-4 py-3 light:bg-surface transition-colors hover:border-line-strong hover:bg-muted ${right ? 'text-right' : ''}`}>
+    <Link href={href} className={`group rounded-lg border border-border px-4 py-3 transition-colors hover:border-line-strong ${right ? 'text-right' : ''}`}>
       <div className="text-[12.5px] text-muted-fg">{hint}</div>
-      <div className="mt-0.5 text-[15px] font-semibold text-ink group-hover:text-ink">{title}</div>
+      <div className="mt-0.5 text-[15px] font-semibold text-ink">{title}</div>
     </Link>
   )
 }

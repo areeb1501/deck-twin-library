@@ -10,6 +10,6 @@ export const DOCS = [
   { slug: 'research', title: 'Research notes' },
 ] as const
 
-const files = import.meta.glob<string>('../../docs/*.md', { query: '?raw', import: 'default' })
+const files = import.meta.glob<string>('../../docs/*.md', { query: '?raw', import: 'default', eager: true })
 
-export const loadDoc = (slug: string) => files[`../../docs/${slug}.md`]?.() ?? Promise.resolve(`# Not found\n\nNo page called “${slug}”.`)
+export const docSource = (slug: string) => files[`../../docs/${slug}.md`] ?? ''

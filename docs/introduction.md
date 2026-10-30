@@ -1,6 +1,8 @@
 # Introduction
 
-Deck Twin is a library of 3D components for oil and gas digital twins, built with three.js and React Three Fiber. It covers separators, columns, pumps, compressors, gas turbines, valves, piping, instruments, fire and gas devices, decks, pipe racks, jackets, cranes and process packages. Each component sits on a webpage with a live preview, and you install it into your project with one command.
+Deck Twin is a library of 3D components for oil and gas digital twins, built with three.js and React Three Fiber. Use it to turn the data you already have (P&IDs, datasheets, drawings, dimensions) into a 3D model of your plant, then link that model to your own data.
+
+It covers separators, columns, pumps, compressors, gas turbines, valves, piping, instruments, fire and gas devices, decks, pipe racks, jackets, cranes and process packages. Each component has a page with a live preview, and one command installs it into your project.
 
 It works like shadcn/ui, but for plant equipment:
 
@@ -28,10 +30,6 @@ All dimensions are in metres. The shell wall comes from ASME VIII-1 UG-27 at 40 
 - **Not vendor CAD.** The geometry is generic and representative, sized from public standards. Manufacturer names on component pages tell you who supplies that type of equipment. They do not mean the model matches their product.
 - **Not a substitute for engineering.** The standards tables are reference values. Check them against the current edition before you use them for anything that matters.
 - **Not a simulator.** Components render geometry and expose a few visual states such as valve travel, crane slew and running fans. Driving them from live or simulated data is up to your app.
-
-## Relation to NVIDIA SimReady
-
-NVIDIA's SimReady assets are OpenUSD models with physics, joints and semantics, aimed at Omniverse and Isaac simulation. They served as inspiration here. Deck Twin is a different thing: parametric, code-first web components for browser twins. It does not include or convert SimReady assets.
 
 ## Next
 

@@ -77,7 +77,7 @@ function Detail({ item }: { item: Item }) {
                 </Viewer>
               )}
               {bounds && (
-                <div className="dark-zone pointer-events-none absolute bottom-3 left-3 rounded-md bg-black/70 backdrop-blur px-2.5 py-1.5 font-mono text-[11.5px] text-white shadow-sm">
+                <div className="dark-zone pointer-events-none absolute bottom-3 left-3 rounded-md bg-black/75 px-2.5 py-1.5 font-mono text-[11.5px] text-white shadow-sm">
                   {bounds.size[0].toFixed(2)} × {bounds.size[2].toFixed(2)} × {bounds.size[1].toFixed(2)} m <span className="text-fg-3">L × W × H</span>
                 </div>
               )}

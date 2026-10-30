@@ -189,7 +189,7 @@ const llms = [
   '> Standards-based three.js / React Three Fiber components for oil & gas digital twins: vessels, pumps, compressors, valves, piping, instruments, structures, cranes and packages. Each component is one file with typed props in metres, defaults sized from ASME/API/TEMA/IEC/ISO tables, and ports (flange faces) for wiring pipe. A plant is assembled from a plant.json.',
   '',
   '## Docs',
-  ...['introduction', 'installation', 'cli', 'assemble', 'agents', 'conventions', 'standards', 'contributing'].map((s) => `- [${s}](${SITE}/docs/${s})`),
+  ...['introduction', 'installation', 'cli', 'assemble', 'agents', 'conventions', 'standards', 'contributing'].map((s) => `- [${s}](${SITE}/docs/${s}.md)`),
   '',
   '## Machine-readable',
   `- [index.json](${SITE}/r/index.json): every component with params, ranges, defaults, ports and bounds`,
@@ -203,6 +203,11 @@ const llms = [
   }),
 ].join('\n')
 writeFileSync(join(root, 'public/llms.txt'), llms)
+
+// Raw docs: /docs/<slug>.md, the target of each page's "View as Markdown"
+rmSync(join(root, 'public/docs'), { recursive: true, force: true })
+mkdirSync(join(root, 'public/docs'), { recursive: true })
+for (const f of readdirSync(join(root, 'docs')).filter((x) => x.endsWith('.md'))) cpSync(join(root, 'docs', f), join(root, 'public/docs', f))
 
 // Sitemap and robots: every page route the site renders, from the same sources the router reads
 const pages = [

@@ -47,8 +47,11 @@ export function Home() {
             <h1 className="text-[42px] leading-[1.04] font-semibold tracking-[-0.04em] text-balance sm:text-[72px]">
               <span className="head-grad">3D components for</span> <span className="hero-ink">oil &amp; gas digital twins</span>
             </h1>
-            <p className="mx-auto mt-6 max-w-2xl text-[17px] leading-7 text-pretty text-fg-3 sm:text-[18px] sm:leading-8">
-              An open-source library of 3D oil &amp; gas equipment for three.js, each part sized to its engineering standard. Use the parts in your own project, or let your AI agent build whole plants from your P&amp;IDs.
+            <p className="mx-auto mt-6 max-w-[620px] text-[18px] leading-8 font-medium text-balance text-fg-2 sm:text-[20px] sm:leading-[1.6]">
+              Turn the data you already have into a 3D model of your plant, then link the model back to that data.
+            </p>
+            <p className="mx-auto mt-3 max-w-[600px] text-[15.5px] leading-7 text-pretty text-fg-3 sm:text-[16.5px]">
+              Start from P&amp;IDs, datasheets, plant drawings, dimensions or design discussions. Every part is open-source three.js code you can customise, and our Alpha offshore platform is built from the same parts.
             </p>
             <div className="mt-9 flex flex-wrap justify-center gap-3">
               <Link href="/components" className="inline-flex h-11 items-center rounded-full bg-ink px-6 text-[15px] font-medium text-on-ink shadow-sm transition-[transform,background-color] duration-150 hover:bg-ink-2 active:scale-[0.97]">
@@ -60,7 +63,7 @@ export function Home() {
             </div>
             <AgentLine className="mx-auto mt-7 max-w-[720px]" />
           </div>
-          <div className="relative mx-auto mt-14 max-w-[1240px] overflow-hidden rounded-2xl border border-border glass shadow-[0_40px_100px_-30px_rgb(59_70_207/0.55)] light:shadow-[0_40px_100px_-40px_rgb(59_70_207/0.35)] sm:mt-16">
+          <div className="relative mx-auto mt-14 max-w-[1240px] overflow-hidden rounded-2xl border border-border bg-panel shadow-[0_40px_100px_-30px_rgb(59_70_207/0.55)] light:shadow-[0_40px_100px_-40px_rgb(59_70_207/0.35)] sm:mt-16">
             <div className="flex items-center gap-3 border-b border-border px-4 py-2.5">
               <span className="h-2 w-2 rounded-full bg-signal" />
               <span className="truncate text-[13px] font-semibold text-ink">{hero?.spec.name}</span>

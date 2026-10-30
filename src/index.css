@@ -49,13 +49,13 @@
   --bg: #0e0f13;
   --fg: #ececef;
   --fg-2: #d4d4d8;
-  --fg-3: #a1a1aa;
+  --fg-3: #b4b4bd;
   --faint: #52525b;
   --ink: #f5f5f7;
   --ink-2: #d6d6dc;
   --on-ink: #0e0f13;
   --muted: rgb(255 255 255 / 0.045);
-  --muted-fg: #8f8f9a;
+  --muted-fg: #9c9ca7;
   --border: rgb(255 255 255 / 0.08);
   --line-strong: rgb(255 255 255 / 0.2);
   --hover: rgb(255 255 255 / 0.08);
@@ -100,13 +100,13 @@ html.light {
   --bg: #f7f7f9;
   --fg: #26272e;
   --fg-2: #3b3c45;
-  --fg-3: #5c5d68;
+  --fg-3: #4d4e59;
   --faint: #b3b4bd;
   --ink: #0f1015;
   --ink-2: #2b2c34;
   --on-ink: #ffffff;
   --muted: rgb(16 18 27 / 0.035);
-  --muted-fg: #6c6d78;
+  --muted-fg: #61626d;
   --border: rgb(16 18 27 / 0.09);
   --line-strong: rgb(16 18 27 / 0.2);
   --hover: rgb(16 18 27 / 0.055);
@@ -212,21 +212,23 @@ h3 {
 }
 
 .prose-docs {
-  @apply text-[15.5px] leading-7 text-fg-2;
+  @apply text-[16.5px] leading-[1.75] text-fg-2;
 }
 .prose-docs h1 {
-  @apply text-[34px] leading-tight font-semibold mb-3;
+  @apply text-[36px] leading-tight font-semibold text-ink mb-4;
   letter-spacing: -0.035em;
-  background: var(--head-grad);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
 }
 .prose-docs h2 {
-  @apply text-[22px] font-semibold text-fg mt-12 mb-3 pb-2 border-b border-border;
+  @apply text-[23px] font-semibold text-ink mt-14 mb-3;
+}
+.prose-docs :is(h2, h3) {
+  scroll-margin-top: calc(var(--header-h, 0px) + 24px);
+}
+.prose-docs > :first-child {
+  margin-top: 1.5rem;
 }
 .prose-docs h3 {
-  @apply text-[17px] font-semibold text-fg mt-8 mb-2;
+  @apply text-[17px] font-semibold text-ink mt-9 mb-2;
 }
 .prose-docs p {
   @apply my-3.5;
