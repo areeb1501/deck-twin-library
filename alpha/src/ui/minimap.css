@@ -1,0 +1,59 @@
+/* walk-mode minimap: pan / zoom, landmarks (CCR), Go to search — extends .minimap / .mm-* in app.css */
+.minimap.mm2 { width: auto; }
+.mm-map { position: relative; }
+.minimap.mm2 svg { cursor: crosshair; touch-action: none; user-select: none; border-radius: 6px; background: rgba(0,0,0,0.18); }
+.minimap.mm2 svg.dragging { cursor: grabbing; }
+.minimap.mm2 .mm-eq { cursor: pointer; }
+.minimap.mm2 .mm-eq:hover { fill: #8ec5ff; }
+.mm-walker { pointer-events: none; }
+
+/* landmarks */
+.mm-lm { cursor: pointer; }
+.mm-lm text { font: 600 10px/1 var(--mono, ui-monospace, monospace); fill: #e8ecef; paint-order: stroke; stroke: rgba(0,0,0,0.75); stroke-width: 3px; }
+.mm-lm .mm-hit { fill: transparent; }
+.mm-lm.other { opacity: 0.6; }
+.mm-room { fill: rgba(90,169,255,0.18); stroke: #9fb4c8; stroke-width: 1.5; }
+.mm-lm.ccr .mm-room { fill: rgba(64,224,255,0.32); stroke: #40e0ff; stroke-width: 2; }
+.mm-lm.ccr text { fill: #7ff0ff; font-size: 11px; }
+.mm-lm:hover .mm-room { fill: rgba(64,224,255,0.5); }
+.mm-pulse { fill: none; stroke: #40e0ff; stroke-width: 2; transform-box: fill-box; transform-origin: center; animation: mm-pulse 1.6s ease-out infinite; pointer-events: none; }
+@keyframes mm-pulse { from { transform: scale(0.8); opacity: 0.9; } to { transform: scale(2.6); opacity: 0; } }
+.mm-boat { fill: #ff6512; stroke: #fff; stroke-width: 0.8; }
+.mm-lm.boat:hover .mm-boat { fill: #ffa070; }
+.mm-heli { fill: rgba(255,255,255,0.03); stroke: rgba(184,240,200,0.6); stroke-width: 1.2; stroke-dasharray: 3 2; }
+.mm-lm.heli text.mm-heli-h { fill: rgba(184,240,200,0.9); font-size: 11px; }
+.mm-lm.heli:hover .mm-heli { stroke: #b8f0c8; fill: rgba(184,240,200,0.08); }
+.mm-arrow path { fill: #9fb4c8; stroke: rgba(0,0,0,0.6); stroke-width: 1; }
+.mm-arrow.ccr path { fill: #40e0ff; }
+.mm-arrow:hover path { fill: #fff; }
+
+/* map buttons */
+.mm-tools { position: absolute; top: 6px; right: 6px; display: flex; flex-direction: column; gap: 3px; }
+.mm-tools button, .mm-recentre {
+  font: inherit; font-size: 12px; line-height: 1; min-width: 24px; height: 22px; padding: 0 6px; cursor: pointer;
+  color: #e8ecef; background: rgba(20,22,24,0.82); border: 1px solid var(--ui-line); border-radius: 5px;
+}
+.mm-tools button:hover, .mm-recentre:hover { background: rgba(60,64,68,0.9); }
+.mm-tools .mm-ccr-btn { color: #7ff0ff; border-color: rgba(64,224,255,0.55); font-weight: 600; font-size: 10.5px; }
+.mm-recentre { position: absolute; left: 6px; top: 6px; color: #8ec5ff; }
+.mm-foot { max-width: 300px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.minimap.mm2.big .mm-foot { max-width: 520px; }
+
+/* Go to search */
+.mm-goto { position: relative; }
+.mm-goto input {
+  width: 100%; box-sizing: border-box; font: inherit; font-size: 12px; padding: 5px 8px; color: #e8ecef;
+  background: rgba(0,0,0,0.3); border: 1px solid var(--ui-line); border-radius: 6px; outline: none;
+}
+.mm-goto input:focus { border-color: #8ec5ff; }
+.mm-results {
+  position: absolute; z-index: 3; left: 0; right: 0; top: calc(100% + 3px); margin: 0; padding: 3px; list-style: none;
+  background: rgba(20,22,24,0.96); border: 1px solid var(--ui-line); border-radius: 6px; box-shadow: 0 6px 18px rgba(0,0,0,0.5);
+}
+.mm-results.empty { padding: 6px 8px; }
+.mm-results li { display: grid; grid-template-columns: auto 1fr auto; gap: 8px; align-items: baseline; padding: 4px 6px; border-radius: 4px; cursor: pointer; font-size: 12px; }
+.mm-results li .dim { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.mm-results li.on { background: var(--ui-hover, rgba(255,255,255,0.08)); }
+.mm-kind { font-size: 9.5px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--ui-muted, #9aa0a6); }
+/* the bigger map sits above the centred walk hint instead of under it */
+.app.walking .minimap.mm2 { bottom: 52px; }

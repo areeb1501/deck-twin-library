@@ -41,6 +41,7 @@ export default function App() {
   const walking = useStore((s) => s.walk)
   const isolating = useStore((s) => !!s.isolation)
   const panels = useStore((s) => s.panels)
+  const inCab = useStore((s) => !!s.craneCab)
   const [ops, setOps] = useState(false)
   // the plant simulation steps twice a second (× the clock speed) for the whole session
   useEffect(() => {
@@ -75,8 +76,8 @@ export default function App() {
     <div className={`app ${building ? 'building' : ''} ${walking ? 'walking' : ''} ${panels.left ? '' : 'left-off'} ${panels.right ? '' : 'right-off'}`}>
       <div className="viewport">
         <Scene />
-        <LabelOverlay />
-        <EyeOverlay />
+        {!inCab && <LabelOverlay />}
+        {!inCab && <EyeOverlay />}
         <FgMappingLegend />
       </div>
       <aside className="panel left">

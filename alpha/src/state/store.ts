@@ -153,11 +153,11 @@ export const useStore = create<State>((set) => ({
   requestSectionAround: (tag) => set({ sectionAround: { tag, nonce: ++nonce } }),
   requestPreset: (name) => set({ preset: { name, nonce: ++nonce }, walk: false, lookAt: null }),
   setPlaying: (playing) => set({ playing }),
-  setWalk: (walk) => set({ walk, lookAt: null }),
+  setWalk: (walk) => set(walk ? { walk, lookAt: null, craneCab: null } : { walk, lookAt: null }),
   setLookAt: (lookAt) => set({ lookAt }),
   setIsolation: (isolation) => set({ isolation }),
   setWalkLevel: (walkLevel) => set({ walkLevel, lookAt: null }),
-  startWalk: (walkStart) => set((s) => ({ walkStart, walk: true, lookAt: null, selected: null, section: { ...s.section, enabled: false }, layers: { ...s.layers, ceiling: true } })),
+  startWalk: (walkStart) => set((s) => ({ walkStart, walk: true, craneCab: null, lookAt: null, selected: null, section: { ...s.section, enabled: false }, layers: { ...s.layers, ceiling: true } })),
 }))
 
 /** World Y of the deck-local origin (top of production deck plate). */

@@ -1,0 +1,376 @@
+/* Crane cab HUD (plan 05) — grey operator display, colour only for abnormal states */
+.cab-hud {
+  position: absolute;
+  left: 50%;
+  bottom: 14px;
+  transform: translateX(-50%);
+  z-index: 30;
+  width: min(940px, calc(100vw - 32px));
+  padding: 10px 12px 8px;
+  background: rgba(16, 18, 20, 0.84);
+  backdrop-filter: blur(6px);
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  border-radius: 10px;
+  color: var(--ui-fg, #e8eaec);
+  font: 12px/1.35 var(--font, system-ui);
+  pointer-events: none;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.35);
+}
+.cab-hud button {
+  pointer-events: auto;
+}
+.cab-hud .mono {
+  font-family: var(--mono, ui-monospace, monospace);
+  font-variant-numeric: tabular-nums;
+}
+.cab-top {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.cab-body {
+  margin-top: 8px;
+}
+.cab-tag {
+  font-weight: 700;
+  font-size: 14px;
+  letter-spacing: 0.02em;
+}
+.cab-name {
+  color: var(--ui-muted, #8b9196);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+.cab-sp {
+  flex: 1;
+}
+.cab-chip {
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-weight: 600;
+  white-space: nowrap;
+  background: rgba(255, 255, 255, 0.08);
+}
+.cab-chip.ok {
+  background: rgba(255, 255, 255, 0.12);
+}
+.cab-chip.info {
+  color: #c9cfd4;
+}
+.cab-chip.warn {
+  background: #b58100;
+  color: #111;
+}
+.cab-chip.trip {
+  background: #c62828;
+  color: #fff;
+}
+.cab-views {
+  display: inline-flex;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 6px;
+  overflow: hidden;
+}
+.cab-views button,
+.cab-exit,
+.cab-btn {
+  background: transparent;
+  color: inherit;
+  border: 0;
+  padding: 4px 9px;
+  font: inherit;
+  cursor: pointer;
+}
+.cab-views button + button {
+  border-left: 1px solid rgba(255, 255, 255, 0.12);
+}
+.cab-views button.on {
+  background: rgba(255, 255, 255, 0.16);
+  font-weight: 600;
+}
+.cab-views button:hover,
+.cab-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+.cab-min {
+  background: transparent;
+  color: inherit;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 6px;
+  padding: 4px 8px;
+  font: inherit;
+  cursor: pointer;
+}
+.cab-min:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+.cab-exit {
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: 6px;
+  font-weight: 600;
+}
+.cab-exit:hover {
+  background: rgba(255, 255, 255, 0.14);
+}
+.cab-btn {
+  margin-top: 4px;
+  border: 1px solid #c62828;
+  border-radius: 6px;
+  color: #ffb4b4;
+}
+.cab-body {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+}
+.cab-col {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+.cab-col:nth-child(2) {
+  flex: 1;
+}
+.cab-gauges {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 6px;
+}
+.cab-g {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 6px;
+  padding: 4px 7px 5px;
+  transition: border-color 0.2s;
+}
+.cab-g.moving {
+  border-color: rgba(255, 255, 255, 0.35);
+}
+.cab-g.warn {
+  border-color: #b58100;
+}
+.cab-g.bad {
+  border-color: #c62828;
+  background: rgba(198, 40, 40, 0.18);
+}
+.cab-gl {
+  color: var(--ui-muted, #8b9196);
+  font-size: 10.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.cab-arrow {
+  margin-left: 4px;
+  color: #e8eaec;
+  font-size: 9px;
+}
+.cab-gv {
+  font-size: 16px;
+  font-weight: 600;
+}
+.cab-gv small {
+  font-size: 11px;
+  color: var(--ui-muted, #8b9196);
+  font-weight: 400;
+}
+.cab-gs {
+  color: var(--ui-muted, #8b9196);
+  font-size: 10.5px;
+}
+.cab-bar {
+  position: relative;
+  height: 5px;
+  margin-top: 4px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 3px;
+}
+.cab-bar i {
+  position: absolute;
+  inset: 0 auto 0 0;
+  background: #b9c0c6;
+  border-radius: 3px;
+  transition: width 0.25s;
+}
+.cab-bar b {
+  position: absolute;
+  top: -2px;
+  bottom: -2px;
+  width: 2px;
+  background: #b58100;
+}
+.cab-bar b.hi {
+  background: #c62828;
+}
+.cab-g.warn .cab-bar i,
+.cab-lmi.warn .cab-bar i {
+  background: #e0a400;
+}
+.cab-g.bad .cab-bar i,
+.cab-lmi.bad .cab-bar i {
+  background: #e53935;
+}
+.cab-chart {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 6px;
+  padding: 5px 7px 6px;
+}
+.cab-chart-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 2px;
+  font-size: 11px;
+  color: #c9cfd4;
+}
+.cab-chart svg {
+  display: block;
+  width: 100%;
+  height: 60px;
+}
+.cab-chart svg path,
+.cab-chart svg line {
+  vector-effect: non-scaling-stroke;
+}
+.cab-chart-band {
+  fill: rgba(255, 255, 255, 0.04);
+}
+.cab-chart-curve {
+  fill: none;
+  stroke: #b9c0c6;
+  stroke-width: 1.6;
+}
+.cab-chart-now {
+  stroke: rgba(255, 255, 255, 0.45);
+  stroke-dasharray: 3 3;
+}
+.cab-chart-rated {
+  fill: #e8eaec;
+}
+.cab-chart-load {
+  fill: none;
+  stroke: #e8eaec;
+  stroke-width: 1.6;
+}
+.cab-chart-load.warn {
+  stroke: #e0a400;
+}
+.cab-chart-load.bad {
+  stroke: #e53935;
+}
+.cab-chart-ax {
+  fill: var(--ui-muted, #8b9196);
+  font-size: 9px;
+}
+.cab-lmi {
+  display: grid;
+  grid-template-columns: auto 1fr 44px;
+  align-items: center;
+  gap: 8px;
+  margin-top: 4px;
+}
+.cab-lmi .cab-bar {
+  margin-top: 0;
+}
+.cab-lmi .mono {
+  text-align: right;
+}
+.cab-locks {
+  width: 168px;
+  gap: 3px;
+}
+.cab-lock {
+  display: grid;
+  grid-template-columns: 10px 1fr auto;
+  align-items: center;
+  gap: 6px;
+  padding: 1px 0;
+}
+.cab-lock .mono {
+  color: #c9cfd4;
+}
+.cab-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #5d646a;
+}
+.cab-lock.warn .cab-dot {
+  background: #e0a400;
+}
+.cab-lock.bad .cab-dot {
+  background: #e53935;
+  box-shadow: 0 0 6px #e53935;
+}
+.cab-lock.bad .mono {
+  color: #ffb4b4;
+}
+.cab-dial {
+  flex: none;
+}
+.cab-dial-ring {
+  fill: rgba(255, 255, 255, 0.03);
+  stroke: rgba(255, 255, 255, 0.14);
+}
+.cab-dial-sector {
+  fill: none;
+  stroke: #8b9196;
+  stroke-width: 4;
+}
+.cab-dial-view {
+  fill: rgba(255, 255, 255, 0.12);
+}
+.cab-dial-park {
+  stroke: rgba(255, 255, 255, 0.3);
+  stroke-dasharray: 2 2;
+}
+.cab-dial-boom {
+  stroke: #e2b21a;
+  stroke-width: 3;
+  stroke-linecap: round;
+}
+.cab-dial-hub {
+  fill: #e8eaec;
+}
+.cab-dial-n {
+  fill: #c9cfd4;
+  font-size: 9px;
+  font-weight: 700;
+}
+.cab-note {
+  margin-top: 7px;
+  padding: 4px 8px;
+  border-radius: 5px;
+  background: rgba(255, 255, 255, 0.06);
+}
+.cab-note.warn {
+  background: rgba(181, 129, 0, 0.25);
+  border-left: 3px solid #e0a400;
+}
+.cab-note.trip {
+  background: rgba(198, 40, 40, 0.25);
+  border-left: 3px solid #e53935;
+}
+.cab-keys {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  margin-top: 7px;
+  color: var(--ui-muted, #8b9196);
+  font-size: 11px;
+}
+.cab-keys kbd {
+  display: inline-block;
+  min-width: 16px;
+  padding: 0 4px;
+  margin-right: 2px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-bottom-width: 2px;
+  border-radius: 3px;
+  color: #e8eaec;
+  font: 10px/15px var(--mono, ui-monospace, monospace);
+  text-align: center;
+}

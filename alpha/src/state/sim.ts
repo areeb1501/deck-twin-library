@@ -1646,7 +1646,8 @@ export function procValue(tag: string): number | undefined {
   if (A.TAGS.inst.ia.includes(tag)) return p.iaPressure - (tag === 'PT-4603' ? 0 : 0.3)
   if (A.TAGS.inst.iaRemote.includes(tag)) return p.iaPressure - 0.45
   if (A.TAGS.inst.fwRemote.includes(tag)) return p.fwPressure + 1.6
-  if (A.TAGS.inst.exportFlow.includes(tag)) return s.result?.oilExport ?? 0
+  // before the first plant result the meters read the historian (else they latch a spurious 'low' at start-up)
+  if (A.TAGS.inst.exportFlow.includes(tag)) return s.result ? s.result.oilExport : undefined
   if (tag === A.TAGS.inst.wiFlow) return p.wiRate
   if (tag === A.TAGS.inst.wiDischarge) {
     const pumps = A.TAGS.wi.injPumps.filter((t) => isRunning(t)).length

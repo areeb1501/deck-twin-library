@@ -89,8 +89,21 @@ interface CraneStore {
   setOperating: (on: boolean) => void
   /** restart a crane's diesel engine after an F&G shutdown; returns why it was refused */
   restartEngine: (tag: string) => string | null
+  /** crane under manual control from its cab (null = every crane runs its schedule) */
+  manual: string | null
+  /** joystick command of the manual crane, −1 … 1 per axis (slew + = towards +z, luff + = boom up, hoist + = hook up) */
+  cmd: ManualCmd
+  /** take a crane into manual control (null = release it back to its schedule); returns why it was refused */
+  takeManual: (tag: string | null) => string | null
+  setCmd: (c: Partial<ManualCmd>) => void
   reset: () => void
 }
+export interface ManualCmd {
+  slew: number
+  luff: number
+  hoist: number
+}
+const NO_CMD: ManualCmd = { slew: 0, luff: 0, hoist: 0 }
 
 function initialRun(c: CraneSite, i: number): CraneRun {
   const p = parkedPose(c)
@@ -136,7 +149,43 @@ export const useCranes = create<CraneStore>((set, get) => ({
     useSim.getState().record?.({ who: 'field', action: 'craneRestart', tag })
     return null
   },
-  reset: () => set({ cranes: initialCranes(), events: [], operating: true }),
+  manual: null,
+  cmd: NO_CMD,
+  takeManual: (tag) => {
+    const st = get()
+    if (tag === st.manual) return null
+    if (tag === null) {
+      const m = st.manual
+      const r = m ? st.cranes[m] : undefined
+      if (!m || !r) {
+        set({ manual: null, cmd: NO_CMD })
+        return null
+      }
+      // back to the schedule: boom to rest first, then the lift that was due (job / lifts untouched)
+      const back: CraneRun = { ...r, phase: 'return', back: false, state: r.state === 'suspended' ? 'suspended' : 'idle', activity: 'Boom to rest (operator left the cab)' }
+      set({ manual: null, cmd: NO_CMD, cranes: { ...st.cranes, [m]: back } })
+      logEvent(m, `${m} manual control released, back to the lift schedule`, 'info')
+      useSim.getState().record?.({ who: 'field', action: 'craneManual', tag: m, detail: 'released to schedule' })
+      return null
+    }
+    const c = CRANE_BY_TAG.get(tag)
+    const r = st.cranes[tag]
+    if (!c || !r) return `${tag}: no such crane`
+    if (r.cargo) return `${tag} has the ${CARGO[r.cargo].label} on the hook — the cab takes control once it is landed`
+    if (r.phase === 'hookOn') return `${tag}: riggers are hooking on — the cab takes control once they are clear`
+    if (st.manual) get().takeManual(null)
+    const abandoned = r.phase === 'toPick' || r.phase === 'lowerPick'
+    set((s2) => ({ manual: tag, cmd: NO_CMD, cranes: { ...s2.cranes, [tag]: { ...r, back: false, activity: 'Manual — operator in cab' } } }))
+    logEvent(tag, `${tag} under manual control from the cab${abandoned ? ' (lift postponed)' : ''}`, 'info')
+    useSim.getState().record?.({ who: 'field', action: 'craneManual', tag, detail: 'operator in cab' })
+    return null
+  },
+  setCmd: (c) => {
+    const cur = get().cmd
+    const next = { ...cur, ...c }
+    if (next.slew !== cur.slew || next.luff !== cur.luff || next.hoist !== cur.hoist) set({ cmd: next })
+  },
+  reset: () => set({ cranes: initialCranes(), events: [], operating: true, manual: null, cmd: NO_CMD }),
 }))
 
 function logEvent(tag: string, text: string, level: CraneEvent['level']) {
@@ -499,6 +548,110 @@ function stepCrane(prev: CraneRun, c: CraneSite, dt: number, s: Partial<SimState
   return r
 }
 
+// ---------------------------------------------------------------- manual control (operator in the cab)
+
+const clampN = (v: number, a: number, b: number) => Math.max(a, Math.min(b, v))
+/** last wall-clock time (ms) the cab drove the manual crane at frame rate (0 = never) */
+let drivenAt = 0
+/** lowest hook-block height in manual: the hook bowl 1 m above the crane's deck */
+const hookMin = (d: CraneDims) => d.hookDrop + 1
+/** the boom sits on its rest (below the working range): it must be luffed up before it can slew */
+export const boomOnRest = (c: CraneSite, luff: number) => luff < craneDims(c.spec).luffMin - 1e-4
+
+/** apply the joystick for `dt` REAL seconds, in place: sector, luff range, rest and hook limits */
+function applyCmd(r: CraneRun, c: CraneSite, cmd: ManualCmd, dt: number) {
+  const d = craneDims(c.spec)
+  if (cmd.slew && !boomOnRest(c, r.luff)) r.slew = clampN(r.slew + cmd.slew * RATE.slew * dt, c.slew[0], c.slew[1])
+  if (cmd.luff) {
+    // below the working range only straight down onto the rest
+    const atPark = Math.abs(r.slew - c.park) < 0.03
+    const lo = atPark ? d.luffRest : Math.min(d.luffMin, r.luff)
+    r.luff = clampN(r.luff + cmd.luff * RATE.luff * dt, lo, d.luffMax)
+    if (r.luff < d.luffMin) r.slew = c.park
+  }
+  if (cmd.hoist) r.hook += cmd.hoist * (r.cargo ? RATE.hoistLoaded : RATE.hoistEmpty) * dt
+  const lo = hookMin(d)
+  r.hook = clampN(r.hook, lo, Math.max(lo, tipHeight(d, r.luff) - 2)) // the hook pays out as the head comes down
+  r.radius = radiusAt(d, r.luff)
+}
+
+/** controls are live: crane under manual control, engine running, no interlock, clock running */
+export function manualLive(r: CraneRun | undefined) {
+  return !!r && r.engine && r.state !== 'suspended' && ((useSim.getState() as Partial<SimState>).speed ?? 1) > 0
+}
+
+/**
+ * Drive the manual crane at frame rate (call from the cab's useFrame with REAL seconds). The crane's run
+ * object is mutated IN PLACE between engine ticks, so the 3D crane (which reads getState() every frame)
+ * moves smoothly; subscribers see the new pose at the next tick. Interlocks are evaluated at the tick
+ * (stepManual): while suspended this does nothing.
+ */
+export function driveManual(dt: number) {
+  const st = useCranes.getState()
+  const tag = st.manual
+  if (!tag || !(dt > 0)) return
+  const r = st.cranes[tag]
+  const c = CRANE_BY_TAG.get(tag)
+  if (!r || !c) return
+  drivenAt = performance.now()
+  if (!manualLive(r)) return
+  applyCmd(r, c, st.cmd, Math.min(dt, 0.1))
+}
+
+function stepManual(prev: CraneRun, c: CraneSite, dt: number, s: Partial<SimState>, cmd: ManualCmd): CraneRun {
+  const r: CraneRun = { ...prev }
+  const d = craneDims(c.spec)
+  const h = hazards(c, s)
+  if (h.engineStop && r.engine) {
+    r.engine = false
+    r.reason = `${h.engineStop} — diesel engine shut down (ignition source)`
+    logEvent(c.tag, `${c.tag} ${r.reason}`, 'trip')
+    useSim.getState().record?.({ who: 'auto', action: 'craneEngineStop', tag: c.tag, detail: h.engineStop })
+    pushAlarm(c, r.reason)
+  }
+  if (!r.engine) {
+    r.state = 'suspended'
+    if (!h.engineStop && !/restart/.test(r.reason ?? '')) r.reason = `Engine shut down by F&G — ${h.stop ? h.stop.toLowerCase() : 'clear, restart required'}`
+    r.activity = 'Manual — engine stopped, brakes on'
+    r.radius = radiusAt(d, r.luff)
+    return r
+  }
+  const wind = windNow().speed
+  const wasStopped = r.state === 'suspended'
+  const lim = r.cargo === 'personnel' ? CRANE_LIMITS.windPersonnel : CRANE_LIMITS.windCargo
+  const windBad = wind > lim - (wasStopped && /^Wind/.test(r.reason ?? '') ? 2 : 0)
+  const block = h.stop ?? (windBad ? `Wind ${wind.toFixed(1)} m/s > ${lim} m/s (${r.cargo === 'personnel' ? 'personnel' : 'cargo'})` : null)
+  if (block) {
+    if (!wasStopped) {
+      logEvent(c.tag, `${c.tag} manual control locked: ${block}`, 'warn')
+      useSim.getState().record?.({ who: 'auto', action: 'craneSuspend', tag: c.tag, detail: block })
+    }
+    r.state = 'suspended'
+    r.reason = block
+    r.clearFor = 0
+    r.activity = 'Manual — interlock, controls locked'
+  } else {
+    if (wasStopped) {
+      r.clearFor += dt
+      if (r.clearFor < CRANE_LIMITS.resumeAfter) {
+        r.reason = `Resuming in ${Math.ceil(CRANE_LIMITS.resumeAfter - r.clearFor)} s (conditions clear)`
+        r.activity = 'Manual — interlock, controls locked'
+        r.radius = radiusAt(d, r.luff)
+        return r
+      }
+      logEvent(c.tag, `${c.tag} manual control unlocked`, 'info')
+    }
+    // no cab driving at frame rate (e.g. a tool): integrate here, in real seconds
+    const speed = (s.speed ?? 1) || 1
+    if (performance.now() - drivenAt > 1000) applyCmd(r, c, cmd, Math.min(dt / speed, 2))
+    r.reason = null
+    r.state = cmd.slew || cmd.luff || cmd.hoist ? 'lifting' : 'idle'
+    r.activity = 'Manual — operator in cab'
+  }
+  r.radius = radiusAt(d, r.luff)
+  return r
+}
+
 // ---------------------------------------------------------------- alarms (P2 on an F&G engine shutdown)
 
 export interface PluginAlarm {
@@ -538,7 +691,10 @@ export const cranePlugin: SimPlugin & { alarms: () => PluginAlarm[] } = {
     const s = useSim.getState() as Partial<SimState>
     const st = useCranes.getState()
     const next: Record<string, CraneRun> = {}
-    for (const c of CRANES) next[c.tag] = stepCrane(st.cranes[c.tag] ?? initialRun(c, 0), c, dt, s, st.operating)
+    for (const c of CRANES) {
+      const prev = st.cranes[c.tag] ?? initialRun(c, 0)
+      next[c.tag] = c.tag === st.manual ? stepManual(prev, c, dt, s, st.cmd) : stepCrane(prev, c, dt, s, st.operating)
+    }
     useCranes.setState({ cranes: next })
   },
   reset: () => useCranes.getState().reset(),
