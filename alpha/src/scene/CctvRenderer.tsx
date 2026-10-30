@@ -29,6 +29,8 @@ import { levelAt, walkLevels } from './Walk'
 import { flameHeight } from '../sim/fg'
 import { ALPHA_DECK, LQ, RP, WHP, WI } from '../model/site'
 import type { Incident } from '../sim/types'
+import { disposeSegCtx, makeSegCtx, renderSeg, type SegCtx } from './cctvSeg'
+import { SEG_CLASSES, type SegClassId } from '../safety/cctv'
 
 // ---------------------------------------------------------------- housings
 
@@ -302,15 +304,18 @@ interface FeedCtx {
   rr: number
   pending: boolean
   half: boolean
+  /** simulated SAM 3.1 id pass (main monitor only) */
+  seg: SegCtx
 }
 
 function FeedRenderer() {
   const plant = usePlant()
   const ctx = useRef<FeedCtx | null>(null)
   useEffect(() => {
-    const c: FeedCtx = { ...occluders(plant), hot: plant.equipment.filter((e) => HOT_KINDS.has(e.kind)), cam3: new THREE.PerspectiveCamera(46, 16 / 9, 0.3, 900), rts: new Map(), bufs: new Map(), last: 0, turn: 0, rr: 0, pending: false, half: true }
+    const c: FeedCtx = { ...occluders(plant), hot: plant.equipment.filter((e) => HOT_KINDS.has(e.kind)), cam3: new THREE.PerspectiveCamera(46, 16 / 9, 0.3, 900), rts: new Map(), bufs: new Map(), last: 0, turn: 0, rr: 0, pending: false, half: true, seg: makeSegCtx(plant) }
     ctx.current = c
     return () => {
+      disposeSegCtx(c.seg)
       for (const rt of c.rts.values()) rt.dispose()
       c.rts.clear()
       if (ctx.current === c) ctx.current = null
@@ -375,6 +380,13 @@ function feedTurn(gl: THREE.WebGLRenderer, scene: THREE.Scene, st: FeedCtx) {
   gl.setRenderTarget(prevTarget)
   gl.autoClear = prevAuto
   scene.overrideMaterial = prevOverride
+
+  // ---- simulated SAM 3.1: instance masks for the main monitor's camera
+  if (cam.id === prio && cctv.seg) {
+    const enabled = new Set((SEG_CLASSES.map((k) => k.id) as SegClassId[]).filter((id) => cctv.prompts[id]))
+    const segCam = cam
+    renderSeg(gl, scene, cam3, st.seg, enabled, Math.floor(useSim.getState().t / 3))?.then((r) => useCctv.getState().pushSeg(segCam.id, r.mask, r.instances, r.ms))
+  }
 
   // ---- simulated detections for this exact frame (occlusion against equipment boxes)
   const t = useSim.getState().t

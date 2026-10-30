@@ -13,7 +13,7 @@
 import { memo, useEffect, useMemo, useRef } from 'react'
 import { Box, Kpi } from './common'
 import { EMPTY_ARR, EMPTY_OBJ, useS } from './simApi'
-import { CAMERAS, FEED_H, FEED_INTERVAL_MS, FEED_W, cameraById, feedStats, registerFeed, unregisterFeed, useCctv, type CctvCameraEx } from '../../safety/cctv'
+import { CAMERAS, FEED_H, FEED_INTERVAL_MS, FEED_W, SEG_BY_ID, SEG_CLASSES, cameraById, feedStats, registerFeed, segFrames, unregisterFeed, useCctv, type CctvCameraEx, type SegInstance } from '../../safety/cctv'
 import { useWorkers } from '../../safety/workers'
 import { DETECTION_LABEL, type Detection, type DetectionKind, type WorkerInfo } from '../../safety/types'
 import { fmtClock, type DetectorSim, type ZoneStatus } from '../../sim/types'
@@ -52,6 +52,7 @@ export function CctvPage() {
       </div>
       <div className="cctv-side">
         <CallUpBox />
+        <PromptsBox cam={big.id} />
         <LogBox />
         <ModelBox />
       </div>
@@ -85,6 +86,7 @@ const Tile = memo(function Tile({ cam, big, calledUp, slot }: { cam: CctvCameraE
       data-cam={cam.id}
     >
       <canvas ref={canvas} width={w} height={h} />
+      {big && <SegLayer cam={cam.id} />}
       <Boxes cam={cam.id} big={!!big} />
       <Osd cam={cam} big={!!big} />
       <DetectorPanel cam={cam} big={!!big} />
@@ -135,7 +137,10 @@ function Osd({ cam, big }: { cam: CctvCameraEx; big: boolean }) {
 
 /** detection boxes over the picture (normalised image coords) */
 function Boxes({ cam, big }: { cam: string; big: boolean }) {
-  const live = useCctv((s) => s.live[cam]) ?? EMPTY_DET
+  const all = useCctv((s) => s.live[cam]) ?? EMPTY_DET
+  const seg = useCctv((s) => s.seg)
+  // with masks on, the main monitor shows people as masks: keep only violations and hazards as boxes
+  const live = useMemo(() => (big && seg ? all.filter((d) => d.kind !== 'person') : all), [all, big, seg])
   const roster = useWorkers((s) => s.roster) ?? EMPTY_ROSTER
   const names = useMemo(() => new Map(roster.map((w) => [w.id, w.name])), [roster])
   return (
@@ -339,6 +344,113 @@ function LogBox() {
   )
 }
 
+const EMPTY_SEG: SegInstance[] = EMPTY_ARR
+
+/** simulated SAM 3.1 masks + concept labels over the main monitor */
+function SegLayer({ cam }: { cam: string }) {
+  const on = useCctv((s) => s.seg)
+  const inst = useCctv((s) => s.segLive[cam]) ?? EMPTY_SEG
+  const ref = useRef<HTMLCanvasElement>(null)
+  useEffect(() => {
+    const el = ref.current
+    const img = segFrames.get(cam)
+    if (!el || !img) return
+    el.width = img.width
+    el.height = img.height
+    el.getContext('2d')?.putImageData(img, 0, 0)
+  }, [inst, cam])
+  // greedy label placement: no overlaps, clear of the OSD (top-left) and the detector panel (top-right)
+  const labels = useMemo(() => {
+    const placed: { k: SegInstance; x: number; y: number; r: [number, number, number, number] }[] = []
+    const blocked: [number, number, number, number][] = [
+      [0, 0, 0.5, 0.09],
+      [0.69, 0, 1, 0.36],
+      [0, 0.94, 1, 1],
+    ]
+    const hit = (a: [number, number, number, number], b: [number, number, number, number]) => a[0] < b[2] && a[2] > b[0] && a[1] < b[3] && a[3] > b[1]
+    // people and PPE first (they matter most), then the largest masks
+    const order = [...inst].sort((a, b) => Number(b.cls === 'person' || b.cls === 'hardHat' || b.cls === 'vest') - Number(a.cls === 'person' || a.cls === 'hardHat' || a.cls === 'vest') || b.pixels - a.pixels)
+    for (const k of order) {
+      if (placed.length >= 14) break
+      const chars = SEG_BY_ID[k.cls].prompt.length + 12
+      const w = chars * 0.0068
+      const h = 0.034
+      const x = Math.min(1 - w / 2 - 0.005, Math.max(w / 2 + 0.005, k.anchor[0]))
+      // try above the mask, then inside its top edge, then lower down
+      for (const y of [k.anchor[1], k.anchor[1] + h + 0.01, (k.box[1] + k.box[3]) / 2 + h / 2]) {
+        const r: [number, number, number, number] = [x - w / 2, y - h, x + w / 2, y]
+        if (r[1] < 0 || r[3] > 1 || blocked.some((b) => hit(r, b)) || placed.some((p) => hit(r, p.r))) continue
+        placed.push({ k, x, y, r })
+        break
+      }
+    }
+    return placed
+  }, [inst])
+  if (!on) return null
+  return (
+    <div className="cctv-seg">
+      <canvas ref={ref} />
+      {labels.map(({ k, x, y }) => {
+        const c = SEG_BY_ID[k.cls]
+        const tag = k.cls === 'person' || k.cls === 'hardHat' || k.cls === 'vest' ? k.name.split(' ')[0] : k.ref
+        return (
+          <span key={k.id} className="cctv-seglbl" style={{ left: `${x * 100}%`, top: `${y * 100}%`, ['--c' as string]: c.color }}>
+            {c.prompt} <b>{k.score.toFixed(2)}</b>
+            {k.cls !== 'hardHat' && k.cls !== 'vest' && <i>{tag}</i>}
+          </span>
+        )
+      })}
+      <div className="cctv-segtag">SAM 3.1 · simulated · {inst.length} instances</div>
+    </div>
+  )
+}
+
+/** concept prompts (what the segmenter is asked to find) with live instance counts */
+function PromptsBox({ cam }: { cam: string }) {
+  const on = useCctv((s) => s.seg)
+  const prompts = useCctv((s) => s.prompts)
+  const inst = useCctv((s) => s.segLive[cam]) ?? EMPTY_SEG
+  const ms = useCctv((s) => s.segMs)
+  const workers = useStore((s) => s.workers)
+  const counts = useMemo(() => {
+    const m: Record<string, number> = {}
+    for (const k of inst) m[k.cls] = (m[k.cls] ?? 0) + 1
+    return m
+  }, [inst])
+  return (
+    <Box
+      title="Segmentation — SAM 3.1 (simulated)"
+      right={
+        <button className={on ? 'on' : ''} onClick={() => useCctv.getState().setSeg(!on)} data-seg-toggle>
+          {on ? 'Masks on' : 'Masks off'}
+        </button>
+      }
+    >
+      <div className="cctv-prompts">
+        {SEG_CLASSES.map((c) => (
+          <button key={c.id} className={`cctv-prompt ${prompts[c.id] ? 'on' : ''}`} style={{ ['--c' as string]: c.color }} onClick={() => useCctv.getState().togglePrompt(c.id)} title={`Text prompt: "${c.prompt}"`}>
+            <i />
+            {c.prompt}
+            <b>{counts[c.id] ?? 0}</b>
+          </button>
+        ))}
+      </div>
+      <div className="dim small" style={{ marginTop: 6 }}>
+        Text prompts → instance masks on the main monitor ({cam}). {on && ms ? `Last pass ${ms.toFixed(0)} ms in the browser.` : ''}{' '}
+        {!workers && (
+          <>
+            People, hard hats and vests need field workers:{' '}
+            <button className="link" onClick={() => useStore.getState().setWorkers(true)}>
+              turn them on
+            </button>
+            .
+          </>
+        )}
+      </div>
+    </Box>
+  )
+}
+
 function ModelBox() {
   const live = useCctv((s) => s.live)
   useS((s) => s.t) // refresh the measured rates with the sim clock (2 Hz)
@@ -362,12 +474,12 @@ function ModelBox() {
           <tr>
             <td className="dim">Active</td>
             <td>
-              <b>Simulated (twin ground truth)</b> — worker poses + PPE flags and live incidents projected into each frame
+              <b>Simulated SAM 3.1 (twin ground truth)</b> — instance masks from an id render pass of the camera view (true occlusion), PPE boxes from worker flags, hazards from live incidents
             </td>
           </tr>
           <tr>
             <td className="dim">Planned</td>
-            <td>SAM 3.1 on Modal GPU: planned (plan 09) — same frames in, same boxes out</td>
+            <td>SAM 3.1 on a Modal GPU (plan 11, 9e): the same frames and text prompts in, the same masks and scores out</td>
           </tr>
           <tr>
             <td className="dim">Frame rate</td>
@@ -377,7 +489,7 @@ function ModelBox() {
           </tr>
           <tr>
             <td className="dim">Classes</td>
-            <td>person · no hard hat · no hi-vis vest · flame · gas cloud</td>
+            <td>{SEG_CLASSES.length} segmentation prompts · person · no hard hat · no hi-vis vest · flame · gas cloud</td>
           </tr>
         </tbody>
       </table>

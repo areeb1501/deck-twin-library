@@ -98,3 +98,18 @@
 .hmi .cctv-kpis { grid-template-columns: repeat(3, 1fr); margin-bottom: 6px; }
 .hmi .cctv-model td { vertical-align: top; line-height: 1.4; }
 .hmi .cctv-model td:first-child { white-space: nowrap; width: 1%; }
+
+/* simulated SAM 3.1 masks on the main monitor */
+.hmi .cctv-seg { position: absolute; inset: 0; z-index: 1; pointer-events: none; }
+.hmi .cctv-seg canvas { position: absolute; inset: 0; width: 100%; height: 100%; image-rendering: auto; }
+.hmi .cctv-seglbl { position: absolute; transform: translate(-50%, -100%); white-space: nowrap; font: 600 10.5px/1.25 var(--mono, ui-monospace, Menlo, monospace); color: #0b0d0f; background: var(--c); padding: 1px 5px; border-radius: 3px; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.55); }
+.hmi .cctv-seglbl b { font-weight: 700; margin-left: 2px; }
+.hmi .cctv-seglbl i { font-style: normal; font-weight: 500; margin-left: 4px; opacity: 0.75; }
+.hmi .cctv-segtag { position: absolute; left: 8px; bottom: 30px; font: 600 10.5px var(--mono, ui-monospace, monospace); color: #d8ecff; background: rgba(10, 40, 70, 0.72); border: 1px solid #3fa7ff; padding: 2px 6px; border-radius: 3px; letter-spacing: 0.03em; }
+.hmi .cctv-prompts { display: flex; flex-wrap: wrap; gap: 4px; }
+.hmi .cctv-prompt { display: inline-flex; align-items: center; gap: 5px; font-size: 11px; padding: 2px 7px; border-radius: 11px; border: 1px solid var(--h-line2, #3a4046); background: transparent; color: var(--h-dim, #9aa3a9); }
+.hmi .cctv-prompt i { width: 9px; height: 9px; border-radius: 2px; background: var(--c); opacity: 0.35; }
+.hmi .cctv-prompt b { font-family: var(--mono, monospace); font-weight: 600; color: inherit; opacity: 0.8; }
+.hmi .cctv-prompt.on { color: #e8ecef; border-color: var(--c); background: rgba(255, 255, 255, 0.05); }
+.hmi .cctv-prompt:not(.on) { background: transparent; color: #8a9399; }
+.hmi .cctv-prompt.on i { opacity: 1; }

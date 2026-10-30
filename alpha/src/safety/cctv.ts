@@ -142,6 +142,73 @@ export function unregisterFeed(id: string, canvas: HTMLCanvasElement) {
   if (feedCanvases.get(id) === canvas) feedCanvases.delete(id)
 }
 
+// ---------------------------------------------------------------- simulated SAM 3.1 segmentation (main monitor)
+
+/** concept prompts the segmenter is asked for (SAM 3-style noun phrases), with their mask colours */
+export const SEG_CLASSES = [
+  { id: 'person', prompt: 'person', color: '#3fa7ff' },
+  { id: 'hardHat', prompt: 'hard hat', color: '#ffe14d' },
+  { id: 'vest', prompt: 'high-visibility vest', color: '#b6ff3b' },
+  { id: 'vessel', prompt: 'pressure vessel', color: '#ff7a45' },
+  { id: 'exchanger', prompt: 'heat exchanger', color: '#ffb340' },
+  { id: 'pump', prompt: 'pump', color: '#28d7c4' },
+  { id: 'compressor', prompt: 'compressor', color: '#ff4fa3' },
+  { id: 'turbine', prompt: 'gas turbine', color: '#c86bff' },
+  { id: 'wellhead', prompt: 'wellhead', color: '#ff5b5b' },
+  { id: 'piping', prompt: 'manifold / pig launcher', color: '#8f9bff' },
+  { id: 'skid', prompt: 'skid / transformer', color: '#5fd16a' },
+  { id: 'module', prompt: 'building', color: '#9aa5ad' },
+] as const
+export type SegClassId = (typeof SEG_CLASSES)[number]['id']
+export const SEG_BY_ID = Object.fromEntries(SEG_CLASSES.map((c) => [c.id, c])) as Record<SegClassId, (typeof SEG_CLASSES)[number]>
+
+/** equipment kind → concept (null = not segmented) */
+export function segClassOf(kind: string): SegClassId | null {
+  switch (kind) {
+    case 'horizontalVessel':
+    case 'verticalVessel':
+      return 'vessel'
+    case 'shellTube':
+      return 'exchanger'
+    case 'pumpPackage':
+    case 'caissonPump':
+      return 'pump'
+    case 'compressorPackage':
+      return 'compressor'
+    case 'gasTurbineGenerator':
+      return 'turbine'
+    case 'xmasTree':
+      return 'wellhead'
+    case 'manifold':
+    case 'pigTrap':
+      return 'piping'
+    case 'chemSkid':
+    case 'transformer':
+      return 'skid'
+    case 'module':
+      return 'module'
+    default:
+      return null
+  }
+}
+
+/** one segmented instance (normalised image coords, origin top-left) */
+export interface SegInstance {
+  id: string
+  cls: SegClassId
+  /** plant tag or worker id */
+  ref: string
+  name: string
+  score: number
+  box: [number, number, number, number]
+  /** where the label goes (top centre of the mask) */
+  anchor: [number, number]
+  pixels: number
+}
+
+/** latest mask image per camera (renderer → page) */
+export const segFrames = new Map<string, ImageData>()
+
 // ---------------------------------------------------------------- store
 
 export interface CctvStore {
@@ -162,6 +229,16 @@ export interface CctvStore {
   setFeedsVisible: (v: boolean) => void
   /** renderer → store: one camera frame's detections */
   pushFrame: (camera: string, dets: Detection[]) => void
+  /** simulated SAM 3.1 segmentation on the main monitor */
+  seg: boolean
+  setSeg: (on: boolean) => void
+  /** concept prompts switched on */
+  prompts: Record<SegClassId, boolean>
+  togglePrompt: (id: SegClassId) => void
+  /** latest instances per camera + inference time of the last pass */
+  segLive: Record<string, SegInstance[]>
+  segMs: number
+  pushSeg: (camera: string, mask: ImageData, instances: SegInstance[], ms: number) => void
 }
 
 const LOG_CAP = 300
@@ -183,6 +260,16 @@ export const useCctv = create<CctvStore>((set, get) => ({
     set({ callUp: null, callUpReason: null, callUpAt: null, ...(callUp ? { selected: callUp } : {}) })
   },
   setFeedsVisible: (feedsVisible) => set({ feedsVisible }),
+  seg: true,
+  setSeg: (seg) => set({ seg }),
+  prompts: Object.fromEntries(SEG_CLASSES.map((c) => [c.id, c.id !== 'module'])) as Record<SegClassId, boolean>,
+  togglePrompt: (id) => set((s) => ({ prompts: { ...s.prompts, [id]: !s.prompts[id] } })),
+  segLive: {},
+  segMs: 0,
+  pushSeg: (camera, mask, instances, ms) => {
+    segFrames.set(camera, mask)
+    set((s) => ({ segLive: { ...s.segLive, [camera]: instances }, segMs: s.segMs ? s.segMs * 0.7 + ms * 0.3 : ms }))
+  },
   pushFrame: (camera, dets) => {
     const s = get()
     const fresh: Detection[] = []
