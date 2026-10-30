@@ -27,8 +27,15 @@ export default defineConfig(({ command, mode }) => {
     plugins: [react()],
     // bridge/ reaches into ../registry, whose imports would otherwise resolve to a second React and three.js
     resolve: { dedupe: ['react', 'react-dom', 'three', '@react-three/fiber', '@react-three/drei'] },
-    server: { fs: { allow: ['..'] } },
+    // media lives in R2 behind the site's Worker, so dev reads the live copy
+    server: { fs: { allow: ['..'] }, proxy: { '/alpha/media': { target: 'https://deck-twin-library.demoareeb.workers.dev', changeOrigin: true } } },
     define: { __DEMO_GATE__: JSON.stringify(demoGate(env, command === 'serve')) },
-    build: { outDir: '../public/alpha', emptyOutDir: true, chunkSizeWarningLimit: 4000 },
+    build: {
+      outDir: '../public/alpha',
+      emptyOutDir: true,
+      chunkSizeWarningLimit: 4000,
+      // the landing page at /alpha/ and the twin at /alpha/demo/
+      rollupOptions: { input: { landing: 'index.html', demo: 'demo/index.html' } },
+    },
   }
 })

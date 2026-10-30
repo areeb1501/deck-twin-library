@@ -1,5 +1,5 @@
 /**
- * /alpha entry. Decides, before the 3.8 MB twin is fetched, whether this device can carry it.
+ * /alpha/demo entry. Decides, before the 3.8 MB twin is fetched, whether this device can carry it.
  *   full         laptops, desktops, large tablets: load the twin (../src/main.tsx)
  *   lite         phones and small tablets: screenshots only (./lite.ts), no WebGL and no way into the twin
  *   unsupported  no WebGL2 or a very small screen: a short "not compatible" note

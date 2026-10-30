@@ -1,0 +1,495 @@
+/* /alpha landing page. The library's brand: near-black ground, signal orange and indigo light, Inter, white pill buttons. One
+   thing is loud, the pinned incident screen; the rest stays quiet. */
+@font-face {
+  font-family: 'Inter Display';
+  src: url('../node_modules/@fontsource-variable/inter/files/inter-latin-opsz-normal.woff2') format('woff2');
+  font-weight: 100 900;
+  font-display: swap;
+}
+
+:root {
+  --bg: #0e0f13;
+  --ink: #f5f5f7;
+  --fg: #d4d4d8;
+  --muted: #9c9ca7;
+  --line: rgb(255 255 255 / 0.1);
+  --signal: #fe5510;
+  --indigo: #3b46cf;
+  --head: linear-gradient(180deg, #fff 30%, #a8a8b3);
+  --radius: 10px;
+  --page: min(1240px, calc(100vw - 48px));
+  color-scheme: dark;
+}
+
+* {
+  box-sizing: border-box;
+}
+html {
+  background: var(--bg);
+  scroll-behavior: smooth;
+  scrollbar-width: none;
+}
+html::-webkit-scrollbar {
+  display: none;
+}
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--fg);
+  font: 400 17px/1.6 'Inter Variable', system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+h1,
+h2,
+h3 {
+  margin: 0;
+  font-family: 'Inter Display', 'Inter Variable', sans-serif;
+  font-weight: 620;
+  color: var(--ink);
+  text-wrap: balance;
+}
+h2 {
+  width: fit-content;
+  font-size: clamp(34px, 4.6vw, 60px);
+  line-height: 1.04;
+  letter-spacing: -0.032em;
+  background: var(--head);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+p {
+  margin: 0;
+}
+a {
+  color: inherit;
+}
+a:focus-visible {
+  outline: 2px solid #ff7a45;
+  outline-offset: 3px;
+}
+video,
+img {
+  display: block;
+  width: 100%;
+}
+
+.cta {
+  display: inline-flex;
+  align-items: center;
+  height: 48px;
+  padding: 0 24px;
+  border-radius: 999px;
+  background: linear-gradient(180deg, #fff, #d4d4dc);
+  box-shadow: inset 0 1px 0 #fff, inset 0 -1px 0 rgb(0 0 0 / 0.14), 0 10px 30px -12px rgb(254 85 16 / 0.65);
+  color: #0e0f13;
+  font: 600 16px/1 'Inter Variable', sans-serif;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: filter 0.15s;
+}
+.cta:hover {
+  filter: brightness(1.08);
+}
+.cta.small {
+  height: 36px;
+  padding: 0 16px;
+  font-size: 14px;
+}
+
+.top {
+  position: fixed;
+  inset: 0 0 auto;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 64px;
+  padding: 0 24px;
+  background: linear-gradient(180deg, rgb(14 15 19 / 0.8), transparent);
+  transition: background-color 0.2s, box-shadow 0.2s;
+}
+/* past the hero the page scrolls under the header, so it needs a ground of its own */
+.top.solid {
+  background: rgb(14 15 19 / 0.92);
+  box-shadow: 0 1px 0 var(--line);
+}
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--ink);
+  font: 650 17px/1 'Inter Display', sans-serif;
+  letter-spacing: -0.02em;
+  text-decoration: none;
+}
+.brand svg {
+  width: 26px;
+  height: 26px;
+}
+
+/* the field itself is the hero; it sinks into the ground colour through the brand's orange and indigo light */
+.hero {
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  min-height: 100svh;
+  overflow: hidden;
+  isolation: isolate;
+}
+.hero-film {
+  position: absolute;
+  inset: 0;
+  z-index: -3;
+  height: 100%;
+  object-fit: cover;
+}
+.hero-shade {
+  position: absolute;
+  inset: 0;
+  z-index: -2;
+  background:
+    linear-gradient(180deg, transparent 34%, rgb(14 15 19 / 0.5) 62%, var(--bg) 100%),
+    radial-gradient(55% 34% at 86% 100%, rgb(59 70 207 / 0.62), transparent 72%),
+    radial-gradient(60% 32% at 12% 100%, rgb(254 85 16 / 0.42), transparent 72%);
+}
+.grain {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 0.6 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  opacity: 0.12;
+  mix-blend-mode: overlay;
+  pointer-events: none;
+}
+.hero-copy {
+  width: var(--page);
+  margin: 0 auto;
+  padding-bottom: clamp(40px, 8vh, 88px);
+}
+h1 {
+  max-width: 13ch;
+  font-size: clamp(50px, 9vw, 128px);
+  line-height: 0.96;
+  letter-spacing: -0.042em;
+  font-weight: 640;
+}
+.hero-copy p {
+  max-width: 54ch;
+  margin-top: 24px;
+  color: #e6e6ea;
+  font-size: clamp(18px, 1.5vw, 21px);
+  line-height: 1.5;
+}
+.hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 14px 20px;
+  margin-top: 30px;
+}
+.hero-actions span {
+  max-width: 38ch;
+  color: #b4b4bd;
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.block {
+  width: var(--page);
+  margin: 0 auto;
+  padding-top: clamp(88px, 13vw, 168px);
+}
+.lead {
+  max-width: 44rem;
+}
+.lead p,
+.own-copy p {
+  margin-top: 18px;
+  font-size: clamp(17px, 1.4vw, 20px);
+  line-height: 1.55;
+}
+
+figure {
+  margin: 0;
+}
+figure video,
+figure img {
+  aspect-ratio: 16 / 9;
+  border-radius: var(--radius);
+  background: #17181e;
+  object-fit: cover;
+}
+figcaption {
+  max-width: 46ch;
+  margin-top: 12px;
+  color: var(--muted);
+  font-size: 15px;
+  line-height: 1.45;
+}
+
+/* one large clip with three small ones stepping down its side */
+.mosaic {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 32px 20px;
+  margin-top: 56px;
+}
+.mosaic figure {
+  grid-column: span 2;
+}
+.mosaic .wide {
+  grid-column: 1 / -1;
+}
+.full {
+  margin-top: 56px;
+}
+.pair {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 32px 20px;
+  margin-top: 32px;
+}
+.pair.offset {
+  margin-top: 56px;
+}
+
+/* the one loud thing: a pinned screen that follows the upset as the steps scroll past it */
+.incident {
+  margin-top: clamp(96px, 14vw, 176px);
+  padding: clamp(72px, 9vw, 120px) 0 clamp(40px, 6vw, 80px);
+  background:
+    radial-gradient(50% 420px at 10% 0, rgb(254 85 16 / 0.2), transparent 72%),
+    radial-gradient(46% 460px at 100% 30%, rgb(59 70 207 / 0.24), transparent 72%);
+}
+.incident .lead {
+  width: var(--page);
+  margin: 0 auto;
+}
+.story {
+  display: grid;
+  grid-template-columns: minmax(0, 1.75fr) minmax(0, 1fr);
+  gap: 56px;
+  width: var(--page);
+  margin: 56px auto 0;
+}
+.stage {
+  position: sticky;
+  top: 50%;
+  align-self: start;
+  transform: translateY(-50%);
+  margin-top: 26vh;
+}
+.screen {
+  position: relative;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  border-radius: 14px;
+  background: #17181e;
+  box-shadow: 0 0 0 1px var(--line), 0 40px 120px -40px rgb(254 85 16 / 0.42), 0 30px 90px -40px rgb(59 70 207 / 0.6);
+}
+.screen video {
+  position: absolute;
+  inset: 0;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0;
+  transition: opacity 0.5s;
+}
+.screen video.on {
+  opacity: 1;
+}
+.beats {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border-left: 2px solid var(--line);
+}
+.beats li {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-height: 74vh;
+  padding-left: 28px;
+  color: var(--muted);
+  transition: color 0.25s;
+}
+.beats li::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: -2px;
+  width: 2px;
+  background: var(--signal);
+  opacity: 0;
+  transition: opacity 0.25s;
+}
+.beats li.on {
+  color: var(--fg);
+}
+.beats li.on::before {
+  opacity: 1;
+}
+.beats img {
+  display: none;
+}
+.beats h3 {
+  font-size: clamp(23px, 2.1vw, 30px);
+  line-height: 1.14;
+  letter-spacing: -0.022em;
+  color: inherit;
+}
+.beats li.on h3 {
+  color: var(--ink);
+}
+.beats p {
+  margin-top: 10px;
+}
+
+.own {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.7fr);
+  gap: 56px;
+  align-items: center;
+}
+.own-copy p + p {
+  color: var(--muted);
+  font-size: 16px;
+}
+.own-shot {
+  border-radius: var(--radius);
+  box-shadow: 0 0 0 1px var(--line);
+}
+
+.close {
+  position: relative;
+  display: flex;
+  align-items: center;
+  min-height: 78svh;
+  margin-top: clamp(96px, 14vw, 176px);
+  overflow: hidden;
+  isolation: isolate;
+}
+.close-film {
+  position: absolute;
+  inset: 0;
+  z-index: -2;
+  height: 100%;
+  object-fit: cover;
+}
+.close-shade {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background:
+    linear-gradient(180deg, var(--bg) 0, rgb(14 15 19 / 0.28) 34%, rgb(14 15 19 / 0.28) 66%, var(--bg) 100%),
+    linear-gradient(90deg, rgb(14 15 19 / 0.72), transparent 66%);
+}
+.close-copy {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 26px;
+  width: var(--page);
+  margin: 0 auto;
+}
+.close h2 {
+  font-size: clamp(44px, 6.6vw, 92px);
+  letter-spacing: -0.04em;
+  background: none;
+  color: var(--ink);
+}
+
+.foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px 48px;
+  width: var(--page);
+  margin: 0 auto;
+  padding: 40px 0 48px;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.5;
+}
+.foot p {
+  max-width: 76ch;
+}
+.foot a {
+  color: var(--fg);
+}
+
+/* the stage needs width to pin beside the text: narrower screens get a still with each step */
+@media (max-width: 900px) {
+  :root {
+    --page: calc(100vw - 40px);
+  }
+  body {
+    font-size: 16px;
+  }
+  .top {
+    padding: 0 20px;
+  }
+  .mosaic {
+    grid-template-columns: 1fr 1fr;
+    gap: 24px 12px;
+    margin-top: 36px;
+  }
+  .mosaic figure {
+    grid-column: span 1;
+  }
+  .mosaic figure:last-child {
+    grid-column: 1 / -1;
+  }
+  .pair {
+    grid-template-columns: 1fr;
+    gap: 24px;
+  }
+  .story {
+    display: block;
+    margin-top: 40px;
+  }
+  .stage {
+    display: none;
+  }
+  .beats {
+    border-left: 0;
+  }
+  .beats li {
+    display: block;
+    min-height: 0;
+    padding: 0 0 36px;
+    color: var(--fg);
+  }
+  .beats li::before {
+    display: none;
+  }
+  .beats li h3 {
+    margin-top: 14px;
+    color: var(--ink);
+  }
+  .beats img {
+    display: block;
+    aspect-ratio: 16 / 9;
+    object-fit: cover;
+    border-radius: var(--radius);
+  }
+  .own {
+    grid-template-columns: 1fr;
+    gap: 32px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  .screen video,
+  .beats li,
+  .beats li::before {
+    transition: none;
+  }
+}

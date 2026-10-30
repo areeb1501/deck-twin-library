@@ -22,5 +22,5 @@
     "erasableSyntaxOnly": true,
     "noFallthroughCasesInSwitch": true
   },
-  "include": ["src", "bridge", "lite"]
+  "include": ["src", "bridge", "lite", "landing"]
 }

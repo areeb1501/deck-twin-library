@@ -2,8 +2,12 @@
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "deck-twin-library",
   "compatibility_date": "2026-10-29",
+  "main": "alpha/worker.js",
   "assets": {
     "directory": "./dist",
-    "not_found_handling": "single-page-application"
-  }
+    "binding": "ASSETS",
+    "not_found_handling": "single-page-application",
+    "run_worker_first": ["/alpha/media/*"]
+  },
+  "r2_buckets": [{ "binding": "MEDIA", "bucket_name": "deck-twin-alpha-media" }]
 }

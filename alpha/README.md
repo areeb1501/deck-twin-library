@@ -1,16 +1,25 @@
-# /alpha: private copy of the Deck Twin app
+# /alpha: private Deck Twin demo
 
-A copy of `../../deck-twin` (the full Alpha field), served unlisted at `/alpha/` on the library site.
+Two pages, served unlisted on the library site:
+
+| Path | What |
+|---|---|
+| `/alpha/` | Landing page (`index.html`, `landing/`): plain HTML and CSS, no WebGL |
+| `/alpha/demo/` | The twin (`demo/index.html`, `src/`, `bridge/`, `lite/`), a copy of `../../deck-twin` |
 
 - Not linked from the site, not in the sitemap, robots.txt or llms.txt.
-- `noindex, nofollow` meta tag in `index.html`, plus an `X-Robots-Tag` header from `../public/_headers` (also git-excluded).
+- `noindex, nofollow` meta tags in both pages, plus an `X-Robots-Tag` header from `../public/_headers`.
 - Tracked in git since 2026-10-30, so the repo must stay private: making it public exposes this code and the page. `../public/alpha/` (build output) and `../public/_headers` stay local, listed in `.git/info/exclude`.
-- `src/` and `public/` are a copy of `../../deck-twin`. Edit there, then run `npm run refresh`: anything edited directly in `alpha/src` is deleted by the next refresh. Files outside `src/` (`lite/`, this README, the configs) belong here.
-- Anyone with the URL can open it. Build with `DEMO_PASSWORD` set to add the password gate.
+- `src/` and `public/` are a copy of `../../deck-twin`. Edit there, then run `npm run refresh`: anything edited directly in `alpha/src` is deleted by the next refresh. Files outside `src/` (`landing/`, `lite/`, `bridge/`, `worker.js`, this README, the configs) belong here.
+- Anyone with the URL can open it. Build with `DEMO_PASSWORD` set to add the password gate to the twin.
+
+## Media
+
+Clips and stills are in the private R2 bucket `deck-twin-alpha-media`, under `v1/`, served at `/alpha/media/*` by `worker.js`, which also sets noindex and handles the range requests Safari needs for video. The bucket has no public URL. They were cut from `../../deck-twin/video/out/clips`: 1280 to 1920 px wide, H.264 with no sound, each with a same-named `.webp` poster. Objects are cached as immutable, so a changed file needs a new name or a `v2/`. In dev, `/alpha/media` proxies to the live site.
 
 ## Phones and small screens
 
-`index.html` loads `lite/boot.ts`, not `src/main.tsx`. It picks a tier before the 3.8 MB twin is fetched:
+`demo/index.html` loads `lite/boot.ts`, not `src/main.tsx`. It picks a tier before the 3.8 MB twin is fetched:
 
 | Device | Gets |
 |---|---|
