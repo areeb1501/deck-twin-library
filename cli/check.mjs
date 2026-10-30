@@ -65,7 +65,8 @@ export function checkPlant(spec, items) {
   const used = new Set()
   const lineTags = new Set()
   for (const l of spec.lines ?? []) {
-    const where = l.tag ?? `${l.from} → ${l.to}`
+    const end = (e) => (typeof e === 'string' ? e : (e?.label ?? 'battery limit'))
+    const where = l.tag ?? `${end(l.from)} → ${end(l.to)}`
     if (!l.tag) err(where, 'Every line needs a line number as "tag", e.g. 6"-PO-1001-C3A-N.')
     else if (lineTags.has(l.tag)) err(where, 'Duplicate line tag.')
     lineTags.add(l.tag)
