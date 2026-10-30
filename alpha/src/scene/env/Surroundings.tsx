@@ -14,10 +14,12 @@ import { structMats } from '../structure/structMaterials'
 import { buildJacket } from './jacket'
 import { buildCellarDeck } from './cellarDeck'
 import { buildFlareBoom, buildTopsides, flareTip, FLARE } from './topsides'
+import { buildDrillingRig } from './drillingRig'
 import { envMat } from './envShared'
 import { facadeTextures, helideckTexture } from './envTextures'
 import { FlareFlame } from './Flare'
 import { SupplyVessel } from './Vessel'
+import { LQPlatform } from './LQPlatform'
 
 type MatKey =
   | 'jacket'
@@ -46,6 +48,7 @@ type MatKey =
   | 'blue'
   | 'green'
   | 'flareSteel'
+  | 'avLight'
 
 function useEnvMaterials(): Record<MatKey, THREE.Material> {
   return useMemo(() => {
@@ -78,6 +81,7 @@ function useEnvMaterials(): Record<MatKey, THREE.Material> {
       blue: envMat('container2', { color: '#285f9c', roughness: 0.6, metalness: 0.3 }),
       green: envMat('container3', { color: '#3f7a3a', roughness: 0.6, metalness: 0.3 }),
       flareSteel: envMat('flareSteel', { color: '#9fa4a6', roughness: 0.55, metalness: 0.4 }),
+      avLight: envMat('avLight', { color: '#b00d06', emissive: '#ff1a0a', emissiveIntensity: 1.4, roughness: 0.3 }),
     }
   }, [])
 }
@@ -144,7 +148,24 @@ function buildUpper(): Part[] {
     green: get('tsGreen', 'green'),
     rail: { rail: get('tsRail', 'yellow'), kick: get('tsKick', 'yellow') },
   })
-  return collect(B, m, (k) => k !== 'tsNet' && k !== 'tsHeliLights')
+  buildDrillingRig({
+    steel: get('rigSteel', 'steel'),
+    steelDark: get('rigDark', 'steelDark'),
+    derrick: get('rigDerrick', 'red'),
+    plate: get('rigPlate', 'plate'),
+    grating: get('rigGrating', 'grating'),
+    shadow: new Batches<BK>().get('discard'),
+    edge: get('rigSteel', 'steel'),
+    white: get('rigWhite', 'white'),
+    glass: get('rigGlass', 'glass'),
+    yellow: get('rigYellow', 'yellow'),
+    equip: get('rigEquip', 'equip'),
+    blue: get('rigBlue', 'blue'),
+    red: get('rigRed', 'red'),
+    light: get('rigLight', 'avLight'),
+    rail: { rail: get('tsRail', 'yellow'), kick: get('tsKick', 'yellow') },
+  })
+  return collect(B, m, (k) => k !== 'tsNet' && k !== 'tsHeliLights' && k !== 'rigGrating' && k !== 'rigLight')
 }
 
 function PartMeshes({ parts, mats }: { parts: Part[]; mats: Record<MatKey, THREE.Material> }) {
@@ -177,6 +198,7 @@ export function Surroundings({ upperDeck = true, vessel = true }: SurroundingsPr
       {upperDeck && <PartMeshes parts={upper} mats={mats} />}
       <FlareFlame position={[tip[0] + d.x * 3.4, tip[1] + d.y * 3.4 - 0.5, tip[2] + d.z * 3.4]} height={16} />
       {vessel && <SupplyVessel />}
+      <LQPlatform mats={mats} />
     </group>
   )
 }

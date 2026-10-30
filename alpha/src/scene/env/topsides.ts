@@ -2,11 +2,12 @@
  * Everything standing ON the upper (weather) deck, world coordinates (deck plate top y = 38).
  * Lower-poly but well proportioned: living quarters + lifeboats, helideck, pedestal crane with
  * lattice boom + boom rest, turbine enclosures + exhaust stacks, switchgear module, containers,
- * perimeter guard rail. The flare boom is separate (kept when topsides are hidden).
+ * perimeter guard rail. The flare boom is separate (kept when topsides are hidden). The drilling rig,
+ * pipe deck, mud module and bulk silos are in drillingRig.ts.
  */
 import * as THREE from 'three'
 import type { GeoBatch, V3 } from '../structure/batch'
-import { bar, box, boxMinMax, place, tube } from '../structure/batch'
+import { bar, box, boxMinMax, boxRotY, place, tube } from '../structure/batch'
 import { railPolyline, perimeterDistance, type RailBatches } from '../structure/handrail'
 import { ladder } from '../structure/ladder'
 import { STAIR_TOWERS, towerGap } from '../structure/stairs'
@@ -241,40 +242,49 @@ export function buildTopsides(tb: TopsideBatches) {
     ladder(tb.steel, [-16, qTop + 0.25, 5.2], H.y - qTop - 0.25, [1, 0], true)
   }
 
-  // ---------------- pedestal crane (NE corner, above the leg), boom pointing west to the boom rest
+  // ---------------- pedestal crane (NE corner, above the leg). Slewed so the boom is parked pointing
+  // SOUTH along the east side (rest at z = 9): the derrick over the well bay blocks the old west park.
   {
     const C = CRANE
     place(tb.yellow, cylClosed, [C.x, (UD + C.pedestalTop) / 2, C.z], [0, 0, 0], [1.3, C.pedestalTop - UD, 1.3])
     place(tb.steelDark, cylClosed, [C.x, C.pedestalTop + 0.3, C.z], [0, 0, 0], [1.7, 0.6, 1.7])
+    // slewing frame: local -x = boom direction; rotated about the pedestal axis
+    const th = Math.PI / 2
+    const cs = Math.cos(th)
+    const sn = Math.sin(th)
+    const W = (lx: number, y: number, lz: number): V3 => [C.x + lx * cs + lz * sn, y, C.z - lx * sn + lz * cs]
+    const rbox = (b: GeoBatch, lx0: number, y0: number, lz0: number, lx1: number, y1: number, lz1: number) =>
+      boxRotY(b, W((lx0 + lx1) / 2, (y0 + y1) / 2, (lz0 + lz1) / 2), [lx1 - lx0, y1 - y0, lz1 - lz0], th)
     // machinery house (slewing platform) + cab
     const yH = C.pedestalTop + 0.6
-    boxMinMax(tb.white, [C.x - 2.2, yH, C.z - 1.7], [C.x + 3.4, yH + 3.2, C.z + 1.7])
-    boxMinMax(tb.yellow, [C.x - 2.8, yH + 0.2, C.z + 1.7], [C.x - 0.6, yH + 2.7, C.z + 3.6]) // cab
-    boxMinMax(tb.glass, [C.x - 2.85, yH + 1.2, C.z + 1.85], [C.x - 2.79, yH + 2.5, C.z + 3.45])
-    boxMinMax(tb.glass, [C.x - 2.7, yH + 1.2, C.z + 3.6], [C.x - 0.75, yH + 2.5, C.z + 3.65])
+    rbox(tb.white, -2.2, yH, -1.7, 3.0, yH + 3.2, 1.7)
+    rbox(tb.yellow, -2.8, yH + 0.2, 1.7, -0.6, yH + 2.7, 3.6) // cab
+    rbox(tb.glass, -2.85, yH + 1.2, 1.85, -2.79, yH + 2.5, 3.45)
+    rbox(tb.glass, -2.7, yH + 1.2, 3.6, -0.75, yH + 2.5, 3.65)
     // A-frame
-    const apex: V3 = [C.x + 1.4, yH + 8.5, C.z]
+    const apex = W(1.4, yH + 8.5, 0)
     for (const dz of [-1.5, 1.5]) {
-      tube(tb.yellow, [C.x + 3.2, yH + 3.2, C.z + dz], apex, 0.18, 8, true)
-      tube(tb.yellow, [C.x - 1.6, yH + 3.2, C.z + dz], apex, 0.18, 8, true)
+      tube(tb.yellow, W(2.9, yH + 3.2, dz), apex, 0.18, 8, true)
+      tube(tb.yellow, W(-1.6, yH + 3.2, dz), apex, 0.18, 8, true)
     }
     // lattice boom resting on the boom rest
-    const heel: V3 = [C.x - 2.4, yH + 1.2, C.z]
-    const tip: V3 = [C.x - 41, UD + 11.6, C.z]
+    const heel = W(-2.4, yH + 1.2, 0)
+    const tipL = -36
+    const tip = W(tipL, UD + 11.6, 0)
     const boom = lattice(tb.yellow, tb.yellow, heel, tip, 1.9, 0.9, [0, 1, 0], 0.11, 0.045, 1.7)
     // tip sheaves + hook block hanging
-    place(tb.steelDark, cylClosed, [tip[0] - 0.4, tip[1] + 0.2, tip[2]], [Math.PI / 2, 0, 0], [0.6, 0.5, 0.6])
-    tube(tb.steelDark, [tip[0] - 0.6, tip[1], tip[2]], [tip[0] - 0.6, tip[1] - 3.5, tip[2]], 0.02, 4, true)
-    boxMinMax(tb.yellow, [tip[0] - 0.95, tip[1] - 4.6, tip[2] - 0.3], [tip[0] - 0.25, tip[1] - 3.5, tip[2] + 0.3])
+    tube(tb.steelDark, W(tipL - 0.4, tip[1] + 0.2, -0.25), W(tipL - 0.4, tip[1] + 0.2, 0.25), 0.6, 16, false)
+    const hk = W(tipL - 0.6, 0, 0)
+    tube(tb.steelDark, [hk[0], tip[1], hk[2]], [hk[0], tip[1] - 3.5, hk[2]], 0.02, 4, true)
+    rbox(tb.yellow, tipL - 0.95, tip[1] - 4.6, -0.3, tipL - 0.25, tip[1] - 3.5, 0.3)
     // luffing ropes apex -> boom tip
-    const tb0 = boom.at(1, 2)
-    tube(tb.steelDark, apex, tb0, 0.03, 4, true)
+    tube(tb.steelDark, apex, boom.at(1, 2), 0.03, 4, true)
     tube(tb.steelDark, apex, boom.at(1, 3), 0.03, 4, true)
     // boom rest
-    const xr = C.x - 30
-    const yRest = heel[1] + ((tip[1] - heel[1]) * (heel[0] - xr)) / (heel[0] - tip[0]) - 1.2
-    for (const dz of [-1.4, 1.4]) bar(tb.yellow, [xr, UD, C.z + dz], [xr, yRest, C.z + dz], 0.3, 0.3)
-    bar(tb.yellow, [xr, yRest, C.z - 1.6], [xr, yRest, C.z + 1.6], 0.35, 0.3, [0, 1, 0])
+    const lr = -26
+    const yRest = heel[1] + ((tip[1] - heel[1]) * (-2.4 - lr)) / (-2.4 - tipL) - 1.2
+    for (const dz of [-1.4, 1.4]) bar(tb.yellow, W(lr, UD, dz), W(lr, yRest, dz), 0.3, 0.3)
+    bar(tb.yellow, W(lr, yRest, -1.6), W(lr, yRest, 1.6), 0.35, 0.3, [0, 1, 0])
   }
 
   // ---------------- turbine generator enclosures + exhaust stacks
@@ -291,20 +301,20 @@ export function buildTopsides(tb: TopsideBatches) {
     for (const dz of [-1, 1]) tube(tb.steel, [sx - 2, UD + 5.2, zc + dz * 2], [sx, UD + 12, zc + dz * 1.1], 0.1, 6, true)
   }
 
-  // ---------------- switchgear / LER module, 2-storey
-  boxMinMax(tb.white, [-12, UD, -14], [-2, UD + 7.0, -5], 'world')
-  boxMinMax(tb.roof, [-12.1, UD + 7.0, -14.1], [-1.9, UD + 7.25, -4.9])
-  boxMinMax(tb.steelDark, [-9, UD + 7.25, -12], [-5, UD + 8.8, -8])
-  for (const x of [-10.5, -4.5]) boxMinMax(tb.steelDark, [x, UD, -5.0], [x + 1.2, UD + 2.2, -4.95])
+  // ---------------- switchgear / LER module, 2-storey (moved south-west: the mud module took its slot)
+  boxMinMax(tb.white, [-13, UD, 8], [-3, UD + 7.0, 17], 'world')
+  boxMinMax(tb.roof, [-13.1, UD + 7.0, 7.9], [-2.9, UD + 7.25, 17.1])
+  boxMinMax(tb.steelDark, [-10, UD + 7.25, 10.5], [-6, UD + 8.8, 14.5])
+  for (const x of [-11.5, -5.5]) boxMinMax(tb.steelDark, [x, UD, 7.95], [x + 1.2, UD + 2.2, 8.0])
 
-  // ---------------- laydown: ISO containers + cargo baskets
-  boxMinMax(tb.red, [13, UD, -12.5], [19.06, UD + 2.59, -10.06])
-  boxMinMax(tb.blue, [13, UD, -9.6], [19.06, UD + 2.59, -7.16])
-  boxMinMax(tb.green, [13.5, UD + 2.59, -12.3], [16.5, UD + 4.9, -10.0])
-  boxMinMax(tb.steelDark, [20, UD, -12], [23, UD + 1.0, -9.5])
+  // ---------------- laydown: ISO containers + cargo baskets (south strip; the pipe deck took the old laydown)
+  boxMinMax(tb.red, [3, UD, 15.5], [9.06, UD + 2.59, 17.94])
+  boxMinMax(tb.blue, [9.5, UD, 15.5], [15.56, UD + 2.59, 17.94])
+  boxMinMax(tb.green, [3.5, UD + 2.59, 15.7], [6.5, UD + 4.9, 17.7])
+  boxMinMax(tb.steelDark, [17, UD, 15.8], [20, UD + 1.0, 18.3])
 
   // ---------------- deck crane laydown markings: hatched yellow kerb boxes
-  for (const [x0, z0, x1, z1] of [[12.5, -13, 23.5, -6.5]] as [number, number, number, number][]) {
+  for (const [x0, z0, x1, z1] of [[2.5, 15, 21, 18.8]] as [number, number, number, number][]) {
     boxMinMax(tb.yellow, [x0, UD, z0], [x1, UD + 0.08, z0 + 0.12])
     boxMinMax(tb.yellow, [x0, UD, z1 - 0.12], [x1, UD + 0.08, z1])
     boxMinMax(tb.yellow, [x0, UD, z0], [x0 + 0.12, UD + 0.08, z1])

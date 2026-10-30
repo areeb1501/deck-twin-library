@@ -1,9 +1,9 @@
 import { create } from 'zustand'
 import type { PickData, Vec3 } from '../model/types'
 
-export type LayerId = 'equipment' | 'piping' | 'instruments' | 'structure' | 'ceiling' | 'environment' | 'labels' | 'flow'
+export type LayerId = 'equipment' | 'piping' | 'instruments' | 'structure' | 'ceiling' | 'environment' | 'labels' | 'flow' | 'fireGas'
 export type ViewMode = 'shaded' | 'xray'
-export type CameraPreset = 'overview' | 'deck' | 'plan' | 'rack' | 'separator' | 'compressor' | 'underdeck'
+export type CameraPreset = 'overview' | 'deck' | 'plan' | 'rack' | 'separator' | 'compressor' | 'underdeck' | 'field' | 'rig' | 'wellbay' | 'lq' | 'bridge'
 
 export interface FlyTo {
   /** camera position (world) */
@@ -33,6 +33,10 @@ interface State {
   walk: boolean
   /** walk mode: the equipment in the centre of view (drives the inspection panel) */
   lookAt: PickData | null
+  /** walk mode: index into the plant's walk levels */
+  walkLevel: number
+  /** isolation / LOTO planner target */
+  isolation: { target: string; mode: 'valve' | 'positive' } | null
 
   select: (p: PickData | null) => void
   hover: (p: PickData | null) => void
@@ -47,6 +51,8 @@ interface State {
   setPlaying: (p: boolean) => void
   setWalk: (on: boolean) => void
   setLookAt: (p: PickData | null) => void
+  setIsolation: (i: State['isolation']) => void
+  setWalkLevel: (l: number) => void
 }
 
 let nonce = 0
@@ -64,6 +70,7 @@ export const useStore = create<State>((set) => ({
     environment: true,
     labels: true,
     flow: true,
+    fireGas: false,
   },
   section: { enabled: false, min: [-32, -1, -22], max: [32, 14, 22] },
   flyTo: null,
@@ -73,6 +80,8 @@ export const useStore = create<State>((set) => ({
   playing: true,
   walk: false,
   lookAt: null,
+  isolation: null,
+  walkLevel: 0,
 
   select: (p) => set({ selected: p }),
   hover: (p) => set({ hovered: p }),
@@ -88,6 +97,8 @@ export const useStore = create<State>((set) => ({
   setPlaying: (playing) => set({ playing }),
   setWalk: (walk) => set({ walk, lookAt: null }),
   setLookAt: (lookAt) => set({ lookAt }),
+  setIsolation: (isolation) => set({ isolation }),
+  setWalkLevel: (walkLevel) => set({ walkLevel, lookAt: null }),
 }))
 
 /** World Y of the deck-local origin (top of production deck plate). */

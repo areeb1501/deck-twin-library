@@ -39,6 +39,8 @@ import type {
 import { headDepth, headSurface, nozzle, toDeck, dirToDeck, add, scale } from './geom'
 import { GASKET, pipeOD } from './catalog'
 import { psvGeometry } from '../scene/equipment/Valve'
+import { extendAlpha } from './alphaSite'
+import { ALPHA_WALK } from './site'
 
 // ---------------------------------------------------------------- pipe rack
 /** Top-of-steel of the two rack tiers (must match structure/rack.ts) */
@@ -87,7 +89,7 @@ const M1000: Manifold = {
   system: 'production',
   position: [-26.6, 0, -9],
   rotationY: 0,
-  slots: 4,
+  slots: 6,
   length: 4.2,
   headers: [
     { name: 'Production header', nps: 12, y: 1.1, z: 0 },
@@ -695,7 +697,7 @@ const L_FLARE = add_({
   system: 'flare',
   nps: 16,
   schedule: 'STD',
-  route: [[-15.4, FLARE_Y, FLARE_Z], [ko[0], FLARE_Y, FLARE_Z], [ko[0], FLARE_Y, ko[2]], ko],
+  route: [[-23.6, FLARE_Y, FLARE_Z], [ko[0], FLARE_Y, FLARE_Z], [ko[0], FLARE_Y, ko[2]], ko],
   from: { offDeck: 'Header end (blind flange)' },
   to: { equipment: 'V-2400', nozzle: 'N1' },
   design: { pressure: '3.5 barg', temperature: '-46 / 200 °C', notes: 'Sloped 1:200 to KO drum' },
@@ -789,7 +791,7 @@ function utility(tag: string, service: PipeLine['service'], nps: number, tier: 1
     to: { offDeck: 'Weather deck' },
   })
 }
-utility('6"-FG-9201-C3A-N', 'gas', 6, 1, -1.45)
+utility('6"-FG-9201-C3A-N', 'gas', 6, 1, -1.45, -25.9, 25.9) // risers outboard of the IA header's
 utility('3"-UW-9301-A1A-N', 'cooling', 3, 1, -0.8, -24.9, 24.9)
 utility('2"-NG-9401-A1A-N', 'instrumentAir', 2, 1, -0.3, -24.6, 24.6)
 utility('6"-CD-9501-B1A-N', 'drain', 6, 1, 0.45)
@@ -889,9 +891,12 @@ export const instruments: Instrument[] = [
   { tag: 'PT-2401', type: 'PT', on: onLine(L_FLARE, 0, 0.5), dir: [0, 1, 0], range: '0–5', unit: 'barg', nominal: 0.12 },
 ]
 
+// wells, utilities, produced water, gas treatment, the LQ platform and fire & gas (model/alphaSite.ts)
+extendAlpha({ equipment, lines, valves, instruments }, { FLARE_Y, FLARE_Z, OVER, CELLAR, onTier, flareHeader: L_FLARE, manifold: 'M-1000' })
+
 export const plant: Plant = {
   name: 'Alpha Platform',
-  deck: { name: 'Production Deck (EL +28.0 m)', elevation: 28, extent: { minX: -30, maxX: 30, minZ: -20, maxZ: 20 }, site: 'offshoreAlpha' },
+  deck: { name: 'Production Deck (EL +28.0 m)', elevation: 28, extent: { minX: -30, maxX: 30, minZ: -20, maxZ: 20 }, site: 'offshoreAlpha', walk: ALPHA_WALK },
   equipment,
   lines,
   valves,
@@ -905,7 +910,12 @@ export const SYSTEM_LABEL: Record<string, string> = {
   gasCompression: 'Gas Compression & Export',
   flare: 'Flare & Relief',
   utilities: 'Utilities',
-  safety: 'Firewater & Safety',
+  safety: 'Fire & Gas, Firewater & Safety',
+  wells: 'Wells & Drilling',
+  producedWater: 'Produced Water Treatment',
+  gasTreatment: 'Gas Dehydration & Fuel Gas',
+  drains: 'Closed & Open Drains',
+  accommodation: 'Accommodation Platform & Control',
 }
 
 export function findItem(tag: string) {

@@ -12,6 +12,11 @@
  *     off 0.4 m in +Y. Lower process connection at z = 0 (the origin), upper at z = size (default 1.2 m).
  *     The GWR head (LT) sits on top of the chamber, at the +Z end. So the lead must orient local +Z
  *     = UP for these two types (i.e. mount on a vertical surface with roll chosen so +Z is world up).
+ *   - FIRE & GAS detectors (FD, GD, OGD, HD, SD, MAC — built in ./fireGas.ts) use the equipment-mount frame
+ *     of piping/build.ts (`on: { equipment, at }`): origin = bracket / clamp on the structure, +Y = `dir`
+ *     (horizontal standoff / aim), +Z = world UP, +X = dir × up. Wall-bracket types stand off along +Y
+ *     (FD aims +Y tilted 20° down; OGD's optical axis is the local Y axis); HD / SD hang below a clamp
+ *     plate (head facing −Z). `hostOd` is ignored for them.
  *   - every instrument carries a small stamped stainless tag plate when `tag` is given.
  *
  * Geometry is cached per (type, hostOd, size) and shared between instances.
@@ -27,6 +32,7 @@ import { KitMesh } from './machinery/KitMesh'
 import { flangedJoint, pipeFlange, smallGauge, tagPlate } from './machinery/parts'
 import { dialMaterial, lcdMaterial, levelFlagMaterial, levelScaleMaterial } from './machinery/textures'
 import { ValveModel } from './Valve'
+import { FIRE_GAS, buildFireGas, faceOut, fireGasTagPos } from './fireGas'
 
 const SS: MatKey = 'stainless'
 const HOUSING: MatKey = 'actuatorBlue'
@@ -330,6 +336,12 @@ function analyser(k: Kit, hostOd: number) {
 
 function buildInstrument(type: InstrumentType, hostOd: number, size: number): Built {
   const k = new Kit()
+  if (FIRE_GAS.has(type)) {
+    // keep glass / nameplate: detector windows and lenses must not turn into polished steel
+    k.alias = { tubing: SS, boltXylan: 'nut', gasket: 'nut', handwheel: 'nut', equipmentPaint: 'pipePaint' }
+    buildFireGas(k, type)
+    return k.build()
+  }
   // instruments are numerous: fold minor accessory materials into the main ones (fewer draw groups)
   k.alias = { tubing: SS, nameplate: SS, glass: SS, boltXylan: 'nut', gasket: 'nut', handwheel: 'nut', equipmentPaint: 'pipePaint' }
   switch (type) {
@@ -367,12 +379,20 @@ function buildInstrument(type: InstrumentType, hostOd: number, size: number): Bu
 
 export function instrumentGeometry(type: InstrumentType, hostOd: number, size?: number) {
   const s = size ?? 1.2
-  return cached(`inst|${type}|${hostOd.toFixed(3)}|${type === 'LT' || type === 'LG' ? s.toFixed(2) : 0}`, () => buildInstrument(type, hostOd, s))
+  const od = FIRE_GAS.has(type) ? 0 : hostOd
+  return cached(`inst|${type}|${od.toFixed(3)}|${type === 'LT' || type === 'LG' ? s.toFixed(2) : 0}`, () => buildInstrument(type, od, s))
 }
 
 function tagGeometry(tag: string, type: InstrumentType, size: number) {
   return cached(`insttag|${tag}|${type}|${size.toFixed(2)}`, () => {
     const k = new Kit()
+    if (FIRE_GAS.has(type)) {
+      // plate facing +Y (out from the structure), text upright (+Z = world up), wired to the bracket
+      const { pos, anchor } = fireGasTagPos(type)
+      k.with(faceOut(pos), () => tagPlate(k, tag, [0, 0, 0], 'z', 0.075))
+      k.rod('stainless', [pos[0], pos[1], pos[2] + 0.012], anchor, 0.0008, 4)
+      return k.build()
+    }
     // wire-hung near the root valve / chamber
     const pos: V3 = type === 'LT' || type === 'LG' ? [0.09, 0.4, 0.3] : type === 'FT' ? [0.0, 0.06, 0.11] : type === 'TT' || type === 'TG' ? [0, 0.17, 0.06] : [0, 0.07, 0.035]
     const normal = type === 'LT' || type === 'LG' ? 'x' : 'z'

@@ -23,6 +23,8 @@ import { DeckStructure } from './structure/DeckStructure'
 import { GradePad } from './structure/GradePad'
 import { NozzleMarkers } from '../ui/builder/NozzleMarkers'
 import { WalkDriver, leaveWalk } from './Walk'
+import { IsolationOverlay } from './IsolationOverlay'
+import { FireGasOverlay } from './FireGasOverlay'
 import type { ComponentType } from 'react'
 
 // environment modules are resolved by name so the app runs while they are being built
@@ -82,6 +84,11 @@ const PRESETS: Record<CameraPreset, { pos: [number, number, number]; target: [nu
   separator: { pos: [-1.5, 35.5, -21], target: [-12.5, 30.8, -10] },
   compressor: { pos: [-2, 33, 17], target: [4.5, 30, 7] },
   underdeck: { pos: [36, 22, 44], target: [0, 27, 0] },
+  field: { pos: [95, 75, 150], target: [4, 24, 45] },
+  rig: { pos: [88, 84, -80], target: [3, 64, -13] },
+  wellbay: { pos: [14, 23, -2], target: [3, 21, -13] },
+  lq: { pos: [52, 46, 112], target: [8, 34, 72] },
+  bridge: { pos: [6, 29.7, 16], target: [6, 29.5, 40] },
 }
 
 function Rig({ root }: { root: React.RefObject<THREE.Group | null> }) {
@@ -274,6 +281,8 @@ function Plant() {
         </group>
         <FlowParticles key={plant.name + plant.lines.length} built={built} visible={flowVisible} />
         <NozzleMarkers />
+        <IsolationOverlay built={built} />
+        <FireGasOverlay built={built} />
       </group>
     </>
   )

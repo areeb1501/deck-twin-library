@@ -22,6 +22,8 @@ export function labelHeight(e: Equipment) {
       return e.size[1] + 1.2
     case 'compressorPackage':
       return 4.6
+    case 'xmasTree':
+      return e.position[1] + e.wellheadHeight + 2.6
     case 'shellTube':
       return e.position[1] + 1.4
     default:

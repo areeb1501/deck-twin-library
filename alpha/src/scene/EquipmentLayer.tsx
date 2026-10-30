@@ -26,6 +26,7 @@ const CompressorPackageModel = get('CompressorPackageModel')
 const ChemSkidModel = get('ChemSkidModel')
 const ModuleModel = get('ModuleModel')
 const ManifoldModel = get('ManifoldModel')
+const XmasTreeModel = get('XmasTreeModel')
 
 function Model({ eq }: { eq: Equipment }) {
   switch (eq.kind) {
@@ -47,6 +48,8 @@ function Model({ eq }: { eq: Equipment }) {
       return <ModuleModel eq={eq as never} />
     case 'manifold':
       return <ManifoldModel eq={eq as never} />
+    case 'xmasTree':
+      return <XmasTreeModel eq={eq as never} />
   }
 }
 

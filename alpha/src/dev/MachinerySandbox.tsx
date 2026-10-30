@@ -113,7 +113,7 @@ function ComboRow() {
   )
 }
 
-const INSTRUMENTS: InstrumentType[] = ['PT', 'PI', 'PDT', 'PG', 'TT', 'TG', 'FT', 'AT']
+const INSTRUMENTS: InstrumentType[] = ['PT', 'PI', 'PDT', 'PG', 'TT', 'TG', 'FT', 'AT', 'FD', 'GD', 'OGD', 'HD', 'SD', 'MAC']
 const BRIDLE_Q = new THREE.Quaternion().setFromRotationMatrix(
   new THREE.Matrix4().makeBasis(new THREE.Vector3(0, 0, 1), new THREE.Vector3(1, 0, 0), new THREE.Vector3(0, 1, 0)),
 )

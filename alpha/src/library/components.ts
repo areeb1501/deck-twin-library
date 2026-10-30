@@ -18,6 +18,11 @@ import { NPS_SIZES, pipeOD } from '../model/catalog'
 import { headDepth, headSurface, nozzle } from '../model/geom'
 import type { ComponentDef, NozzleTemplate, ParamDef, Params } from './types'
 
+/** christmas-tree geometry shared with scene/equipment/XmasTree.tsx (metres above the wellhead stack top) */
+export const XT_CROSS = 1.25 // cross / wing centreline above the top of the wellhead spools
+export const XT_WING_PROD = 1.05 // production-wing nozzle base (after wing valve + choke), local +X
+export const XT_WING_KILL = 0.7 // kill-wing nozzle base, local -X
+
 const n = (p: Params, k: string) => Number(p[k])
 const s = (p: Params, k: string) => String(p[k])
 const b = (p: Params, k: string) => Boolean(p[k])
@@ -379,6 +384,40 @@ const moduleDef: ComponentDef<'module'> = {
   nozzles: () => [],
 }
 
+// ------------------------------------------------------------------ christmas tree
+const xmasTree: ComponentDef<'xmasTree'> = {
+  kind: 'xmasTree',
+  label: 'Wellhead & christmas tree',
+  category: 'Pipeline',
+  blurb: 'Wellhead spools on a conductor with lower and upper master valves (upper = actuated SSV), a cross with production and kill wings, a swab valve and a tree cap. The production wing carries the choke.',
+  tagPrefix: 'XT',
+  system: 'wells',
+  params: [
+    { key: 'wellType', label: 'Well type', type: 'select', options: [
+      { value: 'oilProducer', label: 'Oil producer' },
+      { value: 'gasProducer', label: 'Gas producer' },
+      { value: 'waterInjector', label: 'Water injector' },
+      { value: 'suspended', label: 'Suspended' },
+    ] },
+    { key: 'boreNps', label: 'Master bore', type: 'select', options: [2, 3, 4, 6].map((x) => ({ value: x, label: `${x}"` })) },
+    { key: 'wellheadHeight', label: 'Wellhead spool stack', type: 'number', unit: 'm', min: 0.4, max: 2, step: 0.05 },
+    { key: 'ssv', label: 'Actuated SSV (upper master)', type: 'bool' },
+    { key: 'rating', label: 'Flange rating', type: 'select', options: ([600, 900] as const).map((r) => ({ value: r, label: `Class ${r}` })) },
+    { key: 'wingNps', label: 'Production wing', type: 'select', options: NPS_OPTS.filter((o) => o.value <= 8) },
+    { key: 'killNps', label: 'Kill wing', type: 'select', options: NPS_OPTS.filter((o) => o.value <= 4) },
+  ],
+  defaults: { wellType: 'oilProducer', boreNps: 4, wellheadHeight: 0.9, ssv: true, rating: 900, wingNps: 4, killNps: 2 },
+  body: (p) => ({ wellType: s(p, 'wellType') as 'oilProducer', boreNps: n(p, 'boreNps'), ssv: b(p, 'ssv'), wellheadHeight: n(p, 'wellheadHeight') }),
+  originY: () => 0,
+  nozzles: (p) => {
+    const y = r3(n(p, 'wellheadHeight') + XT_CROSS)
+    return [
+      { id: 'N1', name: 'Production wing outlet', base: [XT_WING_PROD, y, 0], dir: [1, 0, 0], nps: n(p, 'wingNps'), neck: 0.3 },
+      { id: 'N2', name: 'Kill wing', base: [-XT_WING_KILL, y, 0], dir: [-1, 0, 0], nps: n(p, 'killNps'), neck: 0.25 },
+    ]
+  },
+}
+
 // ------------------------------------------------------------------ registry
 export const LIBRARY: { [K in EquipmentKind]: ComponentDef<K> } = {
   horizontalVessel,
@@ -390,6 +429,7 @@ export const LIBRARY: { [K in EquipmentKind]: ComponentDef<K> } = {
   manifold,
   chemSkid,
   module: moduleDef,
+  xmasTree,
 }
 
 export const LIBRARY_LIST: ComponentDef[] = Object.values(LIBRARY) as ComponentDef[]
@@ -413,6 +453,8 @@ export interface InstanceOptions {
   at: [number, number]
   /** radians about +Y */
   rotationY?: number
+  /** floor level the item stands on (deck-local y), e.g. -8 for the cellar deck */
+  y?: number
   params?: Params
   /** replaces the default nozzle set (local frame) */
   nozzles?: NozzleTemplate[]
@@ -429,7 +471,7 @@ export function instantiate(kind: EquipmentKind, o: InstanceOptions): Equipment 
     tag: o.tag,
     name: o.name ?? def.label,
     system: o.system ?? def.system,
-    position: [o.at[0], r3(def.originY(p)), o.at[1]] as Vec3,
+    position: [o.at[0], r3(def.originY(p) + (o.y ?? 0)), o.at[1]] as Vec3,
     rotationY: o.rotationY ?? 0,
     nozzles: [],
     design: o.design ?? {},

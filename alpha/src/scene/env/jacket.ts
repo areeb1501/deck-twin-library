@@ -10,6 +10,7 @@ import { bar, boxMinMax, tube } from '../structure/batch'
 import { ladder } from '../structure/ladder'
 import { DECK } from '../structure/deckConst'
 import { DECK_WORLD_Y } from '../../state/store'
+import { lqFoamPoints } from './lqJacket'
 
 export const JACKET = {
   /** elevation where the legs change from vertical to battered */
@@ -64,6 +65,8 @@ export function foamPoints(): [number, number, number][] {
   for (const r of JACKET.risers) out.push([riserX(0), r.z, 0.25])
   for (const x of [-3, -1, 1, 3]) out.push([x, 21.2, 0.3])
   out.push([riserX(0) + 1.6, -13, 0.3], [riserX(0) + 1.6, 5, 0.3])
+  // LQ platform legs (the ocean shader takes at most 24 points)
+  out.push(...lqFoamPoints())
   return out
 }
 

@@ -26,8 +26,12 @@ import { Num, Row, Sel } from '../ui/builder/fields'
 import { VALVE_LABEL } from '../ui/TagTree'
 import '../app.css'
 
+const mods = import.meta.glob('../scene/equipment/*.tsx', { eager: true }) as Record<string, Record<string, unknown>>
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const byName = (name: string) => (Object.values(mods).find((m) => m[name])?.[name] ?? (() => null)) as React.ComponentType<{ eq: any }>
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const MODELS: Record<EquipmentKind, React.ComponentType<{ eq: any }>> = {
+  xmasTree: byName('XmasTreeModel'),
   horizontalVessel: HorizontalVesselModel,
   verticalVessel: VerticalVesselModel,
   shellTube: ShellTubeModel,
@@ -39,7 +43,8 @@ const MODELS: Record<EquipmentKind, React.ComponentType<{ eq: any }>> = {
   manifold: ManifoldModel,
 }
 const VALVES: ValveType[] = ['gate', 'globe', 'ball', 'check', 'butterfly', 'control', 'esdv', 'bdv', 'psv', 'needle']
-const INSTRUMENTS: InstrumentType[] = ['PT', 'PI', 'PG', 'TT', 'TG', 'LT', 'LG', 'FT', 'PDT', 'AT']
+const FG_TYPES: InstrumentType[] = ['FD', 'GD', 'OGD', 'HD', 'SD', 'MAC']
+const INSTRUMENTS: InstrumentType[] = ['PT', 'PI', 'PG', 'TT', 'TG', 'LT', 'LG', 'FT', 'PDT', 'AT', 'FD', 'GD', 'OGD', 'HD', 'SD', 'MAC']
 
 type Pick = { k: 'eq'; kind: EquipmentKind } | { k: 'valve'; t: ValveType } | { k: 'inst'; t: InstrumentType }
 
@@ -67,11 +72,15 @@ export default function LibrarySandbox() {
             <Model eq={eq} />
           </group>
         )}
-        {eq?.nozzles.map((n) => (
-          <Html key={n.id} position={n.pos} style={{ pointerEvents: 'none' }}>
-            <div className="noz-chip">{n.id} · {n.name} · {n.nps}"</div>
-          </Html>
-        ))}
+        {/* a fixed pool of label slots: unmounting drei <Html> mid-render races React's root unmount */}
+        {Array.from({ length: 8 }, (_, i) => {
+          const n = eq?.nozzles[i]
+          return (
+            <Html key={i} position={n?.pos ?? [0, -50, 0]} style={{ pointerEvents: 'none', display: n ? 'block' : 'none' }}>
+              <div className="noz-chip">{n ? `${n.id} · ${n.name} · ${n.nps}"` : ''}</div>
+            </Html>
+          )
+        })}
         {pick.k === 'valve' && (
           <group position={[0, 1, 0]}>
             <ValveModel type={pick.t} nps={nps} />
@@ -83,7 +92,8 @@ export default function LibrarySandbox() {
               <cylinderGeometry args={[pipeOD(nps) / 2, pipeOD(nps) / 2, 1.6, 24]} />
               <meshStandardMaterial color="#8a8f94" metalness={0.6} roughness={0.4} />
             </mesh>
-            <group position={[0, pipeOD(nps) / 2, 0]}>
+            {/* fire & gas detectors use the equipment-mount frame (+Y aim, +Z up): stand them upright */}
+            <group position={[0, pipeOD(nps) / 2, 0]} rotation-x={FG_TYPES.includes(pick.t) ? -Math.PI / 2 : 0}>
               <InstrumentModel type={pick.t} hostOd={pipeOD(nps)} tag={`${pick.t}-001`} />
             </group>
           </group>

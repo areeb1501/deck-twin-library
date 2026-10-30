@@ -17,6 +17,7 @@ const KIND_LABEL: Record<string, string> = {
   chemSkid: 'Skid',
   module: 'Module',
   manifold: 'Manifold',
+  xmasTree: 'Wellhead / christmas tree',
 }
 
 export const VALVE_LABEL: Record<string, string> = {
@@ -30,6 +31,15 @@ export const VALVE_LABEL: Record<string, string> = {
   bdv: 'Blowdown valve',
   psv: 'Pressure safety valve',
   needle: 'Needle valve',
+}
+
+export const FG_LABEL: Record<string, string> = {
+  FD: 'Flame detector (IR3)',
+  GD: 'Point gas detector',
+  OGD: 'Open-path gas detector',
+  HD: 'Heat detector',
+  SD: 'Smoke detector',
+  MAC: 'Manual call point',
 }
 
 export function kindLabel(k: string) {
@@ -55,8 +65,9 @@ export function TagTree() {
     for (const l of plant.lines) g(l.system).lines.push({ tag: l.tag, label: SERVICE[l.service].label, kind: 'line', swatch: SERVICE[l.service].flow })
     for (const v of plant.valves) g(lineSystem.get(v.line) ?? 'production').valves.push({ tag: v.tag, label: VALVE_LABEL[v.type], kind: 'valve' })
     for (const i of plant.instruments) {
-      const sys = 'line' in i.on ? lineSystem.get(i.on.line) : plant.equipment.find((e) => e.tag === (i.on as { equipment: string }).equipment)?.system
-      g(sys ?? 'production').instruments.push({ tag: i.tag, label: `${i.range} ${i.unit}`, kind: 'instrument' })
+      const fg = FG_LABEL[i.type]
+      const sys = fg ? 'safety' : 'line' in i.on ? lineSystem.get(i.on.line) : plant.equipment.find((e) => e.tag === (i.on as { equipment: string }).equipment)?.system
+      g(sys ?? 'production').instruments.push({ tag: i.tag, label: fg ?? `${i.range} ${i.unit}`, kind: 'instrument' })
     }
     return [...out.entries()]
   }, [plant])

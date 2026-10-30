@@ -147,6 +147,7 @@ export function compileSpec(spec: PlantSpec): CompileResult {
   for (const i of spec.instruments) {
     if (tags.has(i.tag)) { errors.push(`${i.tag}: duplicate tag skipped`); continue }
     const d = INSTRUMENT_DEFAULTS[i.type]
+    if (!d) { errors.push(`${i.tag}: unknown instrument type "${i.type}" (use ${Object.keys(INSTRUMENT_DEFAULTS).join(', ')})`); continue }
     const base = { tag: i.tag, type: i.type, range: i.range ?? d.range, unit: i.unit ?? d.unit, nominal: i.nominal ?? d.nominal }
     if ('line' in i.on) {
       const l = lineBy.get(i.on.line)
@@ -186,6 +187,12 @@ export const INSTRUMENT_DEFAULTS: Record<InstrumentType, { range: string; unit: 
   LG: { range: '0–100', unit: '%', nominal: 50 },
   FT: { range: '0–200', unit: 'm³/h', nominal: 120 },
   AT: { range: '0–1000', unit: 'ppm', nominal: 120 },
+  FD: { range: '0–100', unit: '% IR', nominal: 2 },
+  GD: { range: '0–100', unit: '%LEL', nominal: 1.2 },
+  OGD: { range: '0–5', unit: 'LEL·m', nominal: 0.15 },
+  HD: { range: '0–120', unit: '°C', nominal: 27 },
+  SD: { range: '0–10', unit: '%obs/m', nominal: 0.2 },
+  MAC: { range: '4–20', unit: 'mA', nominal: 4 },
 }
 
 // ------------------------------------------------------------------ layout
@@ -254,6 +261,18 @@ function autoLayout(specs: EquipmentSpec[], spec: PlantSpec, build: (e: Equipmen
 }
 
 // ------------------------------------------------------------------ routing
+/**
+ * Orthogonal route between two nozzles and/or fixed points, for hand-authored plants that want
+ * the compiler's router. A point end is used as given (no lead).
+ */
+export function orthoRoute(a: Nozzle | Vec3, b: Nozzle | Vec3, nps: number, elevation?: number, order: 'xz' | 'zx' = 'xz'): Vec3[] {
+  const na = Array.isArray(a) ? undefined : a
+  const nb = Array.isArray(b) ? undefined : b
+  const fa: EndSpec = { offPlant: '', at: Array.isArray(a) ? a : undefined }
+  const fb: EndSpec = { offPlant: '', at: Array.isArray(b) ? b : undefined }
+  return autoRouteLine(na, nb, fa, fb, nps, { minX: -1e4, maxX: 1e4, minZ: -1e4, maxZ: 1e4 }, elevation, order).route.map(v3)
+}
+
 const dist = (a: Vec3, b: Vec3) => Math.hypot(a[0] - b[0], a[1] - b[1], a[2] - b[2])
 const same = (a: Vec3, b: Vec3) => dist(a, b) < 1e-6
 
@@ -368,7 +387,7 @@ function hasReversal(r: Vec3[]) {
  * Fraction of total line length → (segment, t). Keeps `clear` metres from both ends of the chosen
  * segment (elbows / flanges); if the segment is too short, moves to the nearest one that fits.
  */
-function placeOnLine(l: PipeLine, at: number, clear: number): { seg: number; t: number; warning?: string } {
+export function placeOnLine(l: PipeLine, at: number, clear: number): { seg: number; t: number; warning?: string } {
   const r = l.route
   const lens = r.slice(1).map((p, i) => dist(r[i], p))
   const total = lens.reduce((s, x) => s + x, 0)

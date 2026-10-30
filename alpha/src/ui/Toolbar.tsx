@@ -7,9 +7,17 @@ const PRESETS: [CameraPreset, string][] = [
   ['overview', 'Platform'],
   ['deck', 'Deck'],
   ['plan', 'Plan'],
+]
+/** more views, in the Views menu */
+const MORE: [CameraPreset, string][] = [
+  ['field', 'Field — Alpha, bridge & LQ'],
+  ['rig', 'Drilling rig'],
+  ['wellbay', 'Well bay (cellar deck)'],
   ['rack', 'Pipe rack'],
   ['separator', 'HP separator'],
   ['compressor', 'Compressor'],
+  ['bridge', 'South bridge'],
+  ['lq', 'Accommodation platform'],
   ['underdeck', 'Jacket'],
 ]
 
@@ -22,6 +30,7 @@ const LAYERS: [LayerId, string][] = [
   ['environment', 'Sea & jacket'],
   ['labels', 'Labels'],
   ['flow', 'Flow'],
+  ['fireGas', 'F&G coverage'],
 ]
 
 export function Toolbar() {
@@ -30,7 +39,7 @@ export function Toolbar() {
   const preset = useStore((s) => s.requestPreset)
   const section = useStore((s) => s.section)
   const setSection = useStore((s) => s.setSection)
-  const [menu, setMenu] = useState<'layers' | 'section' | null>(null)
+  const [menu, setMenu] = useState<'layers' | 'section' | 'views' | null>(null)
   const walk = useStore((s) => s.walk)
   const setWalk = useStore((s) => s.setWalk)
 
@@ -47,6 +56,9 @@ export function Toolbar() {
             {label}
           </button>
         ))}
+        <button className={menu === 'views' ? 'on' : ''} onClick={() => setMenu(menu === 'views' ? null : 'views')}>
+          Views ▾
+        </button>
       </div>
       <div className="seg">
         <button className={viewMode === 'shaded' ? 'on' : ''} onClick={() => setViewMode('shaded')} title="Shaded (S)">
@@ -62,6 +74,15 @@ export function Toolbar() {
           Layers
         </button>
       </div>
+      {menu === 'views' && (
+        <div className="pop views">
+          {MORE.map(([k, label]) => (
+            <button key={k} className="pop-item" onClick={() => (preset(k), setMenu(null))}>
+              {label}
+            </button>
+          ))}
+        </div>
+      )}
       {menu === 'layers' && <LayersMenu />}
       {menu === 'section' && <SectionMenu onEnable={(v) => setSection({ enabled: v })} />}
     </div>

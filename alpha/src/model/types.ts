@@ -29,6 +29,11 @@ export type SystemId =
   | 'flare'
   | 'utilities'
   | 'safety'
+  | 'wells' // wellheads, flowlines, drilling
+  | 'producedWater'
+  | 'gasTreatment' // TEG dehydration + fuel gas
+  | 'drains'
+  | 'accommodation' // living-quarters platform, control room
 
 export type Rating = 150 | 300 | 600 | 900
 
@@ -159,7 +164,24 @@ export interface Manifold extends EquipmentBase {
   length: number
 }
 
+/**
+ * Wellhead + christmas tree on a conductor. Origin = wellhead base flange on top of the conductor,
+ * axis +Y. Stack: casing head + tubing head spool, lower master, upper master (SSV), cross with wing
+ * valves, swab valve, tree cap. Nozzles are the wing outlets (production / kill).
+ */
+export interface XmasTree extends EquipmentBase {
+  kind: 'xmasTree'
+  wellType: 'oilProducer' | 'gasProducer' | 'waterInjector' | 'suspended'
+  /** master-valve bore, inches */
+  boreNps: number
+  /** upper master is a hydraulically actuated surface safety valve */
+  ssv: boolean
+  /** casing + tubing head spool height below the tree (m) */
+  wellheadHeight: number
+}
+
 export type Equipment =
+  | XmasTree
   | HorizontalVessel
   | VerticalVessel
   | ShellTube
@@ -239,6 +261,13 @@ export type InstrumentType =
   | 'FT' // flow transmitter (orifice)
   | 'PDT'
   | 'AT' // analyser
+  // fire & gas detection
+  | 'FD' // flame detector (IR3), aimed along `dir`
+  | 'GD' // point gas detector (IR, %LEL), sensor facing down
+  | 'OGD' // open-path gas detector (LEL·m), beam along `dir`
+  | 'HD' // heat detector (rate-of-rise)
+  | 'SD' // smoke detector (optical)
+  | 'MAC' // manual alarm call point
 
 export interface Instrument {
   tag: string
@@ -262,11 +291,29 @@ export interface Plant {
     extent: { minX: number; maxX: number; minZ: number; maxZ: number }
     /** surroundings: the authored offshore jacket platform, or a plain onshore concrete pad */
     site?: 'offshoreAlpha' | 'onshore'
+    /** walkthrough levels (default: one level at y = 0 over `extent`) */
+    walk?: WalkLevel[]
   }
   equipment: Equipment[]
   lines: PipeLine[]
   valves: Valve[]
   instruments: Instrument[]
+}
+
+export interface PlanRect {
+  x0: number
+  x1: number
+  z0: number
+  z1: number
+}
+
+/** A walkable level: floor height (deck-local), where you can stand, and what you can't walk through. */
+export interface WalkLevel {
+  id: string
+  label: string
+  y: number
+  areas: PlanRect[]
+  obstacles?: PlanRect[]
 }
 
 /** Anything selectable carries one of these in object.userData */

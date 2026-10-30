@@ -27,8 +27,11 @@ function sim(tag: string, key: string, label: string, unit: string, nominal: num
   return { inst: { tag: `${tag}·${key}`, type: 'PT', on: { equipment: tag }, unit, nominal, range, alarms }, label, simulated: true }
 }
 
-const KIND_OF: Record<string, string> = { PT: 'P', PI: 'P', PG: 'P', TT: 'T', TG: 'T', LT: 'L', LG: 'L', FT: 'F', PDT: 'DP', AT: 'A' }
-const LABEL_OF: Record<string, string> = { P: 'Pressure', T: 'Temperature', L: 'Level', F: 'Flow', DP: 'Differential pressure', A: 'Analyser' }
+const KIND_OF: Record<string, string> = { PT: 'P', PI: 'P', PG: 'P', TT: 'T', TG: 'T', LT: 'L', LG: 'L', FT: 'F', PDT: 'DP', AT: 'A', FD: 'FD', GD: 'GD', OGD: 'OGD', HD: 'HD', SD: 'SD', MAC: 'MAC' }
+const LABEL_OF: Record<string, string> = {
+  P: 'Pressure', T: 'Temperature', L: 'Level', F: 'Flow', DP: 'Differential pressure', A: 'Analyser',
+  FD: 'Flame detector', GD: 'Gas detector', OGD: 'Open-path gas', HD: 'Heat detector', SD: 'Smoke detector', MAC: 'Call point',
+}
 
 function real(i: Instrument, where?: string): Metric {
   const k = KIND_OF[i.type] ?? i.type
@@ -100,6 +103,16 @@ function equipmentSim(e: Equipment): Metric[] {
         ...Array.from({ length: Math.min(e.tanks, 3) }, (_, i) => sim(t, `L${i}`, `Tank ${i + 1} level`, '%', 55 + i * 9, '0–100', { lo: 20 })),
         sim(t, 'F', 'Injection rate', 'L/h', 14, '0–40'),
       ]
+    case 'xmasTree': {
+      const thp = { oilProducer: 48, gasProducer: 96, waterInjector: 128, suspended: 0.6 }[e.wellType]
+      return [
+        sim(t, 'THP', e.wellType === 'waterInjector' ? 'Injection pressure' : 'Tubing head pressure', 'barg', thp, '0–200', { hi: +(thp * 1.25).toFixed(1) }),
+        sim(t, 'FTHT', 'Flowing tubing head temp.', '°C', e.wellType === 'waterInjector' ? 18 : 74, '0–150'),
+        sim(t, 'CH', 'Choke opening', '%', e.wellType === 'suspended' ? 0.1 : 42, '0–100'),
+        sim(t, 'PA', 'A-annulus pressure', 'barg', 14, '0–100', { hi: 35, hiHi: 50 }),
+        sim(t, 'SCSSV', 'SCSSV control line', 'barg', 310, '0–400', { lo: 250, loLo: 200 }),
+      ]
+    }
     case 'module':
       return [
         sim(t, 'T', 'Room temperature', '°C', 22, '0–50', { hi: 30 }),

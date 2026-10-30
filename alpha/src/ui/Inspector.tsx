@@ -6,8 +6,9 @@ import { SERVICE, flange, pipeOD, pipeWall, valveLength } from '../model/catalog
 import type { Equipment, Instrument, PickData, PipeLine, Valve } from '../model/types'
 import { useStore } from '../state/store'
 import { fmt, history, sample } from './live'
-import { VALVE_LABEL, kindLabel } from './TagTree'
+import { FG_LABEL, VALVE_LABEL, kindLabel } from './TagTree'
 import { metricsFor, type Metric } from './metrics'
+import { isIsolatable } from '../model/isolation'
 
 const mm = (m: number) => `${Math.round(m * 1000)} mm`
 const m2 = (m: number) => `${m.toFixed(2)} m`
@@ -320,7 +321,7 @@ export function Inspector() {
   const line = plant.lines.find((l) => l.tag === sel.tag)
   const valve = plant.valves.find((v) => v.tag === sel.tag)
   const inst = plant.instruments.find((i) => i.tag === sel.tag)
-  const title = eq?.name ?? (line ? SERVICE[line.service].label : valve ? VALVE_LABEL[valve.type] : inst ? `${inst.type} instrument` : '')
+  const title = eq?.name ?? (line ? SERVICE[line.service].label : valve ? VALVE_LABEL[valve.type] : inst ? FG_LABEL[inst.type] ?? `${inst.type} instrument` : '')
   const sub = eq ? `${kindLabel(eq.kind)} · ${SYSTEM_LABEL[eq.system]}` : line ? SYSTEM_LABEL[line.system] : valve ? valve.line : ''
   return (
     <aside className="panel inspector">
@@ -342,6 +343,11 @@ export function Inspector() {
         {walk && selected && <button onClick={() => select(null)}>Unpin</button>}
         <button onClick={() => focus(sel.tag)}>{walk ? 'Walk to' : 'Frame'}</button>
         <button onClick={() => cut(sel.tag)}>Cut open</button>
+        {isIsolatable(plant, sel.tag) && (
+          <button onClick={() => useStore.getState().setIsolation({ target: sel.tag, mode: 'valve' })} title="Find the valves to close to isolate this item (LOTO)">
+            Plan isolation
+          </button>
+        )}
         {section && <button onClick={() => setSection({ enabled: false })}>Clear cut</button>}
       </div>
       <div className="insp-body">
