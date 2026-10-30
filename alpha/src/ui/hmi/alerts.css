@@ -46,7 +46,7 @@
 /* Trace timeline: a status node per step on a track, and a card that expands to its evidence. ISA-101 grey;
    colour only marks a decision (amber), a notification sent (green) or work in progress. */
 .al-trace { list-style: none; margin: 0; padding: 2px 2px 4px 0; overflow: auto; min-height: 0; flex: 1 1 auto; position: relative; display: flex; flex-direction: column; gap: 8px; }
-.al-trace::before { content: ''; position: absolute; left: 13px; top: 14px; bottom: 14px; width: 2px; border-radius: 1px; background: linear-gradient(to bottom, var(--h-fg), var(--h-line2) 70%, var(--h-line)); opacity: 0.55; }
+.al-trace::before { content: ''; position: absolute; left: 13px; top: 14px; bottom: 14px; width: 2px; border-radius: 1px; background: linear-gradient(to bottom, var(--h-fg), var(--h-line2) 70%, var(--h-line)); opacity: 0.55; transition: bottom 0.3s ease; }
 .al-trace[data-steps='0']::before, .al-trace[data-steps='1']::before { display: none; }
 .al-step { display: grid; grid-template-columns: 28px minmax(0, 1fr); gap: 10px; align-items: start; position: relative; }
 .hmi .al-node, .al-node { width: 28px; height: 28px; padding: 0; display: flex; align-items: center; justify-content: center; border-radius: 50%; border: 1px solid var(--h-line2); background: var(--h-bg2); color: var(--h-dim); position: relative; z-index: 1; flex: none; }
@@ -83,8 +83,16 @@
 /* the trace column scrolls as one: conclusion first, then the steps that led to it */
 .al-tracecol { overflow-y: auto; }
 .al-tracecol .al-trace { flex: none; overflow: visible; }
-.al-tracecol .al-report { max-height: none; margin: 0 0 4px; }
-.al-steps-h { display: flex; gap: 6px; align-items: baseline; margin: 10px 0 8px; }
+.al-tracecol .al-report { max-height: none; margin: 10px 0 4px; animation: al-in 0.35s ease both; }
+.al-steps-h { display: flex; gap: 6px; align-items: center; margin: 10px 0 8px; }
+.al-progress { flex: 1; height: 2px; margin-left: 6px; border-radius: 1px; background: var(--h-line); overflow: hidden; }
+.al-progress i { display: block; height: 100%; background: var(--h-fg); transition: width 0.4s ease; }
+/* each step arrives: fade and rise; its node pops */
+.al-trace .al-step { animation: al-in 0.38s cubic-bezier(0.23, 1, 0.32, 1) both; }
+.al-trace .al-step .al-node { animation: al-pop 0.38s cubic-bezier(0.23, 1, 0.32, 1) both; }
+@keyframes al-in { from { opacity: 0; transform: translateY(8px); } }
+@keyframes al-pop { from { transform: scale(0.6); opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .al-trace .al-step, .al-trace .al-step .al-node, .al-tracecol .al-report { animation: none; } }
 
 /* compact version inside a chat answer ("How I worked this out") */
 .al-trace.mini { flex: none; max-height: 240px; margin-top: 6px; gap: 6px; font-size: 11px; }

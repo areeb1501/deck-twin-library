@@ -224,19 +224,63 @@ function EmailModal({ alert, onClose }: { alert: Alert; onClose: () => void }) {
 }
 
 // ---------------------------------------------------------------- trace
+/** ms between replayed steps: long enough to read a step, short enough that a 30-step investigation takes ~15 s */
+const REPLAY_MS = 520
+
+/**
+ * Replays a trace step by step whenever `key` changes (a new trace opened, or Replay): returns how many
+ * steps are revealed. Live steps that arrive later (a running investigation) are revealed as they come.
+ */
+function useReplay(count: number, key: string | undefined) {
+  const [state, setState] = useState({ key, n: 0 })
+  if (state.key !== key) setState({ key, n: 0 })
+  const n = state.key === key ? state.n : 0
+  useEffect(() => {
+    if (n >= count) return
+    const id = window.setTimeout(() => setState((s) => ({ ...s, n: s.n + 1 })), n === 0 ? 180 : REPLAY_MS)
+    return () => window.clearTimeout(id)
+  }, [n, count])
+  return [Math.min(n, count), () => setState((s) => ({ ...s, n: count }))] as const
+}
+
+const KIND_DOING: Record<TraceStep['kind'], string> = { observe: 'observing', assess: 'assessing', decide: 'deciding', act: 'acting', notify: 'notifying', answer: 'answering' }
+
+/** what the next step is doing, shown on the "working" row while it is on its way */
+function preview(s: TraceStep) {
+  if (s.actor === 'tool') return `Calling ${s.text.split('→')[0].trim()}`
+  return `${s.actor === 'model' || s.actor === 'assistant' ? 'Assistant' : s.actor[0].toUpperCase() + s.actor.slice(1)} ${KIND_DOING[s.kind]}…`
+}
+
 function TraceColumn({ sel, setSel }: { sel: Sel; setSel: (s: Sel) => void }) {
   const trace = (useAlerts((s) => s.trace) ?? EMPTY_ARR) as TraceStep[]
   const runs = useInvestigations((s) => s.runs)
   const order = useInvestigations((s) => s.order)
   const run = sel?.kind === 'inv' ? runs[sel.traceId] : undefined
   const steps = useMemo(() => (sel ? trace.filter((s) => s.traceId === sel.traceId) : EMPTY_ARR), [trace, sel])
+  const [replayKey, setReplayKey] = useState(0)
+  const [shown, skip] = useReplay(steps.length, sel ? `${sel.traceId}:${replayKey}` : undefined)
+  const replaying = shown < steps.length
+  const live = run?.status === 'running'
   const endRef = useRef<HTMLDivElement>(null)
   useEffect(() => {
-    if (run?.status === 'running') void endRef.current?.scrollIntoView({ block: 'nearest' })
-  }, [steps.length, run?.status])
+    if (shown > 0 && (replaying || live)) void endRef.current?.scrollIntoView({ block: 'nearest', behavior: 'smooth' })
+  }, [shown, replaying, live])
 
   return (
-    <Box className="al-col al-tracecol" title={<>Trace {sel && <span className="dim mono">· {sel.traceId}</span>}</>} right={sel && <button onClick={() => setSel(null)}>×</button>}>
+    <Box
+      className="al-col al-tracecol"
+      title={<>Trace {sel && <span className="dim mono">· {sel.traceId}</span>}</>}
+      right={
+        sel && (
+          <>
+            {steps.length > 1 && (replaying ? <button onClick={skip}>Skip</button> : <button onClick={() => setReplayKey((k) => k + 1)} title="Play the steps again">Replay</button>)}
+            <button onClick={() => setSel(null)} aria-label="Close the trace">
+              ×
+            </button>
+          </>
+        )
+      }
+    >
       {!sel && (
         <>
           <p className="h-note">Select an alert, an investigation or an answer to see every step that led to it: observe → assess → decide → notify, and the agent's tool calls.</p>
@@ -256,17 +300,19 @@ function TraceColumn({ sel, setSel }: { sel: Sel; setSel: (s: Sel) => void }) {
       )}
       {sel && <div className="al-trace-title">{sel.label}</div>}
       {run && <InvestigationHead run={run} />}
-      {run?.report && <ReportBox run={run} />}
       {sel && steps.length > 0 && (
         <div className="h-sec al-steps-h">
-          Steps <span className="dim">{steps.length}</span>
+          Steps <span className="dim">{replaying ? `${shown} / ${steps.length}` : steps.length}</span>
+          <span className="al-progress" aria-hidden>
+            <i style={{ width: `${(shown / Math.max(1, steps.length)) * 100}%` }} />
+          </span>
         </div>
       )}
-      <ol className={`al-trace${run?.status === 'running' ? ' running' : ''}`} data-steps={steps.length}>
-        {steps.map((s, i) => (
-          <TraceItem key={s.id} s={s} last={i === steps.length - 1 && run?.status !== 'running'} />
+      <ol className={`al-trace${live || replaying ? ' running' : ''}`} data-steps={shown}>
+        {steps.slice(0, shown).map((s, i) => (
+          <TraceItem key={s.id} s={s} last={i === steps.length - 1 && !live} />
         ))}
-        {run?.status === 'running' && run.pending && (
+        {(replaying || (live && run?.pending)) && (
           <li className="al-step pending">
             <span className="al-node">
               <i className="al-spin" />
@@ -274,13 +320,14 @@ function TraceColumn({ sel, setSel }: { sel: Sel; setSel: (s: Sel) => void }) {
             <div className="al-card2">
               <div className="al-step-h">
                 <b>Working</b>
-                <span className="al-pill live">in progress</span>
+                <span className="al-pill live">{replaying ? 'replay' : 'in progress'}</span>
               </div>
-              <div className="al-step-t">{run.pending}</div>
+              <div className="al-step-t">{replaying ? preview(steps[shown]) : run?.pending}</div>
             </div>
           </li>
         )}
       </ol>
+      {run?.report && !replaying && <ReportBox run={run} />}
       <div ref={endRef} />
     </Box>
   )

@@ -17,7 +17,7 @@ import { useEffect, useMemo, useRef } from 'react'
 import { useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js'
-import { CAMERAS, FEED_INTERVAL_MS, detect, feedCanvases, feedStats, lastFrames, useCctv, type CctvCameraEx } from '../safety/cctv'
+import { CAMERAS, FEED_INTERVAL_MS, STEER_INTERVAL_MS, aimOf, detect, feedCanvases, feedStats, lastFrames, useCctv, type CctvCameraEx } from '../safety/cctv'
 import type { Detection } from '../safety/types'
 import type { Plant } from '../model/types'
 import { usePlant } from '../state/plantStore'
@@ -333,13 +333,13 @@ function feedTurn(gl: THREE.WebGLRenderer, scene: THREE.Scene, st: FeedCtx) {
   const cctv = useCctv.getState()
   if (!cctv.feedsVisible || st.pending || document.hidden || feedCanvases.size === 0) return
   const now = performance.now()
-  if (now - st.last < FEED_INTERVAL_MS) return
+  if (now - st.last < (cctv.steering ? STEER_INTERVAL_MS : FEED_INTERVAL_MS)) return
   st.last = now
   st.turn++
-  // ---- whose turn: the big tile's camera every other turn, the others round-robin
+  // ---- whose turn: the big tile's camera every other turn (every turn while it is being steered), the others round-robin
   const prio = cctv.callUp ?? cctv.selected
   let cam: CctvCameraEx | undefined
-  if (st.turn % 2 === 0 && feedCanvases.has(prio)) cam = CAMERAS.find((c) => c.id === prio)
+  if ((cctv.steering || st.turn % 2 === 0) && feedCanvases.has(prio)) cam = CAMERAS.find((c) => c.id === prio)
   for (let k = 0; !cam && k < CAMERAS.length; k++) {
     const c = CAMERAS[st.rr++ % CAMERAS.length]
     if (c.id !== prio && feedCanvases.has(c.id)) cam = c
@@ -358,13 +358,14 @@ function feedTurn(gl: THREE.WebGLRenderer, scene: THREE.Scene, st: FeedCtx) {
 
   // ---- camera
   const cam3 = st.cam3
+  const aim = aimOf(cam, cctv.ptz[cam.id])
   cam3.position.set(...cam.pos)
-  cam3.fov = cam.fov
+  cam3.fov = aim.fov
   cam3.aspect = w / h
   cam3.near = 0.3
   cam3.far = 900
   cam3.up.set(0, 1, 0)
-  cam3.lookAt(...cam.target)
+  cam3.lookAt(...aim.target)
   cam3.updateProjectionMatrix()
   cam3.updateMatrixWorld(true)
 

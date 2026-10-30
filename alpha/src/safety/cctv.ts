@@ -131,6 +131,8 @@ export const FEED_W = 512
 export const FEED_H = 288
 /** one off-screen render every … ms (round-robin; the selected / called-up camera every other turn) */
 export const FEED_INTERVAL_MS = 250
+/** while the operator steers the main monitor (drag, zoom, 360° sweep) */
+export const STEER_INTERVAL_MS = 50
 
 // ---------------------------------------------------------------- feed canvas registry (page ↔ scene/CctvRenderer.tsx)
 
@@ -225,6 +227,46 @@ export interface SegInstance {
   pixels: number
 }
 
+/**
+ * Pan / tilt / zoom of a camera head, relative to its installed aim (360° pan, tilt -85°…+60° from level,
+ * zoom 1…12× on the lens FOV). The renderer, detections and masks all follow it, so boxes stay on the picture.
+ */
+export interface Ptz {
+  /** degrees, positive turns right (clockwise seen from above); unbounded, wraps */
+  pan: number
+  /** degrees, positive tilts up */
+  tilt: number
+  zoom: number
+}
+export const PTZ_HOME: Ptz = { pan: 0, tilt: 0, zoom: 1 }
+const TILT_MIN = -85
+const TILT_MAX = 60
+
+/** installed aim as heading (deg, 0 = north / −z, clockwise) and elevation (deg) */
+export function homeAngles(c: CctvCameraEx) {
+  const dx = c.target[0] - c.pos[0]
+  const dy = c.target[1] - c.pos[1]
+  const dz = c.target[2] - c.pos[2]
+  return { heading: THREE.MathUtils.radToDeg(Math.atan2(dx, -dz)), elevation: THREE.MathUtils.radToDeg(Math.atan2(dy, Math.hypot(dx, dz))) }
+}
+
+/** where the head points with `ptz` applied: a WORLD look-at point, the effective FOV, heading and elevation */
+export function aimOf(c: CctvCameraEx, ptz: Ptz = PTZ_HOME) {
+  const home = homeAngles(c)
+  const heading = (((home.heading + ptz.pan) % 360) + 360) % 360
+  const elevation = THREE.MathUtils.clamp(home.elevation + ptz.tilt, TILT_MIN, TILT_MAX)
+  const h = THREE.MathUtils.degToRad(heading)
+  const e = THREE.MathUtils.degToRad(elevation)
+  const target: Vec3 = [c.pos[0] + Math.sin(h) * Math.cos(e) * 20, c.pos[1] + Math.sin(e) * 20, c.pos[2] - Math.cos(h) * Math.cos(e) * 20]
+  return { target, fov: THREE.MathUtils.clamp(c.fov / ptz.zoom, 3, 80), heading, elevation }
+}
+
+/** keep a commanded pose inside the head's limits */
+export function clampPtz(c: CctvCameraEx, p: Ptz): Ptz {
+  const home = homeAngles(c).elevation
+  return { pan: p.pan, tilt: THREE.MathUtils.clamp(p.tilt, TILT_MIN - home, TILT_MAX - home), zoom: THREE.MathUtils.clamp(p.zoom, 1, 12) }
+}
+
 /** latest mask image per camera (renderer → page) */
 export const segFrames = new Map<string, ImageData>()
 
@@ -254,6 +296,16 @@ export interface CctvStore {
   /** concept prompts switched on */
   prompts: Record<SegClassId, boolean>
   togglePrompt: (id: SegClassId) => void
+  /** operator pan / tilt / zoom per camera (absent = installed aim) */
+  ptz: Record<string, Ptz>
+  setPtz: (camera: string, p: Partial<Ptz>) => void
+  resetPtz: (camera: string) => void
+  /** the main monitor is being steered (drag or 360° sweep): render it every frame-slot, not round-robin */
+  steering: boolean
+  setSteering: (on: boolean) => void
+  /** 360° sweep of the main monitor's camera */
+  sweep: boolean
+  setSweep: (on: boolean) => void
   /** latest instances per camera + inference time of the last pass */
   segLive: Record<string, SegInstance[]>
   segMs: number
@@ -283,6 +335,22 @@ export const useCctv = create<CctvStore>((set, get) => ({
   setSeg: (seg) => set({ seg }),
   prompts: Object.fromEntries(SEG_CLASSES.map((c) => [c.id, c.id !== 'module'])) as Record<SegClassId, boolean>,
   togglePrompt: (id) => set((s) => ({ prompts: { ...s.prompts, [id]: !s.prompts[id] } })),
+  ptz: {},
+  setPtz: (camera, p) => {
+    const c = cameraById(camera)
+    if (!c) return
+    set((s) => ({ ptz: { ...s.ptz, [camera]: clampPtz(c, { ...(s.ptz[camera] ?? PTZ_HOME), ...p }) } }))
+  },
+  resetPtz: (camera) =>
+    set((s) => {
+      const next = { ...s.ptz }
+      delete next[camera]
+      return { ptz: next }
+    }),
+  steering: false,
+  setSteering: (steering) => set({ steering }),
+  sweep: false,
+  setSweep: (sweep) => set({ sweep }),
   segLive: {},
   segMs: 0,
   pushSeg: (camera, mask, instances, ms) => {

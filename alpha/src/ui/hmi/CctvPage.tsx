@@ -3,6 +3,8 @@
  *
  *  - One big tile (the operator's camera, or the camera CALLED UP by an F&G alarm: red border + banner)
  *    and seven smaller tiles; click a tile to put it on the big monitor.
+ *  - The big monitor is a 360° PTZ head: drag to pan and tilt, scroll to zoom, double-click for the installed
+ *    aim, arrow keys when focused, and a 360° sweep. The pose is per camera and feeds the renderer and detector.
  *  - Every tile is a live feed rendered from inside the twin (scene/CctvRenderer.tsx paints the canvas)
  *    with a camera OSD, the warning levels of the F&G detectors in the zones the camera covers (%LEL bars,
  *    flame detector states, zone status) and the detector's boxes (people, no hard hat, no hi-vis vest,
@@ -15,7 +17,7 @@
 import { memo, useEffect, useMemo, useRef, useState } from 'react'
 import { Box, Kpi } from './common'
 import { EMPTY_ARR, EMPTY_OBJ, useS } from './simApi'
-import { CAMERAS, FEED_H, FEED_INTERVAL_MS, FEED_W, SEG_BY_ID, SEG_CLASSES, cameraById, detLabel, feedCanvases, feedStats, registerFeed, segFrames, unregisterFeed, useCctv, type CctvCameraEx, type SegInstance } from '../../safety/cctv'
+import { CAMERAS, FEED_H, FEED_INTERVAL_MS, FEED_W, PTZ_HOME, SEG_BY_ID, SEG_CLASSES, aimOf, cameraById, detLabel, feedCanvases, feedStats, registerFeed, segFrames, unregisterFeed, useCctv, type CctvCameraEx, type SegInstance } from '../../safety/cctv'
 import { useWorkers } from '../../safety/workers'
 import { DETECTION_LABEL, type Detection, type DetectionKind, type WorkerInfo } from '../../safety/types'
 import { fmtClock, type DetectorSim, type ZoneStatus } from '../../sim/types'
@@ -104,19 +106,22 @@ const Tile = memo(function Tile({ cam, big, calledUp, slot }: { cam: CctvCameraE
   const h = big ? BIG_H : FEED_H
   // small tiles fill the right-hand column (3) beside the big monitor, then rows of 4 below it
   const style = big ? undefined : slot! < 3 ? { gridColumn: 4, gridRow: slot! + 1 } : { gridColumn: 1 + ((slot! - 3) % 4), gridRow: 4 + Math.floor((slot! - 3) / 4) }
+  const steer = usePtzSteer(cam, !!big)
   return (
     <div
-      className={`cctv-tile ${big ? 'big' : ''} ${calledUp ? 'callup' : ''} ${cam.type}`}
+      className={`cctv-tile ${big ? 'big ptz' : ''} ${calledUp ? 'callup' : ''} ${cam.type}`}
       style={style}
       onClick={big ? undefined : () => setSelected(cam.id)}
-      title={big ? `${cam.id} · ${cam.model}` : `${cam.id} — click to show on the main monitor`}
+      title={big ? `${cam.id} · ${cam.model} · drag to pan and tilt, scroll to zoom, double-click to reset` : `${cam.id} — click to show on the main monitor`}
       data-cam={cam.id}
+      {...steer}
     >
       <canvas ref={canvas} width={w} height={h} />
       {big && <SegLayer cam={cam.id} />}
       <Boxes cam={cam.id} big={!!big} />
       <Osd cam={cam} big={!!big} />
       <DetectorPanel cam={cam} big={!!big} />
+      {big && <PtzPad cam={cam} />}
       {calledUp && (
         <div className="cctv-callup">
           <span className="blink">● CALL-UP</span> {callUpReason ?? 'F&G alarm'}
@@ -134,6 +139,170 @@ const Tile = memo(function Tile({ cam, big, calledUp, slot }: { cam: CctvCameraE
   )
 })
 
+// ---------------------------------------------------------------- 360° PTZ on the main monitor
+
+const CARDINAL = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW']
+const cardinal = (deg: number) => CARDINAL[Math.round(deg / 45) % 8]
+const SWEEP_DEG_S = 15
+
+/** pointer, wheel and keyboard steering for the big tile; the small tiles get no handlers */
+function usePtzSteer(cam: CctvCameraEx, on: boolean) {
+  const drag = useRef<{ x: number; y: number; id: number } | null>(null)
+  const idle = useRef<number | undefined>(undefined)
+  useEffect(() => () => window.clearTimeout(idle.current), [])
+  if (!on) return {}
+  const st = () => useCctv.getState()
+  const nudge = () => {
+    // keep the main monitor on the fast render path for a moment after the last input
+    st().setSteering(true)
+    window.clearTimeout(idle.current)
+    idle.current = window.setTimeout(() => !drag.current && !st().sweep && st().setSteering(false), 400)
+  }
+  const pose = () => st().ptz[cam.id] ?? PTZ_HOME
+  const degPerPx = (el: HTMLElement) => aimOf(cam, pose()).fov / el.clientHeight
+  return {
+    tabIndex: 0,
+    onPointerDown: (e: React.PointerEvent<HTMLDivElement>) => {
+      if (e.button !== 0 || (e.target as HTMLElement).closest('button, input, select, .cctv-ptz')) return
+      drag.current = { x: e.clientX, y: e.clientY, id: e.pointerId }
+      e.currentTarget.setPointerCapture(e.pointerId)
+      e.currentTarget.classList.add('grabbing')
+      st().setSweep(false)
+      nudge()
+    },
+    onPointerMove: (e: React.PointerEvent<HTMLDivElement>) => {
+      const d = drag.current
+      if (!d || d.id !== e.pointerId) return
+      const k = degPerPx(e.currentTarget)
+      const p = pose()
+      // grab the picture: dragging right turns the head left, dragging down tilts it up
+      st().setPtz(cam.id, { pan: p.pan - (e.clientX - d.x) * k, tilt: p.tilt + (e.clientY - d.y) * k })
+      d.x = e.clientX
+      d.y = e.clientY
+      nudge()
+    },
+    onPointerUp: (e: React.PointerEvent<HTMLDivElement>) => {
+      if (drag.current?.id !== e.pointerId) return
+      drag.current = null
+      e.currentTarget.classList.remove('grabbing')
+      nudge()
+    },
+    onWheel: (e: React.WheelEvent<HTMLDivElement>) => {
+      st().setPtz(cam.id, { zoom: pose().zoom * Math.exp(-e.deltaY * 0.0015) })
+      nudge()
+    },
+    onDoubleClick: (e: React.MouseEvent<HTMLDivElement>) => {
+      if ((e.target as HTMLElement).closest('button, .cctv-ptz')) return
+      st().setSweep(false)
+      st().resetPtz(cam.id)
+      nudge()
+    },
+    onKeyDown: (e: React.KeyboardEvent<HTMLDivElement>) => {
+      const p = pose()
+      const step = Math.max(1, aimOf(cam, p).fov / 8)
+      const move: Record<string, Partial<typeof p>> = {
+        ArrowLeft: { pan: p.pan - step },
+        ArrowRight: { pan: p.pan + step },
+        ArrowUp: { tilt: p.tilt + step },
+        ArrowDown: { tilt: p.tilt - step },
+        '+': { zoom: p.zoom * 1.25 },
+        '=': { zoom: p.zoom * 1.25 },
+        '-': { zoom: p.zoom / 1.25 },
+      }
+      const m = move[e.key]
+      if (!m) return
+      e.preventDefault()
+      e.stopPropagation()
+      st().setPtz(cam.id, m)
+      nudge()
+    },
+  }
+}
+
+/** heading, tilt and zoom in the OSD (bottom left of the main monitor) */
+function PtzReadout({ cam }: { cam: CctvCameraEx }) {
+  const p = useCctv((s) => s.ptz[cam.id]) ?? PTZ_HOME
+  const a = aimOf(cam, p)
+  return (
+    <span className="sub">
+      {cam.platform.toUpperCase()} · HDG {Math.round(a.heading).toString().padStart(3, '0')}° {cardinal(a.heading)} · TILT {a.elevation >= 0 ? '+' : '−'}
+      {Math.abs(Math.round(a.elevation))}° · {p.zoom.toFixed(1)}× · FOV {Math.round(a.fov)}° ·{' '}
+    </span>
+  )
+}
+
+/** the on-screen PTZ pad: a heading dial, nudge buttons, zoom, home and the 360° sweep */
+function PtzPad({ cam }: { cam: CctvCameraEx }) {
+  const p = useCctv((s) => s.ptz[cam.id]) ?? PTZ_HOME
+  const sweep = useCctv((s) => s.sweep)
+  const setPtz = useCctv((s) => s.setPtz)
+  const setSweep = useCctv((s) => s.setSweep)
+  const resetPtz = useCctv((s) => s.resetPtz)
+  const setSteering = useCctv((s) => s.setSteering)
+  const a = aimOf(cam, p)
+  const step = Math.max(2, a.fov / 4)
+  // 360° sweep: turn the head steadily; the renderer runs the main monitor on its fast path meanwhile
+  useEffect(() => {
+    if (!sweep) return
+    setSteering(true)
+    let last = performance.now()
+    const id = window.setInterval(() => {
+      const now = performance.now()
+      const cur = useCctv.getState().ptz[cam.id] ?? PTZ_HOME
+      useCctv.getState().setPtz(cam.id, { pan: cur.pan + ((now - last) / 1000) * SWEEP_DEG_S })
+      last = now
+    }, 50)
+    return () => {
+      window.clearInterval(id)
+      setSteering(false)
+    }
+  }, [sweep, cam.id, setSteering])
+  // stop sweeping when the main monitor changes camera
+  useEffect(() => () => useCctv.getState().setSweep(false), [cam.id])
+  const btn = (label: string, title: string, fn: () => void, cls = '') => (
+    <button className={cls} title={title} aria-label={title} onClick={(e) => (e.stopPropagation(), fn())}>
+      {label}
+    </button>
+  )
+  return (
+    <div className="cctv-ptz" onPointerDown={(e) => e.stopPropagation()} onDoubleClick={(e) => e.stopPropagation()}>
+      <div className="cctv-ptz-dial" title={`Heading ${Math.round(a.heading)}°`}>
+        <svg viewBox="0 0 48 48" aria-hidden>
+          <circle cx="24" cy="24" r="21" />
+          <path className="cone" d={coneOf(a.heading, a.fov)} />
+          <text x="24" y="9.5">N</text>
+        </svg>
+      </div>
+      <div className="cctv-ptz-grid">
+        <span />
+        {btn('▲', 'Tilt up', () => setPtz(cam.id, { tilt: p.tilt + step }))}
+        <span />
+        {btn('◀', 'Pan left', () => setPtz(cam.id, { pan: p.pan - step }))}
+        {btn('⌂', 'Back to the installed aim', () => (setSweep(false), resetPtz(cam.id)), 'home')}
+        {btn('▶', 'Pan right', () => setPtz(cam.id, { pan: p.pan + step }))}
+        <span />
+        {btn('▼', 'Tilt down', () => setPtz(cam.id, { tilt: p.tilt - step }))}
+        <span />
+      </div>
+      <div className="cctv-ptz-col">
+        {btn('+', 'Zoom in', () => setPtz(cam.id, { zoom: p.zoom * 1.5 }))}
+        {btn('−', 'Zoom out', () => setPtz(cam.id, { zoom: p.zoom / 1.5 }))}
+      </div>
+      {btn('360°', sweep ? 'Stop the 360° sweep' : 'Sweep 360°', () => setSweep(!sweep), `sweep ${sweep ? 'on' : ''}`)}
+    </div>
+  )
+}
+
+/** the field of view as a wedge on the heading dial (0° = north, up) */
+function coneOf(heading: number, fov: number) {
+  const r = 19
+  const a0 = THREE_DEG * (heading - fov / 2 - 90)
+  const a1 = THREE_DEG * (heading + fov / 2 - 90)
+  const large = fov > 180 ? 1 : 0
+  return `M24 24 L${24 + r * Math.cos(a0)} ${24 + r * Math.sin(a0)} A${r} ${r} 0 ${large} 1 ${24 + r * Math.cos(a1)} ${24 + r * Math.sin(a1)} Z`
+}
+const THREE_DEG = Math.PI / 180
+
 function Osd({ cam, big }: { cam: CctvCameraEx; big: boolean }) {
   const t = useS((s) => s.t) ?? 0
   return (
@@ -147,7 +316,7 @@ function Osd({ cam, big }: { cam: CctvCameraEx; big: boolean }) {
         </div>
       </div>
       <div className="cctv-osd bl">
-        {big && <span className="sub">{cam.platform.toUpperCase()} · FOV {cam.fov}° · </span>}
+        {big && <PtzReadout cam={cam} />}
         <span className="rec">● REC</span>
       </div>
       <div className="cctv-osd br">{fmtClock(t)}</div>

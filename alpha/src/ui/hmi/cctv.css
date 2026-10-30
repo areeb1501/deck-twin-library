@@ -161,3 +161,28 @@
 .hmi .hz-btns { display: flex; flex-wrap: wrap; gap: 5px; }
 .hmi .hz-btns button { font-size: 11.5px; padding: 3px 8px; text-align: left; }
 @media (max-width: 1500px) { .hmi .hz-grid { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); } .hmi .hz-grid > .hz-col:first-child { grid-column: 1 / -1; } }
+
+/* 360° PTZ on the main monitor (CctvPage.tsx usePtzSteer / PtzPad) */
+.hmi .cctv-tile.ptz { cursor: grab; outline: none; touch-action: none; }
+.hmi .cctv-tile.ptz.grabbing { cursor: grabbing; }
+.hmi .cctv-tile.ptz:focus-visible { box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.35); }
+.hmi .cctv-ptz {
+  position: absolute; z-index: 4; right: 10px; bottom: 30px; display: flex; align-items: center; gap: 8px;
+  padding: 6px 8px; border-radius: 10px; background: rgba(14, 16, 18, 0.62); border: 1px solid rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); opacity: 0.78; transition: opacity 0.15s; cursor: default;
+}
+.hmi .cctv-tile.ptz:hover .cctv-ptz, .hmi .cctv-ptz:focus-within { opacity: 1; }
+.hmi .cctv-ptz button {
+  width: 24px; height: 22px; padding: 0; display: inline-flex; align-items: center; justify-content: center; font-size: 10px; line-height: 1;
+  color: #e8eaec; background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 5px;
+}
+.hmi .cctv-ptz button:hover { background: rgba(255, 255, 255, 0.14); }
+.hmi .cctv-ptz button.home { font-size: 12px; }
+.hmi .cctv-ptz button.sweep { width: auto; padding: 0 8px; font-family: var(--mono); font-size: 10.5px; height: 24px; }
+.hmi .cctv-ptz button.sweep.on { background: #e8eaec; color: #16181b; border-color: #e8eaec; }
+.hmi .cctv-ptz-grid { display: grid; grid-template-columns: repeat(3, 24px); grid-auto-rows: 22px; gap: 2px; }
+.hmi .cctv-ptz-col { display: flex; flex-direction: column; gap: 2px; }
+.hmi .cctv-ptz-dial svg { width: 46px; height: 46px; display: block; }
+.hmi .cctv-ptz-dial circle { fill: rgba(0, 0, 0, 0.35); stroke: rgba(255, 255, 255, 0.28); stroke-width: 1; }
+.hmi .cctv-ptz-dial .cone { fill: rgba(255, 255, 255, 0.28); stroke: rgba(255, 255, 255, 0.7); stroke-width: 0.8; }
+.hmi .cctv-ptz-dial text { fill: #c9cdd0; font-size: 7px; font-family: var(--mono); text-anchor: middle; }
