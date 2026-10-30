@@ -6,6 +6,7 @@
   "scripts": {
     "build": "vite build",
     "dev": "vite --port 5191",
+    "test": "vitest run",
     "refresh": "rsync -a --delete ../../deck-twin/src/ src/ && rsync -a ../../deck-twin/public/ public/ && vite build"
   },
   "dependencies": {
@@ -29,6 +30,7 @@
     "oxlint": "^1.88.0",
     "playwright-core": "^1.64.1",
     "typescript": "~6.0.3",
-    "vite": "^8.3.4"
+    "vite": "^8.3.4",
+    "vitest": "^4.1.12"
   }
 }

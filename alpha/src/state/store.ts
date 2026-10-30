@@ -3,6 +3,9 @@ import type { PickData, Vec3 } from '../model/types'
 
 /** walkthrough third-person camera distance behind the person, m: closest, default, farthest, and the cap indoors */
 export const WALK_DIST = { min: 2.2, def: 3.6, max: 8, indoorMax: 3 }
+/** field crew size: smallest, default, and the cap that keeps the decks from overcrowding */
+export const WORKER_COUNT = { min: 1, def: 10, max: 24 }
+const clampWorkers = (n: number) => Math.min(WORKER_COUNT.max, Math.max(WORKER_COUNT.min, Math.round(n)))
 
 export type LayerId = 'equipment' | 'piping' | 'instruments' | 'structure' | 'ceiling' | 'environment' | 'labels' | 'flow' | 'fireGas' | 'fgCoverage' | 'hazAreas'
 export type ViewMode = 'shaded' | 'xray'
@@ -66,6 +69,9 @@ interface State {
   /** simulated field workers walking the decks (on by default, Alpha field only; CCTV / PPE detection watches them) */
   workers: boolean
   setWorkers: (on: boolean) => void
+  /** how many of the crew are on shift (WORKER_COUNT; kept between visits) */
+  workerCount: number
+  setWorkerCount: (n: number) => void
   /** simulated inspection drone and robot on their dock (off by default; an Inspect action turns it on) */
   inspection: boolean
   setInspection: (on: boolean) => void
@@ -132,6 +138,12 @@ export const useStore = create<State>((set) => ({
   isolation: null,
   workers: true,
   setWorkers: (workers) => set({ workers }),
+  workerCount: clampWorkers(Number(localStorage.getItem('deck-twin.workerCount')) || WORKER_COUNT.def),
+  setWorkerCount: (n) => {
+    const workerCount = clampWorkers(n)
+    localStorage.setItem('deck-twin.workerCount', String(workerCount))
+    set({ workerCount })
+  },
   inspection: false,
   setInspection: (inspection) => set({ inspection }),
   craneCab: null,

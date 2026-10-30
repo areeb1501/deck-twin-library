@@ -68,6 +68,10 @@
 }
 .seg button:hover { background: var(--ui-hover); color: var(--ui-fg); }
 .seg button.on { background: var(--ui-accent); color: #111; }
+.worker-count { display: flex; align-items: center; }
+.worker-count output { min-width: 20px; text-align: center; font-variant-numeric: tabular-nums; color: var(--ui-fg); }
+.seg .worker-count button { padding: 6px 7px; }
+.seg .worker-count button:disabled { opacity: 0.35; cursor: default; background: none; color: #cfd3d6; }
 .pop {
   position: absolute; top: 44px; right: 0; min-width: 190px;
   background: var(--ui-bg); backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px);

@@ -1,0 +1,49 @@
+{
+  "version": 1,
+  "name": "Oil Treating Unit (PID-300-01)",
+  "source": "PID-300-01 rev A, sheet 1 of 1 (synthetic test drawing, read from PDF via pdftoppm)",
+  "equipment": [
+    { "tag": "V-301", "type": "horizontalVessel", "name": "Production Separator (3-phase)",
+      "params": { "service": "3-phase", "id": 2.4, "tt": 8, "rating": 600, "inletNps": 8, "gasNps": 6, "liquidNps": 4, "waterNps": 3, "psvNps": 4 },
+      "design": { "pressure": "50 barg", "temperature": "120 °C", "notes": "PSV-301 3L4 set 50 barg on N5 (PSV not drawn)" } },
+    { "tag": "P-302A", "type": "pumpPackage", "name": "Oil Transfer Pump A (duty)",
+      "params": { "motorKw": 90, "rating": 300, "suctionNps": 4, "dischargeNps": 3 } },
+    { "tag": "P-302B", "type": "pumpPackage", "name": "Oil Transfer Pump B (standby)",
+      "params": { "motorKw": 90, "rating": 300, "suctionNps": 4, "dischargeNps": 3 },
+      "design": { "notes": "Suction tees off 4\"-PO-303, discharge tees into 3\"-PO-304 — shown as off-plant tee ends" } },
+    { "tag": "E-303", "type": "shellTube", "name": "Oil Heater",
+      "params": { "temaType": "AES", "rating": 300, "shellNps": 3, "tubeNps": 4 },
+      "design": { "notes": "Heating medium on the tube (channel) side" } }
+  ],
+  "lines": [
+    { "tag": "8\"-PM-301-D6A-H", "service": "multiphase", "insulation": "H", "from": { "offPlant": "From wellheads (PID-300-00)" }, "to": { "equipment": "V-301", "nozzle": "N1" } },
+    { "tag": "6\"-PG-302-D6A-N", "service": "gas", "from": { "equipment": "V-301", "nozzle": "N2" }, "to": { "offPlant": "Fuel gas system (PID-300-02)" } },
+    { "tag": "4\"-FL-307-B1A-N", "service": "flare", "from": { "equipment": "V-301", "nozzle": "N5" }, "to": { "offPlant": "HP flare header (PID-800-01)" },
+      "design": { "notes": "Relief line from PSV-301 (3L4, set 50 barg) on V-301/N5 — PSV itself not drawn" } },
+    { "tag": "4\"-PO-303-D6A-N", "service": "oil", "from": { "equipment": "V-301", "nozzle": "N3" }, "to": { "equipment": "P-302A", "nozzle": "N1" } },
+    { "tag": "4\"-PO-310-D6A-N", "service": "oil", "from": { "offPlant": "Tee on 4\"-PO-303-D6A-N" }, "to": { "equipment": "P-302B", "nozzle": "N1" } },
+    { "tag": "3\"-PO-304-C3A-N", "service": "oil", "from": { "equipment": "P-302A", "nozzle": "N2" }, "to": { "equipment": "E-303", "nozzle": "N1" } },
+    { "tag": "3\"-PO-3XX-C3A-N", "service": "oil", "nps": 3, "from": { "equipment": "P-302B", "nozzle": "N2" }, "to": { "offPlant": "Tee to 3\"-PO-304-C3A-N" },
+      "design": { "notes": "Line number partly hidden on the drawing (reads 3\"-PO-3…); class C3A assumed" } },
+    { "tag": "3\"-PO-305-C3A-N", "service": "oil", "from": { "equipment": "E-303", "nozzle": "N2" }, "to": { "offPlant": "Oil export (PID-300-03)" } },
+    { "tag": "4\"-CM-308-C3A-N", "service": "cooling", "from": { "offPlant": "Heating medium supply" }, "to": { "equipment": "E-303", "nozzle": "N3" } },
+    { "tag": "4\"-CM-309-C3A-N", "service": "cooling", "from": { "equipment": "E-303", "nozzle": "N4" }, "to": { "offPlant": "Heating medium return" } },
+    { "tag": "3\"-PW-306-D6A-N", "service": "water", "from": { "equipment": "V-301", "nozzle": "N4" }, "to": { "offPlant": "Produced water treatment (PID-400-01)" } }
+  ],
+  "valves": [
+    { "tag": "ESDV-301", "type": "esdv", "line": "8\"-PM-301-D6A-H", "at": 0.7, "actuator": "pistonSpring", "failAction": "FC" },
+    { "tag": "PCV-302", "type": "control", "line": "6\"-PG-302-D6A-N", "at": 0.62, "actuator": "diaphragm", "failAction": "FO" },
+    { "tag": "HV-303", "type": "gate", "line": "4\"-PO-303-D6A-N", "at": 0.78 },
+    { "tag": "NRV-304", "type": "check", "line": "3\"-PO-304-C3A-N", "at": 0.5 },
+    { "tag": "HV-304", "type": "gate", "line": "3\"-PO-304-C3A-N", "at": 0.77 },
+    { "tag": "TV-305", "type": "control", "line": "4\"-CM-308-C3A-N", "at": 0.25, "actuator": "diaphragm", "failAction": "FC" },
+    { "tag": "LV-306", "type": "control", "line": "3\"-PW-306-D6A-N", "at": 0.68, "actuator": "diaphragm", "failAction": "FC" }
+  ],
+  "instruments": [
+    { "tag": "PT-302", "type": "PT", "on": { "line": "6\"-PG-302-D6A-N", "at": 0.43 }, "nominal": 45 },
+    { "tag": "LT-301", "type": "LT", "on": { "line": "4\"-PO-303-D6A-N", "at": 0.1 } },
+    { "tag": "LT-303", "type": "LT", "on": { "line": "3\"-PW-306-D6A-N", "at": 0.1 } },
+    { "tag": "TT-305", "type": "TT", "on": { "line": "3\"-PO-305-C3A-N", "at": 0.33 } },
+    { "tag": "FT-305", "type": "FT", "on": { "line": "3\"-PO-305-C3A-N", "at": 0.7 } }
+  ]
+}

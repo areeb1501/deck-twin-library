@@ -26,9 +26,11 @@
     "registry": "tsx scripts/build-registry.ts",
     "build": "npm run registry && tsc -b && vite build && vite build --ssr src/entry-prerender.tsx --outDir node_modules/.prerender --logLevel warn && tsx scripts/prerender.ts",
     "typecheck": "tsc -b",
+    "test": "npm run registry && node --test tests/*.test.mjs",
     "shoot": "node scripts/shoot.mjs",
     "thumbs": "node scripts/thumbs.mjs",
     "preview": "vite preview",
+    "build:all": "npm --prefix alpha ci && npm --prefix alpha run build && npm run build",
     "deploy": "npm run build && npx wrangler deploy"
   },
   "devDependencies": {

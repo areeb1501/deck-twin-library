@@ -1,7 +1,8 @@
 /**
  * Simulated field workers (plan 06).
  *
- *  - ROSTER: ten operators / technicians with a home walk level and platform.
+ *  - ROSTER: the operators / technicians with a home walk level and platform. The first `workerCount`
+ *    (Toolbar, default 10, capped by WORKER_COUNT) are on shift, and useWorkers holds only them.
  *  - taskPoints(levelIndex): open-deck spots ~2 m in front of the equipment on a level (cached per plant),
  *    each with the equipment tag to face and the task wording ("Routine check at V-1100").
  *  - PPE rotation (sim plugin `workers`): on the first tick with Toolbar → Workers on, then every 90–180
@@ -45,7 +46,11 @@ const W = (id: string, name: string, role: string, level: string, platform: Plat
   task,
 })
 
-/** the crew on shift (production deck ×5, weather deck ×2, cellar ×1, WHP-N ×2) */
+/**
+ * Everyone who can be on shift, in joining order. The first ten are the default crew (production deck ×5, weather
+ * deck ×2, cellar ×1, WHP-N ×2). After that each addition goes to a different platform or deck, so a bigger crew
+ * spreads over the field. At the cap: Alpha production ×7, weather ×4, cellar ×3, WHP-N ×4, RP ×3, WI ×3.
+ */
 export const ROSTER: WorkerInfo[] = [
   W('w01', 'R. Haugland', 'Production operator', 'production', 'Alpha', 'Starting the separation round'),
   W('w02', 'S. Okafor', 'Production operator', 'production', 'Alpha', 'Starting the export round'),
@@ -58,14 +63,30 @@ export const ROSTER: WorkerInfo[] = [
   W('w08', 'D. Mensah', 'Scaffolder', 'production', 'Alpha', 'Scaffold inspections'),
   W('w09', 'T. Brekke', 'Scaffolder', 'production', 'WHP-N', 'Scaffold inspections, WHP-N'),
   W('w10', 'P. Duarte', 'Deck crew', 'production', 'Alpha', 'Housekeeping and laydown checks'),
+  W('w11', 'E. Sandvik', 'Production operator', 'production', 'RP', 'Metering skid round, RP'),
+  W('w12', 'I. Rahman', 'Production operator', 'production', 'WI', 'Injection pump round, WI'),
+  W('w13', 'C. Moreau', 'Mechanical technician', 'cellar', 'Alpha', 'Caisson pump checks'),
+  W('w14', 'H. Yilmaz', 'Instrument technician', 'weather', 'Alpha', 'Nitrogen package transmitter checks'),
+  W('w15', 'B. Adeyemi', 'Electrician', 'production', 'Alpha', 'Junction box round'),
+  W('w16', 'G. Rossi', 'Mechanical technician', 'production', 'RP', 'Pig launcher door checks, RP'),
+  W('w17', 'N. Sato', 'Instrument technician', 'production', 'WHP-N', 'Wellhead transmitter checks, WHP-N'),
+  W('w18', 'O. Kowalski', 'Electrician', 'production', 'WI', 'VSD panel checks, WI'),
+  W('w19', 'F. Costa', 'Deck crew', 'production', 'Alpha', 'Laydown area housekeeping'),
+  W('w20', 'V. Ivanova', 'Scaffolder', 'cellar', 'Alpha', 'Scaffold inspections, cellar deck'),
+  W('w21', 'Y. Chen', 'Mechanical technician', 'weather', 'Alpha', 'Crane pedestal checks'),
+  W('w22', 'Z. Hassan', 'Scaffolder', 'production', 'RP', 'Scaffold inspections, RP'),
+  W('w23', 'A. Larsen', 'Mechanical technician', 'production', 'WHP-N', 'Chemical skid checks, WHP-N'),
+  W('w24', 'S. Mbeki', 'Mechanical technician', 'production', 'WI', 'Filter package checks, WI'),
 ]
 
 interface WorkerStore {
   roster: WorkerInfo[]
 }
 const FULL_PPE = { hardHat: true, vest: true, gasMonitor: true }
+/** who is on shift at the current Toolbar count */
+const onShift = () => ROSTER.slice(0, useStore.getState().workerCount)
 /** nobody on deck yet: the whole crew in full PPE (the shift defaults apply once Workers are on) */
-export const useWorkers = create<WorkerStore>(() => ({ roster: ROSTER.map((w) => ({ ...w, ...FULL_PPE })) }))
+export const useWorkers = create<WorkerStore>(() => ({ roster: onShift().map((w) => ({ ...w, ...FULL_PPE })) }))
 if (import.meta.env.DEV) Object.assign(window, { __workers: useWorkers, __workerPose: workerPose })
 
 // ---------------------------------------------------------------- driving a worker (scene/Workers.tsx hook)
@@ -239,8 +260,9 @@ export const ppeOverrides = () => overrides
 
 /** two or three workers drop a hard hat (65 %) or vest; the Alpha production deck (camera coverage) weighted ×3 */
 function rotatePpe() {
-  const n = 2 + (rng() < 0.35 ? 1 : 0)
-  const pool = ROSTER.map((w) => ({ w, wt: w.platform === 'Alpha' && w.level === 'production' ? 3 : 1 }))
+  const pool = useWorkers.getState().roster.map((w) => ({ w, wt: w.platform === 'Alpha' && w.level === 'production' ? 3 : 1 }))
+  // never more than the crew: the loop below only ends once this many have dropped something
+  const n = Math.min(2 + (rng() < 0.35 ? 1 : 0), pool.length)
   const total = pool.reduce((a, p) => a + p.wt, 0)
   drops = new Map()
   while (drops.size < n) {
@@ -283,8 +305,22 @@ registerSimPlugin({
     seed = 1409
     drops = new Map()
     overrides.clear()
-    useWorkers.setState({ roster: ROSTER.map((w) => ({ ...w, ...FULL_PPE })) })
+    useWorkers.setState({ roster: onShift().map((w) => ({ ...w, ...FULL_PPE })) })
   },
+})
+
+/** the crew size changed: whoever stays keeps their state, newcomers arrive in full PPE, leavers drop out of the rotation */
+function syncCrew() {
+  const current = new Map(useWorkers.getState().roster.map((w) => [w.id, w]))
+  const roster = onShift().map((w) => current.get(w.id) ?? { ...w, ...FULL_PPE })
+  const ids = new Set(roster.map((w) => w.id))
+  for (const id of drops.keys()) if (!ids.has(id)) drops.delete(id)
+  for (const id of overrides.keys()) if (!ids.has(id)) overrides.delete(id)
+  useWorkers.setState({ roster })
+  applyPpe()
+}
+useStore.subscribe((s, prev) => {
+  if (s.workerCount !== prev.workerCount) syncCrew()
 })
 
 // ---------------------------------------------------------------- hazardous-area tracker (plan 14)

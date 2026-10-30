@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { SERVICE } from '../model/catalog'
-import { useStore, type CameraPreset, type LayerId } from '../state/store'
+import { useStore, WORKER_COUNT, type CameraPreset, type LayerId } from '../state/store'
 import { findItemIn, isAlphaField, usePlant } from '../state/plantStore'
 import { DeckNavigator } from './DeckNavigator'
 import { startTour, exitTour, useTour } from '../tour/engine'
@@ -63,6 +63,8 @@ export function Toolbar() {
   const [craneLeft, setCraneLeft] = useState(0)
   const workers = useStore((s) => s.workers)
   const setWorkers = useStore((s) => s.setWorkers)
+  const workerCount = useStore((s) => s.workerCount)
+  const setWorkerCount = useStore((s) => s.setWorkerCount)
   const craneCab = useStore((s) => s.craneCab)
   const setCraneCab = useStore((s) => s.setCraneCab)
   const walk = useStore((s) => s.walk)
@@ -115,6 +117,19 @@ export function Toolbar() {
           <button className={workers ? 'on' : ''} onClick={(e) => (e.currentTarget.blur(), setWorkers(!workers))} title="Simulated field workers walking the decks: the CCTV PPE detector watches them" data-workers>
             Workers
           </button>
+        )}
+        {tourable && workers && (
+          <span className="worker-count" role="group" aria-label="Number of workers">
+            <button onClick={(e) => (e.currentTarget.blur(), setWorkerCount(workerCount - 1))} disabled={workerCount <= WORKER_COUNT.min} aria-label="Fewer workers" title="One worker fewer" data-workers-less>
+              -
+            </button>
+            <output title={`${workerCount} on shift, up to ${WORKER_COUNT.max}`} data-workers-count>
+              {workerCount}
+            </output>
+            <button onClick={(e) => (e.currentTarget.blur(), setWorkerCount(workerCount + 1))} disabled={workerCount >= WORKER_COUNT.max} aria-label="More workers" title={workerCount >= WORKER_COUNT.max ? `Capped at ${WORKER_COUNT.max} so the decks don't overcrowd` : 'One more worker'} data-workers-more>
+              +
+            </button>
+          </span>
         )}
         {tourable && (
           <button className={craneCab || menu === 'cranes' ? 'on' : ''} onClick={(e) => (e.currentTarget.blur(), setCraneLeft(leftInToolbar(e.currentTarget)), craneCab ? setCraneCab(null) : setMenu(menu === 'cranes' ? null : 'cranes'))} title="Sit in a crane cab: operate the crane and look around the field" data-crane-menu>

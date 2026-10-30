@@ -1,0 +1,9 @@
+/alpha/*
+  X-Robots-Tag: noindex, nofollow, noarchive
+  Referrer-Policy: no-referrer
+
+/docs/*.md
+  Content-Type: text/markdown; charset=utf-8
+
+/r/*.md
+  Content-Type: text/markdown; charset=utf-8

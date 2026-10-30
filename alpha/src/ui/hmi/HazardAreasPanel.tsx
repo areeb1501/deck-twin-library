@@ -20,7 +20,7 @@ import { planPath } from '../../scene/walkPath'
 import type { Vec3 } from '../../model/types'
 import type { HazardViolation, WorkerInfo } from '../../safety/types'
 import { CLASSIFICATION, CLASSIFICATION_BASIS, HAZ_COLOR, PPE_LABEL, ZONE_RULES, zoneTargets, type HazZone, type PpeItem, type ZoneTarget } from '../../safety/hazardAreas'
-import { clearPpeOverrides, markDrill, ROSTER, sendWorker, setPpeOverride, setWorkerTask, useHazardTrack, useWorkers, workerLevelIndex, workerPose, type HazPresence } from '../../safety/workers'
+import { clearPpeOverrides, markDrill, sendWorker, setPpeOverride, setWorkerTask, useHazardTrack, useWorkers, workerLevelIndex, workerPose, type HazPresence } from '../../safety/workers'
 import { camerasSeeing, useCctv, type CctvCameraEx } from '../../safety/cctv'
 import { useAlerts } from '../../safety/alerts'
 
@@ -351,7 +351,7 @@ function Drills() {
         Instructor drills <span className="grow" />
         <select value={pick} onChange={(e) => setPick(e.target.value)} aria-label="Worker for the drill" data-hz-worker>
           <option value="auto">Auto (nearest on camera)</option>
-          {ROSTER.map((w) => (
+          {roster.map((w) => (
             <option key={w.id} value={w.id}>
               {w.name} - {w.platform} {w.level}
             </option>

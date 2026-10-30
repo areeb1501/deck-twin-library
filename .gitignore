@@ -11,3 +11,8 @@ public/cli
 public/prompt.md
 public/symbols
 public/docs
+
+# modal/ python
+.venv
+__pycache__
+.pytest_cache

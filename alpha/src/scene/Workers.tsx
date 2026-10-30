@@ -15,7 +15,7 @@
  */
 import { useEffect, useMemo, useRef } from 'react'
 import { useFrame } from '@react-three/fiber'
-import { DECK_WORLD_Y } from '../state/store'
+import { DECK_WORLD_Y, WORKER_COUNT } from '../state/store'
 import { usePlant } from '../state/plantStore'
 import { planPath } from './walkPath'
 import { walkLevels, type AutoPt } from './Walk'
@@ -65,35 +65,42 @@ function prng(seed: number) {
 const yawTo = (dx: number, dz: number) => Math.atan2(-dx, -dz)
 const wrap = (a: number) => Math.atan2(Math.sin(a), Math.cos(a))
 
-function buildAgents(plant: Plant): Agent[] {
-  const levels = walkLevels(plant)
-  return useWorkers.getState().roster.map((w, i) => {
-    const li = workerLevelIndex(w, plant)
-    const points = workerTaskPoints(w, plant)
-    const rng = prng(1013 * (i + 1))
-    const start = points.length ? points[(i * 7 + 2) % points.length] : null
-    const y = levels[li]?.y ?? 0
-    return {
-      w,
-      li,
-      points,
-      x: start?.x ?? 0,
-      z: start?.z ?? 0,
-      footY: DECK_WORLD_Y + y,
-      yaw: start ? yawTo(start.face[0] - start.x, start.face[1] - start.z) : 0,
-      speed: 0,
-      walkSpeed: 1.2 + rng() * 0.3,
-      phase: 0,
-      mode: points.length ? 'idle' : 'stuck',
-      path: [],
-      seg: 0,
-      goal: start,
-      until: 1 + rng() * 6, // staggered first departures
-      faceYaw: null,
-      fails: 0,
-      rng,
-    }
-  })
+/** where a worker starts: their usual spot, or the next one along if somebody already stands there */
+function startPoint(points: TaskPoint[], i: number, agents: Agent[]): TaskPoint | null {
+  const taken = new Set(agents.map((a) => a.goal))
+  for (let k = 0; k < points.length; k++) {
+    const p = points[(i * 7 + 2 + k) % points.length]
+    if (!taken.has(p)) return p
+  }
+  return points.length ? points[(i * 7 + 2) % points.length] : null
+}
+
+function buildAgent(plant: Plant, w: WorkerInfo, i: number, now: number, agents: Agent[]): Agent {
+  const li = workerLevelIndex(w, plant)
+  const points = workerTaskPoints(w, plant)
+  const rng = prng(1013 * (i + 1))
+  const start = startPoint(points, i, agents)
+  const y = walkLevels(plant)[li]?.y ?? 0
+  return {
+    w,
+    li,
+    points,
+    x: start?.x ?? 0,
+    z: start?.z ?? 0,
+    footY: DECK_WORLD_Y + y,
+    yaw: start ? yawTo(start.face[0] - start.x, start.face[1] - start.z) : 0,
+    speed: 0,
+    walkSpeed: 1.2 + rng() * 0.3,
+    phase: 0,
+    mode: points.length ? 'idle' : 'stuck',
+    path: [],
+    seg: 0,
+    goal: start,
+    until: now + 1 + rng() * 6, // staggered first departures
+    faceYaw: null,
+    fails: 0,
+    rng,
+  }
 }
 
 /** advance every worker by dt (wall seconds); at most one A* search per call */
@@ -202,14 +209,19 @@ function writeInstances(crowd: Crowd, agents: Agent[], gaits: GaitState[], roste
 
 export function Workers() {
   const plant = usePlant()
-  const crowd = useMemo(() => new Crowd(useWorkers.getState().roster.length), [])
+  // sized for the cap, so the crew can grow without rebuilding the figures
+  const crowd = useMemo(() => new Crowd(WORKER_COUNT.max), [])
+  const crewSize = useWorkers((s) => s.roster.length)
   useEffect(() => () => crowd.dispose(), [crowd])
 
   const agentsRef = useRef<Agent[]>([])
   const gaitsRef = useRef<GaitState[]>([])
+  const clock = useRef(0)
+  const queue = useRef<Agent[]>([])
   // agents (re)built per plant; poses out, cleaned up on unmount
   useEffect(() => {
-    const agents = buildAgents(plant)
+    const agents: Agent[] = []
+    useWorkers.getState().roster.forEach((w, i) => agents.push(buildAgent(plant, w, i, clock.current, agents)))
     agentsRef.current = agents
     gaitsRef.current = agents.map((_, i) => createGait(i + 1))
     agents.forEach((a, i) => i < crowd.capacity && crowd.setLook(i, lookFor(a.w.id)))
@@ -239,8 +251,20 @@ export function Workers() {
     }
   }, [plant, crowd])
 
-  const clock = useRef(0)
-  const queue = useRef<Agent[]>([])
+  // the Toolbar count changed: everyone else keeps walking, the crew only grows or shrinks at the end
+  useEffect(() => {
+    const agents = agentsRef.current
+    const roster = useWorkers.getState().roster
+    for (const a of agents.splice(roster.length)) delete workerPose[a.w.id]
+    gaitsRef.current.length = Math.min(gaitsRef.current.length, agents.length)
+    queue.current = queue.current.filter((a) => agents.includes(a))
+    for (let i = agents.length; i < roster.length; i++) {
+      const a = buildAgent(plant, roster[i], i, clock.current, agents)
+      agents.push(a)
+      if (i < crowd.capacity) crowd.setLook(i, lookFor(a.w.id))
+      workerPose[a.w.id] = { x: a.x, z: a.z, footY: a.footY, yaw: a.yaw, speed: 0 }
+    }
+  }, [crewSize, plant, crowd])
 
   useFrame((_, rawDt) => {
     const dt = Math.min(rawDt, 0.1)
