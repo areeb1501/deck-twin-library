@@ -8,7 +8,7 @@ A shadcn-style registry of standards-based three.js / R3F components for oil & g
 
 - **Changes** go in this folder, including changes to the twin: edit `alpha/src` directly.
 - **Commits** go to this repo, GitHub `areeb1501/deck-twin-library`, branch `main`.
-- **Deployments** go from this repo with `npm run deploy`.
+- **Deployments** happen by themselves: Cloudflare Workers Builds deploys every push to `main`, so a push to `main` goes live. Push there only when the user wants it live. Other branches get a preview build.
 - **`PIDS/deck-twin`** and its Vercel project are not worked on for now. Don't edit, commit to or deploy them unless the user asks. It is still useful to read: `docs/PLANT.md` and `AGENTS.md` there describe the plant and the twin's code.
 
 ## Commands
@@ -26,7 +26,7 @@ A shadcn-style registry of standards-based three.js / R3F components for oil & g
 | P&ID symbols for new components | add an entry to `scripts/pid-gen/p-*.ts`, then `npx tsx scripts/pid-gen/gen.mts` |
 | Build | `npm run build`: registry → `public/r`, then type-check, then site → `dist/`, then `scripts/prerender.ts` renders every sitemap page to HTML in `dist/` |
 | Build everything | `npm run build:all`: the twin in `alpha/` into `public/alpha`, then the site. This is what a deploy from GitHub runs. |
-| Deploy | `npm run deploy`: Cloudflare Workers static assets (`wrangler.jsonc`). Only when the user asks. |
+| Deploy | Push to `main`: Workers Builds runs `npm run build:all`, then `npx wrangler deploy`. `npm run deploy` by hand skips the twin build, so run `npm run build` in `alpha/` first. |
 
 ## Rules
 
