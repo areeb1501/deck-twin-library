@@ -44,7 +44,7 @@ export function labelHeight(e: Equipment) {
 const RUNS = new Set(['pumpPackage', 'compressorPackage', 'gasTurbineGenerator', 'caissonPump', 'chemSkid', 'proxy'])
 const chipState = (tag: string) => {
   const st = runState(tag)
-  return st === 'running' ? (isRunning(tag) ? 'run' : 'stop') : st === 'standby' ? 'stby' : st === 'tripped' ? 'trip' : 'stop'
+  return st === 'running' ? (isRunning(tag) ? 'run' : 'stop') : st === 'standby' || st === 'starting' ? 'stby' : st === 'tripped' ? 'trip' : 'stop'
 }
 
 export function LabelOverlay() {

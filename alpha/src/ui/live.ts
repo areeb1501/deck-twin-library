@@ -1,36 +1,28 @@
 /**
- * A tiny simulated historian: every instrument gets a smooth, plausible signal around its
- * nominal value (sum of slow sines + noise), so the inspector shows live trends.
+ * Live instrument values. Instruments the dynamic plant model drives (separator level and pressure,
+ * instrument air, cooling medium, fuel gas, firewater, every F&G detector) read the model directly;
+ * the rest come from a small simulated historian (smooth signal around the nominal) scaled by the
+ * plant's throughput. Trends are the values actually recorded at each simulation tick.
  * Replace `sample()` with a real OPC UA / PI / MQTT feed to make the twin live.
  */
 import type { Instrument } from '../model/types'
-import { simScale } from '../state/sim'
+import { historianRaw, instrumentHistory, procValue, simScale } from '../state/sim'
 import { usePlantStore } from '../state/plantStore'
 
-function hash(s: string) {
-  let h = 2166136261
-  for (let i = 0; i < s.length; i++) h = Math.imul(h ^ s.charCodeAt(i), 16777619)
-  return (h >>> 0) / 4294967295
-}
-
-/** live value: the historian signal, moved by the simulated plant (rates follow throughput, stopped machines idle) */
+/** live value of an instrument */
 export function sample(inst: Instrument, t: number) {
-  return raw(inst, t) * simScale(inst, usePlantStore.getState().plant)
+  const o = procValue(inst.tag)
+  // a little measurement noise on model-driven values
+  if (o !== undefined) return o + (historianRaw(inst, t) - inst.nominal) * 0.15
+  return historianRaw(inst, t) * simScale(inst, usePlantStore.getState().plant)
 }
 
-function raw(inst: Instrument, t: number) {
-  const h = hash(inst.tag)
-  const span = Math.max(Math.abs(inst.nominal) * 0.025, 0.05)
-  const v =
-    inst.nominal +
-    span * (0.9 * Math.sin(t * (0.05 + h * 0.07) + h * 10) + 0.45 * Math.sin(t * (0.23 + h * 0.2) + h * 4) + 0.18 * Math.sin(t * 1.7 + h * 2))
-  return v
-}
-
-export function history(inst: Instrument, t: number, n = 90, dt = 2) {
-  const out: number[] = []
-  for (let i = n - 1; i >= 0; i--) out.push(sample(inst, t - i * dt))
-  return out
+/** the last `n` recorded values (one per simulation tick), padded with the live value at the start */
+export function history(inst: Instrument, t: number, n = 90, _dt = 2) {
+  const h = instrumentHistory(inst.tag, n)
+  if (h.length >= n) return h
+  const v = sample(inst, t)
+  return [...Array<number>(n - h.length).fill(h[0] ?? v), ...h]
 }
 
 export function fmt(v: number) {

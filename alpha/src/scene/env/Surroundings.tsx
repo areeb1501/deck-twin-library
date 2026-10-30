@@ -4,6 +4,9 @@
  * quarters, lifeboats, helideck, crane, turbine stacks, modules), flare boom + animated flame,
  * supply vessel. All materials role 'env' (never clipped by the section box).
  *
+ * Live plant state (scene/fx): the flare flame sizes itself from the flare rate, general-alarm beacons
+ * flash with each platform's GA status, and tripped machines get a pulsing red ring on the deck.
+ *
  * The weather-deck PLATE itself is drawn by <DeckStructure ceiling />; this component draws only
  * what stands on it. upperDeck={false} hides all of that (pair it with DeckStructure ceiling={false}).
  */
@@ -22,6 +25,10 @@ import { FlareFlame } from './Flare'
 import { SupplyVessel } from './Vessel'
 import { LQPlatform } from './LQPlatform'
 import { WHPPlatform } from './WHPPlatform'
+import { GaBeacons } from '../fx/GaBeacons'
+import { TripHalos } from '../fx/TripHalos'
+import { usePlantStore } from '../../state/plantStore'
+import { DECK_WORLD_Y } from '../../state/store'
 
 type MatKey =
   | 'jacket'
@@ -195,12 +202,17 @@ export function Surroundings({ upperDeck = true, vessel = true }: SurroundingsPr
   const upper = useMemo(() => (upperDeck ? buildUpper() : []), [upperDeck])
   const tip = flareTip()
   const d = FLARE.dir
+  const plant = usePlantStore((s) => s.plant)
   return (
     <group name="Surroundings">
       <PartMeshes parts={base} mats={mats} />
       {upperDeck && <PartMeshes parts={upper} mats={mats} />}
       {upperDeck && <RigMotion mats={mats} />}
-      <FlareFlame position={[tip[0] + d.x * 3.4, tip[1] + d.y * 3.4 - 0.5, tip[2] + d.z * 3.4]} height={16} />
+      <FlareFlame position={[tip[0] + d.x * 3.4, tip[1] + d.y * 3.4 - 0.5, tip[2] + d.z * 3.4]} />
+      <GaBeacons upperDeck={upperDeck} />
+      <group position={[0, DECK_WORLD_Y, 0]}>
+        <TripHalos plant={plant} />
+      </group>
       {vessel && <SupplyVessel />}
       <LQPlatform mats={mats} />
       <WHPPlatform mats={mats} />

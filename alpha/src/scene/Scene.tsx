@@ -26,6 +26,8 @@ import { NozzleMarkers } from '../ui/builder/NozzleMarkers'
 import { WalkDriver, leaveWalk } from './Walk'
 import { IsolationOverlay } from './IsolationOverlay'
 import { FireGasOverlay } from './FireGasOverlay'
+import { FgCoverageOverlay } from './FgCoverageOverlay'
+import { GasCloud } from './GasCloud'
 import { FireGasMounts } from './FireGasMounts'
 import { useSim } from '../state/sim'
 import { EyeProjector } from '../ui/Eyes'
@@ -318,6 +320,8 @@ function Plant() {
         <NozzleMarkers />
         <IsolationOverlay built={built} />
         <FireGasOverlay built={built} />
+        <FgCoverageOverlay built={built} />
+        <GasCloud />
         <EyeProjector built={built} />
       </group>
     </>

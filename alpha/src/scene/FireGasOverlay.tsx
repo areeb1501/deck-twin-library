@@ -1,12 +1,17 @@
 /**
- * Fire & gas coverage: flame-detector cones of vision (90°, 16 m, tilted down), point gas detector
- * radius, open-path gas beams between transmitter and receiver, heat / smoke detector zones.
- * Shown for every detector with the "F&G coverage" layer, and always for a selected detector.
+ * Fire & gas coverage: flame-detector cones of vision (90°, 16 m for the 1 MW reference fire, tilted
+ * 20° down), point gas detector reach, open-path gas beams between transmitter and receiver, heat /
+ * smoke detector zones. The numbers come from sim/fg.ts (the same model as the F&G mapping and the
+ * live detection). Shown for every detector with the "F&G coverage" layer, always for a selected
+ * detector, and for any detector in alarm, tinted amber (low) or red (high / fire).
  */
 import { useMemo } from 'react'
 import * as THREE from 'three'
 import type { BuiltPiping } from './piping/build'
 import { useStore } from '../state/store'
+import { useSim } from '../state/sim'
+import { FD_HALF_FOV, FD_RANGE, FD_TILT, GD_RADIUS, HS_RANGE } from '../sim/fg'
+import { alarmKey } from '../sim/fg/live'
 
 const noPick = () => null
 const FG = new Set(['FD', 'GD', 'OGD', 'HD', 'SD'])
@@ -18,10 +23,13 @@ const M = {
   HD: [mat('#ff8a80', 0.06), mat('#ff8a80', 0.2)],
   SD: [mat('#c7d0d8', 0.06), mat('#c7d0d8', 0.2)],
 } as const
-const FD_RANGE = 16
-const FD_HALF = Math.PI / 4
-const TILT = (20 * Math.PI) / 180
-const cone = new THREE.ConeGeometry(FD_RANGE * Math.tan(FD_HALF), FD_RANGE, 40, 1, true).translate(0, -FD_RANGE / 2, 0)
+/** alarm tint: [low, high] per shape kind */
+const ALARM = {
+  vol: [mat('#ffb020', 0.1), mat('#ff3b30', 0.13)],
+  beam: [mat('#ffb020', 0.95), mat('#ff3b30', 1)],
+} as const
+const TILT = FD_TILT
+const cone = new THREE.ConeGeometry(FD_RANGE * Math.tan(FD_HALF_FOV), FD_RANGE, 40, 1, true).translate(0, -FD_RANGE / 2, 0)
 const sphere = new THREE.SphereGeometry(1, 24, 16)
 const beam = new THREE.CylinderGeometry(0.035, 0.035, 1, 8, 1, true)
 const DOWN = new THREE.Vector3(0, -1, 0)
@@ -30,6 +38,8 @@ const UP = new THREE.Vector3(0, 1, 0)
 export function FireGasOverlay({ built }: { built: BuiltPiping }) {
   const all = useStore((s) => s.layers.fireGas)
   const sel = useStore((s) => s.selected?.tag)
+  const aKey = useSim(alarmKey)
+  const alarms = useMemo(() => new Map(aKey ? aKey.split('|').map((x) => x.split(':') as [string, string]) : []), [aKey])
   const items = useMemo(() => {
     const out: { key: string; type: keyof typeof M; geo: THREE.BufferGeometry; pos: THREE.Vector3; quat: THREE.Quaternion; scale: THREE.Vector3; tags: string[] }[] = []
     const dets = built.instruments.filter((p) => FG.has(p.inst.type))
@@ -40,8 +50,8 @@ export function FireGasOverlay({ built }: { built: BuiltPiping }) {
         aim.y = 0
         aim.normalize().multiplyScalar(Math.cos(TILT)).setY(-Math.sin(TILT))
         out.push({ key: d.inst.tag, type: t, geo: cone, pos: d.pos, quat: new THREE.Quaternion().setFromUnitVectors(DOWN, aim.normalize()), scale: new THREE.Vector3(1, 1, 1), tags: [d.inst.tag] })
-      } else if (t === 'GD') out.push({ key: d.inst.tag, type: t, geo: sphere, pos: d.pos, quat: new THREE.Quaternion(), scale: new THREE.Vector3(4.5, 4.5, 4.5), tags: [d.inst.tag] })
-      else if (t === 'HD' || t === 'SD') out.push({ key: d.inst.tag, type: t, geo: sphere, pos: d.pos, quat: new THREE.Quaternion(), scale: new THREE.Vector3(5, 2.5, 5), tags: [d.inst.tag] })
+      } else if (t === 'GD') out.push({ key: d.inst.tag, type: t, geo: sphere, pos: d.pos, quat: new THREE.Quaternion(), scale: new THREE.Vector3(GD_RADIUS, GD_RADIUS, GD_RADIUS), tags: [d.inst.tag] })
+      else if (t === 'HD' || t === 'SD') out.push({ key: d.inst.tag, type: t, geo: sphere, pos: d.pos, quat: new THREE.Quaternion(), scale: new THREE.Vector3(HS_RANGE, HS_RANGE / 2, HS_RANGE), tags: [d.inst.tag] })
       else if (t === 'OGD' && d.inst.tag.endsWith('T')) {
         const rx = dets.find((x) => x.inst.tag === d.inst.tag.slice(0, -1) + 'R')
         if (!rx) continue
@@ -55,8 +65,10 @@ export function FireGasOverlay({ built }: { built: BuiltPiping }) {
     <group>
       {items.map((it) => {
         const on = it.tags.includes(sel ?? '')
-        if (!all && !on) return null
-        return <mesh key={it.key} geometry={it.geo} position={it.pos} quaternion={it.quat} scale={it.scale} material={M[it.type][on ? 1 : 0]} raycast={noPick} renderOrder={4} />
+        const al = alarms.get(it.tags[0])
+        if (!all && !on && !al) return null
+        const material = al ? ALARM[it.type === 'OGD' ? 'beam' : 'vol'][al === 'high' ? 1 : 0] : M[it.type][on ? 1 : 0]
+        return <mesh key={it.key} geometry={it.geo} position={it.pos} quaternion={it.quat} scale={it.scale} material={material} raycast={noPick} renderOrder={4} />
       })}
     </group>
   )

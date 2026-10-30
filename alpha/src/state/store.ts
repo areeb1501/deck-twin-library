@@ -1,7 +1,7 @@
 import { create } from 'zustand'
 import type { PickData, Vec3 } from '../model/types'
 
-export type LayerId = 'equipment' | 'piping' | 'instruments' | 'structure' | 'ceiling' | 'environment' | 'labels' | 'flow' | 'fireGas'
+export type LayerId = 'equipment' | 'piping' | 'instruments' | 'structure' | 'ceiling' | 'environment' | 'labels' | 'flow' | 'fireGas' | 'fgCoverage'
 export type ViewMode = 'shaded' | 'xray'
 export type CameraPreset = 'overview' | 'deck' | 'plan' | 'rack' | 'separator' | 'compressor' | 'underdeck' | 'field' | 'rig' | 'wellbay' | 'lq' | 'bridge' | 'whp' | 'bridgeN'
 
@@ -43,6 +43,9 @@ interface State {
   walkStart: { level: string; at: [number, number]; face?: [number, number] } | null
   /** walk mode: index into the plant's walk levels */
   walkLevel: number
+  /** control-room HMI (DCS console) open, on this page */
+  hmi: string | null
+  setHmi: (page: string | null) => void
   /** isolation / LOTO planner target */
   isolation: { target: string; mode: 'valve' | 'positive' } | null
 
@@ -80,6 +83,7 @@ export const useStore = create<State>((set) => ({
     labels: true,
     flow: true,
     fireGas: false,
+    fgCoverage: false,
   },
   section: { enabled: false, min: [-32, -1, -22], max: [32, 14, 22] },
   flyTo: null,
@@ -90,6 +94,8 @@ export const useStore = create<State>((set) => ({
   walk: false,
   lookAt: null,
   isolation: null,
+  hmi: null,
+  setHmi: (hmi) => set({ hmi }),
   walkLevel: 0,
   walkStart: null,
   walkView: (localStorage.getItem('deck-twin.walkView') as 'first' | 'third') || 'third',

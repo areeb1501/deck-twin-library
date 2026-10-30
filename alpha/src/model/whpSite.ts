@@ -373,7 +373,7 @@ export function extendWHP(A: WhpArrays, K: WhpConsts) {
   const kl = face('V-N290', 'N3')
   const kdl = L('2"-CD-N2903-B1A-N', 'drain', 'flare', 2, 'B1A', [kl, [kl[0], -2.4, kl[2]]], eqEnd('V-N290', 'N3'), { offDeck: 'WHP closed drain caisson (cellar deck)' })
   VS('LV-N2903', 'control', kdl, 0, 1.6, { actuator: 'diaphragm', failAction: 'FC', up: [0, 0, 1] })
-  LTon('LT-N2900', 'V-N290', 12)
+  LTon('LT-N2900', 'V-N290', 12, { alarms: { hi: 60, hiHi: 80 } }) // vent KO drum: normally near empty
 
   // ================================================================ TEMPORARY REFUGE + FIREWATER
   E('module', 'B-N295', 'Temporary Refuge / Local Control Room', 'safety', [3.5, -64.5], 0, { sizeX: 8, sizeY: 3.4, sizeZ: 5 }, {
@@ -392,7 +392,7 @@ export function extendWHP(A: WhpArrays, K: WhpConsts) {
     design: { pressure: '16 barg', notes: 'GRP-lined CuNi 90/10, deluge 12.2 l/min/m² over the well bay' },
   })
   VS('HV-N2850', 'butterfly', fw, 3, 1.4, { actuator: 'gear', design: { notes: 'Bridge isolation, locked open' } })
-  VS('DV-N2851', 'esdv', fw, 6, 2.6, { actuator: 'pistonSpring', failAction: 'FO', up: [1, 0, 0], design: { notes: 'Well-bay deluge valve, opens on confirmed fire (2ooN flame) or manual release' } })
+  VS('DV-N2851', 'esdv', fw, 6, 2.6, { actuator: 'pistonSpring', failAction: 'FO', normally: 'closed', up: [1, 0, 0], design: { notes: 'Well-bay deluge valve, opens on confirmed fire (2ooN flame) or manual release' } })
   IS('PT-N2851', 'PT', fw, 6, 4.2, { range: '0–25', unit: 'barg', nominal: 14.1, alarms: { lo: 10 } })
   for (const [seq, x] of [['N2853', WHP.wells[0][0]], ['N2854', WHP.wells[1][0]]] as [string, number][]) {
     L(`3"-FW-${seq}-F1A-N`, 'firewater', 'safety', 3, 'F1A', [[x, 4.6, ZF], [x, 4.6, -69.4]], { line: fw }, { offDeck: 'Deluge spray pipe (capped)' }, { sprayNozzles: true, design: { notes: 'Deluge spray pipe over the christmas trees' } })

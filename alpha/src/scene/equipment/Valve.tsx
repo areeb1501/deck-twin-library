@@ -16,15 +16,19 @@
  *
  * Geometry is cached at module level per (type, nps, rating, actuator, outletNps) so all instances
  * share one merged buffer. Each valve renders 1 merged mesh (≤ 8 draw groups) plus, for valves with
- * moving parts (rising stem, lever, butterfly disc), 1 more mesh driven by `open`.
+ * moving parts (rising stem, lever, butterfly disc, control-valve stem connector, quarter-turn position
+ * indicator), 1 more mesh driven by `open` — or, with `tag`, by the valve's live travel in the simulation
+ * (`valves[tag].pos`, eased in useFrame; no React re-render).
  */
-import { useMemo } from 'react'
+import { useFrame } from '@react-three/fiber'
+import { useLayoutEffect, useMemo, useRef } from 'react'
 import * as THREE from 'three'
 import { flange, pipeOD, pipeWall, valveLength } from '../../model/catalog'
 import type { Rating, Valve, ValveType } from '../../model/types'
 import { cached } from '../../three/pipeGeometry'
 import { Kit, mat4, type Built, type MatKey, type V3 } from './machinery/kit'
 import { KitMesh } from './machinery/KitMesh'
+import { valvePos } from '../fx/simRead'
 
 type Actuator = NonNullable<Valve['actuator']>
 
@@ -106,9 +110,13 @@ interface MovingPart {
   amount: number
   pivot: V3
 }
-interface ValveGeo {
+export interface ValveGeo {
   fixed: Built
   moving?: MovingPart
+  /** valve-local point just above the operator (stem axis) — where a position flag can sit */
+  flagAt: V3
+  /** size of the operator (m), to scale a position flag */
+  opSize: number
 }
 
 interface Ctx {
@@ -212,18 +220,19 @@ function linearOperator(c: Ctx, yB: number, stemR: number) {
   k.cyl(BODY, stemR * 2.5, legT * 3, [0, yT, 0], 'y', 20)
 
   if (act === 'diaphragm' || act === 'pistonSpring') {
-    // stem connector + travel indicator
-    k.box(SS, [stemR * 4.5, Math.max(0.02, D * 0.18), stemR * 3], [0, yB + yokeH * 0.5, 0])
+    // travel scale on the yoke leg (closed at 25 %, open at 75 % of the yoke)
     k.box(SS, [0.002, yokeH * 0.5, legW * 0.9], [legX + legW / 2 + 0.001, yB + yokeH * 0.5, 0])
     for (let i = 0; i <= 4; i++) k.box(BOLT, [0.003, 0.0015, legW * 0.5], [legX + legW / 2 + 0.003, yB + yokeH * (0.25 + i * 0.125), 0])
-    k.box(SS, [legX + legW, 0.003, 0.008], [legX / 2 + legW / 2, yB + yokeH * 0.5, legW * 0.3])
     k.cyl(SS, stemR, yokeH + 0.02, [0, yB + yokeH / 2, 0], 'y', 10)
+    // stem connector + pointer ride the stem (drawn open; 'rise' drops them by the travel when closed)
+    stemConnector(c, yB + yokeH * 0.75, stemR, legX, legW, yokeH * 0.5)
     if (act === 'diaphragm') diaphragmActuator(c, yT + legT * 1.5)
     else pistonLinear(c, yT + legT * 1.5)
     return
   }
   if (act === 'electric') {
     k.cyl(SS, stemR, yokeH, [0, yB + yokeH / 2, 0], 'y', 10)
+    stemConnector(c, yB + yokeH * 0.75, stemR, legX, legW, yokeH * 0.5)
     electricActuator(c, yT + legT * 1.5)
     return
   }
@@ -247,6 +256,13 @@ function linearOperator(c: Ctx, yB: number, stemR: number) {
   c.mv.cyl(SS, stemR, stemTop - yB, [0, (stemTop + yB) / 2, 0], 'y', 12)
   c.mv.cyl(SS, stemR * 1.15, 0.006, [0, stemTop, 0], 'y', 12)
   c.moving = { mode: 'rise', amount: rise, pivot: [0, 0, 0] }
+}
+
+/** Stem connector block + travel pointer at height y (open position); moves with the stem. */
+function stemConnector(c: Ctx, y: number, stemR: number, legX: number, legW: number, travel: number) {
+  c.mv.box(SS, [stemR * 4.5, Math.max(0.02, c.D * 0.18), stemR * 3], [0, y, 0])
+  c.mv.box('actuatorYellow', [legX + legW, 0.004, 0.01], [legX / 2 + legW / 2, y, legW * 0.3])
+  c.moving = { mode: 'rise', amount: travel, pivot: [0, 0, 0] }
 }
 
 /** Spring-diaphragm actuator (Fisher 667 style) + DVC-style positioner + air tubing. */
@@ -398,7 +414,11 @@ function quarterOperator(c: Ctx, y0: number, stemR: number) {
   k.handwheel(HW, Math.max(0.22, g * 1.6), [g * 0.32, yg + g * 0.28, g * 1.15], 'z', 5)
   // position indicator dome with arrow
   k.dome('glass', g * 0.25, [0, yg + g * 0.55, -g * 0.05], 'y', Math.PI / 2, 0.5)
-  k.box('actuatorYellow', [g * 0.35, 0.006, 0.03], [0, yg + g * 0.57, -g * 0.05])
+  // indicator arrow turns with the ball (a butterfly's disc is its moving part, so its arrow stays put)
+  if (c.type !== 'butterfly') {
+    c.mv.box('actuatorYellow', [g * 0.35, 0.006, 0.03], [0, yg + g * 0.57, -g * 0.05])
+    c.moving = { mode: 'rotY', amount: Math.PI / 2, pivot: [0, 0, 0] }
+  } else k.box('actuatorYellow', [g * 0.35, 0.006, 0.03], [0, yg + g * 0.57, -g * 0.05])
   k.around(6, g * 0.48, [0, yg + g * 0.55, -g * 0.05], 'y', (p) => k.hex(BOLT, 0.016, 0.008, p))
 }
 
@@ -440,7 +460,11 @@ function scotchYoke(c: Ctx, y0: number) {
   k.box(BODY, [s * 0.18, s * 0.08, s * 0.18], [0, ly + s * 0.04, 0])
   k.rbox(SS, [s * 0.5, s * 0.3, s * 0.36], s * 0.04, [0, ly + s * 0.08 + s * 0.15, 0])
   k.dome('actuatorYellow', s * 0.13, [0, ly + s * 0.38, 0], 'y', Math.PI / 2, 0.8)
-  k.box(HW, [s * 0.26, s * 0.035, s * 0.05], [0, ly + s * 0.42, 0])
+  // position indicator bar on the limit-switch box: along the pipe = open, across = closed
+  if (c.type !== 'butterfly') {
+    c.mv.box(HW, [s * 0.34, s * 0.045, s * 0.06], [0, ly + s * 0.42, 0])
+    c.moving = { mode: 'rotY', amount: Math.PI / 2, pivot: [0, 0, 0] }
+  } else k.box(HW, [s * 0.26, s * 0.035, s * 0.05], [0, ly + s * 0.42, 0])
   k.cyl(BRASS, s * 0.035, s * 0.08, [s * 0.29, ly + s * 0.2, 0], 'x', 8)
   k.spline('cable', [[s * 0.33, ly + s * 0.2, 0], [s * 0.45, ly + s * 0.12, 0], [s * 0.52, yA, s * 0.25], [s * 0.5, y0 - 0.02, s * 0.55]], 0.007, 6, 30)
   // solenoid valve + quick exhaust on the cylinder end, tubing
@@ -770,7 +794,10 @@ function buildValve(type: ValveType, nps: number, rating: Rating, act: Actuator,
       break
   }
   const fixed = k.build()
-  const out: ValveGeo = { fixed }
+  fixed.geometry.computeBoundingBox()
+  const bb = fixed.geometry.boundingBox!
+  const op = type === 'psv' ? 0 : Math.max(0.12, bb.max.y - Math.max(c.D, c.f.od / 2))
+  const out: ValveGeo = { fixed, flagAt: [0, bb.max.y + 0.05, 0], opSize: op }
   if (!mv.isEmpty() && c.moving) out.moving = { built: mv.build(), ...c.moving }
   return out
 }
@@ -781,29 +808,48 @@ export function valveGeometry(type: ValveType, nps: number, rating: Rating = 300
   return cached(`valve|${type}|${nps}|${rating}|${act}|${out}`, () => buildValve(type, nps, rating, act, out))
 }
 
+/** pose the moving part for travel u (0 closed … 1 open) */
+function poseMoving(g: THREE.Object3D, mv: MovingPart, u: number) {
+  if (mv.mode === 'rise') g.position.set(0, -(1 - u) * mv.amount, 0)
+  else if (mv.mode === 'rotY') g.rotation.set(0, -(1 - u) * mv.amount, 0)
+  else g.rotation.set(0, u * mv.amount, 0)
+}
+
 export function ValveModel(props: {
   type: ValveType
   nps: number
   rating?: Rating
   actuator?: Valve['actuator']
+  /** static position (no `tag`), or the normal position while the simulation doesn't operate it */
   open?: boolean
   outletNps?: number
+  /** follow the simulation's travel of this valve (`valves[tag].pos`) */
+  tag?: string
 }) {
-  const { type, nps, rating = 300, actuator, open = true, outletNps } = props
+  const { type, nps, rating = 300, actuator, open = true, outletNps, tag } = props
   const geo = useMemo(() => valveGeometry(type, nps, rating, actuator, outletNps), [type, nps, rating, actuator, outletNps])
   const mv = geo.moving
-  let mvPos: V3 = [0, 0, 0]
-  let mvRot = 0
-  if (mv) {
-    if (mv.mode === 'rise') mvPos = [0, open ? 0 : -mv.amount, 0]
-    else if (mv.mode === 'rotY') mvRot = open ? 0 : -mv.amount
-    else mvRot = open ? mv.amount : 0
-  }
+  const mvRef = useRef<THREE.Group>(null)
+  const u = useRef(open ? 1 : 0)
+  useLayoutEffect(() => {
+    if (!mv || !mvRef.current) return
+    u.current = tag ? valvePos(tag, open ? 'open' : 'closed') : open ? 1 : 0
+    poseMoving(mvRef.current, mv, u.current)
+  }, [mv, open, tag])
+  useFrame((_, dt) => {
+    if (!tag || !mv || !mvRef.current) return
+    const target = valvePos(tag, open ? 'open' : 'closed')
+    if (u.current === target) return
+    // the sim strokes the valve at 1 Hz ticks: ease between them
+    u.current += (target - u.current) * Math.min(1, Math.min(dt, 0.1) * 6)
+    if (Math.abs(target - u.current) < 1e-3) u.current = target
+    poseMoving(mvRef.current, mv, u.current)
+  })
   return (
     <group>
       <KitMesh data={geo.fixed} />
       {mv && (
-        <group position={mvPos} rotation-y={mvRot}>
+        <group ref={mvRef}>
           <KitMesh data={mv.built} />
         </group>
       )}

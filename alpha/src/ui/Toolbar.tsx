@@ -36,6 +36,7 @@ const LAYERS: [LayerId, string][] = [
   ['labels', 'Labels'],
   ['flow', 'Flow'],
   ['fireGas', 'F&G coverage'],
+  ['fgCoverage', 'F&G mapping (heatmap)'],
 ]
 
 export function Toolbar() {
@@ -48,6 +49,7 @@ export function Toolbar() {
   const walk = useStore((s) => s.walk)
   const setWalk = useStore((s) => s.setWalk)
   const plant = usePlant()
+  const setHmi = useStore((s) => s.setHmi)
   const touring = useTour((s) => s.on)
   // the tour's routes are laid out on the Alpha field
   const tourable = plant.deck.site === 'offshoreAlpha' && !!plant.deck.walk?.some((l) => l.id === 'drillfloor')
@@ -71,6 +73,11 @@ export function Toolbar() {
         </button>
         <button className={menu === 'decks' ? 'on' : ''} onClick={() => setMenu(menu === 'decks' ? null : 'decks')} title="Go to a deck: drill floor, weather, production, cellar, seabed, LQ">
           Decks ▾
+        </button>
+      </div>
+      <div className="seg">
+        <button onClick={(e) => (e.currentTarget.blur(), setMenu(null), setHmi('overview'))} title="Open the control-room DCS console: live process, alarms, shutdowns, F&G, trends, machines and the instructor station" data-hmi-open>
+          Control room
         </button>
       </div>
       <div className="seg">

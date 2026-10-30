@@ -26,7 +26,12 @@ import { KitMesh } from './machinery/KitMesh'
 import { ribbedPanel } from './machinery/cladding'
 import { gratingPanel, handrail, tagPlate } from './machinery/parts'
 import { fanGuardMaterial, signMaterial } from './machinery/textures'
-import { buildInterior, fanRotor, type Spin } from './moduleInteriors'
+import { buildInterior, fanRotor, type Spin, type WallAnchor } from './moduleInteriors'
+import { liveScreenMaterial, setWallAnchor } from '../ccr/live'
+import { LiveScreens } from '../ccr/LiveScreens'
+import type { Focus } from '../ccr/snapshot'
+import { platformAt } from '../../sim/fg'
+import { screenMaterial } from './moduleTextures'
 import {
   FRAME_W,
   HF,
@@ -60,7 +65,12 @@ interface ModuleBuild {
   interior: Built
   leaves: { id: string; hinge: V3; rotationY: number; openAngle: number; width: number; height: number; dir: 1 | -1 }[]
   spinners: Spin[]
+  /** control room with live (per-room) screens */
+  live: { focus: Focus; wall?: WallAnchor } | null
 }
+
+/** which platform a control room looks after: the WHP-N local room its own platform, otherwise the field */
+const focusOf = (eq: Module): Focus => (platformAt(eq.position) === 'WHP-N' ? 'WHP-N' : 'field')
 
 function buildModule(eq: Module): ModuleBuild {
   const size = eq.size as V3
@@ -76,7 +86,11 @@ function buildModule(eq: Module): ModuleBuild {
   const spinners: Spin[] = []
 
   // ---------------------------------------------------------------- interior first (it may ask for wall openings + roof parts)
-  const { openings, spinners: inSpin } = buildInterior(kind, { eq, size, inner, CH, hasCeiling, doors, keep }, kIn, k)
+  // control rooms: one live material per screen kind for THIS room (one draw group per kind, redrawn by <LiveScreens>)
+  const focus = focusOf(eq)
+  const screen = kind === 'controlRoom' ? (sk: Parameters<typeof screenMaterial>[0]) => liveScreenMaterial(eq.tag, sk, focus) ?? screenMaterial(sk) : undefined
+  const { openings, spinners: inSpin, wall } = buildInterior(kind, { eq, size, inner, CH, hasCeiling, doors, keep, screen }, kIn, k)
+  if (kind === 'controlRoom' && wall) setWallAnchor(eq.tag, focus, wall.c, wall.n)
   spinners.push(...inSpin)
 
   const walls = WALL_IDS.map((id) => wallFrame(id, size))
@@ -293,7 +307,7 @@ function buildModule(eq: Module): ModuleBuild {
     }
   }
 
-  return { shell: k.build(), interior: kIn.build(), leaves, spinners }
+  return { shell: k.build(), interior: kIn.build(), leaves, spinners, live: kind === 'controlRoom' ? { focus, wall } : null }
 }
 
 /** Louvre on the outer face (wall frame). `backed` adds the dark plenum behind decorative louvres. */
@@ -434,6 +448,7 @@ export function ModuleModel({ eq }: { eq: Module }) {
     <group>
       <KitMesh data={built.shell} />
       <KitMesh data={built.interior} />
+      {built.live && <LiveScreens tag={eq.tag} focus={built.live.focus} />}
       {built.leaves.map((l, i) => (
         <Door key={`${l.id}-${i}`} tag={eq.tag} id={l.id} hinge={l.hinge} rotationY={l.rotationY} openAngle={l.openAngle}>
           <KitMesh data={leafBuilt(l.width, l.height, l.dir)} />

@@ -263,6 +263,7 @@ export function WalkDriver({ controls, root }: { controls: React.RefObject<Camer
     const isField = (e: KeyboardEvent) => ['INPUT', 'SELECT', 'TEXTAREA'].includes((e.target as HTMLElement)?.tagName)
     const down = (e: KeyboardEvent) => {
       if (isField(e) || e.metaKey || e.ctrlKey) return
+      if (useStore.getState().hmi) return // HMI guard: the control-room console is open, the keyboard belongs to it
       const k = e.key.toLowerCase()
       if (k === 'v') {
         const st = useStore.getState()
@@ -466,6 +467,7 @@ export function WalkDriver({ controls, root }: { controls: React.RefObject<Camer
     dt = Math.min(dt, 0.25) // keep walking speed honest on slow frames without big jumps after a stall
     if (walkAuto.active) autopilot(dt)
     else {
+      if (useStore.getState().hmi) keys.current.clear() // HMI guard: console open, the walker stands still
       const k = keys.current
       const speed = (k.has('shift') ? RUN : WALK) * dt
       if (k.has('arrowleft') || k.has('a')) walkPose.yaw += TURN * dt

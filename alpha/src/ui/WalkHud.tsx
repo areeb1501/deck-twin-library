@@ -1,9 +1,11 @@
-/** Walk-mode overlay: centre crosshair, key hints, and a plan minimap (click to teleport). */
+/** Walk-mode overlay: centre crosshair, key hints, a plan minimap (click to teleport) and the "sit at the console" prompt in a control room. */
 import { useEffect, useMemo, useState } from 'react'
 import { usePlant } from '../state/plantStore'
 import { useStore } from '../state/store'
 import { footprints } from '../model/footprint'
-import { levelAt, placeWalker, walkLevels, walkPose } from '../scene/Walk'
+import type { Module, Plant } from '../model/types'
+import { levelAt, placeWalker, walkAuto, walkLevels, walkPose } from '../scene/Walk'
+import './hmi/hmi.css'
 import { walkSurfaces } from '../scene/walkSurfaces'
 
 const W = 230
@@ -28,6 +30,7 @@ export function WalkHud() {
       </div>
       <Minimap />
       <Levels />
+      <ConsolePrompt />
     </>
   )
 }
@@ -121,6 +124,59 @@ function Minimap() {
         </g>
       </svg>
       <div className="muted small">N ↑ · {lv.label}</div>
+    </div>
+  )
+}
+
+/** the control room (module with a controlRoom interior) the walker is standing in, if any */
+function controlRoomAt(plant: Plant): Module | null {
+  const levels = walkLevels(plant)
+  const lv = levels[walkPose.level]
+  if (!lv || Math.abs(walkPose.floor - lv.y) > 0.5) return null // on a stair or ladder, not on the floor
+  for (const e of plant.equipment) {
+    if (e.kind !== 'module' || e.interior !== 'controlRoom' || levelAt(levels, e.position[1]) !== walkPose.level) continue
+    // plan → module-local (inverse of the module's quarter-turn rotation)
+    const c = Math.cos(e.rotationY)
+    const s = Math.sin(e.rotationY)
+    const dx = walkPose.x - e.position[0]
+    const dz = walkPose.z - e.position[2]
+    const lx = dx * c - dz * s
+    const lz = dx * s + dz * c
+    if (Math.abs(lx) < e.size[0] / 2 - 0.2 && Math.abs(lz) < e.size[2] / 2 - 0.2) return e
+  }
+  return null
+}
+
+/** inside the CCR (B-9300) or the WHP-N local control room (B-N295): "Sit at the console — Enter" opens the HMI */
+function ConsolePrompt() {
+  const plant = usePlant()
+  const hmi = useStore((s) => s.hmi)
+  const [room, setRoom] = useState<Module | null>(null)
+  useEffect(() => {
+    const id = window.setInterval(() => {
+      const r = walkAuto.active ? null : controlRoomAt(plant)
+      setRoom((cur) => (cur?.tag === r?.tag ? cur : r))
+    }, 250)
+    return () => clearInterval(id)
+  }, [plant])
+  useEffect(() => {
+    if (!room || hmi) return
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== 'Enter' || e.repeat || ['INPUT', 'SELECT', 'TEXTAREA'].includes((e.target as HTMLElement)?.tagName)) return
+      e.preventDefault() // focus may still be on a toolbar button: Enter must not click it
+      useStore.getState().setHmi('overview')
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [room, hmi])
+  if (!room || hmi) return null
+  return (
+    <div className="console-prompt" data-console-prompt={room.tag}>
+      <span>
+        {room.name} — <b>sit at the console</b>
+      </span>
+      <kbd>Enter</kbd>
+      <button onClick={() => useStore.getState().setHmi('overview')}>Open console</button>
     </div>
   )
 }

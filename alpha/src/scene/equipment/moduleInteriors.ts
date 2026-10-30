@@ -62,6 +62,14 @@ export interface RoomCtx {
   hasCeiling: boolean
   doors: DoorGeom[]
   keep: Rect[]
+  /** screen material per display kind (control rooms pass per-room live materials; default: static) */
+  screen?: ScreenFn
+}
+export type ScreenFn = (kind: ScreenKind) => THREE.Material
+/** video wall centre + facing normal, module-local */
+export interface WallAnchor {
+  c: V3
+  n: V3
 }
 
 // ------------------------------------------------------------------ materials (cached by paint())
@@ -317,18 +325,18 @@ function chair(k: Kit, at: V3, rotY = 0) {
 }
 
 /** Flat monitor on a stand, screen facing +z, base at the origin. */
-function monitor(k: Kit, at: V3, rotY: number, kind: ScreenKind, w = 0.5, h = 0.31) {
+function monitor(k: Kit, at: V3, rotY: number, kind: ScreenKind, w = 0.5, h = 0.31, scr: ScreenFn = screenMaterial) {
   const m = M()
   k.with(mat4(at, eul(0, rotY, 0)), () => {
     k.box(m.bezel, [0.22, 0.012, 0.18], [0, 0.006, 0])
     k.box(m.bezel, [0.05, 0.16, 0.03], [0, 0.09, -0.04])
     k.box(m.bezel, [w, h, 0.03], [0, 0.12 + h / 2, -0.01])
-    k.plane(screenMaterial(kind), w - 0.02, h - 0.02, [0, 0.12 + h / 2, 0.0055])
+    k.plane(scr(kind), w - 0.02, h - 0.02, [0, 0.12 + h / 2, 0.0055])
   })
 }
 
 /** Desk with a monitor, keyboard and a chair in front. Footprint w × 1.35 (desk at the back). */
-const deskUnit = (w: number, screens: ScreenKind[]): Unit => ({
+const deskUnit = (w: number, screens: ScreenKind[], scr: ScreenFn = screenMaterial): Unit => ({
   w,
   d: 1.35,
   build: (k) => {
@@ -338,7 +346,7 @@ const deskUnit = (w: number, screens: ScreenKind[]): Unit => ({
     for (const s of [-1, 1]) k.box(m.deskDark, [0.04, 0.72, 0.7], [s * (w / 2 - 0.03), 0.36, zd])
     k.box(m.deskDark, [w - 0.1, 0.4, 0.02], [0, 0.45, zd - 0.34])
     k.box(m.deskDark, [0.42, 0.6, 0.6], [w / 2 - 0.28, 0.3, zd])
-    screens.forEach((s, i) => monitor(k, [(i - (screens.length - 1) / 2) * 0.55, 0.755, zd - 0.12], i === 0 && screens.length > 1 ? 0.15 : i === screens.length - 1 && screens.length > 1 ? -0.15 : 0, s))
+    screens.forEach((s, i) => monitor(k, [(i - (screens.length - 1) / 2) * 0.55, 0.755, zd - 0.12], i === 0 && screens.length > 1 ? 0.15 : i === screens.length - 1 && screens.length > 1 ? -0.15 : 0, s, 0.5, 0.31, scr))
     k.box(m.black, [0.44, 0.02, 0.14], [0, 0.76, zd + 0.18])
     k.rbox(m.black, [0.06, 0.025, 0.1], 0.01, [0.32, 0.76, zd + 0.18])
     k.rbox(m.deskDark, [0.2, 0.06, 0.18], 0.02, [-w / 2 + 0.2, 0.78, zd + 0.1])
@@ -501,9 +509,10 @@ function ceilingFan(c: RoomCtx, k: Kit, spins: Spin[], x: number, z: number) {
 }
 
 // ------------------------------------------------------------------ control room
-function controlRoom(c: RoomCtx, k: Kit) {
+function controlRoom(c: RoomCtx, k: Kit): WallAnchor | undefined {
   const p = new Plan(c)
   const m = M()
+  const scr = c.screen ?? screenMaterial
   const [wV, wS] = rankWalls(c)
   const hV = halfIn(c, wV)
   const fV = wallFrame(wV, c.size)
@@ -524,11 +533,15 @@ function controlRoom(c: RoomCtx, k: Kit) {
           const x = (col - 1) * (pw + 0.02)
           const y = 1.0 + ph / 2 + (1 - r) * (ph + 0.02)
           kk.box(m.bezel, [pw + 0.012, ph + 0.012, 0.06], [x, y, -0.15])
-          kk.plane(screenMaterial(kinds[r * 3 + col]), pw, ph, [x, y, -0.118])
+          kk.plane(scr(kinds[r * 3 + col]), pw, ph, [x, y, -0.118])
         }
     },
   }
-  row(p, k, wallRowFrame(c, wV), -(vw + 0.2) / 2, (vw + 0.2) / 2, [videoWall])
+  const [vm] = row(p, k, wallRowFrame(c, wV), -(vw + 0.2) / 2, (vw + 0.2) / 2, [videoWall])
+  const anchor: WallAnchor | undefined = vm && {
+    c: new THREE.Vector3(0, 1.01 + ph, -0.118).applyMatrix4(vm).toArray() as V3,
+    n: new THREE.Vector3(0, 0, 1).transformDirection(vm).toArray() as V3,
+  }
   // operator consoles facing the video wall
   const depthV = wV === '+z' || wV === '-z' ? c.inner.z1 - c.inner.z0 : c.inner.x1 - c.inner.x0
   const cd = 1.75
@@ -536,21 +549,22 @@ function controlRoom(c: RoomCtx, k: Kit) {
   const n = Math.max(1, Math.min(3, Math.floor((2 * hV - 0.6) / 2.4)))
   const cm = wallMatrix(fV).multiply(new THREE.Matrix4().makeTranslation(0, 0, -WALL_T - back))
   // row frame: backs on z = 0 (chair side), fronts (+z) towards the wall
-  const units = Array.from({ length: n }, (_, i) => console4(i))
+  const units = Array.from({ length: n }, (_, i) => console4(i, scr))
   const span = n * 2.3 + (n - 1) * 0.15
   const placed = row(p, k, cm, -span / 2, hV - 0.2, units, 0.15, 0.1)
   if (placed.length < n) row(p, k, cm, -hV + 0.2, hV - 0.2, units.slice(placed.length), 0.15, 0.1)
   // supervisor desk behind the consoles, F&G mimic + radio rack + printer on the remaining walls
   // row frame turned round: backs towards the consoles, the supervisor sits facing the video wall
   const sm = wallMatrix(fV).multiply(new THREE.Matrix4().makeTranslation(0, 0, -WALL_T - back - 0.6)).multiply(new THREE.Matrix4().makeRotationY(Math.PI))
-  if (!row(p, k, sm, -hV + 0.3, hV - 0.3, [deskUnit(1.8, ['trend', 'alarm'])], 0, 0.05).length) againstWalls(p, k, rankWalls(c, [wV]), deskUnit(1.8, ['trend', 'alarm']), 'mid')
+  const desk = deskUnit(1.8, ['esd', 'alarm'], scr)
+  if (!row(p, k, sm, -hV + 0.3, hV - 0.3, [desk], 0, 0.05).length) againstWalls(p, k, rankWalls(c, [wV]), desk, 'mid')
   const fgMimic: Unit = {
     w: 1.8,
     d: 0.25,
     build: (kk) => {
       kk.box(m.cabDark, [1.8, 1.1, 0.08], [0, 1.55, -0.08])
       kk.box(m.bezel, [1.7, 1.0, 0.04], [0, 1.55, -0.02])
-      kk.plane(screenMaterial('fgmap'), 1.64, 0.94, [0, 1.55, 0.001])
+      kk.plane(scr('fgmap'), 1.64, 0.94, [0, 1.55, 0.001])
       for (let i = 0; i < 6; i++) kk.cyl(i === 2 ? m.lampA : m.lampG, 0.018, 0.02, [-0.75 + i * 0.3, 0.93, 0.0], 'z', 10)
       kk.box(m.cab, [0.9, 0.9, 0.22], [0, 0.45, 0.01])
       kk.box(m.red, [0.2, 0.2, 0.04], [0.25, 0.75, 0.13])
@@ -588,10 +602,11 @@ function controlRoom(c: RoomCtx, k: Kit) {
   againstWalls(p, k, rest, radioRack, 'end')
   againstWalls(p, k, rest, printer, 'start')
   // trays above the consoles (cable feeds to the desks) — none; HVAC diffusers are in the ceiling
+  return anchor
 }
 
 /** Curved operator console with 4 monitors + chair. Row frame: chair at −z, monitors towards +z. */
-const console4 = (i: number): Unit => ({
+const console4 = (i: number, scr: ScreenFn = screenMaterial): Unit => ({
   w: 2.3,
   d: 1.75,
   build: (k) => {
@@ -617,16 +632,16 @@ const console4 = (i: number): Unit => ({
     k.extrude(m.deskDark, sector(R2 - 0.3, R2 - 0.05), 0.715, at(0.715), 32)
     k.extrude(m.deskDark, sector(R2 - 0.12, R2 - 0.08), 0.25, at(1.0), 32) // monitor rail
     const kinds: ScreenKind[][] = [
-      ['alarm', 'mimic', 'trend', 'cctv'],
+      ['alarm', 'mimic', 'trend', 'esd'],
       ['trend', 'overview', 'mimic', 'alarm'],
-      ['fgmap', 'mimic', 'alarm', 'trend'],
+      ['fgmap', 'esd', 'alarm', 'trend'],
     ]
     const ks = kinds[i % kinds.length]
     const step = 0.45
     for (let j = 0; j < 4; j++) {
       const ph = (j - 1.5) * step
       const R = 1.08
-      monitor(k, [Math.sin(ph) * R, 0.75, cz + Math.cos(ph) * R], ph + Math.PI, ks[j], 0.5, 0.31)
+      monitor(k, [Math.sin(ph) * R, 0.75, cz + Math.cos(ph) * R], ph + Math.PI, ks[j], 0.5, 0.31, scr)
     }
     k.box(m.black, [0.44, 0.02, 0.15], [0, 0.76, cz + 0.72])
     k.rbox(m.black, [0.06, 0.025, 0.1], 0.01, [0.3, 0.763, cz + 0.72])
@@ -980,15 +995,16 @@ function pumpHouse(c: RoomCtx, k: Kit, kOut: Kit, spins: Spin[], openings: WallO
 }
 
 // ------------------------------------------------------------------ entry
-export function buildInterior(kind: Interior, c: RoomCtx, kIn: Kit, kOut: Kit): { spinners: Spin[]; openings: WallOpening[] } {
+export function buildInterior(kind: Interior, c: RoomCtx, kIn: Kit, kOut: Kit): { spinners: Spin[]; openings: WallOpening[]; wall?: WallAnchor } {
   const spinners: Spin[] = []
   const openings: WallOpening[] = []
+  let wall: WallAnchor | undefined
   switch (kind) {
     case 'switchgear':
       switchgear(c, kIn, spinners)
       break
     case 'controlRoom':
-      controlRoom(c, kIn)
+      wall = controlRoom(c, kIn)
       break
     case 'generator':
       generator(c, kIn, kOut, spinners, openings)
@@ -999,5 +1015,5 @@ export function buildInterior(kind: Interior, c: RoomCtx, kIn: Kit, kOut: Kit): 
     case 'none':
       break
   }
-  return { spinners, openings }
+  return { spinners, openings, wall }
 }

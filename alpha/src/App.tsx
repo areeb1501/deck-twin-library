@@ -16,6 +16,9 @@ import { OpsTicker } from './ui/OpsTicker'
 import { EyeOverlay } from './ui/Eyes'
 import { KnowledgeCard } from './ui/KnowledgeCard'
 import { TourPlayer } from './ui/TourPlayer'
+import { AlarmBanner } from './ui/AlarmBanner'
+import { Hmi } from './ui/hmi/Hmi'
+import { FgMappingLegend } from './ui/FgPanel'
 import { useSim } from './state/sim'
 import './app.css'
 
@@ -28,10 +31,10 @@ export default function App() {
   const walking = useStore((s) => s.walk)
   const isolating = useStore((s) => !!s.isolation)
   const [ops, setOps] = useState(false)
-  // the plant simulation runs once a second for the whole session
+  // the plant simulation steps twice a second (× the clock speed) for the whole session
   useEffect(() => {
-    useSim.getState().tick()
-    const id = setInterval(() => useSim.getState().tick(), 1000)
+    useSim.getState().tick(0.5)
+    const id = setInterval(() => useSim.getState().tick(0.5), 500)
     return () => clearInterval(id)
   }, [])
   useEffect(() => {
@@ -58,6 +61,7 @@ export default function App() {
         <Scene />
         <LabelOverlay />
         <EyeOverlay />
+        <FgMappingLegend />
       </div>
       <aside className="panel left">
         <div className="mode-switch seg">
@@ -94,6 +98,8 @@ export default function App() {
       <OpsTicker />
       <KnowledgeCard />
       <TourPlayer />
+      <AlarmBanner />
+      <Hmi />
       <div className="hint muted small">Drag to orbit · Shift + drag to pan · scroll to zoom · click to inspect · X x-ray · C section · F frame · Esc clear</div>
     </div>
   )

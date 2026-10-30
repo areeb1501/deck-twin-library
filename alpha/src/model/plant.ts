@@ -6,7 +6,7 @@
  * different plant is "just" a different file of the same shape.
  *
  * Process summary
- *  Wells → M-1000 production manifold → ESDV-1001 → V-1100 HP 3-phase separator (42 barg)
+ *  Wells → M-1000 production manifold → ESDV-1001 → V-1100 HP 3-phase separator (35 barg operating, 42 barg design / PSV set)
  *    gas   → ESDV-2101 → V-2100 compressor suction scrubber → K-2200 export gas compressor
  *            → E-2300 aftercooler → ESDV-2301 → gas export riser
  *            (anti-surge recycle FV-2201 back to suction)
@@ -849,8 +849,8 @@ export const valves: Valve[] = [
   v({ tag: 'TCV-2301', type: 'control', line: '6"-CM-2311-A1A-N', seg: 0, t: 0.55, actuator: 'diaphragm', failAction: 'FO' }),
   v({ tag: 'HV-2312', type: 'butterfly', line: '6"-CM-2312-A1A-N', seg: 0, t: 0.45, actuator: 'gear' }),
   v({ tag: 'HV-2403', type: 'gate', line: '3"-CD-2403-B1A-N', seg: 1, t: 0.5, actuator: 'handwheel' }),
-  v({ tag: 'XV-9011', type: 'butterfly', line: '4"-FW-9011-F1A-N', seg: 0, t: 0.35, actuator: 'electric' }),
-  v({ tag: 'XV-9012', type: 'butterfly', line: '4"-FW-9012-F1A-N', seg: 0, t: 0.35, actuator: 'electric' }),
+  v({ tag: 'XV-9011', type: 'butterfly', line: '4"-FW-9011-F1A-N', seg: 0, t: 0.35, actuator: 'electric', normally: 'closed', failAction: 'FO', design: { notes: 'Deluge valve (dry pipe beyond), opens on confirmed fire (2ooN flame) or manual release' } }),
+  v({ tag: 'XV-9012', type: 'butterfly', line: '4"-FW-9012-F1A-N', seg: 0, t: 0.35, actuator: 'electric', normally: 'closed', failAction: 'FO', design: { notes: 'Deluge valve (dry pipe beyond), opens on confirmed fire (2ooN flame) or manual release' } }),
   v({ tag: 'HV-9001', type: 'butterfly', line: '8"-FW-9001-F1A-N', seg: 2, t: 0.5, actuator: 'gear' }),
   v({ tag: 'HV-9002', type: 'butterfly', line: '8"-FW-9001-F1A-N', seg: 4, t: 0.5, actuator: 'gear' }),
   // PSVs on vessel nozzles
@@ -865,8 +865,8 @@ const onLine = (line: string, seg: number, t: number) => ({ line, seg, t })
 export const instruments: Instrument[] = [
   { tag: 'PT-1001', type: 'PT', on: onLine(L_INLET, 0, 0.75), dir: [0, 1, 0], range: '0–100', unit: 'barg', nominal: 44.2, alarms: { hi: 47, hiHi: 50 } },
   { tag: 'TT-1001', type: 'TT', on: onLine(L_INLET, 2, 0.4), dir: [0, 1, 0], range: '0–150', unit: '°C', nominal: 78 },
-  { tag: 'PT-1101', type: 'PT', on: { equipment: 'V-1100', nozzle: 'N6' }, range: '0–60', unit: 'barg', nominal: 41.3, alarms: { hi: 43, hiHi: 44.5, lo: 36 } },
-  { tag: 'LT-1101', type: 'LT', on: { equipment: 'V-1100', at: [-11.2, 3.0, -10.95] }, dir: [0, 0, -1], range: '0–3600', unit: 'mm', nominal: 1870, alarms: { hi: 2600, lo: 1100, loLo: 800 } },
+  { tag: 'PT-1101', type: 'PT', on: { equipment: 'V-1100', nozzle: 'N6' }, range: '0–60', unit: 'barg', nominal: 35, alarms: { hi: 38, hiHi: 40, lo: 28 } },
+  { tag: 'LT-1101', type: 'LT', on: { equipment: 'V-1100', at: [-11.2, 3.0, -10.95] }, dir: [0, 0, -1], range: '0–3600', unit: 'mm', nominal: 1870, alarms: { hiHi: 3000, hi: 2600, lo: 1100, loLo: 800 } },
   { tag: 'LT-1102', type: 'LT', on: { equipment: 'V-1100', at: [-10.0, 2.3, -10.95] }, dir: [0, 0, -1], range: '0–3600', unit: 'mm', nominal: 790, alarms: { hi: 1100, lo: 450 } },
   { tag: 'LG-1101', type: 'LG', on: { equipment: 'V-1100', at: [-14.6, 3.0, -10.95] }, dir: [0, 0, -1], range: '0–3600', unit: 'mm', nominal: 1870 },
   { tag: 'TT-1101', type: 'TT', on: onLine(L_GAS, 1, 0.5), dir: [0, 1, 0], range: '0–150', unit: '°C', nominal: 64 },

@@ -109,7 +109,7 @@ export function extendAlpha(A: AlphaArrays, K: AlphaConsts) {
       IE(tag, 'LT', eqTag, [e.position[0] + e.tt * 0.12, e.position[1] - 0.15, e.position[2] - ro - 0.1], [0, 0, -1], { range: '0–100', unit: '%', nominal, alarms: { lo: 20, hi: 80, loLo: 10, hiHi: 90 } })
     } else if (e.kind === 'verticalVessel') {
       const ro = e.id / 2 + e.wall
-      IE(tag, 'LT', eqTag, [e.position[0], e.elevation + 0.9, e.position[2] + ro + 0.1], [0, 0, 1], { range: '0–100', unit: '%', nominal, alarms: { hi: 40, hiHi: 60 } })
+      IE(tag, 'LT', eqTag, [e.position[0], e.elevation + 0.9, e.position[2] + ro + 0.1], [0, 0, 1], { range: '0–100', unit: '%', nominal, alarms: nominal > 40 ? { lo: 15, hi: 90, hiHi: 95 } : { hi: 40, hiHi: 60 } }) // storage tanks run full; scrubbers near empty
     }
   }
   /** PSV on a vessel nozzle: discharge to the flare header (tee from above) or to atmosphere */
@@ -372,7 +372,7 @@ export function extendAlpha(A: AlphaArrays, K: AlphaConsts) {
   VA('HV-6106', 'butterfly', cm6, 0.5, { actuator: 'gear' })
   VA('HV-6301', 'butterfly', sw1, 0.48, { actuator: 'gear' })
   void cm4
-  IL('TT-6303', 'TT', cm5, 0.1, { range: '0–100', unit: '°C', nominal: 32 })
+  IL('TT-6303', 'TT', cm5, 0.1, { range: '0–100', unit: '°C', nominal: 32, alarms: { hi: 45, hiHi: 55 } })
   IL('PT-6202', 'PT', cm3, 0.4, { range: '0–10', unit: 'barg', nominal: 5.4 })
   IL('FT-6202', 'FT', cm3, 0.7, { range: '0–600', unit: 'm³/h', nominal: 405 })
   IL('TT-6302', 'TT', sw2, 0.3, { range: '0–60', unit: '°C', nominal: 27 })

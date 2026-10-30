@@ -372,7 +372,8 @@ export const pumpCtrlMaterial = () =>
   }, { roughness: 0.45, metalness: 0.15 })
 
 // ------------------------------------------------------------------ screens (emissive)
-export type ScreenKind = 'trend' | 'mimic' | 'alarm' | 'cctv' | 'fgmap' | 'overview' | 'hmi'
+/** display kinds; control rooms draw them live per room (scene/ccr), everything else uses these static pictures */
+export type ScreenKind = 'trend' | 'mimic' | 'alarm' | 'cctv' | 'fgmap' | 'overview' | 'hmi' | 'esd'
 
 function grid(g: G, w: number, h: number, step: number) {
   g.strokeStyle = 'rgba(120,140,160,0.18)'
@@ -535,6 +536,21 @@ export function screenMaterial(kind: ScreenKind) {
             g.fill()
           }
         })
+        break
+      }
+      case 'esd': {
+        header(g, w, 'SHUTDOWN / ESD STATUS')
+        g.font = 'bold 18px Arial'
+        g.textAlign = 'center'
+        ;['APS', 'ESD1', 'ESD2', 'PSD', 'USD'].forEach((l, i) => {
+          g.fillStyle = '#2b3440'
+          g.fillRect(14 + i * 98, 44, 90, 44)
+          g.fillStyle = '#d7dde3'
+          g.fillText(l, 59 + i * 98, 72)
+        })
+        g.fillStyle = '#7cf29a'
+        g.font = 'bold 20px "Courier New", monospace'
+        g.fillText('NO SHUTDOWNS LATCHED', w / 2, 200)
         break
       }
       case 'hmi': {

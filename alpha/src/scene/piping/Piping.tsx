@@ -2,6 +2,11 @@
  * Renders the fabricated piping (see build.ts): one merged mesh per line for the hollow
  * pipe + elbows, one for insulation, and instanced flanges / gaskets / studs / nuts /
  * bands / supports for the whole deck. Valves and instruments are placed as components.
+ *
+ * Live state: each valve's moving part follows the simulation's travel (`valves[tag].pos`, eased in
+ * useFrame inside ValveModel — no re-render of the piping), the actuated valves carry instanced
+ * open / closed / stuck flags (fx/ValveFlags), and the deluge spray pipes discharge water while their
+ * deluge valve is open (fx/DelugeSpray).
  */
 import { useLayoutEffect, useMemo, useRef } from 'react'
 import * as THREE from 'three'
@@ -13,6 +18,9 @@ import { ValveModel } from '../equipment/Valve'
 import { InstrumentModel } from '../equipment/Instrument'
 import type { PickData } from '../../model/types'
 import { useStore } from '../../state/store'
+import { usePlantStore } from '../../state/plantStore'
+import { ValveFlags } from '../fx/ValveFlags'
+import { DelugeSpray } from '../fx/DelugeSpray'
 
 const Y = new THREE.Vector3(0, 1, 0)
 const tmpM = new THREE.Matrix4()
@@ -24,6 +32,7 @@ const bandMat = registerMaterial(new THREE.MeshStandardMaterial({ color: '#fffff
 
 export function Piping({ built }: { built: BuiltPiping }) {
   const layers = useStore((s) => s.layers)
+  const plant = usePlantStore((s) => s.plant)
   return (
     <group>
       {layers.piping && (
@@ -36,6 +45,8 @@ export function Piping({ built }: { built: BuiltPiping }) {
           <Supports built={built} />
           <Tees built={built} />
           <Sprays built={built} />
+          <DelugeSpray built={built} plant={plant} />
+          <ValveFlags built={built} />
           <EndsAndSleeves built={built} />
           {built.valves.map((v) => (
             <group
@@ -49,6 +60,7 @@ export function Piping({ built }: { built: BuiltPiping }) {
                 nps={v.nps}
                 actuator={v.valve.actuator}
                 open={v.valve.normally === 'open'}
+                tag={v.valve.tag}
               />
             </group>
           ))}
