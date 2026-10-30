@@ -1,6 +1,6 @@
 # CLI
 
-> **The CLI runs straight from this site.** The `deck-twin` package isn't published to npm yet, so run it as `npx -y https://<this site>/cli/deck-twin-0.2.1.tgz <command>`. It needs no install and no dependencies. Wherever these docs say `npx deck-twin`, use that command instead. The landing page's **Copy prompt** already uses the full command.
+> **The CLI runs straight from this site.** The `deck-twin` package isn't published to npm yet, so run it as `npx -y https://<this site>/cli/deck-twin-0.2.2.tgz <command>`. It needs no install and no dependencies. Wherever these docs say `npx deck-twin`, use that command instead. The landing page's **Copy prompt** already uses the full command.
 
 `deck-twin` is a single Node script with no dependencies. It needs Node 18 or later.
 

@@ -28,7 +28,7 @@ Machine-readable catalogue: `{{SITE}}/r/index.json`. Schema: `{{SITE}}/r/plant.s
 **Loop until it passes:**
 
 1. Run `deck-twin validate plant.json --json`.
-2. For each issue, change what `path` points at, as `fix` says. When a close real name exists it is suggested, so use it if it's right. Otherwise look it up with `search` or `info`.
+2. For each issue, change what `path` points at, as `fix` says. A suggested name is only a suggestion, so confirm it against the documents. When the fix lists several parts, choose with `info`, or look it up with `search`.
 3. Run it again. Stop when `valid` is `true`.
 
 | Exit | Means |

@@ -52,6 +52,25 @@ export function closest(word, names, n = 3) {
     .map((x) => x.name)
 }
 
+/**
+ * The one name a wrong one is plainly a misspelling of, or null. An agent acts on what `fix` says, so this stays strict:
+ * "hp-separator" shares a word with three separators, and naming one would put the wrong equipment in a file that passes.
+ */
+export function clearMatch(word, names) {
+  const w = String(word).toLowerCase()
+  const [best, next] = names.map((name) => ({ name, d: distance(w, name.toLowerCase()) })).sort((a, b) => a.d - b.d)
+  if (!best || best.d > Math.max(2, Math.floor(w.length / 4))) return null
+  return !next || next.d - best.d >= 2 ? best.name : null
+}
+
+/** The fix for a wrong component name: one name for a typo, otherwise a choice for the agent to make. */
+function componentFix(wrong, names) {
+  const one = clearMatch(wrong, names)
+  if (one) return `Did you mean "${one}"? Check it with deck-twin info ${one}.`
+  const close = closest(wrong, names)
+  return close.length ? `Choose the part that matches the documents: compare ${close.join(', ')} with deck-twin info <name>, or run deck-twin search <words>.` : 'Run deck-twin search <words> and use a name it returns.'
+}
+
 const quoted = (list) => list.map((x) => `"${x}"`).join(', ')
 
 /** A file written in another plant format, named plainly: these fail in confusing ways further down. */
@@ -103,7 +122,7 @@ export function checkPlant(spec, items) {
     const comp = byName.get(it.component)
     if (!comp) {
       const close = closest(it.component, names)
-      err('unknown-component', where, `${at}.component`, `Unknown component "${it.component}".${close.length ? ` Close: ${close.join(', ')}.` : ''}`, close.length ? `Use "${close[0]}" if that is the right part, or run deck-twin search <words>.` : 'Run deck-twin search <words> and use a name it returns.')
+      err('unknown-component', where, `${at}.component`, `Unknown component "${it.component}".${close.length ? ` Close: ${close.join(', ')}.` : ''}`, componentFix(it.component, names))
     } else if (comp.anchor === 'inline') warn('inline-in-items', where, `${at}.component`, `"${it.component}" is an inline component. Put it on a line ("inline": [...]) instead of in items.`, `Move it to the "inline" list of the line it sits on.`)
     if (it.position && !(Array.isArray(it.position) && it.position.length === 3 && it.position.every(Number.isFinite))) err('bad-position', where, `${at}.position`, 'position must be [x, y, z] in metres.', 'Use three numbers, such as [0, 0, 0]. y is the level the item stands on.')
     if (it.rotation !== undefined && !Number.isFinite(it.rotation)) err('bad-rotation', where, `${at}.rotation`, 'rotation must be a number of degrees.', 'Use a number, such as 90.')
@@ -112,8 +131,8 @@ export function checkPlant(spec, items) {
         const p = comp.params.find((x) => x.key === k)
         const known = [...new Set([...comp.params.map((x) => x.key), ...Object.keys(comp.defaults)])]
         if (!p && !(k in comp.defaults)) {
-          const close = closest(k, known, 1)
-          warn('unknown-prop', where, `${at}.props.${k}`, `Prop "${k}" is not a ${comp.name} prop. Known: ${comp.params.map((x) => x.key).join(', ')}.`, close.length ? `Did you mean "${close[0]}"? Otherwise remove it.` : `Remove it, or run deck-twin info ${comp.name}.`)
+          const one = clearMatch(k, known)
+          warn('unknown-prop', where, `${at}.props.${k}`, `Prop "${k}" is not a ${comp.name} prop. Known: ${comp.params.map((x) => x.key).join(', ')}.`, one ? `Did you mean "${one}"? Otherwise remove it.` : `Remove it, or run deck-twin info ${comp.name}.`)
         }
         if (p?.type === 'number' && typeof v === 'number' && (v < p.min || v > p.max)) warn('prop-range', where, `${at}.props.${k}`, `${k} = ${v} is outside ${p.min}–${p.max}${p.unit ? ' ' + p.unit : ''}.`, `Use a value from ${p.min} to ${p.max}.`)
         if (p?.type === 'select' && !p.options.some((o) => (typeof o === 'object' ? o.value : o) === v)) warn('prop-option', where, `${at}.props.${k}`, `${k} = ${JSON.stringify(v)} is not one of ${p.options.map((o) => JSON.stringify(typeof o === 'object' ? o.value : o)).join(', ')}.`, 'Use one of the listed values.')
@@ -132,8 +151,8 @@ export function checkPlant(spec, items) {
     if (l.tag && !lineTags.has(l.tag)) lineTags.set(l.tag, at)
     for (const k of Object.keys(l)) if (!LINE_KEYS.includes(k)) warn('unknown-key', where, `${at}.${k}`, `"${k}" is not a line key, so it is ignored.`, k === 'route' ? 'The router builds the route. Use "via" for waypoints.' : `Keys: ${quoted(LINE_KEYS)}.`)
     if (l.service && !SERVICES.includes(l.service)) {
-      const close = closest(l.service, SERVICES, 1)
-      warn('bad-service', where, `${at}.service`, `service "${l.service}" is not one of ${SERVICES.join(', ')}.`, close.length ? `Did you mean "${close[0]}"?` : 'Use one of the listed services.')
+      const one = clearMatch(l.service, SERVICES)
+      warn('bad-service', where, `${at}.service`, `service "${l.service}" is not one of ${SERVICES.join(', ')}.`, one ? `Did you mean "${one}"?` : 'Use one of the listed services.')
     }
     const ends = []
     if (typeof l.from === 'object' && l.from && typeof l.to === 'object' && l.to) err('two-battery-limits', where, at, 'Both ends are battery limits. At least one end must be an item port.', 'Change "from" or "to" to "TAG.port".')
@@ -152,17 +171,17 @@ export function checkPlant(spec, items) {
       const port = ref.slice(i + 1)
       const t = tags.get(tag)
       if (!t) {
-        const close = closest(tag, [...tags.keys()], 1)
-        err('unknown-item', where, `${at}.${side}`, `"${ref}": no item tagged ${tag}.`, close.length ? `Did you mean "${close[0]}.${port}"? Otherwise add the item.` : 'Add the item, or fix the tag.')
+        const one = clearMatch(tag, [...tags.keys()])
+        err('unknown-item', where, `${at}.${side}`, `"${ref}": no item tagged ${tag}.`, one ? `Did you mean "${one}.${port}"? Otherwise add the item.` : 'Add the item, or fix the tag.')
         continue
       }
       if (!t.comp) continue
       const p = t.comp.ports.find((x) => x.id === port)
       if (!p) {
         const ids = t.comp.ports.map((x) => x.id)
-        const close = closest(port, ids, 1)
+        const one = clearMatch(port, ids)
         const msg = `"${ref}": ${t.comp.name} has no port "${port}" at its default props. Ports: ${ids.join(', ') || 'none'}.`
-        const fix = close.length ? `Did you mean "${tag}.${close[0]}"?` : `Run deck-twin info ${t.comp.name} and use one of its ports.`
+        const fix = one ? `Did you mean "${tag}.${one}"?` : `Run deck-twin info ${t.comp.name} and use one of its ports.`
         if (t.it.props) warn('unknown-port', where, `${at}.${side}`, msg + ' (It may exist for your props.)', fix)
         else err('unknown-port', where, `${at}.${side}`, msg, fix)
         continue
@@ -180,8 +199,7 @@ export function checkPlant(spec, items) {
       const path = `${at}.inline[${m}]`
       const comp = byName.get(v.component)
       if (!comp) {
-        const close = closest(v.component, inlineNames)
-        err('unknown-component', where, `${path}.component`, `Inline component "${v.component}" does not exist.`, close.length ? `Use "${close[0]}" if that is the right part. Close: ${close.join(', ')}.` : 'Run deck-twin search <words> and use a name it returns.')
+        err('unknown-component', where, `${path}.component`, `Inline component "${v.component}" does not exist.`, componentFix(v.component, inlineNames))
       } else if (!comp.ports.some((p) => p.id === 'A') || !comp.ports.some((p) => p.id === 'B')) err('not-inline', where, `${path}.component`, `"${v.component}" is not inline (needs ports A and B).`, `Put it in "items" and join it to the line through its ports. Run deck-twin info ${v.component}.`)
       if (v.at !== undefined && !(v.at >= 0 && v.at <= 1)) err('bad-inline-at', where, `${path}.at`, `inline "at" must be 0–1.`, 'Use a fraction along the line, such as 0.5.')
     })

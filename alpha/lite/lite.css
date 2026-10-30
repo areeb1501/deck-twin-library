@@ -112,3 +112,4 @@ html.light .lite-body {
 .lite-block .lite-logo { width: 40px; height: 40px; margin-bottom: 14px; }
 .lite-block h1 { margin: 0 0 6px; font-size: 22px; font-weight: 600; letter-spacing: -0.03em; color: var(--ink); }
 .lite-block p { margin: 4px 0; max-width: 320px; font-size: 14px; color: var(--fg-3); }
+.lite-about { margin-left: auto; color: var(--fg-3); font-size: 13px; text-decoration: underline; text-underline-offset: 3px; }

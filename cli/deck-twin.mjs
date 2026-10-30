@@ -5,7 +5,7 @@ import { dirname, join, relative, resolve } from 'node:path'
 import { spawnSync } from 'node:child_process'
 import { checkPlant, nextStep } from './check.mjs'
 
-const VERSION = '0.2.1'
+const VERSION = '0.2.2'
 const DEFAULT_REGISTRY = 'https://deck-twin-library.demoareeb.workers.dev'
 const PEERS = ['three', '@react-three/fiber', '@react-three/drei']
 

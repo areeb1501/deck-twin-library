@@ -1,6 +1,6 @@
 {
   "name": "deck-twin",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "CLI for the Deck Twin registry: add standards-based three.js oil & gas components, check and assemble plant.json.",
   "license": "MIT",
   "homepage": "https://deck-twin-library.demoareeb.workers.dev",
