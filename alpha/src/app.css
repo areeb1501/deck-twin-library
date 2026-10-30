@@ -492,8 +492,3 @@
 .toolbar { z-index: 13; }
 
 /* value strip over the 3D view (ValueStrip hud, plan 13) — under the alarm banner */
-.vstrip.app-vhud { position: absolute; z-index: 11; top: 94px; left: 50%; transform: translateX(-50%); max-width: calc(100vw - 744px); overflow: hidden; }
-.app.left-off .vstrip.app-vhud, .app.right-off .vstrip.app-vhud { max-width: calc(100vw - 420px); }
-@media (max-width: 1560px) { .vstrip.app-vhud .vs-i.risk { display: none; } }
-@media (max-width: 1360px) { .app:not(.left-off):not(.right-off) .vstrip.app-vhud { display: none; } }
-@media (max-width: 1000px) { .vstrip.app-vhud { display: none; } }

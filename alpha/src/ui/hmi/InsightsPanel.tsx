@@ -1,9 +1,8 @@
 /**
  * Insights (sim/insights.ts): the shift headline and the ranked findings, each with the money at stake and
- * a jump to where to act. `InsightsPanel` sits in the console; `InsightTicker` floats over the 3D view and
- * rotates through the findings that need attention.
+ * a jump to where to act. `InsightsPanel` sits in the console (the 3D view stays clear of KPIs and findings).
  */
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 import { AREA_LABEL, useInsights, type Insight, type InsightArea, type InsightKind } from '../../sim/insights'
 import { fmtUsd } from '../../sim/assetRisk'
 import { useStore } from '../../state/store'
@@ -102,39 +101,5 @@ export function InsightsPanel({ max = 8, compact = false }: { max?: number; comp
         </button>
       )}
     </section>
-  )
-}
-
-/** one finding at a time over the 3D view (decisions and watch items), click to open the console */
-export function InsightTicker() {
-  const list = useInsights((s) => s.list)
-  const hmi = useStore((s) => s.hmi)
-  const walk = useStore((s) => s.walk)
-  const cab = useStore((s) => !!s.craneCab)
-  const hot = useMemo(() => list.filter((x) => x.kind === 'act' || x.kind === 'watch').slice(0, 6), [list])
-  const [i, setI] = useState(0)
-  const [hidden, setHidden] = useState(false)
-  useEffect(() => {
-    if (hot.length < 2) return
-    const id = setInterval(() => setI((k) => k + 1), 8000)
-    return () => clearInterval(id)
-  }, [hot.length])
-  if (hidden || hmi || walk || cab || !hot.length) return null
-  const x = hot[i % hot.length]
-  return (
-    <div className={`ins-ticker k-${x.kind}`} role="status" aria-live="polite">
-      <button className="ins-ticker-main" onClick={() => useStore.getState().setHmi('economics')} title={x.detail}>
-        <span className="ins-ticker-kind">{KIND_LABEL[x.kind]}</span>
-        <span className="ins-ticker-text">{x.title}</span>
-        {hot.length > 1 && (
-          <span className="ins-ticker-n">
-            {(i % hot.length) + 1}/{hot.length}
-          </span>
-        )}
-      </button>
-      <button className="ins-ticker-x" onClick={() => setHidden(true)} title="Hide insights">
-        ✕
-      </button>
-    </div>
   )
 }

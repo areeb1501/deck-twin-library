@@ -35,8 +35,6 @@ import './sim/finance'
 import './sim/insights'
 import './sim/demoStory'
 import { useSim } from './state/sim'
-import { ValueStrip } from './ui/hmi/ValueStrip'
-import { InsightTicker } from './ui/hmi/InsightsPanel'
 import { sample } from './ui/live'
 import { enterRoom, goToTag, walkToTag } from './ui/walkTo'
 import { startTour } from './tour/engine'
@@ -137,21 +135,10 @@ export default function App() {
       <KnowledgeCard />
       <TourPlayer />
       <AlarmBanner />
-      <ValueHud />
-      <InsightTicker />
       <ScenarioChip />
       <CraneCabHud />
       <Hmi />
       <div className="hint muted small">Drag to orbit · Shift + drag to pan · scroll to zoom · click to inspect · X x-ray · C section · F frame · Esc clear</div>
     </div>
   )
-}
-
-/** production value over the 3D view (hidden while walking, in the crane cab or with the console open) */
-function ValueHud() {
-  const walk = useStore((s) => s.walk)
-  const cab = useStore((s) => !!s.craneCab)
-  const hmi = useStore((s) => s.hmi)
-  if (walk || cab || hmi) return null
-  return <ValueStrip variant="hud" className="app-vhud" />
 }

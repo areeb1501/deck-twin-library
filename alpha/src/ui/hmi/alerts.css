@@ -1,4 +1,4 @@
-/* Alerts & assistant page (plan 04) — ISA-101 grey, colour only for severity / abnormal. */
+/* Alerts & assistant page (plan 04): ISA-101 grey, colour only for severity / abnormal. */
 .al-grid { display: grid; grid-template-columns: minmax(340px, 1.15fr) minmax(300px, 1fr) minmax(320px, 1fr); gap: 10px; height: 100%; min-height: 560px; }
 .al-col { display: flex; flex-direction: column; min-height: 0; overflow: hidden; }
 .al-col > h3 { flex: none; }
@@ -41,22 +41,57 @@
 .al-mail th { text-align: left; color: var(--h-dim); font-weight: 600; padding: 2px 10px 2px 0; vertical-align: top; }
 .al-body { margin: 0; padding: 8px 10px; background: var(--h-bg); border: 1px solid var(--h-line); border-radius: 3px; overflow: auto; white-space: pre-wrap; font-family: var(--mono); font-size: 11.5px; line-height: 1.5; }
 
-.al-trace-title { font-weight: 600; margin-bottom: 6px; }
-.al-trace { list-style: none; margin: 0; padding: 0 2px 0 0; overflow: auto; min-height: 0; flex: 1 1 auto; }
-.al-trace.mini { flex: none; max-height: 220px; margin-top: 4px; font-size: 11px; }
-.al-step { display: grid; grid-template-columns: 22px 1fr; gap: 6px; position: relative; padding: 0 0 8px; }
-.al-step::before { content: ''; position: absolute; left: 10px; top: 20px; bottom: 0; width: 1px; background: var(--h-line); }
-.al-step:last-child::before { display: none; }
-.al-ico { width: 22px; height: 20px; display: flex; align-items: center; justify-content: center; border: 1px solid var(--h-line2); border-radius: 50%; font-size: 11px; color: var(--h-dim); background: var(--h-bg2); position: relative; z-index: 1; }
-.al-step.decide .al-ico { color: var(--h-fg); border-color: var(--h-fg); }
-.al-step.notify .al-ico { color: var(--h-ok); border-color: var(--h-ok); }
-.al-step.answer .al-ico { color: #fff; background: var(--h-faint); }
-.al-step-h { display: flex; gap: 6px; align-items: baseline; font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.04em; }
+.al-trace-title { font-weight: 600; font-size: 13px; line-height: 1.35; margin-bottom: 8px; }
+
+/* Trace timeline: a status node per step on a track, and a card that expands to its evidence. ISA-101 grey;
+   colour only marks a decision (amber), a notification sent (green) or work in progress. */
+.al-trace { list-style: none; margin: 0; padding: 2px 2px 4px 0; overflow: auto; min-height: 0; flex: 1 1 auto; position: relative; display: flex; flex-direction: column; gap: 8px; }
+.al-trace::before { content: ''; position: absolute; left: 13px; top: 14px; bottom: 14px; width: 2px; border-radius: 1px; background: linear-gradient(to bottom, var(--h-fg), var(--h-line2) 70%, var(--h-line)); opacity: 0.55; }
+.al-trace[data-steps='0']::before, .al-trace[data-steps='1']::before { display: none; }
+.al-step { display: grid; grid-template-columns: 28px minmax(0, 1fr); gap: 10px; align-items: start; position: relative; }
+.hmi .al-node, .al-node { width: 28px; height: 28px; padding: 0; display: flex; align-items: center; justify-content: center; border-radius: 50%; border: 1px solid var(--h-line2); background: var(--h-bg2); color: var(--h-dim); position: relative; z-index: 1; flex: none; }
+.al-node svg { width: 13px; height: 13px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+.al-step.observe .al-node, .al-step.assess .al-node, .al-step.act .al-node { color: var(--h-fg); border-color: var(--h-line2); }
+.al-step.decide .al-node { color: var(--h-p2); border-color: var(--h-p2); box-shadow: 0 0 0 3px rgb(243 156 31 / 0.12); }
+.al-step.notify .al-node { color: var(--h-ok); border-color: var(--h-ok); box-shadow: 0 0 0 3px rgb(111 191 138 / 0.12); }
+.al-step.answer .al-node { color: #1d1f22; background: var(--h-fg); border-color: var(--h-fg); }
+.al-step.pending .al-node::after { content: ''; position: absolute; inset: -4px; border-radius: 50%; border: 1px solid var(--h-p3); opacity: 0.6; animation: al-ping 1.6s ease-out infinite; }
+@keyframes al-ping { from { transform: scale(0.85); opacity: 0.7; } to { transform: scale(1.35); opacity: 0; } }
+
+.al-card2 { border: 1px solid var(--h-line); border-radius: 6px; background: var(--h-bg2); padding: 8px 10px; min-width: 0; transition: border-color 0.15s, background-color 0.15s; }
+.al-card2.more { cursor: pointer; }
+.al-card2.more:hover { border-color: var(--h-line2); background: var(--h-bg); }
+.al-step.open .al-card2 { border-color: var(--h-line2); background: var(--h-bg); }
+.al-step-h { display: flex; gap: 6px; align-items: center; margin-bottom: 3px; }
+.al-step-h b { font-size: 12.5px; font-weight: 600; letter-spacing: 0; }
 .al-step-h .grow { flex: 1; }
-.al-step-t { line-height: 1.4; }
-.al-step details summary { cursor: pointer; color: var(--h-faint); font-size: 10.5px; }
-.al-step details pre { margin: 3px 0 0; padding: 5px 7px; background: var(--h-bg); border: 1px solid var(--h-line); border-radius: 3px; max-height: 220px; overflow: auto; font-size: 10.5px; white-space: pre-wrap; word-break: break-word; }
-.al-step.pending { color: var(--h-dim); }
+.al-pill { font-family: var(--mono); font-size: 10px; line-height: 1.5; padding: 0 6px; border-radius: 4px; border: 1px solid var(--h-line); background: var(--h-bg); color: var(--h-dim); white-space: nowrap; }
+.al-pill.live { border-color: var(--h-p3); color: var(--h-p3); text-transform: uppercase; letter-spacing: 0.05em; }
+.al-time { font-family: var(--mono); font-size: 10.5px; color: var(--h-faint); font-variant-numeric: tabular-nums; }
+.al-chev { color: var(--h-faint); font-size: 10px; transition: transform 0.2s; }
+.al-step.open .al-chev { transform: rotate(180deg); color: var(--h-fg); }
+.al-step-t { line-height: 1.5; color: var(--h-fg); }
+.al-evidence { margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--h-line); cursor: default; }
+.al-tiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: 6px; }
+.al-tile { padding: 6px 8px; border-radius: 5px; background: var(--h-bg2); border: 1px solid var(--h-line); min-width: 0; }
+.al-tile span { display: block; font-family: var(--mono); font-size: 9.5px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--h-faint); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.al-tile b { display: block; font-family: var(--mono); font-size: 12px; font-weight: 500; color: var(--h-fg); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-variant-numeric: tabular-nums; }
+.al-evidence details { margin-top: 6px; }
+.al-evidence summary { cursor: pointer; color: var(--h-faint); font-size: 10.5px; }
+.al-evidence pre { margin: 4px 0 0; padding: 6px 8px; background: var(--h-bg2); border: 1px solid var(--h-line); border-radius: 5px; max-height: 220px; overflow: auto; font-family: var(--mono); font-size: 10.5px; white-space: pre-wrap; word-break: break-word; }
+.al-step.pending .al-card2 { border-style: dashed; color: var(--h-dim); }
+/* the trace column scrolls as one: conclusion first, then the steps that led to it */
+.al-tracecol { overflow-y: auto; }
+.al-tracecol .al-trace { flex: none; overflow: visible; }
+.al-tracecol .al-report { max-height: none; margin: 0 0 4px; }
+.al-steps-h { display: flex; gap: 6px; align-items: baseline; margin: 10px 0 8px; }
+
+/* compact version inside a chat answer ("How I worked this out") */
+.al-trace.mini { flex: none; max-height: 240px; margin-top: 6px; gap: 6px; font-size: 11px; }
+.al-trace.mini::before { left: 10px; top: 11px; bottom: 11px; }
+.al-trace.mini .al-step { grid-template-columns: 22px minmax(0, 1fr); gap: 8px; align-items: center; }
+.al-trace.mini .al-node { width: 22px; height: 22px; }
+.al-trace.mini .al-node svg { width: 11px; height: 11px; }
 
 .al-spin { display: inline-block; width: 11px; height: 11px; border: 2px solid var(--h-line2); border-top-color: var(--h-fg); border-radius: 50%; animation: al-spin 0.8s linear infinite; vertical-align: -1px; }
 @keyframes al-spin { to { transform: rotate(360deg); } }
@@ -64,9 +99,9 @@
 .al-dot.running { background: var(--h-p3); }
 .al-dot.done { background: var(--h-ok); }
 .hmi button.al-invlink { display: flex; gap: 6px; align-items: center; width: 100%; text-align: left; margin-bottom: 3px; background: var(--h-bg); }
-.al-invhead { display: flex; gap: 8px; align-items: center; padding: 4px 6px; margin-bottom: 6px; border: 1px solid var(--h-line); border-radius: 3px; background: var(--h-bg); }
+.al-invhead { display: flex; gap: 8px; align-items: center; padding: 6px 10px; margin-bottom: 8px; border: 1px solid var(--h-line); border-radius: 6px; background: var(--h-bg2); }
 .al-invhead.running { border-color: var(--h-p3); }
-.al-report { flex: none; max-height: 45%; overflow: auto; margin-top: 6px; padding: 6px 8px; border: 1px solid var(--h-line2); border-radius: 3px; background: var(--h-bg); }
+.al-report { flex: none; max-height: 45%; overflow: auto; margin-top: 8px; padding: 8px 10px; border: 1px solid var(--h-line2); border-radius: 6px; background: var(--h-bg2); }
 .al-report p { margin: 0 0 6px; line-height: 1.45; }
 .al-report ul, .al-report ol { margin: 0 0 6px; padding-left: 18px; line-height: 1.45; }
 .al-report .h-sec { margin-top: 4px; }

@@ -4,7 +4,8 @@
  *
  *   1. Outbox    newest first: severity, title, platform, time, status; Ack · Walk to · Investigate ·
  *                View email. Header: recipients (editable chips) + channel badge (prototype, not sent).
- *   2. Trace     the selected alert's / investigation's / answer's steps as a vertical timeline
+ *   2. Trace     the selected alert's / investigation's / answer's steps as a vertical timeline: a status
+ *                node per step on a track, a card that expands to its evidence as metric tiles
  *                (actor, kind, text, collapsible data). Investigations show their live step + report.
  *   3. Ask       chat over the read-only agent tools, with suggested questions; tags in answers are
  *                Show in 3D / Walk to chips; "How I worked this out" expands the answer's trace.
@@ -24,6 +25,33 @@ import { AgentPanel } from './AgentPanel'
 import { PROVIDER_LABEL, useProvider } from '../../agents/provider'
 
 const ACTOR_ICON: Record<TraceStep['actor'], string> = { sensor: '◉', rule: '§', risk: '▲', cctv: '◎', assistant: '✦', operator: '●', model: '◆', tool: '⚙' }
+const KIND_LABEL: Record<TraceStep['kind'], string> = { observe: 'Observed', assess: 'Assessed', decide: 'Decided', act: 'Acted', notify: 'Notified', answer: 'Answered' }
+/** 16-unit stroke icons for the timeline nodes, one per step kind */
+const KIND_ICON: Record<TraceStep['kind'], string> = {
+  observe: 'M1.5 8s2.5-4.5 6.5-4.5S14.5 8 14.5 8 12 12.5 8 12.5 1.5 8 1.5 8ZM8 10a2 2 0 1 0 0-4 2 2 0 0 0 0 4Z',
+  assess: 'M2 13.5h12M4 11V7.5M8 11V4M12 11V6',
+  decide: 'M8 1.8 14.2 8 8 14.2 1.8 8Z',
+  act: 'M9 1.5 3.5 9H8l-1 5.5L12.5 7H8Z',
+  notify: 'M14 2 7 9M14 2l-4.5 12L7 9 2 6.5Z',
+  answer: 'M8 1.5v3M8 11.5v3M1.5 8h3M11.5 8h3M3.4 3.4l2.1 2.1M10.5 10.5l2.1 2.1M3.4 12.6l2.1-2.1M10.5 5.5l2.1-2.1',
+}
+const KindIcon = ({ kind }: { kind: TraceStep['kind'] }) => (
+  <svg viewBox="0 0 16 16" aria-hidden>
+    <path d={KIND_ICON[kind]} />
+  </svg>
+)
+
+/** step evidence: primitive values become metric tiles, anything nested stays as raw JSON */
+function evidence(data?: Record<string, unknown>) {
+  const tiles: { label: string; value: string }[] = []
+  const rest: Record<string, unknown> = {}
+  for (const [k, v] of Object.entries(data ?? {})) {
+    if (tiles.length < 6 && (typeof v === 'number' || typeof v === 'boolean' || (typeof v === 'string' && v.length <= 28)))
+      tiles.push({ label: k.replace(/([a-z])([A-Z])/g, '$1 $2'), value: typeof v === 'number' ? (Number.isInteger(v) ? v.toLocaleString('en-GB') : v.toFixed(Math.abs(v) < 10 ? 2 : 1)) : String(v) })
+    else rest[k] = v
+  }
+  return { tiles, rest: Object.keys(rest).length ? rest : null }
+}
 const SUGGESTIONS = [
   'How is the plant doing?',
   'What should I focus on?',
@@ -208,7 +236,7 @@ function TraceColumn({ sel, setSel }: { sel: Sel; setSel: (s: Sel) => void }) {
   }, [steps.length, run?.status])
 
   return (
-    <Box className="al-col" title={<>Trace {sel && <span className="dim mono">· {sel.traceId}</span>}</>} right={sel && <button onClick={() => setSel(null)}>×</button>}>
+    <Box className="al-col al-tracecol" title={<>Trace {sel && <span className="dim mono">· {sel.traceId}</span>}</>} right={sel && <button onClick={() => setSel(null)}>×</button>}>
       {!sel && (
         <>
           <p className="h-note">Select an alert, an investigation or an answer to see every step that led to it: observe → assess → decide → notify, and the agent's tool calls.</p>
@@ -228,49 +256,75 @@ function TraceColumn({ sel, setSel }: { sel: Sel; setSel: (s: Sel) => void }) {
       )}
       {sel && <div className="al-trace-title">{sel.label}</div>}
       {run && <InvestigationHead run={run} />}
-      <ol className="al-trace" data-steps={steps.length}>
-        {steps.map((s) => (
-          <TraceItem key={s.id} s={s} />
+      {run?.report && <ReportBox run={run} />}
+      {sel && steps.length > 0 && (
+        <div className="h-sec al-steps-h">
+          Steps <span className="dim">{steps.length}</span>
+        </div>
+      )}
+      <ol className={`al-trace${run?.status === 'running' ? ' running' : ''}`} data-steps={steps.length}>
+        {steps.map((s, i) => (
+          <TraceItem key={s.id} s={s} last={i === steps.length - 1 && run?.status !== 'running'} />
         ))}
         {run?.status === 'running' && run.pending && (
           <li className="al-step pending">
-            <span className="al-ico">
+            <span className="al-node">
               <i className="al-spin" />
             </span>
-            <div>
+            <div className="al-card2">
               <div className="al-step-h">
-                <b>working</b>
+                <b>Working</b>
+                <span className="al-pill live">in progress</span>
               </div>
-              <div>{run.pending}</div>
+              <div className="al-step-t">{run.pending}</div>
             </div>
           </li>
         )}
       </ol>
       <div ref={endRef} />
-      {run?.report && <ReportBox run={run} />}
     </Box>
   )
 }
 
-function TraceItem({ s }: { s: TraceStep }) {
+function TraceItem({ s, last }: { s: TraceStep; last?: boolean }) {
+  const [open, setOpen] = useState(!!last)
+  const { tiles, rest } = useMemo(() => evidence(s.data), [s.data])
+  const more = tiles.length > 0 || !!rest
   return (
-    <li className={`al-step ${s.kind}`}>
-      <span className="al-ico" title={s.actor}>
-        {ACTOR_ICON[s.actor] ?? '·'}
-      </span>
-      <div className="al-step-b">
+    <li className={`al-step ${s.kind}${open ? ' open' : ''}`}>
+      <button className="al-node" title={`${KIND_LABEL[s.kind]} by ${s.actor}`} onClick={() => more && setOpen((o) => !o)} aria-expanded={more ? open : undefined}>
+        <KindIcon kind={s.kind} />
+      </button>
+      <div className={`al-card2${more ? ' more' : ''}`} onClick={() => more && setOpen((o) => !o)}>
         <div className="al-step-h">
-          <b>{s.kind}</b>
-          <span className="dim">{s.actor}</span>
+          <b>{KIND_LABEL[s.kind]}</b>
+          <span className="al-pill">
+            {ACTOR_ICON[s.actor] ?? '·'} {s.actor}
+          </span>
           <span className="grow" />
-          <span className="dim mono">{fmtClock(s.t, false)}</span>
+          <span className="al-time">{fmtClock(s.t, false)}</span>
+          {more && <span className="al-chev" aria-hidden>▾</span>}
         </div>
         <div className="al-step-t">{s.text}</div>
-        {s.data && (
-          <details>
-            <summary>data</summary>
-            <pre>{JSON.stringify(s.data, null, 1)}</pre>
-          </details>
+        {open && more && (
+          <div className="al-evidence" onClick={(e) => e.stopPropagation()}>
+            {tiles.length > 0 && (
+              <div className="al-tiles">
+                {tiles.map((m) => (
+                  <div key={m.label} className="al-tile">
+                    <span>{m.label}</span>
+                    <b>{m.value}</b>
+                  </div>
+                ))}
+              </div>
+            )}
+            {rest && (
+              <details>
+                <summary>Raw data</summary>
+                <pre>{JSON.stringify(rest, null, 1)}</pre>
+              </details>
+            )}
+          </div>
         )}
       </div>
     </li>
@@ -404,7 +458,9 @@ function ChatItem({ m, setSel }: { m: ChatMessage; setSel: (s: Sel) => void }) {
             <ol className="al-trace mini">
               {steps.map((s) => (
                 <li key={s.id} className={`al-step ${s.kind}`}>
-                  <span className="al-ico">{ACTOR_ICON[s.actor] ?? '·'}</span>
+                  <span className="al-node" title={`${KIND_LABEL[s.kind]} by ${s.actor}`}>
+                    <KindIcon kind={s.kind} />
+                  </span>
                   <div className="al-step-t">{s.text}</div>
                 </li>
               ))}

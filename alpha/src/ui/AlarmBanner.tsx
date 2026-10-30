@@ -1,8 +1,8 @@
 /**
- * Always-visible slim alarm banner (top centre, under the toolbar — viewer and walk mode):
- * unacknowledged alarms by priority, the newest highest-priority unacked alarm, Ack, Open console,
- * the latched platform shutdowns, and a horn (muted by default) that beeps on a new P1 alarm.
- * Flashes while an unacknowledged priority-1 alarm exists.
+ * Always-visible alarm banner (top centre, under the toolbar: viewer and walk mode). With nothing to act on
+ * it is a quiet "No active alarms" pill. Otherwise it widens to the unacknowledged alarms by priority, the
+ * newest highest-priority one, the latched platform shutdowns, Ack and Console. The horn (muted by default)
+ * beeps on a new P1 alarm. Flashes while an unacknowledged priority-1 alarm exists.
  */
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useStore } from '../state/store'
@@ -65,16 +65,55 @@ export function AlarmBanner() {
   })
 
   if (hmi) return null
+  const hornBtn = (
+    <button
+      className={`horn ${horn ? 'on' : ''}`}
+      onClick={() => {
+        // create / resume the audio context inside the click: browsers keep a context made without a user gesture suspended
+        if (!horn) {
+          try {
+            audio ??= new AudioContext()
+            void audio.resume()
+          } catch {
+            /* no audio */
+          }
+        }
+        setHorn(!horn)
+      }}
+      aria-label={horn ? 'Horn on' : 'Horn muted'}
+      title={horn ? 'Horn on: beeps on a new priority-1 alarm (click to mute)' : 'Horn muted (click to sound on new priority-1 alarms)'}
+    >
+      <svg viewBox="0 0 16 16" aria-hidden>
+        <path d="M2.5 6h2.5L8.5 3v10L5 10H2.5Z" />
+        {horn ? <path d="M11 5.5a3.5 3.5 0 0 1 0 5M12.8 3.8a6 6 0 0 1 0 8.4" /> : <path d="m11 6 4 4m0-4-4 4" />}
+      </svg>
+    </button>
+  )
+  if (!top && !sd.length)
+    return (
+      <div className="alarm-banner clear" role="status" aria-live="polite" data-banner="clear">
+        <span className="ab-dot" />
+        <span className="txt">No active alarms</span>
+        <button className="ab-link" onClick={() => setHmi('alarms')} title="Open the control-room console on the alarm list">
+          Console
+        </button>
+        {hornBtn}
+      </div>
+    )
   return (
-    <div className={`alarm-banner ${top ? `p${top.priority}` : ''} ${p1 ? 'flash' : ''}`} role="status" aria-live="polite" data-banner={p1 ? 'p1' : un.length ? 'unack' : 'clear'}>
-      <span className="counts" title="Unacknowledged alarms by priority">
-        {counts.map((n, i) => (
-          <span key={i} className={`cnt ${n ? '' : 'z'}`}>
-            <span className={`prio p${i + 1}`}>{i + 1}</span>
-            {n}
-          </span>
-        ))}
-      </span>
+    <div className={`alarm-banner ${top ? `p${top.priority}` : 'sd-only'} ${p1 ? 'flash' : ''}`} role="status" aria-live="polite" data-banner={p1 ? 'p1' : un.length ? 'unack' : 'clear'}>
+      {un.length > 0 && (
+        <span className="counts" title="Unacknowledged alarms by priority">
+          {counts.map((n, i) =>
+            n ? (
+              <span key={i} className="cnt">
+                <span className={`prio p${i + 1}`}>{i + 1}</span>
+                {n}
+              </span>
+            ) : null,
+          )}
+        </span>
+      )}
       <span className="txt">
         {top ? (
           <>
@@ -83,7 +122,7 @@ export function AlarmBanner() {
             {top.value ? ` · ${top.value}` : ''}
           </>
         ) : (
-          <span style={{ color: '#8d9297' }}>No unacknowledged alarms</span>
+          <span className="dim">All alarms acknowledged</span>
         )}
       </span>
       {sd.map((t) => (
@@ -91,26 +130,15 @@ export function AlarmBanner() {
           {t}
         </span>
       ))}
-      <button onClick={() => top && call('ackAlarm', top.id)} disabled={!top} title="Acknowledge the alarm shown">
-        Ack
+      {top && (
+        <button className="ab-ack" onClick={() => call('ackAlarm', top.id)} title="Acknowledge the alarm shown">
+          Ack
+        </button>
+      )}
+      <button className="ab-link" onClick={() => setHmi('alarms')} title="Open the control-room console on the alarm list">
+        Console
       </button>
-      <button onClick={() => setHmi('alarms')} title="Open the control-room console on the alarm list">
-        Open console
-      </button>
-      <button className={`horn ${horn ? 'on' : ''}`} onClick={() => {
-          // create / resume the audio context inside the click: browsers keep a context made without a user gesture suspended
-          if (!horn) {
-            try {
-              audio ??= new AudioContext()
-              void audio.resume()
-            } catch {
-              /* no audio */
-            }
-          }
-          setHorn(!horn)
-        }} title={horn ? 'Horn on — beeps on a new priority-1 alarm (click to mute)' : 'Horn muted (click to sound on new priority-1 alarms)'}>
-        {horn ? 'Horn on' : 'Horn muted'}
-      </button>
+      {hornBtn}
     </div>
   )
 }

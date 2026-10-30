@@ -1,4 +1,4 @@
-/* Insights panel (console) and ticker (3D view) — InsightsPanel.tsx */
+/* Insights panel (console): InsightsPanel.tsx */
 .hmi .ins { --k-act: var(--h-p2); --k-watch: var(--h-p3); --k-win: var(--h-ok); --k-info: var(--h-faint); }
 .hmi .ins-count { font-size: 10px; letter-spacing: 0.04em; text-transform: none; padding: 0 6px; border-radius: 8px; border: 1px solid var(--h-line2); color: var(--h-fg); }
 .hmi .ins-count.k-act { border-color: var(--h-p2); color: #ffd7a0; }
@@ -29,23 +29,3 @@
 .hmi .k-win .ins-usd, .hmi .k-info .ins-usd { color: var(--h-fg); }
 .hmi .ins-more { margin-top: 6px; font-size: 11.5px; }
 .hmi .ins.compact .ins-item { grid-template-columns: 70px minmax(0, 1fr) auto; padding: 4px 8px; }
-
-/* ticker over the 3D view */
-.ins-ticker {
-  position: absolute; left: 50%; bottom: 34px; transform: translateX(-50%); z-index: 30; display: flex; align-items: stretch;
-  max-width: min(760px, calc(100vw - 680px)); min-width: 320px; border-radius: 8px; overflow: hidden;
-  background: rgba(16, 19, 22, 0.86); border: 1px solid rgba(255, 255, 255, 0.1); box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
-  backdrop-filter: blur(8px); animation: ins-in 0.35s ease;
-}
-.app.left-off .ins-ticker, .app.right-off .ins-ticker { max-width: min(760px, calc(100vw - 360px)); }
-@keyframes ins-in { from { opacity: 0; transform: translate(-50%, 6px); } }
-.ins-ticker button { background: none; border: 0; color: var(--ui-fg); cursor: pointer; font: inherit; }
-.ins-ticker-main { display: flex; align-items: center; gap: 10px; padding: 7px 10px 7px 12px; min-width: 0; flex: 1; text-align: left; border-left: 3px solid #f2a33a !important; }
-.ins-ticker.k-watch .ins-ticker-main { border-left-color: #e6d03c !important; }
-.ins-ticker-main:hover { background: rgba(255, 255, 255, 0.05); }
-.ins-ticker-kind { font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: #ffc77a; flex: none; }
-.ins-ticker.k-watch .ins-ticker-kind { color: #efe08a; }
-.ins-ticker-text { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
-.ins-ticker-n { color: var(--ui-muted); font-family: var(--mono); font-size: 11px; flex: none; }
-.ins-ticker-x { padding: 0 10px; color: var(--ui-muted) !important; border-left: 1px solid rgba(255, 255, 255, 0.08) !important; }
-.ins-ticker-x:hover { color: var(--ui-fg) !important; }
