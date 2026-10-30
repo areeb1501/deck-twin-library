@@ -14,6 +14,9 @@ import type { PlatformId } from '../sim/types'
 import { useSim } from '../state/sim'
 import { addTrace, newTraceId } from './alerts'
 import { runTool } from './agentTools'
+import { runAgent } from '../agents/runtime'
+import { useProvider } from '../agents/provider'
+import { PLANT_CONTEXT } from '../agents/catalog'
 
 const CAP_CHAT = 100
 
@@ -335,6 +338,19 @@ export async function ask(question: string): Promise<ChatMessage> {
   // a short pause so the answer reads like it was worked out, not pasted
   await new Promise((r) => setTimeout(r, 350))
   let msg: ChatMessage
+  // a remote model (Nemotron / Muse) when one is selected; the local planner otherwise or on failure
+  if (useProvider.getState().provider !== 'sim') {
+    try {
+      const r = await runAgent({ traceId, system: PLANT_CONTEXT, user: q, maxSteps: 6 })
+      const tags = tagsInText(r.text, traceId, new Set())
+      addTrace(traceId, { actor: 'assistant', kind: 'answer', text: `Answered by ${r.model} with ${r.toolCalls} tool call(s)`, data: { planner: r.provider, model: r.model } })
+      msg = push({ role: 'assistant', text: r.text || '(no answer)', tags, traceId })
+      useChat.setState({ busy: false })
+      return msg
+    } catch (e) {
+      addTrace(traceId, { actor: 'assistant', kind: 'decide', text: `Model unavailable (${e instanceof Error ? e.message : String(e)}) — falling back to the local planner` })
+    }
+  }
   try {
     const a = localAnswer(q, traceId)
     addTrace(traceId, {

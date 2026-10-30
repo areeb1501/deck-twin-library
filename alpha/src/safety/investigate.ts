@@ -14,6 +14,9 @@ import type { PlatformId } from '../sim/types'
 import type { TraceStep } from './types'
 import { addTrace, newTraceId, useAlerts } from './alerts'
 import { runTool } from './agentTools'
+import { jsonFrom, runAgent } from '../agents/runtime'
+import { useProvider } from '../agents/provider'
+import { PLANT_CONTEXT } from '../agents/catalog'
 
 export interface InvestigationReport {
   summary: string
@@ -254,7 +257,7 @@ async function run(traceId: string, platform0: PlatformId | undefined, tag: stri
     const uniq = (xs: string[]) => [...new Set(xs.filter(Boolean))]
     const acts = uniq(actions)
     if (!acts.length) acts.push('Keep monitoring; no action needed from the evidence gathered')
-    const report: InvestigationReport = {
+    let report: InvestigationReport = {
       summary: `${tag ?? platform}: ${likelyCause}.${hidden.length ? ` ${hidden.length} hard-to-spot finding(s): ${hidden.map((h) => h.split(' — ')[0]).join(', ')}.` : ''}${consequence ? ` ${consequence}.` : ''}`,
       likelyCause,
       evidence: uniq(evidence).slice(0, 14),
@@ -262,7 +265,26 @@ async function run(traceId: string, platform0: PlatformId | undefined, tag: stri
       cameras: uniq(cameras),
       hidden: uniq(hidden),
     }
-    say(`Report: likely cause — ${likelyCause}. ${report.actions.length} advisory action(s); the operator decides.`, { report, planner: 'local-rules' }, 'answer')
+    let planner = 'local-rules'
+    // root-cause synthesis on a model when one is selected (it may call more tools); rules otherwise
+    if (useProvider.getState().provider !== 'sim') {
+      try {
+        const r = await runAgent({
+          traceId,
+          system: PLANT_CONTEXT,
+          user: `Root-cause analysis for: ${alertTitle || tag || platform}. Evidence gathered so far:\n${JSON.stringify(report)}\nVerify with tools if needed, separate the root cause from consequences, and reply ONLY with JSON {"summary": string, "likelyCause": string, "hidden": string[], "actions": string[]} (max 6 actions, advisory).`,
+          maxSteps: 4,
+        })
+        const j = jsonFrom<Partial<InvestigationReport>>(r.text)
+        if (j?.likelyCause) {
+          report = { ...report, summary: j.summary ?? report.summary, likelyCause: j.likelyCause, hidden: uniq([...(j.hidden ?? []), ...report.hidden]), actions: uniq([...(j.actions ?? []), ...report.actions]).slice(0, 8) }
+          planner = r.model
+        }
+      } catch (e) {
+        say(`Model unavailable (${e instanceof Error ? e.message : String(e)}) — rule-based synthesis`, undefined, 'decide')
+      }
+    }
+    say(`Report: likely cause — ${report.likelyCause}. ${report.actions.length} advisory action(s); the operator decides.`, { report, planner }, 'answer')
     patch(traceId, () => ({ status: 'done', pending: undefined, report }))
   } catch (e) {
     const err = e instanceof Error ? e.message : String(e)

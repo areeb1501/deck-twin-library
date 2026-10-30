@@ -85,3 +85,23 @@
 .al-sugg button { padding: 1px 7px; font-size: 11px; border-radius: 10px; }
 .al-input { display: flex; gap: 6px; flex: none; }
 .al-input input { flex: 1; }
+
+/* agents strip (model selector + workflow catalogue) */
+.al-wrap { display: flex; flex-direction: column; gap: 10px; height: 100%; min-height: 0; }
+.al-wrap > .al-grid { flex: 1; min-height: 520px; }
+.ag-strip { flex: none; }
+.ag-head { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+.ag-head h3 { margin: 0; }
+.ag-model { display: inline-flex; align-items: center; gap: 6px; font-size: 11.5px; color: var(--h-dim); }
+.ag-model select { font: inherit; color: inherit; background: var(--h-bg, #1d2024); border: 1px solid var(--h-line2); border-radius: 3px; padding: 2px 4px; }
+.ag-flows { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 8px; margin-top: 8px; }
+.ag-flow { border: 1px solid var(--h-line2); border-radius: 4px; padding: 7px 8px; display: flex; flex-direction: column; gap: 3px; font-size: 11.5px; }
+.ag-flow.on { border-color: var(--h-text, #cfd3d6); }
+.ag-flow b { font-size: 12px; }
+.ag-flow p { margin: 0; color: var(--h-dim); line-height: 1.3; flex: 1; }
+.ag-kind { font-size: 9.5px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--h-dim); }
+.ag-flow.hard-to-spot .ag-kind { color: #e0a24a; }
+.ag-row { display: flex; gap: 6px; align-items: center; margin-top: 3px; }
+.ag-out { margin-top: 8px; border-top: 1px solid var(--h-line2); padding-top: 6px; }
+.ag-out pre { white-space: pre-wrap; margin: 4px 0 0; max-height: 180px; overflow: auto; font-family: var(--mono); font-size: 11px; line-height: 1.45; }
+@media (max-width: 1300px) { .ag-flows { grid-template-columns: repeat(3, minmax(0, 1fr)); } }

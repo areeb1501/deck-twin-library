@@ -806,7 +806,7 @@ export const AGENT_TOOLS: AgentTool[] = [
 const TOOL_BY_NAME = new Map(AGENT_TOOLS.map((t) => [t.name, t]))
 
 /** one-line summary of a tool result for the trace (the full result is not stored) */
-function summarise(name: string, r: unknown): string {
+export function summarise(name: string, r: unknown): string {
   if (!r || typeof r !== 'object') return String(r)
   const o = r as Record<string, unknown>
   if (o.error) return `error: ${String(o.error)}`

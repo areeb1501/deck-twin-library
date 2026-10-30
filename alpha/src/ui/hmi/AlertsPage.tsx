@@ -20,6 +20,8 @@ import { pickOf } from './nav'
 import { Box, TagLink } from './common'
 import { EMPTY_ARR } from './simApi'
 import './alerts.css'
+import { AgentPanel } from './AgentPanel'
+import { PROVIDER_LABEL, useProvider } from '../../agents/provider'
 
 const ACTOR_ICON: Record<TraceStep['actor'], string> = { sensor: '◉', rule: '§', risk: '▲', cctv: '◎', assistant: '✦', operator: '●', model: '◆', tool: '⚙' }
 const SUGGESTIONS = [
@@ -39,10 +41,13 @@ export function AlertsPage() {
   const [sel, setSel] = useState<Sel>(null)
   const [emailOf, setEmailOf] = useState<Alert | null>(null)
   return (
-    <div className="al-grid">
-      <Outbox sel={sel} setSel={setSel} onEmail={setEmailOf} />
-      <TraceColumn sel={sel} setSel={setSel} />
-      <Chat setSel={setSel} />
+    <div className="al-wrap">
+      <AgentPanel setSel={setSel} />
+      <div className="al-grid">
+        <Outbox sel={sel} setSel={setSel} onEmail={setEmailOf} />
+        <TraceColumn sel={sel} setSel={setSel} />
+        <Chat setSel={setSel} />
+      </div>
       {emailOf && <EmailModal alert={emailOf} onClose={() => setEmailOf(null)} />}
     </div>
   )
@@ -320,6 +325,7 @@ function ReportBox({ run }: { run: InvestigationRun }) {
 function Chat({ setSel }: { setSel: (s: Sel) => void }) {
   const messages = (useChat((s) => s.messages) ?? EMPTY_ARR) as ChatMessage[]
   const busy = useChat((s) => s.busy)
+  const provider = useProvider((s) => s.provider)
   const [q, setQ] = useState('')
   const endRef = useRef<HTMLDivElement>(null)
   useEffect(() => {
@@ -332,7 +338,7 @@ function Chat({ setSel }: { setSel: (s: Sel) => void }) {
     void ask(t)
   }
   return (
-    <Box className="al-col al-chatcol" title="Ask the plant" right={<span className="dim">local planner · read-only tools</span>}>
+    <Box className="al-col al-chatcol" title="Ask the plant" right={<span className="dim">{PROVIDER_LABEL[provider]} · read-only tools</span>}>
       <div className="al-chat">
         {!messages.length && <p className="h-note">Ask about the live twin. Answers come from read-only tools (status, risk, alarms, equipment, F&G, permits, what-if, barrier erosion, drift) and show how they were worked out.</p>}
         {messages.map((m) => (

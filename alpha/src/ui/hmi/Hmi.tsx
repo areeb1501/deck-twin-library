@@ -68,6 +68,9 @@ export function Hmi() {
       if (e.key === 'Escape') {
         e.stopPropagation()
         e.preventDefault()
+        // a dialog inside the console (e.g. the email draft) closes first
+        const modalBg = document.querySelector<HTMLElement>('.hmi .al-modal-bg')
+        if (modalBg) return modalBg.click()
         useStore.getState().setHmi(null)
         return
       }
