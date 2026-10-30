@@ -44,6 +44,8 @@ const LAYERS: [LayerId, string][] = [
 export function Toolbar() {
   const viewMode = useStore((s) => s.viewMode)
   const setViewMode = useStore((s) => s.setViewMode)
+  const night = useStore((s) => s.night)
+  const setNight = useStore((s) => s.setNight)
   const preset = useStore((s) => s.requestPreset)
   const section = useStore((s) => s.section)
   const setSection = useStore((s) => s.setSection)
@@ -84,6 +86,9 @@ export function Toolbar() {
         </button>
         <button className={menu === 'layers' ? 'on' : ''} onClick={() => setMenu(menu === 'layers' ? null : 'layers')} title="Layers: equipment, piping, structure, sea, labels, flow, F&G coverage and mapping">
           Layers ▾
+        </button>
+        <button className={night ? 'on' : ''} onClick={() => setNight(!night)} title="Night: dark sky, moonlight and floodlit decks (N)">
+          Night
         </button>
       </div>
       {/* operate: run the plant */}

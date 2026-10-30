@@ -61,6 +61,7 @@ export default function App() {
       if (e.key === 'c') s.setSection({ enabled: !s.section.enabled })
       if (e.key === 'f' && s.selected) s.requestFocus(s.selected.tag)
       if (e.key === 'l') s.toggleLayer('labels')
+      if (e.key === 'n') s.setNight(!s.night)
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)

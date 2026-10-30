@@ -28,6 +28,7 @@ import { IsolationOverlay } from './IsolationOverlay'
 import { FireGasOverlay } from './FireGasOverlay'
 import { FgCoverageOverlay } from './FgCoverageOverlay'
 import { GasCloud } from './GasCloud'
+import { DeckLights } from './env/DeckLights'
 import { AdaptiveQuality } from './perf/AdaptiveQuality'
 import { DetailCull } from './perf/DetailCull'
 import { StaticBatcher } from './perf/StaticBatcher'
@@ -416,6 +417,7 @@ export function Scene() {
       <AdaptiveQuality />
       <Suspense fallback={null}>
         {DEBUG.has('nosky') ? <><color attach="background" args={['#9fb6c8']} /><hemisphereLight args={['#fff', '#555', 2]} /></> : <SkyAndLights />}
+        {!DEBUG.has('nosky') && <DeckLights />}
         {layers.environment && offshore && !DEBUG.has('noenv') && (
           <NoPick>
             <Ocean />

@@ -15,7 +15,7 @@ import { useEffect, useMemo } from 'react'
 import * as THREE from 'three'
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js'
 import { Batches, boxMinMax, tube } from '../structure/batch'
-import { envMat } from './envShared'
+import { envMat, envNight } from './envShared'
 import { VENTS, type VentStack } from '../../model/vents'
 import { ALPHA_DECK, RP } from '../../model/site'
 import type { GasTurbineGenerator, PlanRect, Plant } from '../../model/types'
@@ -134,6 +134,7 @@ void main() {
   vColor = aColor;
 }`
 const frag = /* glsl */ `
+uniform float uNight;
 varying float vAlpha;
 varying vec3 vColor;
 void main() {
@@ -141,7 +142,8 @@ void main() {
   float r2 = dot(q, q);
   if (r2 > 1.0) discard;
   float a = vAlpha * (1.0 - r2) * (0.6 + 0.4 * (1.0 - r2));
-  gl_FragColor = vec4(vColor, a);
+  // unlit: at night the steam only catches the warm deck lights
+  gl_FragColor = vec4(mix(vColor, vColor * vec3(0.2, 0.17, 0.14), uNight), a);
   #include <tonemapping_fragment>
   #include <colorspace_fragment>
 }`
@@ -184,7 +186,7 @@ function usePlume(stacks: VentStack[], plant: Plant, upperDeck: boolean) {
     geo.setAttribute('aAlpha', new THREE.BufferAttribute(alpha, 1).setUsage(THREE.DynamicDrawUsage))
     geo.setAttribute('aColor', new THREE.BufferAttribute(color, 3))
     geo.boundingSphere = new THREE.Sphere(new THREE.Vector3(), 1e5)
-    const mat = new THREE.ShaderMaterial({ uniforms: { uPx: { value: 600 } }, vertexShader: vert, fragmentShader: frag, transparent: true, depthWrite: false })
+    const mat = new THREE.ShaderMaterial({ uniforms: { uPx: { value: 600 }, uNight: envNight }, vertexShader: vert, fragmentShader: frag, transparent: true, depthWrite: false })
     const points = new THREE.Points(geo, mat)
     points.frustumCulled = false
     points.renderOrder = 6

@@ -17,6 +17,8 @@ export const FOG_DENSITY = 0.00042
 
 /** Global environment clock shared by ocean, flare, vessel. */
 export const envTime = { value: 0 }
+/** 0 = day … 1 = night, eased by SkyAndLights; for unlit env shaders (vent plumes) that must darken */
+export const envNight = { value: 0 }
 
 const UNDERWATER = /* glsl */ `
 float uwD = clamp(-vUwPos.y, 0.0, 400.0);

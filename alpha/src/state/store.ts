@@ -36,6 +36,9 @@ interface State {
   /** walkthrough camera: through the eyes, or behind a visible person */
   walkView: 'first' | 'third'
   setWalkView: (v: 'first' | 'third') => void
+  /** night-time scene: dark sky, moonlight, floodlit decks — remembered */
+  night: boolean
+  setNight: (v: boolean) => void
   /** knowledge card open for this tag (eye icon / About) */
   kbTag: string | null
   setKbTag: (t: string | null) => void
@@ -122,6 +125,8 @@ export const useStore = create<State>((set) => ({
   walkStart: null,
   walkView: (localStorage.getItem('deck-twin.walkView') as 'first' | 'third') || 'third',
   setWalkView: (walkView) => (localStorage.setItem('deck-twin.walkView', walkView), set({ walkView })),
+  night: localStorage.getItem('deck-twin.night') === '1',
+  setNight: (night) => (localStorage.setItem('deck-twin.night', night ? '1' : '0'), set({ night })),
   kbTag: null,
   setKbTag: (kbTag) => set({ kbTag }),
 
