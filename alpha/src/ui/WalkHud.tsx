@@ -12,13 +12,18 @@ export function WalkHud() {
   const walk = useStore((s) => s.walk)
   const lookAt = useStore((s) => s.lookAt)
   const setWalk = useStore((s) => s.setWalk)
+  const view = useStore((s) => s.walkView)
+  const setView = useStore((s) => s.setWalkView)
   if (!walk) return null
   return (
     <>
-      <div className={`crosshair ${lookAt ? 'on' : ''}`} />
+      {view === 'first' && <div className={`crosshair ${lookAt ? 'on' : ''}`} />}
       <div className="walk-hint small">
-        <b>Walkthrough</b> · ↑↓ walk · ←→ turn · Q/E step sideways · drag to look · Shift run · 1–4 change level · click an item to pin it ·{' '}
-        <button className="link" onClick={() => setWalk(false)}>Exit (Esc)</button>
+        <b>Walkthrough</b> · ↑↓ walk · ←→ turn · Q/E step sideways · drag to look · Shift run · 1–4 change level · doors open as you approach · click an item to pin it ·{' '}
+        <button className="link" onClick={() => setView(view === 'third' ? 'first' : 'third')} title="V">
+          {view === 'third' ? 'Hide person' : 'Show person'} (V)
+        </button>{' '}
+        · <button className="link" onClick={() => setWalk(false)}>Exit (Esc)</button>
       </div>
       <Minimap />
       <Levels />

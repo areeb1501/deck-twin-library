@@ -31,7 +31,9 @@ import { materials, paint } from '../../three/materials'
 import { NozzleNeck } from '../common/NozzleNeck'
 import { Kit, eul, uvScale, mat4, type MatKey, type V3 } from './machinery/kit'
 import { KitMesh } from './machinery/KitMesh'
-import { couplingGuard, flangedJoint, pipeFlange, routeToNozzle, smallGauge, tagPlate } from './machinery/parts'
+import { flangedJoint, pipeFlange, routeToNozzle, smallGauge, tagPlate } from './machinery/parts'
+import { Doors, Rotors } from './machinery/Moving'
+import { fanRotor, guardedCoupling, subKit, type DoorSpec, type RotorSpec } from './machinery/rotors'
 import { dialMaterial, fanGuardMaterial, gratingMaterial, meshGuardMaterial, signMaterial } from './machinery/textures'
 
 const clamp = (v: number, a: number, b: number) => Math.max(a, Math.min(b, v))
@@ -118,25 +120,48 @@ function hoods(k: Kit, w: number, h: number, cx: number, cy: number) {
   for (let j = 1; j < nm; j++) k.box(TRIM, [0.012, h, dz], [cx - w / 2 + (j * w) / nm, cy, dz / 2])
 }
 
-/** Personnel door (single / double leaf) in a face frame with its sill at y = 0. */
-function door(k: Kit, w: number, h: number, cx: number, double = false) {
+/** hinge-pin line of a door leaf, in front of the leaf (face frame z) */
+const HINGE_Z = 0.06
+
+/**
+ * Door leaf drawn relative to its hinge pin (face frame: x along the face, y up, z outward).
+ * latch = +1: hinge on the face-left edge, leaf extends +x; −1: hinge on the right, leaf extends −x.
+ */
+function doorLeaf(k: Kit, lw: number, h: number, latch: 1 | -1) {
+  const lx = latch * (lw / 2) // leaf centre
+  const z = (v: number) => v - HINGE_Z
+  k.box(TRIM, [lw - 0.012, h - 0.012, 0.05], [lx, h / 2, z(0.03)])
+  for (const yy of [0.35, 0.7]) k.box(TRIM, [lw - 0.18, 0.035, 0.012], [lx, h * yy, z(0.06)])
+  // lever handle outside + pull handle inside
+  const hx = lx + latch * (lw / 2 - 0.1)
+  k.box('stainless', [0.04, 0.14, 0.02], [hx, 1.05, z(0.065)])
+  k.box('stainless', [0.14, 0.022, 0.024], [hx - latch * 0.06, 1.08, z(0.088)])
+  k.box('stainless', [0.03, 0.18, 0.02], [hx, 1.05, z(-0.005)])
+  for (const yy of [0.2, h / 2, h - 0.2]) k.box(TRIM, [0.1, 0.06, 0.012], [latch * 0.05, yy, z(0.058)]) // hinge straps
+  k.box('glass', [0.22, 0.3, 0.06], [lx, 1.6, z(0.03)])
+  k.plane(signMaterial('noentry'), 0.36, 0.18, [lx, 1.32, z(0.0565)])
+}
+
+/**
+ * Personnel door frame (single / double leaf) in a face frame with its sill at y = 0: jambs, head,
+ * sill and hinge knuckles. The leaves are separate <Door>s (see doorLeaf); returns them as
+ * { hingeX (face frame), latch, lw }.
+ */
+function doorFrame(k: Kit, w: number, h: number, cx: number, double = false) {
   k.box(SKID, [w + 0.14, 0.07, 0.05], [cx, h + 0.035, 0.025])
   for (const s of [-1, 1]) k.box(SKID, [0.07, h, 0.05], [cx + s * (w / 2 + 0.035), h / 2, 0.025])
   k.box(SKID, [w, 0.03, 0.12], [cx, 0.015, 0.06])
   const leaves = double ? 2 : 1
   const lw = w / leaves
+  const out: { hingeX: number; latch: 1 | -1; lw: number }[] = []
   for (let i = 0; i < leaves; i++) {
     const lx = cx - w / 2 + lw * (i + 0.5)
-    const latch = double ? (i === 0 ? 1 : -1) : 1 // side the handle is on
-    k.box(TRIM, [lw - 0.012, h - 0.012, 0.05], [lx, h / 2, 0.03])
-    for (const yy of [0.35, 0.7]) k.box(TRIM, [lw - 0.18, 0.035, 0.012], [lx, h * yy, 0.06])
-    const hx = lx + latch * (lw / 2 - 0.1)
-    k.box('stainless', [0.04, 0.14, 0.02], [hx, 1.05, 0.065])
-    k.box('stainless', [0.14, 0.022, 0.024], [hx - latch * 0.06, 1.08, 0.088])
-    for (const yy of [0.2, h / 2, h - 0.2]) k.cyl(SKID, 0.018, 0.12, [lx - latch * (lw / 2 - 0.01), yy, 0.06], 'y', 8)
-    k.box('glass', [0.22, 0.3, 0.01], [lx, 1.6, 0.06])
-    k.plane(signMaterial('noentry'), 0.36, 0.18, [lx, 1.32, 0.0565])
+    const latch: 1 | -1 = double ? (i === 0 ? 1 : -1) : 1 // +1: hinge on the left, handle on the right
+    const hingeX = lx - latch * (lw / 2)
+    for (const yy of [0.2, h / 2, h - 0.2]) k.cyl(SKID, 0.018, 0.12, [hingeX - latch * 0.01, yy, HINGE_Z], 'y', 8)
+    out.push({ hingeX, latch, lw })
   }
+  return out
 }
 
 /** Fixed ladder with cage on a face (stiles at z = 0.2 outward), from y = 0 to `height`. */
@@ -285,39 +310,8 @@ export function buildGasTurbineGenerator(eq: GasTurbineGenerator) {
   const yw = hs + wallH / 2
   const EL = ex1 - ex0
   const exm = (ex0 + ex1) / 2
-  k.box(CLAD, [EL, wallH, t], [exm, yw, z0 + t / 2])
-  k.box(CLAD, [EL, wallH, t], [exm, yw, z1 - t / 2])
-  k.box(CLAD, [t, wallH, encW - 2 * t], [ex0 + t / 2, yw, 0])
-  k.box(CLAD, [t, wallH, encW - 2 * t], [ex1 - t / 2, yw, 0])
-  k.box(CLAD, [EL + 0.12, 0.1, encW + 0.12], [exm, H - 0.05, 0]) // roof
-  // cover battens (panel seams), girts, sill and eaves
-  const nb = Math.max(4, Math.round(EL / 1.2))
-  for (let i = 0; i <= nb; i++) {
-    const x = ex0 + (i * EL) / nb
-    for (const [z, s] of [[z0, -1], [z1, 1]] as const) k.box(TRIM, [0.06, wallH, 0.018], [x, yw, z + s * 0.009])
-    k.box(TRIM, [0.05, 0.03, encW + 0.1], [x, H + 0.015, 0]) // roof seam cappings
-  }
-  const ne = Math.max(2, Math.round(encW / 1.2))
-  for (let i = 1; i < ne; i++) for (const [x, s] of [[ex0, -1], [ex1, 1]] as const) k.box(TRIM, [0.018, wallH, 0.06], [x + s * 0.009, yw, z0 + (i * encW) / ne])
-  for (const [z, s] of [[z0, -1], [z1, 1]] as const) {
-    k.box(TRIM, [EL, 0.07, 0.03], [exm, hs + wallH * 0.52, z + s * 0.024])
-    k.box(SKID, [EL + 0.04, 0.14, 0.05], [exm, hs + 0.07, z + s * 0.02])
-    k.box(TRIM, [EL + 0.12, 0.14, 0.04], [exm, H - 0.07, z + s * 0.08])
-  }
-  for (const [x, s] of [[ex0, -1], [ex1, 1]] as const) {
-    k.box(SKID, [0.05, 0.14, encW], [x + s * 0.02, hs + 0.07, 0])
-    k.box(TRIM, [0.04, 0.14, encW + 0.2], [x + s * 0.08, H - 0.07, 0])
-  }
-  for (const sx of [-1, 1]) for (const sz of [-1, 1]) k.box(TRIM, [0.1, wallH, 0.1], [sx > 0 ? ex1 - 0.04 : ex0 + 0.04, yw, sz > 0 ? z1 - 0.04 : z0 + 0.04])
-  // roof padeyes
-  for (const sx of [-1, 1])
-    for (const sz of [-1, 1]) {
-      const p: V3 = [sx > 0 ? ex1 - 0.35 : ex0 + 0.35, H + 0.12, sz * (encW / 2 - 0.3)]
-      k.box('structSteel', [0.22, 0.2, 0.03], p)
-      k.torus('nut', 0.05, 0.015, [p[0], p[1] + 0.03, p[2] + 0.02], 'z', 6, 14)
-    }
 
-  // -------- doors, louvres, signage
+  // -------- door positions (decided first: the wall panels, girts and battens are cut around them)
   const xcomb = xc0 + 0.48 * Lc
   const gx = (sGb0 + sGb1) / 2
   // nozzles (local)
@@ -350,31 +344,113 @@ export function buildGasTurbineGenerator(eq: GasTurbineGenerator) {
   }
   const dH = Math.min(2.1, wallH - 0.4)
   const gMid = (xa + sGen1) / 2
-  const doorsPos = [freeX(gMid, 0.9, blockedPos), freeX(xcomb + 0.5, 0.9, blockedPos)]
-  const doorsNeg = [freeX(gMid, 0.9, blockedNeg), freeX(xst, 0.9, blockedNeg)]
-  const placed: number[] = []
-  for (const x of doorsPos)
-    if (x !== null && placed.every((p) => Math.abs(p - x) > 1.2)) {
-      placed.push(x)
-      k.at([x, hs, z1], faceQ('z'), () => door(k, 0.9, dH, 0))
-      beacon(k, [x + 0.7, hs + dH + 0.15, z1 + 0.08])
-    }
-  const placedN: number[] = []
-  for (const x of doorsNeg)
-    if (x !== null && placedN.every((p) => Math.abs(p - x) > 1.2)) {
-      placedN.push(x)
-      k.at([x, hs, z0], faceQ('-z'), () => door(k, 0.9, dH, 0))
-      beacon(k, [x - 0.7, hs + dH + 0.15, z0 - 0.08])
-    }
-  // −X end: maintenance door (double if room) + roof access ladder; +X end: door + outlet louvre
+  const pick = (xs: (number | null)[]) => {
+    const out: number[] = []
+    for (const x of xs) if (x !== null && out.every((p) => Math.abs(p - x) > 1.2)) out.push(x)
+    return out
+  }
+  const doorsPos = pick([freeX(gMid, 0.9, blockedPos), freeX(xcomb + 0.5, 0.9, blockedPos)])
+  const doorsNeg = pick([freeX(gMid, 0.9, blockedNeg), freeX(xst, 0.9, blockedNeg)])
   const endW = encW - 1.45
-  k.at([ex0, hs, 0], faceQ('-x'), () => {
-    if (endW >= 1.3) door(k, Math.min(1.8, endW), dH, 0, true)
-    else door(k, 0.85, dH, 0)
-    louvre(k, Math.min(1.2, encW * 0.35), 0.5, 0, Math.min(wallH - 0.45, dH + 0.55))
-  })
+  const wEndN = endW >= 1.3 ? Math.min(1.8, endW) : 0.85 // −X maintenance door (double if room)
+  const cEndP = encW / 2 - 0.65 // +X door centre in its face frame (face x = −z)
+  // openings along each wall: [centre, width] in the wall's own coordinate (x for ±Z walls, z for ±X)
+  const holes = {
+    pz: doorsPos.map((x) => [x, 0.9] as [number, number]),
+    nz: doorsNeg.map((x) => [x, 0.9] as [number, number]),
+    nx: [[0, wEndN]] as [number, number][],
+    px: [[-cEndP, 0.85]] as [number, number][],
+  }
+  /** pieces [a, b] of [a0, a1] outside the openings */
+  const solid = (a0: number, a1: number, hs_: [number, number][], pad = 0) => {
+    const out: [number, number][] = []
+    let a = a0
+    for (const [c, w] of [...hs_].sort((p, q) => p[0] - q[0])) {
+      if (c - w / 2 - pad > a) out.push([a, c - w / 2 - pad])
+      a = Math.max(a, c + w / 2 + pad)
+    }
+    if (a1 > a) out.push([a, a1])
+    return out
+  }
+  const inHole = (v: number, hs_: [number, number][], pad: number) => hs_.some(([c, w]) => Math.abs(v - c) < w / 2 + pad)
+  const yHead = hs + dH
+  // wall panels with door openings (full-height pieces between doors, a header panel over each door)
+  const panelZ = (z: number, hl: [number, number][]) => {
+    for (const [a, b] of solid(ex0, ex1, hl)) k.box(CLAD, [b - a, wallH, t], [(a + b) / 2, yw, z])
+    for (const [c, w] of hl) k.box(CLAD, [w, hs + wallH - yHead, t], [c, (yHead + hs + wallH) / 2, z])
+  }
+  const panelX = (x: number, hl: [number, number][]) => {
+    for (const [a, b] of solid(z0 + t, z1 - t, hl)) k.box(CLAD, [t, wallH, b - a], [x, yw, (a + b) / 2])
+    for (const [c, w] of hl) k.box(CLAD, [t, hs + wallH - yHead, w], [x, (yHead + hs + wallH) / 2, c])
+  }
+  panelZ(z0 + t / 2, holes.nz)
+  panelZ(z1 - t / 2, holes.pz)
+  panelX(ex0 + t / 2, holes.nx)
+  panelX(ex1 - t / 2, holes.px)
+  k.box(CLAD, [EL + 0.12, 0.1, encW + 0.12], [exm, H - 0.05, 0]) // roof
+  // cover battens (panel seams), girts, sill and eaves — none across a door opening
+  const nb = Math.max(4, Math.round(EL / 1.2))
+  for (let i = 0; i <= nb; i++) {
+    const x = ex0 + (i * EL) / nb
+    for (const [z, s, hl] of [[z0, -1, holes.nz], [z1, 1, holes.pz]] as const) if (!inHole(x, hl, 0.12)) k.box(TRIM, [0.06, wallH, 0.018], [x, yw, z + s * 0.009])
+    k.box(TRIM, [0.05, 0.03, encW + 0.1], [x, H + 0.015, 0]) // roof seam cappings
+  }
+  const ne = Math.max(2, Math.round(encW / 1.2))
+  for (let i = 1; i < ne; i++)
+    for (const [x, s, hl] of [[ex0, -1, holes.nx], [ex1, 1, holes.px]] as const) {
+      const z = z0 + (i * encW) / ne
+      if (!inHole(z, hl, 0.12)) k.box(TRIM, [0.018, wallH, 0.06], [x + s * 0.009, yw, z])
+    }
+  const yGirt = hs + wallH * 0.52
+  const girtCut = yGirt - 0.035 < yHead + 0.08
+  for (const [z, s, hl] of [[z0, -1, holes.nz], [z1, 1, holes.pz]] as const) {
+    for (const [a, b] of girtCut ? solid(ex0, ex1, hl, 0.1) : [[ex0, ex1] as [number, number]]) k.box(TRIM, [b - a, 0.07, 0.03], [(a + b) / 2, yGirt, z + s * 0.024])
+    for (const [a, b] of solid(ex0 - 0.02, ex1 + 0.02, hl, 0.07)) k.box(SKID, [b - a, 0.14, 0.05], [(a + b) / 2, hs + 0.07, z + s * 0.02])
+    k.box(TRIM, [EL + 0.12, 0.14, 0.04], [exm, H - 0.07, z + s * 0.08])
+  }
+  for (const [x, s, hl] of [[ex0, -1, holes.nx], [ex1, 1, holes.px]] as const) {
+    for (const [a, b] of solid(-encW / 2, encW / 2, hl, 0.07)) k.box(SKID, [0.05, 0.14, b - a], [x + s * 0.02, hs + 0.07, (a + b) / 2])
+    k.box(TRIM, [0.04, 0.14, encW + 0.2], [x + s * 0.08, H - 0.07, 0])
+  }
+  for (const sx of [-1, 1]) for (const sz of [-1, 1]) k.box(TRIM, [0.1, wallH, 0.1], [sx > 0 ? ex1 - 0.04 : ex0 + 0.04, yw, sz > 0 ? z1 - 0.04 : z0 + 0.04])
+  // roof padeyes
+  for (const sx of [-1, 1])
+    for (const sz of [-1, 1]) {
+      const p: V3 = [sx > 0 ? ex1 - 0.35 : ex0 + 0.35, H + 0.12, sz * (encW / 2 - 0.3)]
+      k.box('structSteel', [0.22, 0.2, 0.03], p)
+      k.torus('nut', 0.05, 0.015, [p[0], p[1] + 0.03, p[2] + 0.02], 'z', 6, 14)
+    }
+
+  // -------- doors (frames static, leaves as hinged <Door>s), louvres, signage
+  const doors: DoorSpec[] = []
+  let doorNo = 0
+  const doorAt = (origin: V3, f: Face, w: number, cx: number, double = false) => {
+    const id = `D${++doorNo}`
+    const q = faceQ(f)
+    const ang = f === 'z' ? 0 : f === '-z' ? Math.PI : f === 'x' ? Math.PI / 2 : -Math.PI / 2
+    let leaves: ReturnType<typeof doorFrame> = []
+    k.at(origin, q, () => (leaves = doorFrame(k, w, dH, cx, double)))
+    for (const L of leaves) {
+      const lk = subKit(k)
+      doorLeaf(lk, L.lw, dH, L.latch)
+      const hp = new THREE.Vector3(L.hingeX, 0, HINGE_Z).applyQuaternion(q).add(new THREE.Vector3(...origin))
+      // both leaves of a double door share the id: one click / one walk-up opens the pair
+      doors.push({ id, hinge: hp.toArray() as V3, rotationY: ang, openAngle: L.latch > 0 ? -1.75 : 1.75, built: lk.build(), width: L.lw })
+    }
+  }
+  for (const x of doorsPos) {
+    doorAt([x, hs, z1], 'z', 0.9, 0)
+    beacon(k, [x + 0.7, hs + dH + 0.15, z1 + 0.08])
+  }
+  for (const x of doorsNeg) {
+    doorAt([x, hs, z0], '-z', 0.9, 0)
+    beacon(k, [x - 0.7, hs + dH + 0.15, z0 - 0.08])
+  }
+  // −X end: maintenance door (double if room) + roof access ladder; +X end: door + outlet louvre
+  doorAt([ex0, hs, 0], '-x', wEndN, 0, endW >= 1.3)
+  k.at([ex0, hs, 0], faceQ('-x'), () => louvre(k, Math.min(1.2, encW * 0.35), 0.5, 0, Math.min(wallH - 0.45, dH + 0.55)))
+  doorAt([ex1, hs, 0], 'x', 0.85, cEndP)
   k.at([ex1, hs, 0], faceQ('x'), () => {
-    door(k, 0.85, dH, encW / 2 - 0.65)
     const lw = Math.min(1.6, encW * 0.42)
     louvre(k, lw, Math.min(0.9, wallH * 0.25), -encW / 2 + lw / 2 + 0.25, wallH - Math.min(0.9, wallH * 0.25) / 2 - 0.3)
   })
@@ -476,8 +552,10 @@ export function buildGasTurbineGenerator(eq: GasTurbineGenerator) {
   k.disc('glass', 0.04, [gx, yMid - 0.25, gbW / 2 + 0.018], 'z', 16)
   k.cyl(M.GEAR, 0.2, 0.1, [sGb1 + 0.05, ys, 0], 'x', 28)
   k.cyl(M.GEAR, 0.24, 0.1, [sGb0 - 0.05, yg, 0], 'x', 28)
-  couplingGuard(k, sGen1 - 0.02, sGb0 - 0.1, yg, 0.3, hs, 'safetyYellow')
-  couplingGuard(k, sGb1 + 0.1, sPl0 - 0.03, ys, 0.27, hs, 'safetyYellow')
+  // couplings turn inside their mesh guards (generator side slow, turbine side fast)
+  const rotors: RotorSpec[] = []
+  rotors.push(guardedCoupling(k, sGen1 - 0.02, sGb0 - 0.1, yg, 0.3, hs, 'safetyYellow', 135, 0, 0.1))
+  rotors.push(guardedCoupling(k, sGb1 + 0.1, sPl0 - 0.03, ys, 0.27, hs, 'safetyYellow', 215, 0, 0.08))
 
   // ================================================================ air-inlet plenum + bell-mouth
   const plL = sPl1 - sPl0
@@ -701,7 +779,9 @@ export function buildGasTurbineGenerator(eq: GasTurbineGenerator) {
   k.at([xp, fy0, -FW / 2], faceQ('-z'), () => hoods(k, FL - 0.25, FH - 0.35, 0, FH / 2))
   k.at([xp - FL / 2, fy0, 0], faceQ('-x'), () => hoods(k, FW - 0.25, FH - 0.35, 0, FH / 2))
   k.at([xp + FL / 2, fy0, 0], faceQ('x'), () => {
-    door(k, 0.7, Math.min(1.8, FH - 0.3), FW / 2 - 0.6)
+    // filter-house access door (stays shut: it opens onto the filter stages, not the machine)
+    const fdH = Math.min(1.8, FH - 0.3)
+    for (const L of doorFrame(k, 0.7, fdH, FW / 2 - 0.6)) k.at([L.hingeX, 0, HINGE_Z], undefined, () => doorLeaf(k, L.lw, fdH, L.latch))
     k.rbox('stainless', [0.5, 0.6, 0.12], 0.02, [-FW / 2 + 0.6, FH * 0.55, 0.06])
     for (let i = 0; i < 3; i++) smallGauge(k, [-FW / 2 + 0.45 + i * 0.15, FH * 0.55 + 0.12, 0.13], 'z', dialMaterial('bar', 10), 0.09)
   })
@@ -731,16 +811,19 @@ export function buildGasTurbineGenerator(eq: GasTurbineGenerator) {
   // ================================================================ ventilation fans on the roof (generator end)
   const fanR = clamp(0.3 + 0.005 * MW, 0.3, 0.5)
   const fanXmax = xp - FL / 2 - fanR - 0.3
+  let roofFan: RotorSpec | undefined
   for (const fx of [xa + gR * 0.3, xa + gR * 0.68]) {
     if (fx > fanXmax) continue
     const fz = -encW * 0.18
     k.box(TRIM, [fanR * 2 + 0.2, 0.25, fanR * 2 + 0.2], [fx, H + 0.125, fz])
     k.cyl(TRIM, fanR, 0.7, [fx, H + 0.6, fz], 'y', 32, undefined, true)
     k.disc('castIron', fanR, [fx, H + 0.5, fz], 'y', 32)
-    k.cyl(TRIM, fanR + 0.03, 0.05, [fx, H + 0.95, fz], 'y', 32)
+    k.cyl(TRIM, fanR + 0.03, 0.05, [fx, H + 0.95, fz], 'y', 32, undefined, true) // rim (open: the impeller shows through the guard)
     k.disc(fanGuardMaterial(), fanR, [fx, H + 0.976, fz], 'y', 32)
     k.cyl('motorPaint', fanR * 0.32, 0.3, [fx, H + 0.8, fz], 'y', 16)
-    for (let b = 0; b < 3; b++) k.box('castIron', [fanR * 1.7, 0.01, 0.1], [fx, H + 0.62, fz], eul(0.3, (b * Math.PI) / 3, 0))
+    // impeller (turns): aluminium blades over the dark damper plate
+    roofFan ??= fanRotor(k, 'stainless', fanR * 0.94, [0, 0, 0], 'y', 0, { blades: 6, chord: fanR * 0.36, pitch: 0.42, hub: fanR * 0.3, hubLen: 0.1 })
+    rotors.push({ ...roofFan, pos: [fx, H + 0.62, fz], rpm: 170 })
     k.rbox('stainless', [0.18, 0.2, 0.12], 0.01, [fx + fanR + 0.14, H + 0.35, fz])
   }
 
@@ -962,26 +1045,33 @@ export function buildGasTurbineGenerator(eq: GasTurbineGenerator) {
     for (const s of [-1, 1]) k.box(OIL, [0.12, 0.24, lD + 0.04], [xl + s * (cL / 2 - 0.06), yc0 + 0.1, zc])
     k.box(OIL, [cL, 0.3, lD], [xl, yc0 + 0.35, zc])
     const nf = cL > 2.2 ? 2 : 1
+    let coolFan: RotorSpec | undefined
     const fr = Math.min(lD / 2 - 0.04, cL / (2 * nf) - 0.06)
     for (let i = 0; i < nf; i++) {
       const fx = xl - cL / 2 + ((i + 0.5) * cL) / nf
       k.cyl(OIL, fr + 0.02, 0.14, [fx, yc0 + 0.57, zc], 'y', 32, undefined, true)
       k.disc(fanGuardMaterial(), fr, [fx, yc0 + 0.64, zc], 'y', 32)
       k.cyl('motorPaint', fr * 0.3, 0.22, [fx, yc0 + 0.76, zc], 'y', 16)
+      k.cyl('motorPaint', 0.025, 0.1, [fx, yc0 + 0.6, zc], 'y', 10) // motor shaft through the guard
+      // fin-fan impeller (turns) under the guard, drawing air up through the cooler core
+      coolFan ??= fanRotor(k, 'stainless', fr * 0.93, [0, 0, 0], 'y', 0, { blades: 4, chord: fr * 0.4, pitch: 0.32, hub: fr * 0.2, hubLen: 0.06 })
+      rotors.push({ ...coolFan, pos: [fx, yc0 + 0.57, zc], rpm: 190 })
     }
     pipeRun(k, [[xl + lcL * 0.42, yt, zc], [xl + lcL * 0.42, yc0 + 0.1, zc], [xl + cL / 2 - 0.06, yc0 + 0.1, zc]], 2, OIL)
     pipeRun(k, [[xl - cL / 2 + 0.06, yc0 + 0.1, zc - lD * 0.25], [xl - lcL * 0.45, yc0 + 0.1, zc - lD * 0.25], [xl - lcL * 0.45, yt, zc - lD * 0.25]], 2, OIL)
   }
 
-  return k.build()
+  return { built: k.build(), rotors, doors }
 }
 
 export function GasTurbineGeneratorModel({ eq }: { eq: GasTurbineGenerator }) {
-  const built = useMemo(() => buildGasTurbineGenerator(eq), [eq])
+  const { built, rotors, doors } = useMemo(() => buildGasTurbineGenerator(eq), [eq])
   const m = materials()
   return (
     <group>
       <KitMesh data={built} />
+      <Rotors tag={eq.tag} rotors={rotors} />
+      <Doors tag={eq.tag} doors={doors} />
       {eq.nozzles.map((n) => (
         <NozzleNeck key={n.id} eq={eq} nozzle={n} paintMaterial={m.pipePaint} />
       ))}

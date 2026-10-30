@@ -31,6 +31,8 @@ import { paint } from '../../three/materials'
 import { NozzleNeck } from '../common/NozzleNeck'
 import { Kit, mat4, uvScale, type MatKey, type Orient, type V3 } from './machinery/kit'
 import { KitMesh } from './machinery/KitMesh'
+import { Rotors } from './machinery/Moving'
+import { fanImpeller, subKit, type RotorSpec } from './machinery/rotors'
 import { smallGauge, tagPlate } from './machinery/parts'
 import { dialMaterial, fanGuardMaterial, meshGuardMaterial } from './machinery/textures'
 
@@ -51,6 +53,13 @@ const EXHAUST = () => paint('#a3a6a2', 'detail', { metalness: 0.65, roughness: 0
 const CORE = () => paint('#2a2e31', 'detail', { metalness: 0.5, roughness: 0.6 })
 
 // ------------------------------------------------------------------ small helpers
+/** Kit for a turning assembly: few materials (one or two draw calls) */
+function rotorKit() {
+  const r = subKit()
+  r.alias = { stainless: 'flangeSteel', boltXylan: 'nut' }
+  return r
+}
+
 /** Flat ring / disc (rIn = 0) between y0 and y1 along `axis` from `pos`. */
 function annulus(k: Kit, mat: MatKey, rIn: number, rOut: number, y0: number, y1: number, pos: V3 = [0, 0, 0], axis: Orient = 'y', seg = 40) {
   k.lathe(mat, [[rIn, y0], [rOut, y0], [rOut, y1], [rIn, y1], [rIn, y0]], pos, axis, seg)
@@ -150,6 +159,8 @@ interface Ctx {
   yTop: number
   /** line-shaft radius */
   rs: number
+  /** turning assemblies (canonical frame) */
+  rotors: RotorSpec[]
 }
 
 function buildCaissonPump(eq: CaissonPump) {
@@ -178,7 +189,7 @@ function buildCaissonPump(eq: CaissonPump) {
   const yTop = yOut + Math.max(dOD / 2, rb * 0.8) + 0.14
   const rs = clamp(0.018 + colR * 0.12, 0.025, 0.06)
 
-  const c: Ctx = { k, eq, drv, R, bx: bc[0], bz: bc[2], yOut, dNps, dOD, colR, rb, yTop, rs }
+  const c: Ctx = { k, eq, drv, R, bx: bc[0], bz: bc[2], yOut, dNps, dOD, colR, rb, yTop, rs, rotors: [] }
   k.with(mat4([0, 0, 0], new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), theta)), () => {
     caisson(c)
     pumpInternals(c)
@@ -186,7 +197,8 @@ function buildCaissonPump(eq: CaissonPump) {
     if (eq.driver === 'diesel') dieselSet(c)
     else electricMotor(c)
   })
-  return { built: k.build(), headPaint: drv }
+  // rotors are built in the canonical (discharge = +X) frame: the model turns them by theta
+  return { built: k.build(), headPaint: drv, rotors: c.rotors, theta }
 }
 
 // ------------------------------------------------------------------ caisson
@@ -453,15 +465,23 @@ function electricMotor(c: Ctx) {
   }
   meshTube(k, [0, yS0 + 0.04, 0], [0, yS1 - 0.045, 0], rS0 + 0.012, rS1 - 0.012)
   // pump shaft + adjustable flanged coupling + motor shaft
+  // (the whole shaft line turns while the pump runs: drawn as a rotor about the shaft axis, origin yC)
   const yC = yS0 + Math.max(0.42, hS * 0.55)
-  k.cyl('stainless', rs, yC - yTop - 0.2, [0, (yC + yTop + 0.2) / 2, 0], 'y', 14)
-  k.cyl('flangeSteel', rs * 2.3, 0.1, [0, yC - 0.07, 0], 'y', 20)
-  k.cyl('flangeSteel', rs * 3.6, 0.035, [0, yC - 0.02, 0], 'y', 24)
-  k.cyl('nut', rs * 2.2, 0.03, [0, yC + 0.005, 0], 'y', 16) // adjusting nut
-  k.cyl('flangeSteel', rs * 3.6, 0.035, [0, yC + 0.03, 0], 'y', 24)
-  k.cyl('flangeSteel', rs * 2.3, 0.1, [0, yC + 0.1, 0], 'y', 20)
-  k.boltCircle('boltXylan', 'nut', 6, rs * 2.9, [0, yC - 0.05, 0], 'y', 0.01, 0.11, [0.005, 0.1])
-  k.cyl('stainless', rs * 1.1, yS1 - yC - 0.1, [0, (yS1 + yC + 0.1) / 2, 0], 'y', 14)
+  {
+    const r = rotorKit()
+    r.cyl('stainless', rs, yC - yTop - 0.2, [0, (yTop + 0.2 - yC) / 2, 0], 'y', 14)
+    r.cyl('flangeSteel', rs * 2.3, 0.1, [0, -0.07, 0], 'y', 20)
+    r.cyl('flangeSteel', rs * 3.6, 0.035, [0, -0.02, 0], 'y', 24)
+    r.cyl('nut', rs * 2.2, 0.03, [0, 0.005, 0], 'y', 16) // adjusting nut
+    r.cyl('flangeSteel', rs * 3.6, 0.035, [0, 0.03, 0], 'y', 24)
+    r.cyl('flangeSteel', rs * 2.3, 0.1, [0, 0.1, 0], 'y', 20)
+    r.boltCircle('boltXylan', 'nut', 6, rs * 2.9, [0, -0.05, 0], 'y', 0.01, 0.11, [0.005, 0.1])
+    r.cyl('stainless', rs * 1.1, yS1 - yC - 0.1, [0, (yS1 - yC + 0.1) / 2, 0], 'y', 14)
+    // keys in the hub keyways + a paint mark, so the turning shows
+    for (const y of [-0.07, 0.1]) r.box('nut', [rs * 0.5, 0.09, rs * 0.5], [rs * 2.3, y, 0])
+    r.box('nut', [rs * 0.4, 0.25, rs * 0.4], [rs * 1.1, -0.3, 0])
+    c.rotors.push({ built: r.build(), axis: 'y', pos: [0, yC, 0], rpm: 155 })
+  }
 
   // motor: D-flange, lower end shield, finned frame, upper shield, fan cowl + drip canopy
   const shL = Math.max(0.06, Rm * 0.22)
@@ -596,18 +616,26 @@ function dieselSet(c: Ctx) {
   const P2 = new THREE.Vector3(xF + 0.02, yCr, 0)
   const dir = P1.clone().sub(P2).normalize()
   const at = (t: number) => P2.clone().lerp(P1, t).toArray() as V3
-  for (const [p, s] of [[P1, -1], [P2, 1]] as [THREE.Vector3, number][]) {
-    const q = p.clone().addScaledVector(dir, s * 0.05)
-    k.cyl('flangeSteel', 0.11, 0.03, q.toArray() as V3, dir.toArray() as V3, 24) // flange yoke
-    const j = p.clone().addScaledVector(dir, s * 0.13)
-    for (const zz of [-1, 1]) k.box('flangeSteel', [0.1, 0.05, 0.03], [j.x, j.y, zz * 0.06])
-    k.box('nut', [0.04, 0.13, 0.04], j.toArray() as V3) // cross / spider
-    k.box('nut', [0.04, 0.04, 0.13], j.toArray() as V3)
-    const j2 = p.clone().addScaledVector(dir, s * 0.2)
-    for (const yy of [-1, 1]) k.box('flangeSteel', [0.1, 0.03, 0.05], [j2.x, j2.y + yy * 0.06, j2.z])
+  {
+    // yokes, spiders, slip sleeve and tube turn (rotor along +X about the shaft midpoint)
+    const Lsh = P1.distanceTo(P2)
+    const r = rotorKit()
+    const xt = (t: number) => -Lsh / 2 + t * Lsh
+    for (const [x0, s] of [[Lsh / 2, -1], [-Lsh / 2, 1]] as [number, number][]) {
+      r.cyl('flangeSteel', 0.11, 0.03, [x0 + s * 0.05, 0, 0], 'x', 24) // flange yoke
+      const j = x0 + s * 0.13
+      for (const zz of [-1, 1]) r.box('flangeSteel', [0.1, 0.05, 0.03], [j, 0, zz * 0.06])
+      r.box('nut', [0.04, 0.13, 0.04], [j, 0, 0]) // cross / spider
+      r.box('nut', [0.04, 0.04, 0.13], [j, 0, 0])
+      const j2 = x0 + s * 0.2
+      for (const yy of [-1, 1]) r.box('flangeSteel', [0.1, 0.03, 0.05], [j2, yy * 0.06, 0])
+    }
+    r.cyl('stainless', 0.06, (0.55 - 0.22) * Lsh, [xt(0.385), 0, 0], 'x', 18) // slip-yoke sleeve
+    r.cyl('flangeSteel', 0.045, (0.82 - 0.18) * Lsh, [0, 0, 0], 'x', 18) // tube
+    r.box('nut', [0.06, 0.02, 0.04], [xt(0.68), 0.05, 0]) // balance weight
+    const mid = P1.clone().add(P2).multiplyScalar(0.5)
+    c.rotors.push({ built: r.build(), axis: 'x', pos: mid.toArray() as V3, rot: [0, 0, Math.atan2(dir.y, dir.x)], rpm: 150 })
   }
-  k.rod('stainless', at(0.22), at(0.55), 0.06, 18) // slip-yoke sleeve
-  k.rod('flangeSteel', at(0.18), at(0.82), 0.045, 18) // tube
   meshTube(k, at(0.06), at(0.94), 0.2)
   for (const tt of [0.06, 0.94]) k.torus('safetyYellow', 0.2, 0.012, at(tt), dir.toArray() as V3, 6, 28)
   // guard support legs
@@ -725,9 +753,14 @@ function dieselSet(c: Ctx) {
   k.cyl(drv, Math.min(We * 0.42, hc + 0.05), 0.3, [xBack + 0.15, yCr, 0], 'x', 36, Math.min(We * 0.34, hc - 0.02))
   k.cyl('flangeSteel', 0.12, 0.04, [xF, yCr, 0], 'x', 24)
   // front: crank pulley + belts to the fan
-  k.cyl('castIron', 0.13, 0.08, [xFront - 0.04, yCr, 0], 'x', 24)
   const yFan = yBlk0 + hBlk * 0.75
-  k.cyl('castIron', 0.09, 0.06, [xFront - 0.05, yFan, 0], 'x', 20)
+  {
+    // crank pulley (turns), with a damper and timing mark
+    const r = rotorKit()
+    r.cyl('castIron', 0.13, 0.08, [0, 0, 0], 'x', 24)
+    r.box('nut', [0.085, 0.03, 0.02], [-0.002, 0.09, 0])
+    c.rotors.push({ built: r.build(), axis: 'x', pos: [xFront - 0.04, yCr, 0], rpm: 150 })
+  }
   for (const z of [-0.02, 0.02]) k.rod('rubberBlack', [xFront - 0.05, yCr + 0.1, z], [xFront - 0.05, yFan - 0.07, z], 0.012, 6)
 
   // ---- radiator (engine-driven pusher fan), header tank, hoses
@@ -743,7 +776,17 @@ function dieselSet(c: Ctx) {
   openTube(k, drv, [xRad + 0.08, yFan, 0], [xFront - 0.08, yFan, 0], rFan, 32, rFan * 0.9)
   k.box(drv, [0.02, Hr - 0.1, Wr - 0.1], [xRad + 0.085, yR0 + Hr / 2, 0])
   k.disc(fanGuardMaterial(), rFan * 0.98, [xRad + 0.1, yFan, 0], 'x', 32)
-  k.cyl('castIron', 0.06, 0.12, [xFront - 0.14, yFan, 0], 'x', 14)
+  k.cyl('castIron', 0.06, 0.12, [xFront - 0.14, yFan, 0], 'x', 14) // fan bearing housing
+  {
+    // engine-driven pusher fan + its belt pulley (one rotor on the fan spindle)
+    const xf = xRad + 0.2
+    const r = rotorKit()
+    fanImpeller(r, 'castIron', rFan * 0.92, { axis: 'x', blades: 6, chord: rFan * 0.32, pitch: 0.36, hub: 0.07, hubLen: 0.08 })
+    const xp = xFront - 0.05 - xf
+    r.cyl('castIron', 0.09, 0.06, [xp, 0, 0], 'x', 20)
+    r.box('nut', [0.065, 0.025, 0.02], [xp, 0.06, 0])
+    c.rotors.push({ built: r.build(), axis: 'x', pos: [xf, yFan, 0], rpm: 195 })
+  }
   k.cyl(drv, 0.1, Wr * 0.6, [xRad + 0.02, yR0 + Hr + 0.1, 0], 'z', 18) // header tank
   k.cyl('brass', 0.035, 0.05, [xRad + 0.02, yR0 + Hr + 0.21, 0], 'y', 14)
   k.spline('rubberBlack', [[xFront + 0.05, yBT + 0.06, 0], [xFront - 0.15, yBT + 0.15, We * 0.25], [xRad + 0.1, yR0 + Hr - 0.15, We * 0.3]], 0.045, 10, 20)
@@ -833,10 +876,13 @@ function dieselSet(c: Ctx) {
 }
 
 export function CaissonPumpModel({ eq }: { eq: CaissonPump }) {
-  const { built, headPaint } = useMemo(() => buildCaissonPump(eq), [eq])
+  const { built, headPaint, rotors, theta } = useMemo(() => buildCaissonPump(eq), [eq])
   return (
     <group>
       <KitMesh data={built} />
+      <group rotation-y={theta}>
+        <Rotors tag={eq.tag} rotors={rotors} />
+      </group>
       {eq.nozzles.map((n) => (
         <NozzleNeck key={n.id} eq={eq} nozzle={n} paintMaterial={headPaint} />
       ))}

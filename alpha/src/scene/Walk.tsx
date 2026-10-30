@@ -14,7 +14,9 @@ import { useFrame, useThree } from '@react-three/fiber'
 import type { CameraControls } from '@react-three/drei'
 import { useEffect, useMemo, useRef } from 'react'
 import * as THREE from 'three'
-import type { Equipment, Plant, PlanRect, WalkLevel } from '../model/types'
+import type { Equipment, Module, ModuleDoor, Plant, PlanRect, WalkLevel } from '../model/types'
+import { useSim } from '../state/sim'
+import { resolveDoors, HF } from './equipment/moduleLayout'
 import { footprints } from '../model/footprint'
 import { labelHeight } from '../ui/labels'
 import { usePlantStore } from '../state/plantStore'
@@ -30,7 +32,17 @@ const DWELL = 0.3 // s an item must stay centred before it is inspected
 const CLEAR_AFTER = 0.8 // s of looking at nothing before the panel closes
 
 /** Live walker pose (plant plan coordinates; yaw 0 looks toward -Z / north). Read by the minimap. */
-export const walkPose = { x: 0, z: 0, yaw: 0, pitch: -0.05, level: 0 }
+export const walkPose = {
+  x: 0,
+  z: 0,
+  yaw: 0,
+  pitch: -0.05,
+  level: 0,
+  /** world y of the floor under the walker's feet (the avatar stands on it) */
+  footY: DECK_WORLD_Y,
+  /** horizontal speed along the heading, m/s (negative = backwards) — drives the avatar's walk cycle */
+  speed: 0,
+}
 if (import.meta.env.DEV) (window as unknown as Record<string, unknown>).__walkPose = walkPose
 
 const forward = (yaw: number, pitch = 0) =>
@@ -58,11 +70,67 @@ const eqLevel = (levels: WalkLevel[], e: Equipment) => levelAt(levels, e.positio
 /** deck-local floor height of the walker's level */
 export const floorY = () => walkLevels(usePlantStore.getState().plant)[walkPose.level]?.y ?? 0
 
-/** what blocks walking on a level: equipment standing on it (padded) + the level's obstacles */
-function blockers(p: Plant, li: number): PlanRect[] {
+/** module doors: the same resolution the Module model draws (data, or its default pair) */
+export const moduleDoors = (m: Module): ModuleDoor[] => resolveDoors(m)
+
+/** a module is hollow: four walls, with a gap at every open door */
+function moduleWalls(m: Module, open: (id: string) => boolean): PlanRect[] {
+  const [sx, , sz] = m.size
+  const T = 0.3 + PAD
+  const hx = sx / 2
+  const hz = sz / 2
+  const out: PlanRect[] = []
+  const wall = (side: ModuleDoor['wall']) => {
+    const along = side === '+z' || side === '-z' ? 'x' : 'z'
+    const half = along === 'x' ? hx : hz
+    // gaps along the wall from open doors
+    const gaps = moduleDoors(m).filter((d) => d.wall === side && open(d.id)).map((d) => [d.at - d.width / 2, d.at + d.width / 2] as [number, number]).sort((a, b) => a[0] - b[0])
+    let u = -half - PAD
+    const pieces: [number, number][] = []
+    for (const [g0, g1] of gaps) {
+      if (g0 > u) pieces.push([u, g0])
+      u = Math.max(u, g1)
+    }
+    if (u < half + PAD) pieces.push([u, half + PAD])
+    for (const [a, b] of pieces) {
+      const rect: [number, number, number, number] =
+        side === '+z' ? [a, b, hz - T / 2, hz + T / 2] : side === '-z' ? [a, b, -hz - T / 2, -hz + T / 2] : side === '+x' ? [hx - T / 2, hx + T / 2, a, b] : [-hx - T / 2, -hx + T / 2, a, b]
+      out.push(localRect(m, rect))
+    }
+  }
+  for (const s of ['+x', '-x', '+z', '-z'] as const) wall(s)
+  return out
+}
+/** equipment-local rectangle → plan rectangle (rotation in quarter turns) */
+function localRect(e: Equipment, [x0, x1, z0, z1]: [number, number, number, number]): PlanRect {
+  const c = Math.cos(e.rotationY)
+  const s = Math.sin(e.rotationY)
+  const pts = [[x0, z0], [x1, z0], [x0, z1], [x1, z1]].map(([x, z]) => [e.position[0] + x * c + z * s, e.position[2] - x * s + z * c])
+  return { x0: Math.min(...pts.map((p) => p[0])), x1: Math.max(...pts.map((p) => p[0])), z0: Math.min(...pts.map((p) => p[1])), z1: Math.max(...pts.map((p) => p[1])) }
+}
+/** inside a module's walls → the raised internal floor */
+const MODULE_FLOOR = HF
+function insideModule(p: Plant, li: number, x: number, z: number) {
+  const levels = walkLevels(p)
+  return p.equipment.some((e) => {
+    if (e.kind !== 'module' || eqLevel(levels, e) !== li) return false
+    const r = localRect(e, [-e.size[0] / 2 + 0.2, e.size[0] / 2 - 0.2, -e.size[2] / 2 + 0.2, e.size[2] / 2 - 0.2])
+    return x > r.x0 && x < r.x1 && z > r.z0 && z < r.z1
+  })
+}
+
+/** what blocks walking on a level: equipment standing on it (padded; modules as walls with door gaps) + the level's obstacles */
+function blockers(p: Plant, li: number, doors: Record<string, boolean> = useSim.getState().doors): PlanRect[] {
   const levels = walkLevels(p)
   const fps = footprints(p.equipment, PAD)
-  return [...p.equipment.flatMap((e, i) => (e.kind !== 'proxy' && eqLevel(levels, e) === li ? [fps[i]] : [])), ...(levels[li]?.obstacles ?? [])]
+  return [
+    ...p.equipment.flatMap((e, i) => {
+      if (e.kind === 'proxy' || eqLevel(levels, e) !== li) return []
+      if (e.kind === 'module') return moduleWalls(e, (id) => !!doors[`${e.tag}/${id}`])
+      return [fps[i]]
+    }),
+    ...(levels[li]?.obstacles ?? []),
+  ]
 }
 function walkable(p: Plant, li: number, block: PlanRect[], x: number, z: number) {
   const lv = walkLevels(p)[li]
@@ -112,7 +180,12 @@ export function WalkDriver({ controls, root }: { controls: React.RefObject<Camer
   const dom = useThree((s) => s.gl.domElement)
   const levels = useMemo(() => walkLevels(plant), [plant])
   const level = useStore((s) => s.walkLevel)
-  const block = useMemo(() => blockers(plant, level), [plant, level])
+  const doors = useSim((s) => s.doors)
+  const block = useMemo(() => blockers(plant, level, doors), [plant, level, doors])
+  const scene = useThree((s) => s.scene)
+  const raise = useRef(0)
+  const last = useRef({ x: walkPose.x, z: walkPose.z })
+  const doorScan = useRef({ t: 0, roots: [] as THREE.Object3D[], auto: new Set<string>() })
   const boxes = useMemo(() => gazeBoxes(plant, level), [plant, level])
   const allBoxes = useMemo(() => levels.flatMap((_, i) => gazeBoxes(plant, i)), [plant, levels])
   const keys = useRef(new Set<string>())
@@ -152,6 +225,11 @@ export function WalkDriver({ controls, root }: { controls: React.RefObject<Camer
     const down = (e: KeyboardEvent) => {
       if (isField(e) || e.metaKey || e.ctrlKey) return
       const k = e.key.toLowerCase()
+      if (k === 'v') {
+        const st = useStore.getState()
+        st.setWalkView(st.walkView === 'third' ? 'first' : 'third')
+        return
+      }
       if (/^[1-9]$/.test(k) && Number(k) <= levels.length) {
         useStore.getState().setWalkLevel(Number(k) - 1)
         return
@@ -256,9 +334,55 @@ export function WalkDriver({ controls, root }: { controls: React.RefObject<Camer
       }
       if (!tryMove(walkPose.x + dx, walkPose.z + dz)) if (!tryMove(walkPose.x + dx, walkPose.z)) tryMove(walkPose.x, walkPose.z + dz)
     }
-    const eye = new THREE.Vector3(walkPose.x, DECK_WORLD_Y + (levels[walkPose.level]?.y ?? 0) + EYE, walkPose.z)
+    // step up onto a module's raised floor when inside it
+    const target = insideModule(plant, walkPose.level, walkPose.x, walkPose.z) ? MODULE_FLOOR : 0
+    raise.current += (target - raise.current) * Math.min(1, dt * 6)
+    const eye = new THREE.Vector3(walkPose.x, DECK_WORLD_Y + (levels[walkPose.level]?.y ?? 0) + EYE + raise.current, walkPose.z)
+
+    // doors open as you walk up to them and close behind you (doors you clicked stay as you left them)
+    const ds = doorScan.current
+    ds.t -= dt
+    if (ds.t <= 0) {
+      ds.t = 0.25
+      if (!ds.roots.length || Math.random() < 0.05) {
+        ds.roots = []
+        scene.traverse((o) => o.userData?.doorRoot && ds.roots.push(o))
+      }
+      const sim = useSim.getState()
+      const w = new THREE.Vector3()
+      for (const o of ds.roots) {
+        const { tag, id } = o.userData.doorRoot as { tag: string; id: string }
+        const key = `${tag}/${id}`
+        o.getWorldPosition(w)
+        const d = Math.hypot(w.x - eye.x, w.z - eye.z)
+        const near = d < 2.6 && Math.abs(w.y - eye.y) < 3
+        if (near && !sim.doors[key]) {
+          sim.setDoor(key, true)
+          ds.auto.add(key)
+        } else if (!near && d > 4.5 && ds.auto.has(key) && sim.doors[key]) {
+          sim.setDoor(key, false)
+          ds.auto.delete(key)
+        }
+      }
+    }
+    // pose for the avatar
+    const fwd0 = forward(walkPose.yaw)
+    const moved = (walkPose.x - last.current.x) * fwd0.x + (walkPose.z - last.current.z) * fwd0.z
+    const inst = dt > 0 ? Math.max(-8, Math.min(8, moved / dt)) : 0 // clamp: a teleport isn't a sprint
+    walkPose.speed += (inst - walkPose.speed) * Math.min(1, dt * 8)
+    if (Math.abs(walkPose.speed) < 0.02) walkPose.speed = 0
+    last.current = { x: walkPose.x, z: walkPose.z }
+    walkPose.footY = eye.y - EYE
+
+    // camera: through the person's eyes, or following behind them when the person is shown
     const look = eye.clone().addScaledVector(forward(walkPose.yaw, walkPose.pitch), 2)
-    c.setLookAt(eye.x, eye.y, eye.z, look.x, look.y, look.z, false)
+    if (useStore.getState().walkView === 'third') {
+      const indoor = raise.current > 0.3
+      const back = indoor ? 2.2 : 3.6
+      const cam = eye.clone().addScaledVector(fwd0, -back).add(new THREE.Vector3(0, indoor ? 0.45 : 0.9, 0))
+      const tgt = eye.clone().addScaledVector(forward(walkPose.yaw, walkPose.pitch), 3).add(new THREE.Vector3(0, -0.25, 0))
+      c.setLookAt(cam.x, cam.y, cam.z, tgt.x, tgt.y, tgt.z, false)
+    } else c.setLookAt(eye.x, eye.y, eye.z, look.x, look.y, look.z, false)
 
     // gaze → inspected equipment (with dwell)
     ray.set(eye, forward(walkPose.yaw, walkPose.pitch))

@@ -10,6 +10,7 @@ import * as THREE from 'three'
 import type { BuiltPiping } from './build'
 import { SERVICE } from '../../model/catalog'
 import { registerMaterial } from '../../three/materials'
+import { useSim } from '../../state/sim'
 
 const SPEED: Record<string, number> = {
   gas: 6, flare: 3.5, multiphase: 2.2, oil: 1.4, water: 1.2, cooling: 1.6, firewater: 0.6, chemical: 0.5, drain: 0.4, instrumentAir: 4,
@@ -67,11 +68,19 @@ export function FlowParticles({ built, visible }: { built: BuiltPiping; visible:
     const mesh = ref.current
     if (!mesh || !visible) return
     const step = Math.min(dt, 0.05)
+    const flow = useSim.getState().lineFlow
     for (let i = 0; i < count; i++) {
       const pt = parts[i]
       const b = built.lines[pt.line]
       const L = b.pathLen[b.pathLen.length - 1]
-      pt.u = (pt.u + step * (SPEED[b.line.service] ?? 1) * pt.s) % L
+      // the simulated plant sets each line's flow: faster with throughput, stopped when it's zero
+      const f = flow[b.line.tag] ?? 1
+      if (f < 0.02) {
+        tmp.m.makeScale(0, 0, 0)
+        mesh.setMatrixAt(i, tmp.m)
+        continue
+      }
+      pt.u = (pt.u + step * (SPEED[b.line.service] ?? 1) * pt.s * Math.min(1.6, Math.max(0.25, f))) % L
       // locate segment (binary search)
       const pl = b.pathLen
       let lo = 0

@@ -15,11 +15,13 @@ import { buildJacket } from './jacket'
 import { buildCellarDeck } from './cellarDeck'
 import { buildFlareBoom, buildTopsides, flareTip, FLARE } from './topsides'
 import { buildDrillingRig } from './drillingRig'
+import { RigMotion } from './RigMotion'
 import { envMat } from './envShared'
 import { facadeTextures, helideckTexture } from './envTextures'
 import { FlareFlame } from './Flare'
 import { SupplyVessel } from './Vessel'
 import { LQPlatform } from './LQPlatform'
+import { WHPPlatform } from './WHPPlatform'
 
 type MatKey =
   | 'jacket'
@@ -197,9 +199,11 @@ export function Surroundings({ upperDeck = true, vessel = true }: SurroundingsPr
     <group name="Surroundings">
       <PartMeshes parts={base} mats={mats} />
       {upperDeck && <PartMeshes parts={upper} mats={mats} />}
+      {upperDeck && <RigMotion mats={mats} />}
       <FlareFlame position={[tip[0] + d.x * 3.4, tip[1] + d.y * 3.4 - 0.5, tip[2] + d.z * 3.4]} height={16} />
       {vessel && <SupplyVessel />}
       <LQPlatform mats={mats} />
+      <WHPPlatform mats={mats} />
     </group>
   )
 }

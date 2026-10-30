@@ -11,7 +11,7 @@ import { gratingRect, partition, plateRect, type GratingBatches, type Rect } fro
 import { perimeterDistance, railPolyline, type RailBatches } from './handrail'
 import { STAIR_TOWERS, towerGap } from './stairs'
 import { signUV } from './textures'
-import { BRIDGE_S } from '../../model/site'
+import { BRIDGE_N, BRIDGE_S } from '../../model/site'
 
 const half = (s: SectionName) => SECTIONS[s].b / 2
 
@@ -197,5 +197,9 @@ export function buildPerimeterRail(rb: RailBatches, y = 0, inset = 0.05) {
   const ba = perimeterDistance(pts, BRIDGE_S.walk.x0, z1 - inset)
   const bb = perimeterDistance(pts, BRIDGE_S.walk.x1, z1 - inset)
   gaps.push([Math.min(ba, bb), Math.max(ba, bb)])
+  // north edge: landing of the walkway bridge to the WHP-N wellhead platform
+  const na = perimeterDistance(pts, BRIDGE_N.walk.x0, z0 + inset)
+  const nb = perimeterDistance(pts, BRIDGE_N.walk.x1, z0 + inset)
+  gaps.push([Math.min(na, nb), Math.max(na, nb)])
   railPolyline(rb, pts, y, gaps, true)
 }

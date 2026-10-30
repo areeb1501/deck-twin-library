@@ -9,6 +9,9 @@ import { fmt, history, sample } from './live'
 import { FG_LABEL, VALVE_LABEL, kindLabel } from './TagTree'
 import { metricsFor, type Metric } from './metrics'
 import { isIsolatable } from '../model/isolation'
+import { RunControl } from './OperationsPanel'
+
+const RUNS = new Set(['pumpPackage', 'compressorPackage', 'gasTurbineGenerator', 'caissonPump', 'chemSkid', 'transformer', 'proxy'])
 
 const mm = (m: number) => `${Math.round(m * 1000)} mm`
 const m2 = (m: number) => `${m.toFixed(2)} m`
@@ -343,6 +346,7 @@ export function Inspector() {
         {walk && selected && <button onClick={() => select(null)}>Unpin</button>}
         <button onClick={() => focus(sel.tag)}>{walk ? 'Walk to' : 'Frame'}</button>
         <button onClick={() => cut(sel.tag)}>Cut open</button>
+        <button onClick={() => useStore.getState().setKbTag(sel.tag)} title="What it is, how it's used, ideal parameters">About</button>
         {isIsolatable(plant, sel.tag) && (
           <button onClick={() => useStore.getState().setIsolation({ target: sel.tag, mode: 'valve' })} title="Find the valves to close to isolate this item (LOTO)">
             Plan isolation
@@ -351,6 +355,12 @@ export function Inspector() {
         {section && <button onClick={() => setSection({ enabled: false })}>Clear cut</button>}
       </div>
       <div className="insp-body">
+        {eq && RUNS.has(eq.kind) && !(eq.kind === 'proxy' && eq.role === 'bop') && (
+          <section className="sec insp-run">
+            <h4>Operation</h4>
+            <RunControl tag={eq.tag} />
+          </section>
+        )}
         {!inst && <Metrics tag={sel.tag} />}
         {eq && <EquipmentView eq={eq} />}
         {line && <LineView l={line} />}

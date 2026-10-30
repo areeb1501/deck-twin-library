@@ -13,6 +13,8 @@ import { NozzleNeck } from '../common/NozzleNeck'
 import { paint } from '../../three/materials'
 import { Kit, eul, mat4, type MatKey, type V3 } from './machinery/kit'
 import { KitMesh } from './machinery/KitMesh'
+import { Rotors } from './machinery/Moving'
+import { tefcCowlFan, type RotorSpec } from './machinery/rotors'
 import { ribbedPanel } from './machinery/cladding'
 import { routeToNozzle, smallGauge, tagPlate, tefcMotor } from './machinery/parts'
 import { dirToLocal, toLocal } from '../../model/geom'
@@ -124,6 +126,8 @@ export function buildChemSkid(eq: ChemSkid) {
   const yb = hs + 0.12
   const headerY = hs + 1.25
   const headerZ = W / 2 - 0.12
+  const rotors: RotorSpec[] = []
+  let pumpFan: RotorSpec | undefined
   for (let i = 0; i < nP; i++) {
     const px = -L / 2 + 0.2 + pp * (i + 0.5)
     const tank = Math.floor(i / perTank)
@@ -144,6 +148,10 @@ export function buildChemSkid(eq: ChemSkid) {
       k.hex(SS, 0.04, 0.05, [0.16, 0.04, 0], 'y')
       k.hex(SS, 0.04, 0.05, [0.16, 0.2, 0], 'y')
     })
+    // motor cooling fan behind the cowl grille (motor at pump-local [-0.09, 0.11, 0], shaft along local X)
+    const fan = (pumpFan ??= tefcCowlFan(k, 0.065, 0.24, 160))
+    const fp = new THREE.Vector3(-0.09 + fan.pos[0], 0.11, 0).applyEuler(new THREE.Euler(0, Math.PI / 2, 0)).add(new THREE.Vector3(px, yb, pz))
+    rotors.push({ ...fan, pos: fp.toArray() as V3, rot: [0, Math.PI / 2, 0] })
     // world positions of check valves (local +X -> world -Z)
     const headZ = pz - 0.16
     // suction from tank outlet
@@ -210,14 +218,15 @@ export function buildChemSkid(eq: ChemSkid) {
   // roof edge gutter
   k.box('moduleCladding', [L + 0.5, 0.06, 0.08], [0, roofH + 0.24, W / 2 + 0.25])
   tagPlate(k, eq.tag, [0, hs + bund * 0.5, W / 2 + 0.002], 'z', 0.3)
-  return k.build()
+  return { built: k.build(), rotors }
 }
 
 export function ChemSkidModel({ eq }: { eq: ChemSkid }) {
-  const built = useMemo(() => buildChemSkid(eq), [eq])
+  const { built, rotors } = useMemo(() => buildChemSkid(eq), [eq])
   return (
     <group>
       <KitMesh data={built} />
+      <Rotors tag={eq.tag} rotors={rotors} />
       {eq.nozzles.map((n) => (
         <NozzleNeck key={n.id} eq={eq} nozzle={n} />
       ))}

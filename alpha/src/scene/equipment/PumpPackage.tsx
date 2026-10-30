@@ -19,7 +19,9 @@ import { materials } from '../../three/materials'
 import { NozzleNeck } from '../common/NozzleNeck'
 import { Kit, sweepGeometry, type MatKey, type V3 } from './machinery/kit'
 import { KitMesh } from './machinery/KitMesh'
-import { couplingGuard, smallGauge, tagPlate, tefcMotor } from './machinery/parts'
+import { smallGauge, tagPlate, tefcMotor } from './machinery/parts'
+import { Rotors } from './machinery/Moving'
+import { guardedCoupling, tefcCowlFan, type RotorSpec } from './machinery/rotors'
 import { dialMaterial } from './machinery/textures'
 
 const CASING: MatKey = 'machineryGreen'
@@ -229,8 +231,13 @@ export function buildPump(eq: PumpPackage) {
   const Lwant = 2.6 * Rm + 0.35
   const Lm = Math.max(0.5, Math.min(Lwant, xm - (-BL / 2 + 0.06) - cowl))
   k.at([xm, ys, zc], undefined, () => tefcMotor(k, { R: Rm, L: Lm, H: ys - hb, tbox: 'side', cable: true }))
-  // motor sole plates (shims) visible under feet already; coupling guard
-  couplingGuard(k, xMotorShaft - 0.02, xCoupEnd + 0.04, ys, Math.max(0.16, shaftR * 4.2), hb)
+  // motor sole plates (shims) visible under feet already; coupling guard with the coupling (and
+  // shaft ends) turning inside it, and the motor's cooling fan behind the cowl grille — all one shaft
+  const rpm = 165
+  const rotors: RotorSpec[] = [
+    guardedCoupling(k, xMotorShaft - 0.02, xCoupEnd + 0.04, ys, Math.max(0.16, shaftR * 4.2), hb, 'safetyYellow', rpm, zc, Math.max(shaftR, 0.02, Rm * 0.13)),
+    tefcCowlFan(k, Rm, Lm, rpm, [xm, ys, zc]),
+  ]
 
   // ---------------------------------------------------------------- baseplate (drain-rim, grout holes, anchor bolts)
   const t = 0.012
@@ -338,15 +345,16 @@ export function buildPump(eq: PumpPackage) {
   k.hex('brass', 0.03, 0.02, [lx, by - 0.17, lz + 0.11])
   k.spline('cable', [[lx, by - 0.18, lz + 0.11], [lx, by - 0.35, lz + 0.06], [lx, hb + 0.2, lz + 0.04], [lx + 0.1, hb + 0.02, lz]], 0.008, 6, 24)
 
-  return k.build()
+  return { built: k.build(), rotors }
 }
 
 export function PumpPackageModel({ eq }: { eq: PumpPackage }) {
-  const built = useMemo(() => buildPump(eq), [eq])
+  const { built, rotors } = useMemo(() => buildPump(eq), [eq])
   const m = materials()
   return (
     <group>
       <KitMesh data={built} />
+      <Rotors tag={eq.tag} rotors={rotors} />
       {eq.nozzles.map((n) => (
         <NozzleNeck key={n.id} eq={eq} nozzle={n} paintMaterial={m.machineryGreen} />
       ))}

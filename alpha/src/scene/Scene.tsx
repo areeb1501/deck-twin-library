@@ -26,6 +26,8 @@ import { WalkDriver, leaveWalk } from './Walk'
 import { IsolationOverlay } from './IsolationOverlay'
 import { FireGasOverlay } from './FireGasOverlay'
 import { FireGasMounts } from './FireGasMounts'
+import { useSim } from '../state/sim'
+import { EyeProjector } from '../ui/Eyes'
 import type { ComponentType } from 'react'
 
 // environment modules are resolved by name so the app runs while they are being built
@@ -45,6 +47,9 @@ const SkyAndLights = envGet<object>('SkyAndLights', () => (
 ))
 
 const noRaycast = () => null
+// the walkthrough person (scene/Avatar.tsx), resolved by name so the scene runs without it
+const avatarMod = import.meta.glob('./Avatar.tsx', { eager: true }) as Record<string, Record<string, unknown>>
+const Avatar = (Object.values(avatarMod)[0]?.Avatar ?? (() => null)) as ComponentType<object>
 /** onshore plants keep the same world height so camera presets & section box still apply */
 const GRADE_Y = DECK_WORLD_Y
 const DEBUG = new URLSearchParams(location.search)
@@ -85,7 +90,9 @@ const PRESETS: Record<CameraPreset, { pos: [number, number, number]; target: [nu
   separator: { pos: [-1.5, 35.5, -21], target: [-12.5, 30.8, -10] },
   compressor: { pos: [-2, 33, 17], target: [4.5, 30, 7] },
   underdeck: { pos: [36, 22, 44], target: [0, 27, 0] },
-  field: { pos: [95, 75, 150], target: [4, 24, 45] },
+  field: { pos: [210, 140, 70], target: [-6, 14, 4] },
+  whp: { pos: [58, 46, -118], target: [12, 28, -74] },
+  bridgeN: { pos: [12, 29.7, -22.5], target: [12, 29.5, -60] },
   rig: { pos: [88, 84, -80], target: [3, 64, -13] },
   wellbay: { pos: [14, 23, -2], target: [3, 21, -13] },
   lq: { pos: [52, 46, 112], target: [8, 34, 72] },
@@ -259,6 +266,9 @@ function Plant() {
   const onClick = (e: ThreeEvent<MouseEvent>) => {
     if (e.delta > 5) return
     e.stopPropagation()
+    // a door leaf: open / close it instead of selecting the building
+    const door = e.object.userData?.door as { tag: string; id: string } | undefined
+    if (door) return useSim.getState().toggleDoor(`${door.tag}/${door.id}`)
     const p = findPick(e.object, e.instanceId)
     if (p) select(p)
   }
@@ -285,6 +295,7 @@ function Plant() {
         <NozzleMarkers />
         <IsolationOverlay built={built} />
         <FireGasOverlay built={built} />
+        <EyeProjector built={built} />
       </group>
     </>
   )
@@ -333,6 +344,11 @@ function ShadowOnDemand() {
   return null
 }
 
+function WalkAvatar() {
+  const show = useStore((s) => s.walk && s.walkView === 'third')
+  return show ? <Avatar /> : null
+}
+
 export function Scene() {
   const layers = useStore((s) => s.layers)
   const viewMode = useStore((s) => s.viewMode)
@@ -364,6 +380,8 @@ export function Scene() {
           </NoPick>
         )}
         <Plant />
+        {/* after Plant (which holds the walker) so the person draws this frame's pose */}
+        <WalkAvatar />
       </Suspense>
     </Canvas>
   )

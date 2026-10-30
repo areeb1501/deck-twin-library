@@ -40,6 +40,7 @@ import { headDepth, headSurface, nozzle, toDeck, dirToDeck, add, scale } from '.
 import { GASKET, pipeOD } from './catalog'
 import { psvGeometry } from '../scene/equipment/Valve'
 import { extendAlpha } from './alphaSite'
+import { extendWHP } from './whpSite'
 import { ALPHA_WALK } from './site'
 
 // ---------------------------------------------------------------- pipe rack
@@ -346,6 +347,11 @@ const LER: Module = {
   size: [9, 3.8, 7],
   position: [21.3, 0, 9.6],
   rotationY: 0,
+  interior: 'switchgear',
+  doors: [
+    { id: 'D1', wall: '-z', at: -1.6, width: 1.8, double: true }, // main doors to the north walkway
+    { id: 'D2', wall: '-x', at: 1.2, width: 1.0 }, // escape door, west
+  ],
   nozzles: [],
   design: { notes: 'A60 fire-rated, pressurised. MCC, VSD for K-2200, UPS, F&G panel.' },
 }
@@ -893,6 +899,7 @@ export const instruments: Instrument[] = [
 
 // wells, utilities, produced water, gas treatment, the LQ platform and fire & gas (model/alphaSite.ts)
 extendAlpha({ equipment, lines, valves, instruments }, { FLARE_Y, FLARE_Z, OVER, CELLAR, onTier, flareHeader: L_FLARE, manifold: 'M-1000' })
+extendWHP({ equipment, lines, valves, instruments }, { flareHeader: L_FLARE, firewaterRing: '8"-FW-9001-F1A-N', CELLAR })
 
 export const plant: Plant = {
   name: 'Alpha Platform',

@@ -49,6 +49,12 @@ const ALPHA: Deck[] = [
     view: { pos: [34, -40, 26], target: [RX, -62, RZ], ceiling: true },
   },
   {
+    id: 'whp', label: 'North bridge & wellhead platform (WHP-N)', el: 'EL +28',
+    blurb: '40 m bridge to WHP-N: six-well bay, production & test manifolds, multiphase meter, desander, chemical injection, vent KO drum, temporary refuge.',
+    view: { pos: [58, 46, -118], target: [12, 28, -74], ceiling: true },
+    walk: { level: 'production', at: [12, -21], face: [12, -60] },
+  },
+  {
     id: 'lq', label: 'South bridge & accommodation platform', el: 'EL +28',
     blurb: '40 m bridge to the LQ: control room, emergency generator, quarters, helideck, telecom tower, lifeboats.',
     view: { pos: [52, 46, 112], target: [8, 34, 72], ceiling: true },

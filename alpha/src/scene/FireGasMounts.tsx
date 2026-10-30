@@ -1,5 +1,5 @@
 /**
- * Physical supports for fire & gas devices, so none of them hang in the air:
+ * Physical supports for fire & gas devices and point-mounted instruments, so none of them hang in the air:
  *   · near a column / rack post / jacket leg  → horizontal bracket arm + clamp to the member
  *   · heat / smoke detector just under a deck → drop rod from the steel above
  *   · on a module roof or wall                → nothing (it is already on a surface)
@@ -63,7 +63,9 @@ export function FireGasMounts({ built }: { built: BuiltPiping }) {
     const plate = (c: THREE.Vector3, sx: number, sy: number, sz: number) => parts.push(new THREE.BoxGeometry(sx, sy, sz).translate(c.x, c.y, c.z))
 
     for (const d of built.instruments) {
-      if (!FG.has(d.inst.type)) continue
+      // fire & gas devices, and any instrument placed at a point (not on a line or a nozzle)
+      const atPoint = 'equipment' in d.inst.on && !!d.inst.on.at
+      if (!FG.has(d.inst.type) && !atPoint) continue
       const p = d.pos
       const back = new THREE.Vector3(0, 1, 0).applyQuaternion(d.quat).setY(0).normalize().multiplyScalar(-1)
       // the floor and ceiling around the device

@@ -13,6 +13,11 @@
  *    agitators, shale shakers, walkway + handrails; bulk silo pair (south-west of the mud module)
  * Everything here belongs to the weather deck (hidden with the upper-deck layer).
  *
+ * The parts that MOVE while drilling (travelling block + hook + top drive and its guide dolly, the
+ * quill / saver sub and the stand of drill pipe, the drill-line falls, the rotary hose, the mud-pump
+ * pony rods and crank ends) are not in the static batches: buildTravellingAssembly / buildQuill /
+ * buildFalls / rotaryHosePoints / MUD_PUMPS describe them for <RigMotion>.
+ *
  * The plant's cooling-medium stubs (CM-1411 / CM-1412) come up through the weather deck at
  * (2.875, -16.3 / -14.8) inside the substructure: the substructure is an open frame there.
  */
@@ -38,8 +43,12 @@ export const RIG = {
   derrick: { b0: 4.5, b1: 1.4, h: 43, bays: 12 },
   /** racking board height above the drill floor */
   monkey: 27,
-  /** top drive (gearbox bottom) height above the floor */
+  /** top drive (gearbox bottom) height above the floor — static reference pose (mid-stroke) */
   topDrive: 15,
+  /** drilling stroke of the top drive (gearbox bottom above the floor): one ~28 m stand, top → bottom */
+  stroke: { top: 31.4, bottom: 3.2 },
+  /** travelling-block sheave axle above the top-drive gearbox bottom */
+  blockAbove: 5.0,
   pipeDeck: { x0: 12.2, x1: 22.3, z0: -19.6, z1: -6.5 },
   mudModule: { x0: -12.5, x1: -4.5, z0: -19.5, z1: -6.5 },
   silos: [
@@ -179,8 +188,9 @@ function buildSubstructure(rb: RigBatches) {
   const xd = SX + 1.5
   run(rb.steelDark, [[SX, F - 1.8, SZ - 0.6], [SX, F - 1.8, SZ - 1.2], [xd, F - 1.8, SZ - 1.2], [xd, F - 1.8, -19.85]], 0.16, 10)
   boxMinMax(rb.red, [xd - 0.3, F - 2.1, -16.6], [xd + 0.3, F - 1.5, -16.0])
-  // drill string through the riser (continues below in the cellar module)
-  tube(rb.steelDark, [SX, UD - 0.02, SZ], [SX, F + 0.4, SZ], 0.064, 8, true)
+  // drill string through the riser (continues below in the cellar module); above the bell nipple the
+  // string is drawn by <RigMotion> (it turns and moves with the top drive)
+  tube(rb.steelDark, [SX, UD - 0.02, SZ], [SX, F - 0.45, SZ], 0.064, 8, true)
 }
 
 // ---------------------------------------------------------------- derrick
@@ -283,69 +293,139 @@ function buildDerrick(rb: RigBatches) {
     sphere(rb.light, [m[0] + sx * 0.3, m[1], m[2] + sz * 0.3], 0.16, 10, 8)
   }
 
-  // drill line: 8 falls crown -> travelling block, fast line to the drawworks, dead line anchor
-  const yTD = F + RIG.topDrive
-  const yBlk = yTD + 5.0
-  for (let k = 0; k < 8; k++) {
-    const z = SZ - 0.63 + k * 0.18
-    const s = k % 2 ? 1 : -1
-    tube(rb.steelDark, [SX + s * 0.78, yc + 1.0, z], [SX + s * 0.5, yBlk + 0.5, z], 0.024, 4, true)
-  }
+  // drill line: fast line to the drawworks, dead line anchor (the 8 falls crown -> block move: buildFalls)
   tube(rb.steelDark, [SX - 1.85, yc + 1.2, SZ + 0.6], [-2.55, F + 1.75, SZ + 0.3], 0.028, 4, true)
   tube(rb.steelDark, [SX - 0.78, yc + 1.0, SZ - 0.75], [-0.9, F + 0.75, SZ - 3.9], 0.028, 4, true)
   boxMinMax(rb.steelDark, [-1.25, F, SZ - 4.25], [-0.55, F + 0.8, SZ - 3.55]) // dead-line anchor
 
-  // travelling block + hook + top drive + elevator
-  cylZ(rb.yellow, SX, yBlk, SZ - 0.7, SZ + 0.7, 0.58, 22)
-  for (const s of [-1, 1]) boxMinMax(rb.yellow, [SX - 0.62, yBlk - 0.9, SZ + s * 0.72 - 0.05], [SX + 0.62, yBlk + 0.62, SZ + s * 0.72 + 0.05])
-  boxMinMax(rb.yellow, [SX - 0.35, yBlk - 1.25, SZ - 0.3], [SX + 0.35, yBlk - 0.6, SZ + 0.3]) // hook body
-  for (const s of [-1, 1]) bar(rb.steelDark, [SX + s * 0.25, yBlk - 1.25, SZ], [SX + s * 0.35, yTD + 2.3, SZ], 0.08, 0.08, [0, 0, 1])
-  boxMinMax(rb.white, [SX - 0.6, yTD + 0.55, SZ - 0.55], [SX + 0.6, yTD + 2.35, SZ + 0.55]) // top drive frame
-  cylY(rb.blue, SX + 0.15, yTD + 1.0, yTD + 2.7, SZ + 0.85, 0.36, 16) // AC drive motor
-  cylY(rb.blue, SX + 0.15, yTD + 2.7, yTD + 2.85, SZ + 0.85, 0.24, 12)
-  boxMinMax(rb.steelDark, [SX - 0.5, yTD, SZ - 0.5], [SX + 0.5, yTD + 0.55, SZ + 0.5]) // gearbox
-  cylY(rb.steelDark, SX, yTD - 0.6, yTD, SZ, 0.11, 10) // IBOP + saver sub
-  // gooseneck + washpipe
-  run(rb.steelDark, [[SX + 0.3, yTD + 2.35, SZ - 0.2], [SX + 0.3, yTD + 3.1, SZ - 0.2], [SX + 0.3, yTD + 3.3, SZ - 0.7]], 0.09, 10)
-  // link-tilt bails + elevator
-  for (const s of [-1, 1]) bar(rb.steelDark, [SX + s * 0.35, yTD + 0.2, SZ], [SX + s * 0.22, yTD - 2.4, SZ], 0.07, 0.07, [0, 0, 1])
-  boxMinMax(rb.yellow, [SX - 0.35, yTD - 2.65, SZ - 0.2], [SX + 0.35, yTD - 2.35, SZ + 0.2])
-  // drill string in the derrick: saver sub -> rotary
-  tube(rb.steelDark, [SX, F + 0.3, SZ], [SX, yTD - 0.6, SZ], 0.064, 8, true)
-  cylY(rb.steelDark, SX, yTD - 2.9, yTD - 2.5, SZ, 0.085, 8)
-  // guide dolly + top drive guide rails on the drawworks side, tied back to the west face
-  boxMinMax(rb.steelDark, [SX - 1.2, yTD + 0.4, SZ - 0.45], [SX - 0.6, yTD + 2.2, SZ + 0.45])
+  // top drive guide rails on the drawworks side, tied back to the west face (the dolly rides them)
   const xr = SX - 1.3
   for (const s of [-1, 1]) bar(rb.steelDark, [xr, F + 3, SZ + s * 0.35], [xr, F + H - 4.5, SZ + s * 0.35], 0.18, 0.2, [1, 0, 0])
   for (let h = 6; h < H - 5; h += 7) bar(rb.steelDark, [xr, F + h, SZ], [SX - dw(h), F + h, SZ], 0.12, 0.12)
   for (let h = 6; h < H - 5; h += 7) bar(rb.steelDark, [xr, F + h, SZ - 0.35], [xr, F + h, SZ + 0.35], 0.12, 0.12, [0, 1, 0])
 
-  // standpipe up the SW leg + gooseneck + rotary (kelly) hose to the top drive
-  const hs = 14
-  const off = (p: V3): V3 => [p[0] - 0.35, p[1], p[2] - 0.35] // inboard of the SW leg, clear of the z -8.1 girder
+  // standpipe up the SW leg + gooseneck (the rotary hose from here to the top drive moves: rotaryHosePoints)
+  const { hs, off, s1, g1, g2, g3 } = standpipe()
   const s0 = off(leg(-1, 1, 0))
-  const s1 = off(leg(-1, 1, hs))
   run(rb.steelDark, [[s0[0], UD + 1.8, s0[2]], s0, s1], 0.075, 10)
   for (let h = 2; h < hs; h += 3) {
     const p = off(leg(-1, 1, h))
     bar(rb.steelDark, p, leg(-1, 1, h), 0.08, 0.08)
   }
+  run(rb.steelDark, [s1, g1, g2, g3], 0.075, 10)
+}
+
+/** standpipe geometry (inboard of the SW leg, clear of the z −8.1 girder) up to its gooseneck g3 */
+function standpipe() {
+  const hs = 14
+  const off = (p: V3): V3 => [p[0] - 0.35, p[1], p[2] - 0.35]
+  const s1 = off(leg(-1, 1, hs))
   const g1: V3 = [s1[0], s1[1] + 0.7, s1[2]]
   const g2: V3 = [s1[0] + 0.45, s1[1] + 0.85, s1[2] - 0.45]
   const g3: V3 = [g2[0] + 0.25, g2[1] - 0.5, g2[2] - 0.25]
-  run(rb.steelDark, [s1, g1, g2, g3], 0.075, 10)
-  {
-    const A = g3
-    const B: V3 = [SX + 0.3, yTD + 3.3, SZ - 0.7]
-    const N = 14
-    const sag = 4.5
-    const pts: V3[] = []
-    for (let i = 0; i <= N; i++) {
-      const t = i / N
-      pts.push([A[0] + (B[0] - A[0]) * t, A[1] + (B[1] - A[1]) * t - sag * 4 * t * (1 - t), A[2] + (B[2] - A[2]) * t])
-    }
-    run(rb.steelDark, pts, 0.07, 8)
+  return { hs, off, s1, g1, g2, g3 }
+}
+
+// ---------------------------------------------------------------- moving parts (drawn by <RigMotion>)
+/** crown sheave axle (world y): the drill-line falls hang from here */
+export const CROWN_Y = F + RIG.derrick.h + 1.0
+/** where the falls reach the travelling block, above the top-drive gearbox bottom */
+export const FALLS_BOTTOM = RIG.blockAbove + 0.5
+/** top-drive washpipe / gooseneck outlet, relative to the TD frame (well centre, gearbox bottom) */
+export const TD_GOOSENECK: V3 = [0.3, 3.3, -0.7]
+
+export interface TravelBatches {
+  yellow: GeoBatch
+  steelDark: GeoBatch
+  white: GeoBatch
+  blue: GeoBatch
+}
+
+/**
+ * Travelling block + hook + links, top drive (frame, AC motor, gearbox, gooseneck), link-tilt bails +
+ * elevator and the guide dolly. Frame: origin on the well axis at the top-drive gearbox bottom.
+ */
+export function buildTravellingAssembly(b: TravelBatches) {
+  const yB = RIG.blockAbove
+  cylZ(b.yellow, 0, yB, -0.7, 0.7, 0.58, 22)
+  for (const s of [-1, 1]) boxMinMax(b.yellow, [-0.62, yB - 0.9, s * 0.72 - 0.05], [0.62, yB + 0.62, s * 0.72 + 0.05])
+  cylZ(b.steelDark, 0, yB, -0.8, 0.8, 0.1, 10) // sheave axle
+  boxMinMax(b.yellow, [-0.35, yB - 1.25, -0.3], [0.35, yB - 0.6, 0.3]) // hook body
+  for (const s of [-1, 1]) bar(b.steelDark, [s * 0.25, yB - 1.25, 0], [s * 0.35, 2.3, 0], 0.08, 0.08, [0, 0, 1])
+  boxMinMax(b.white, [-0.6, 0.55, -0.55], [0.6, 2.35, 0.55]) // top drive frame
+  cylY(b.blue, 0.15, 1.0, 2.7, 0.85, 0.36, 16) // AC drive motor
+  cylY(b.blue, 0.15, 2.7, 2.85, 0.85, 0.24, 12)
+  boxMinMax(b.steelDark, [-0.5, 0, -0.5], [0.5, 0.55, 0.5]) // gearbox
+  // gooseneck + washpipe
+  run(b.steelDark, [[0.3, 2.35, -0.2], [0.3, 3.1, -0.2], TD_GOOSENECK], 0.09, 10)
+  // link-tilt bails + elevator (the stand passes through the open elevator while drilling)
+  for (const s of [-1, 1]) bar(b.steelDark, [s * 0.35, 0.2, 0], [s * 0.22, -2.4, 0], 0.07, 0.07, [0, 0, 1])
+  for (const s of [-1, 1]) boxMinMax(b.yellow, [-0.35, -2.65, s * 0.2 - (s > 0 ? 0.12 : 0)], [0.35, -2.35, s * 0.2 + (s > 0 ? 0 : 0.12)])
+  for (const s of [-1, 1]) boxMinMax(b.yellow, [s * 0.35 - (s > 0 ? 0.12 : 0), -2.65, -0.2], [s * 0.35 + (s > 0 ? 0 : 0.12), -2.35, 0.2])
+  // guide dolly on the rails
+  boxMinMax(b.steelDark, [-1.2, 0.4, -0.45], [-0.6, 2.2, 0.45])
+}
+
+/**
+ * Quill / main shaft below the gearbox: IBOP valves with their actuator cranks, saver sub. Turns with
+ * the string. Frame: origin on the well axis at the gearbox bottom.
+ */
+export function buildQuill(b: { steelDark: GeoBatch; yellow: GeoBatch }) {
+  cylY(b.steelDark, 0, -0.6, 0, 0, 0.11, 12)
+  cylY(b.steelDark, 0, -0.42, -0.3, 0, 0.14, 12) // upper IBOP body
+  cylY(b.steelDark, 0, -0.22, -0.1, 0, 0.14, 12) // lower IBOP body
+  boxMinMax(b.yellow, [0.12, -0.44, -0.04], [0.22, -0.08, 0.04]) // IBOP actuator crank (one side)
+  boxMinMax(b.steelDark, [-0.2, -0.36, -0.03], [-0.13, -0.16, 0.03])
+}
+
+/** joints (box ends) along a stand, measured down from the saver sub: top, and every single (~9.4 m) */
+export const STAND_JOINTS = [0, 9.4, 18.8]
+/** saver sub bottom below the gearbox */
+export const SAVER_SUB = 0.6
+
+/**
+ * Drill-line falls between the crown sheaves (y = 0) and the block (y = −1), x/z relative to the well
+ * centre: scale the mesh in y by the current drop (crown − block).
+ */
+export function buildFalls(b: GeoBatch) {
+  for (let k = 0; k < 8; k++) {
+    const z = -0.63 + k * 0.18
+    const s = k % 2 ? 1 : -1
+    tube(b, [s * 0.78, 0, z], [s * 0.5, -1, z], 0.024, 5, true)
   }
+}
+
+/**
+ * Rotary (kelly) hose from the standpipe gooseneck to the top-drive gooseneck (world coordinates)
+ * for the top drive at height yTD (world, gearbox bottom). The hose has a fixed length: it hangs in
+ * a deeper loop as the top drive comes down (kept clear of the drill floor).
+ */
+export function rotaryHosePoints(yTD: number, n = 18): V3[] {
+  const A = standpipe().g3
+  const B: V3 = [SX + TD_GOOSENECK[0], yTD + TD_GOOSENECK[1], SZ + TD_GOOSENECK[2]]
+  const pts = (sag: number) => {
+    const out: V3[] = []
+    for (let i = 0; i <= n; i++) {
+      const t = i / n
+      out.push([A[0] + (B[0] - A[0]) * t, A[1] + (B[1] - A[1]) * t - sag * 4 * t * (1 - t), A[2] + (B[2] - A[2]) * t])
+    }
+    return out
+  }
+  const len = (p: V3[]) => p.reduce((a, q, i) => (i ? a + Math.hypot(q[0] - p[i - 1][0], q[1] - p[i - 1][1], q[2] - p[i - 1][2]) : 0), 0)
+  // hose length: the chord at the top of the stroke + 1.6 m slack
+  const L0 = Math.hypot(B[0] - A[0], F + RIG.stroke.top + TD_GOOSENECK[1] - A[1], B[2] - A[2]) + 1.6
+  let lo = 0
+  let hi = 20
+  for (let i = 0; i < 24; i++) {
+    const mid = (lo + hi) / 2
+    if (len(pts(mid)) < L0) lo = mid
+    else hi = mid
+  }
+  // lowest point of the loop no lower than ~1 m above the floor
+  let sag = lo
+  const minY = (p: V3[]) => Math.min(...p.map((q) => q[1]))
+  while (sag > 0 && minY(pts(sag)) < F + 1.0) sag -= 0.1
+  return pts(Math.max(0, sag))
 }
 
 // ---------------------------------------------------------------- drill floor equipment
@@ -481,20 +561,48 @@ function buildPipeHandling(rb: RigBatches) {
 }
 
 // ---------------------------------------------------------------- mud module
+/** triplex mud pumps (world): their pony rods and crank-end covers move (drawn by <RigMotion>) */
+export const MUD_PUMPS = {
+  z: [-18.3, -16.3, -14.3],
+  /** power-end face / fluid-end face (x) — the pony rods run between them */
+  xPower: RIG.mudModule.x0 + 4.0,
+  xFluid: RIG.mudModule.x0 + 4.5,
+  /** crankshaft axis (along z) */
+  xCrank: RIG.mudModule.x0 + 3.15,
+  yCrank: UD + 0.3 + 1.6,
+  /** pony-rod axis height and z offsets of the 3 cylinders */
+  yRod: UD + 0.3 + 0.85,
+  rodDz: [-0.35, 0, 0.35],
+  /** half stroke (m) */
+  throw: 0.1,
+  /** which pumps run while drilling (the third stands by) */
+  running: [true, true, false],
+}
+
 function buildMudModule(rb: RigBatches) {
   const M = RIG.mudModule
   boxMinMax(rb.steelDark, [M.x0, UD, M.z0], [M.x1, UD + 0.3, M.z1]) // skid base
   const y0 = UD + 0.3
   // ---- pump bay (north): 3 triplex mud pumps along X, overhead maintenance gantry
-  const pumpZ = [-18.3, -16.3, -14.3]
+  const pumpZ = MUD_PUMPS.z
+  const P = MUD_PUMPS
   for (const z of pumpZ) {
     boxMinMax(rb.steelDark, [M.x0 + 0.2, y0, z - 0.75], [M.x1 - 1.0, y0 + 0.25, z + 0.75]) // pump skid
     cylX(rb.blue, M.x0 + 0.35, M.x0 + 1.9, y0 + 0.85, z, 0.5, 20) // AC motor
     boxMinMax(rb.blue, [M.x0 + 0.5, y0 + 0.25, z - 0.4], [M.x0 + 1.75, y0 + 0.45, z + 0.4])
     boxMinMax(rb.steelDark, [M.x0 + 1.95, y0 + 0.25, z - 0.72], [M.x0 + 2.35, y0 + 2.3, z + 0.72]) // belt guard
-    boxMinMax(rb.equip, [M.x0 + 2.35, y0 + 0.25, z - 0.65], [M.x0 + 4.4, y0 + 1.6, z + 0.65]) // power end
-    cylZ(rb.equip, M.x0 + 3.35, y0 + 1.6, z - 0.65, z + 0.65, 0.62, 20) // crankcase
-    boxMinMax(rb.steelDark, [M.x0 + 4.4, y0 + 0.35, z - 0.55], [M.x0 + 5.2, y0 + 1.35, z + 0.55]) // fluid end
+    boxMinMax(rb.equip, [M.x0 + 2.35, y0 + 0.25, z - 0.65], [P.xPower, y0 + 1.6, z + 0.65]) // power end
+    cylZ(rb.equip, P.xCrank, P.yCrank, z - 0.65, z + 0.65, 0.62, 20) // crankcase (crank-end cover turns: RigMotion)
+    cylZ(rb.equip, P.xCrank, P.yCrank, z - 0.7, z - 0.65, 0.36, 20) // crank-end bearing housing (north side)
+    // pony-rod compartment (open, between the power end and the fluid end): crosshead extension
+    // stubs + wiper boxes on the power end, liners on the fluid end, spray pan underneath
+    for (const dz of P.rodDz) {
+      cylX(rb.equip, P.xPower, P.xPower + 0.1, P.yRod, z + dz, 0.12, 14)
+      cylX(rb.steelDark, P.xFluid - 0.12, P.xFluid, P.yRod, z + dz, 0.13, 14)
+    }
+    boxMinMax(rb.steelDark, [P.xPower, y0 + 0.25, z - 0.6], [P.xFluid, y0 + 0.4, z + 0.6]) // spray pan
+    for (const s of [-1, 1]) boxMinMax(rb.steelDark, [P.xPower, y0 + 0.4, z + s * 0.6 - 0.02], [P.xFluid, y0 + 0.5, z + s * 0.6 + 0.02])
+    boxMinMax(rb.steelDark, [P.xFluid, y0 + 0.35, z - 0.55], [M.x0 + 5.2, y0 + 1.35, z + 0.55]) // fluid end
     for (const dz of [-0.35, 0, 0.35]) cylX(rb.steelDark, M.x0 + 5.2, M.x0 + 5.38, y0 + 0.85, z + dz, 0.13, 12) // valve covers
     cylY(rb.steelDark, M.x0 + 4.8, y0 + 1.35, y0 + 1.7, z, 0.1, 10)
     sphere(rb.red, [M.x0 + 4.8, y0 + 1.95, z], 0.33, 16, 12) // pulsation dampener

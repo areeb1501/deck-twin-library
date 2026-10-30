@@ -4,6 +4,8 @@
  * Replace `sample()` with a real OPC UA / PI / MQTT feed to make the twin live.
  */
 import type { Instrument } from '../model/types'
+import { simScale } from '../state/sim'
+import { usePlantStore } from '../state/plantStore'
 
 function hash(s: string) {
   let h = 2166136261
@@ -11,7 +13,12 @@ function hash(s: string) {
   return (h >>> 0) / 4294967295
 }
 
+/** live value: the historian signal, moved by the simulated plant (rates follow throughput, stopped machines idle) */
 export function sample(inst: Instrument, t: number) {
+  return raw(inst, t) * simScale(inst, usePlantStore.getState().plant)
+}
+
+function raw(inst: Instrument, t: number) {
   const h = hash(inst.tag)
   const span = Math.max(Math.abs(inst.nominal) * 0.025, 0.05)
   const v =

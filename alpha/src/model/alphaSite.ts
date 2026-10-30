@@ -21,7 +21,7 @@
  * layouts match the builder, and routed with the compiler's orthogonal router where a hand route
  * isn't needed.
  */
-import type { Equipment, EquipmentKind, Instrument, InstrumentType, Nozzle, PipeLine, Service, SystemId, Valve, ValveType, Vec3 } from './types'
+import type { Equipment, EquipmentKind, Instrument, InstrumentType, Module, ModuleDoor, Nozzle, PipeLine, Service, SystemId, Valve, ValveType, Vec3 } from './types'
 import { componentDef, instantiate, resolveParams } from '../library/components'
 import type { NozzleTemplate, Params } from '../library/types'
 import { orthoRoute, placeOnLine, valveClear, INSTRUMENT_DEFAULTS } from '../library/compile'
@@ -394,13 +394,22 @@ export function extendAlpha(A: AlphaArrays, K: AlphaConsts) {
   })
 
   // ================================================================ FIREWATER PUMP + FOAM MODULES (production deck, south)
-  E('module', 'B-7100', 'Firewater Pump Module A (diesel)', 'safety', [12.8, 16.5], 0, { sizeX: 5.6, sizeY: 3.6, sizeZ: 3.2 }, { design: { capacity: '1 200 m³/h @ 16 barg', notes: 'Diesel-driven lineshaft pump, A60' } })
-  E('module', 'B-7200', 'Firewater Pump Module B (diesel)', 'safety', [19.6, 16.5], 0, { sizeX: 5.6, sizeY: 3.6, sizeZ: 3.2 }, { design: { capacity: '1 200 m³/h @ 16 barg' } })
+  E('module', 'B-7100', 'Firewater Pump House A', 'safety', [12.8, 16.5], 0, { sizeX: 5.6, sizeY: 3.6, sizeZ: 3.2 }, { design: { capacity: '1 200 m³/h @ 16 barg', notes: 'Diesel driver, controller and day tank for P-7101A, A60' } })
+  E('module', 'B-7200', 'Firewater Pump House B', 'safety', [19.6, 16.5], 0, { sizeX: 5.6, sizeY: 3.6, sizeZ: 3.2 }, { design: { capacity: '1 200 m³/h @ 16 barg', notes: 'Diesel driver, controller and day tank for P-7101B, A60' } })
   E('chemSkid', 'C-7300', 'AFFF Foam Concentrate Skid', 'safety', [25.3, 16.6], 0, { skidL: 3.0, skidW: 2.2, tanks: 1, outlets: 0 }, { design: { capacity: '6 m³ AFFF 3 %' } })
 
   // ================================================================ ACCOMMODATION PLATFORM (LQ) + SOUTH BRIDGE
   E('module', 'B-9300', 'Central Control Room (CCR)', 'accommodation', [-3, 66], 0, { sizeX: 9, sizeY: 4, sizeZ: 7 }, { design: { notes: 'DCS / SIS / F&G operator stations, CCTV wall, radio room. Pressurised, A60.' } })
   E('module', 'B-9310', 'Emergency Generator Module', 'accommodation', [-3, 78.5], 0, { sizeX: 8, sizeY: 3.8, sizeZ: 6 }, { design: { capacity: '1.5 MW diesel', notes: 'Starts on loss of main power, 18 h day tank' } })
+  // interiors and openable doors of the buildings (walk up to a door in the walkthrough, or click it)
+  const room = (tag: string, interior: NonNullable<Module['interior']>, doors: ModuleDoor[]) => {
+    const m = eqBy.get(tag)
+    if (m?.kind === 'module') Object.assign(m, { interior, doors })
+  }
+  room('B-7100', 'pumpHouse', [{ id: 'D1', wall: '-z', at: -1.3, width: 1.0 }, { id: 'D2', wall: '-x', at: 0, width: 1.6, double: true }])
+  room('B-7200', 'pumpHouse', [{ id: 'D1', wall: '-z', at: -1.3, width: 1.0 }, { id: 'D2', wall: '+x', at: 0, width: 1.6, double: true }])
+  room('B-9300', 'controlRoom', [{ id: 'D1', wall: '+x', at: -1.6, width: 1.1 }, { id: 'D2', wall: '-z', at: 0, width: 1.0 }])
+  room('B-9310', 'generator', [{ id: 'D1', wall: '+x', at: 0, width: 2.0, double: true }, { id: 'D2', wall: '-z', at: 2.0, width: 1.0 }])
   E('horizontalVessel', 'V-9330', 'Diesel Day Tank', 'accommodation', [16.5, 63.8], 0, { service: 'ko', id: 1.4, tt: 4, elevation: 0.6, inletNps: 3, gasNps: 2, liquidNps: 2, psvNps: 1, rating: 150 }, {
     rename: { N1: 'Diesel inlet', N2: 'Vent', N3: 'Diesel to generator' }, design: { capacity: '8 m³' },
   })
@@ -464,6 +473,19 @@ export function extendAlpha(A: AlphaArrays, K: AlphaConsts) {
   E('proxy', 'BOP-100', 'BOP Stack (annular + double ram)', 'wells', [RIG_SLOT[0], RIG_SLOT[1]], 0, { role: 'bop', sizeX: 2.8, sizeY: 5.5, sizeZ: 2.8 }, {
     y: CELLAR_FLOOR, design: { pressure: '10 000 psi (690 barg)', notes: '13⅝" annular + double ram, choke & kill lines to the choke manifold' },
   })
+
+  // drilling instrumentation (rig floor, mud system, BOP) — mounted on posts / structure (scene/FireGasMounts)
+  const DF = WD + 8
+  IE('PT-9601', 'PT', 'DR-100', [-1.0, DF + 1.6, -8.9], [0, 0, 1], { range: '0–350', unit: 'bar', nominal: 212, alarms: { hi: 300, hiHi: 330 } }) // standpipe pressure
+  IE('PT-9602', 'PT', 'DR-100', [-1.0, DF + 0.9, -17.1], [0, 0, -1], { range: '0–450', unit: 't', nominal: 182, alarms: { hi: 360 } }) // deadline anchor load cell → hook load
+  IE('AT-9607', 'AT', 'DR-100', [8.6, DF + 1.5, -15.5], [-1, 0, 0], { range: '0–50', unit: 'ppm H₂S', nominal: 0.4, alarms: { hi: 10, hiHi: 20 } }) // H₂S at the rotary
+  IE('LT-9603', 'LT', 'DR-100', [-4.1, WD + 2.4, -12.0], [1, 0, 0], { range: '0–250', unit: 'm³', nominal: 142, alarms: { lo: 130, hi: 154 } }) // active pit volume
+  IE('LT-9604', 'LT', 'DR-100', [-4.1, WD + 2.4, -16.0], [1, 0, 0], { range: '0–80', unit: 'm³', nominal: 38 }) // trip tank
+  IE('FT-9605', 'FT', 'DR-100', [-4.2, WD + 1.4, -7.2], [1, 0, 0], { range: '0–100', unit: '% flow out', nominal: 62, alarms: { lo: 40, hi: 80 } }) // flowline paddle
+  IE('AT-9606', 'AT', 'DR-100', [-9.6, WD + 1.4, -6.1], [0, 0, 1], { range: '0–100', unit: '% gas units', nominal: 0.8, alarms: { hi: 5, hiHi: 15 } }) // gas trap at the shakers
+  IE('AT-9608', 'AT', 'DR-100', [-7.4, WD + 1.4, -6.1], [0, 0, 1], { range: '0–50', unit: 'ppm H₂S', nominal: 0.2, alarms: { hi: 10, hiHi: 20 } }) // H₂S at the shakers
+  IE('PT-9609', 'PT', 'BOP-100', [5.8, CELLAR_FLOOR + 1.4, -17.6], [1, 0, 0], { range: '0–350', unit: 'barg', nominal: 207, alarms: { lo: 180, loLo: 165 } }) // BOP accumulator
+  IE('PT-9610', 'PT', 'BOP-100', [6.1, CELLAR_FLOOR + 1.4, -13.0], [1, 0, 0], { range: '0–700', unit: 'barg', nominal: 0.8, alarms: { hi: 20 } }) // choke manifold
 
   // ================================================================ CELLAR DECK UTILITIES
   for (const [s2, z] of [['A', 11.5], ['B', 15.0]] as const)

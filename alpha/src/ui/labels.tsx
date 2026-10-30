@@ -9,6 +9,7 @@ import * as THREE from 'three'
 import type { Equipment } from '../model/types'
 import { useStore } from '../state/store'
 import { usePlant } from '../state/plantStore'
+import { isRunning, runState, useSim } from '../state/sim'
 
 const els = new Map<string, HTMLButtonElement>()
 
@@ -40,11 +41,18 @@ export function labelHeight(e: Equipment) {
 }
 
 /** DOM side — render in the app shell */
+const RUNS = new Set(['pumpPackage', 'compressorPackage', 'gasTurbineGenerator', 'caissonPump', 'chemSkid', 'proxy'])
+const chipState = (tag: string) => {
+  const st = runState(tag)
+  return st === 'running' ? (isRunning(tag) ? 'run' : 'stop') : st === 'standby' ? 'stby' : st === 'tripped' ? 'trip' : 'stop'
+}
+
 export function LabelOverlay() {
   const plant = usePlant()
   const selected = useStore((s) => s.selected?.tag)
   const select = useStore((s) => s.select)
   const focus = useStore((s) => s.requestFocus)
+  useSim((s) => s.t) // refresh run-state dots every simulation tick
   return (
     <div className="label-layer">
       {plant.equipment.map((e) => (
@@ -61,6 +69,7 @@ export function LabelOverlay() {
             focus(e.tag)
           }}
         >
+          {RUNS.has(e.kind) && !(e.kind === 'proxy' && e.role === 'bop') && <span className={`chip-dot ${chipState(e.tag)}`} />}
           {e.tag}
         </button>
       ))}

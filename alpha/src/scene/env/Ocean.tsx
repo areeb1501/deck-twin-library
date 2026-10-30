@@ -15,7 +15,7 @@ import { registerMaterial } from '../../three/materials'
 import { DEEP, envTime } from './envShared'
 import { foamPoints } from './jacket'
 
-const MAX_FOAM = 24
+const MAX_FOAM = 32
 
 const WAVES_GLSL = /* glsl */ `
 const int NW = 6;

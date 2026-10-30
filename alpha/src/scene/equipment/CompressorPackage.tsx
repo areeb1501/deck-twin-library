@@ -17,8 +17,10 @@ import { materials } from '../../three/materials'
 import { NozzleNeck } from '../common/NozzleNeck'
 import { Kit, type MatKey, type V3 } from './machinery/kit'
 import { KitMesh } from './machinery/KitMesh'
-import { couplingGuard, gratingPanel, handrail, pipeRun, smallGauge, tagPlate } from './machinery/parts'
-import { dialMaterial, signMaterial } from './machinery/textures'
+import { gratingPanel, handrail, pipeRun, smallGauge, tagPlate } from './machinery/parts'
+import { Rotors } from './machinery/Moving'
+import { fanRotor, guardedCoupling, type RotorSpec } from './machinery/rotors'
+import { dialMaterial, fanGuardMaterial, signMaterial } from './machinery/textures'
 
 const SKID: MatKey = 'equipmentPaintDark'
 const COMP: MatKey = 'equipmentPaint'
@@ -142,7 +144,8 @@ export function buildCompressor(eq: CompressorPackage) {
   const gx = (gb0 + gb1) / 2
   const gW = Math.min(1.5, SW - 2 * walk - 0.4)
   const gTop = ys + 0.55
-  couplingGuard(k, gb1 + 0.05, xCompShaft - 0.18, ys, 0.28, hs, 'safetyYellow')
+  // high-speed coupling (gearbox → compressor) turns inside its guard
+  const rotors: RotorSpec[] = [guardedCoupling(k, gb1 + 0.05, xCompShaft - 0.18, ys, 0.28, hs, 'safetyYellow', 235, zc, 0.08)]
   k.rbox(GEAR, [gbL, ys - hs, gW], 0.04, [gx, (ys + hs) / 2, zc])
   k.rbox(GEAR, [gbL * 0.92, gTop - ys, gW * 0.8], 0.15, [gx, (ys + gTop) / 2, zc])
   // split flange with bolts
@@ -176,7 +179,9 @@ export function buildCompressor(eq: CompressorPackage) {
   const mB0 = mB1 - (Lm - 0.7)
   const mx = (mB0 + mB1) / 2
   const mTop = ys + mW * 0.5
-  couplingGuard(k, m1 - 0.05, gb0 - 0.05, ys, 0.3, hs, 'safetyYellow')
+  // low-speed coupling (motor → gearbox), same shaft as the motor's NDE cooling fan
+  const motorRpm = 125
+  rotors.push(guardedCoupling(k, m1 - 0.05, gb0 - 0.05, ys, 0.3, hs, 'safetyYellow', motorRpm, zc, 0.11))
   k.rbox(MOTOR, [mB1 - mB0, mTop - hs - 0.12, mW], 0.06, [mx, (mTop + hs + 0.12) / 2, zc])
   // frame stiffeners
   for (let i = 0; i <= 5; i++) for (const sz of [-1, 1]) k.box(MOTOR, [0.05, mTop - hs - 0.2, 0.06], [mB0 + 0.1 + (i * (mB1 - mB0 - 0.2)) / 5, (mTop + hs) / 2, sz * (mW / 2 + 0.02)])
@@ -190,8 +195,14 @@ export function buildCompressor(eq: CompressorPackage) {
     for (let i = 0; i < 9; i++) k.box(MOTOR, [(mB1 - mB0) * 0.7, 0.02, 0.04], [mx, mTop + 0.12 + i * 0.065, sz * (mW * 0.46 + 0.01)], new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), sz * 0.6))
   }
   // external cooling fan hood at NDE end
-  k.cyl(MOTOR, mW * 0.32, 0.4, [mB0 - 0.15, mTop + cH * 0.5, zc], 'x', 32)
-  k.disc('rubberBlack', mW * 0.3, [mB0 - 0.351, mTop + cH * 0.5, zc], '-x', 32)
+  // (open hood: grille in front, the shaft-driven fan behind it, dark baffle at the back)
+  const yHood = mTop + cH * 0.5
+  k.cyl(MOTOR, mW * 0.32, 0.4, [mB0 - 0.15, yHood, zc], 'x', 32, undefined, true)
+  k.cyl(MOTOR, mW * 0.32 + 0.02, 0.04, [mB0 - 0.33, yHood, zc], 'x', 32, undefined, true) // grille ring
+  k.disc('rubberBlack', mW * 0.32, [mB0 - 0.2, yHood, zc], '-x', 32)
+  k.disc(fanGuardMaterial(), mW * 0.32, [mB0 - 0.352, yHood, zc], '-x', 32)
+  k.cyl('stainless', 0.04, 0.12, [mB0 - 0.24, yHood, zc], 'x', 12)
+  rotors.push(fanRotor(k, 'flangeSteel', mW * 0.29, [mB0 - 0.29, yHood, zc], 'x', motorRpm, { blades: 7, chord: mW * 0.09, pitch: 0.3, hub: mW * 0.07, hubLen: 0.05 }))
   // lifting lugs
   for (const sx of [mB0 + 0.2, mB1 - 0.2]) for (const sz of [-1, 1]) k.torus('nut', 0.06, 0.018, [sx, mTop + cH + 0.04, sz * mW * 0.4], 'x', 6, 16)
   // sleeve-bearing pedestals at both ends with sight glass + oil supply
@@ -300,15 +311,16 @@ export function buildCompressor(eq: CompressorPackage) {
   k.rod('structSteel', [-SL / 2 + 0.25, hs, SW / 2 - walk - 0.1], [-SL / 2 + 0.25, hs + 2.4, SW / 2 - walk - 0.1], 0.03, 10)
   k.cyl('actuatorRed', 0.06, 0.12, [-SL / 2 + 0.25, hs + 2.35, SW / 2 - walk + 0.0], 'z', 16)
   k.plane(signMaterial('ler', `${eq.tag}  ${eq.name.toUpperCase()}`), 1.2, 0.3, [mx, hs + 0.25, SW / 2 + 0.005])
-  return k.build()
+  return { built: k.build(), rotors }
 }
 
 export function CompressorPackageModel({ eq }: { eq: CompressorPackage }) {
-  const built = useMemo(() => buildCompressor(eq), [eq])
+  const { built, rotors } = useMemo(() => buildCompressor(eq), [eq])
   const m = materials()
   return (
     <group>
       <KitMesh data={built} />
+      <Rotors tag={eq.tag} rotors={rotors} />
       {eq.nozzles.map((n) => (
         <NozzleNeck key={n.id} eq={eq} nozzle={n} paintMaterial={m.equipmentPaint} />
       ))}

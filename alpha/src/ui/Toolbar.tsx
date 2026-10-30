@@ -11,7 +11,9 @@ const PRESETS: [CameraPreset, string][] = [
 ]
 /** more views, in the Views menu */
 const MORE: [CameraPreset, string][] = [
-  ['field', 'Field — Alpha, bridge & LQ'],
+  ['field', 'Field — WHP-N, Alpha & LQ'],
+  ['whp', 'Wellhead platform (WHP-N)'],
+  ['bridgeN', 'North bridge'],
   ['rig', 'Drilling rig'],
   ['wellbay', 'Well bay (cellar deck)'],
   ['rack', 'Pipe rack'],

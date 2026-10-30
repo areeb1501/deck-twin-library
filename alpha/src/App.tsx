@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { Scene } from './scene/Scene'
 import { TagTree } from './ui/TagTree'
 import { Inspector } from './ui/Inspector'
@@ -11,7 +11,14 @@ import { PlantMenu } from './ui/PlantMenu'
 import { LabelOverlay } from './ui/labels'
 import { BuilderPanel } from './ui/builder/BuilderPanel'
 import { useSpecStore } from './state/specStore'
+import { OperationsPanel } from './ui/OperationsPanel'
+import { OpsTicker } from './ui/OpsTicker'
+import { EyeOverlay } from './ui/Eyes'
+import { KnowledgeCard } from './ui/KnowledgeCard'
+import { useSim } from './state/sim'
 import './app.css'
+
+if (import.meta.env.DEV) (window as unknown as Record<string, unknown>).__sim = useSim
 
 export default function App() {
   const plant = usePlant()
@@ -19,6 +26,13 @@ export default function App() {
   const setBuilding = useSpecStore((s) => s.setActive)
   const walking = useStore((s) => s.walk)
   const isolating = useStore((s) => !!s.isolation)
+  const [ops, setOps] = useState(false)
+  // the plant simulation runs once a second for the whole session
+  useEffect(() => {
+    useSim.getState().tick()
+    const id = setInterval(() => useSim.getState().tick(), 1000)
+    return () => clearInterval(id)
+  }, [])
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (['INPUT', 'SELECT', 'TEXTAREA'].includes((e.target as HTMLElement)?.tagName)) return
@@ -42,14 +56,24 @@ export default function App() {
       <div className="viewport">
         <Scene />
         <LabelOverlay />
+        <EyeOverlay />
       </div>
       <aside className="panel left">
         <div className="mode-switch seg">
-          <button className={building ? '' : 'on'} onClick={() => setBuilding(false)}>Viewer</button>
-          <button className={building ? 'on' : ''} onClick={() => setBuilding(true)} title="Build your own plant from library components">Builder</button>
+          <button className={building || ops ? '' : 'on'} onClick={() => (setBuilding(false), setOps(false))}>Viewer</button>
+          <button className={ops && !building ? 'on' : ''} onClick={() => (setBuilding(false), setOps(true))} title="Production, availability and the knobs to run the plant">Operations</button>
+          <button className={building ? 'on' : ''} onClick={() => (setOps(false), setBuilding(true))} title="Build your own plant from library components">Builder</button>
         </div>
         {building ? (
           <BuilderPanel />
+        ) : ops ? (
+          <>
+            <header className="brand">
+              <div className="brand-title">{plant.name} — operations</div>
+              <div className="muted small">Live simulation · turn the knobs, start / stop / trip machines</div>
+            </header>
+            <OperationsPanel />
+          </>
         ) : (
           <>
             <header className="brand">
@@ -66,6 +90,8 @@ export default function App() {
       <Legend />
       <HoverTip />
       <WalkHud />
+      <OpsTicker />
+      <KnowledgeCard />
       <div className="hint muted small">Drag to orbit · right-drag to pan · scroll to zoom · click to inspect · X x-ray · C section · F frame · Esc clear</div>
     </div>
   )

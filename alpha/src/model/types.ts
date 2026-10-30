@@ -150,10 +150,26 @@ export interface ChemSkid extends EquipmentBase {
   tanks: number
 }
 
-/** Enclosed module (local equipment room / switchgear). Origin = floor centre. */
+/** A door in a module wall: which wall (outward normal), offset along the wall from its centre, clear width. */
+export interface ModuleDoor {
+  id: string
+  wall: '+x' | '-x' | '+z' | '-z'
+  /** offset of the door centre along the wall from the wall's centre (m); along X for ±z walls, along Z for ±x walls */
+  at: number
+  width: number
+  double?: boolean
+}
+
+/**
+ * Enclosed module (local equipment room / switchgear / control room / generator house). Origin =
+ * footprint centre at deck level; internal floor at 0.6 m (cable cellar below). `interior` selects
+ * what's inside; `doors` are the openable doors (walk up to them or click them).
+ */
 export interface Module extends EquipmentBase {
   kind: 'module'
   size: Vec3 // x, y, z extents
+  interior?: 'switchgear' | 'controlRoom' | 'generator' | 'pumpHouse' | 'none'
+  doors?: ModuleDoor[]
 }
 
 /** Production / test manifold: header pipes with branch valves. Origin = header centre. */

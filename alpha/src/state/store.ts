@@ -3,7 +3,7 @@ import type { PickData, Vec3 } from '../model/types'
 
 export type LayerId = 'equipment' | 'piping' | 'instruments' | 'structure' | 'ceiling' | 'environment' | 'labels' | 'flow' | 'fireGas'
 export type ViewMode = 'shaded' | 'xray'
-export type CameraPreset = 'overview' | 'deck' | 'plan' | 'rack' | 'separator' | 'compressor' | 'underdeck' | 'field' | 'rig' | 'wellbay' | 'lq' | 'bridge'
+export type CameraPreset = 'overview' | 'deck' | 'plan' | 'rack' | 'separator' | 'compressor' | 'underdeck' | 'field' | 'rig' | 'wellbay' | 'lq' | 'bridge' | 'whp' | 'bridgeN'
 
 export interface FlyTo {
   /** camera position (world) */
@@ -33,6 +33,12 @@ interface State {
   walk: boolean
   /** walk mode: the equipment in the centre of view (drives the inspection panel) */
   lookAt: PickData | null
+  /** walkthrough camera: through the eyes, or behind a visible person */
+  walkView: 'first' | 'third'
+  setWalkView: (v: 'first' | 'third') => void
+  /** knowledge card open for this tag (eye icon / About) */
+  kbTag: string | null
+  setKbTag: (t: string | null) => void
   /** where to put the walker when walk mode starts (deck navigator "Walk here") */
   walkStart: { level: string; at: [number, number]; face?: [number, number] } | null
   /** walk mode: index into the plant's walk levels */
@@ -86,6 +92,10 @@ export const useStore = create<State>((set) => ({
   isolation: null,
   walkLevel: 0,
   walkStart: null,
+  walkView: (localStorage.getItem('deck-twin.walkView') as 'first' | 'third') || 'third',
+  setWalkView: (walkView) => (localStorage.setItem('deck-twin.walkView', walkView), set({ walkView })),
+  kbTag: null,
+  setKbTag: (kbTag) => set({ kbTag }),
 
   select: (p) => set({ selected: p }),
   hover: (p) => set({ hovered: p }),

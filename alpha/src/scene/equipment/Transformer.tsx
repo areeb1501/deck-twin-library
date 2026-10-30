@@ -28,6 +28,8 @@ import type { Transformer } from '../../model/types'
 import { paint, registerMaterial } from '../../three/materials'
 import { Kit, mat4, type MatKey, type Orient, type V3 } from './machinery/kit'
 import { KitMesh } from './machinery/KitMesh'
+import { Rotors } from './machinery/Moving'
+import { fanRotor, type RotorSpec } from './machinery/rotors'
 import { gratingPanel, smallGauge, tagPlate } from './machinery/parts'
 import { dialMaterial, fanGuardMaterial, signMaterial } from './machinery/textures'
 
@@ -241,6 +243,8 @@ function buildTransformer(eq: Transformer) {
   const oltcW = clamp(L * 0.22, 0.4, 0.75)
   const oltcX0 = L / 2 - 0.1 - oltcW // OLTC compartment starts here on the +Z side
   const pitch = 0.05
+  const rotors: RotorSpec[] = []
+  const fans = new Map<string, RotorSpec>() // one impeller geometry per fan size
   for (const s of [-1, 1]) {
     const xa = -L / 2 + 0.22
     const xb = s > 0 ? oltcX0 - 0.1 : L / 2 - 0.22
@@ -287,6 +291,10 @@ function buildTransformer(eq: Transformer) {
           k.cyl('motorPaint', rf * 0.3, 0.12, [xf, yf, zf + s * 0.02], 'z', 16)
           for (const dy of [-1, 1]) k.box('equipmentPaintDark', [0.03, 0.03, 0.14], [xf, yf + dy * (rf + 0.03), zf - s * 0.07])
           k.box('equipmentPaintDark', [0.1, 0.08, 0.06], [xf + rf + 0.08, yf - rf * 0.6, zf]) // fan terminal box
+          // impeller (turns while energised), behind the motor, blowing onto the radiator panels
+          const key = rf.toFixed(3)
+          if (!fans.has(key)) fans.set(key, fanRotor(k, 'stainless', rf * 0.94, [0, 0, 0], 'z', 0, { blades: 5, chord: rf * 0.42, pitch: 0.34, hub: rf * 0.2, hubLen: 0.03 }))
+          rotors.push({ ...fans.get(key)!, pos: [xf, yf, zf - s * 0.045], rpm: 205 })
         }
       }
     }
@@ -504,10 +512,15 @@ function buildTransformer(eq: Transformer) {
   tagPlate(k, eq.tag, [0, y0 + H * 0.88, W / 2 + 0.003], 'z', 0.2)
   tagPlate(k, eq.tag, [0, y0 + H * 0.88, -W / 2 - 0.003], '-z', 0.2)
 
-  return k.build()
+  return { built: k.build(), rotors }
 }
 
 export function TransformerModel({ eq }: { eq: Transformer }) {
-  const built = useMemo(() => buildTransformer(eq), [eq])
-  return <KitMesh data={built} />
+  const { built, rotors } = useMemo(() => buildTransformer(eq), [eq])
+  return (
+    <group>
+      <KitMesh data={built} />
+      <Rotors tag={eq.tag} rotors={rotors} />
+    </group>
+  )
 }

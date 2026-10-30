@@ -59,15 +59,78 @@ export const LQ = {
   ] as PlanRect[],
 }
 
+/**
+ * North bridge: Alpha production deck (north edge z = -20) → WHP-N wellhead deck (south edge z = -60),
+ * flush with both decks (deck-local y = 0). Pipe-lane shelf on the WEST side, cable tray on the east.
+ */
+export const BRIDGE_N = {
+  /** walkway (grated) */
+  walk: { x0: 10.5, x1: 13.5, z0: -60, z1: -20 } as PlanRect,
+  /**
+   * utility pipe lane on the west shelf: pipes run along Z at these x (deck-local y), inboard → outboard:
+   * 2" instrument air, 10" production export, 6" water injection, 6" firewater, 6" vent to flare
+   */
+  pipeLane: { x: [10.05, 9.6, 9.1, 8.65, 8.2], y: 0.9 },
+  /** lines leave the lane through the shelf this far onto the bridge from each deck edge */
+  dropInset: 0.4,
+  /** cable tray on the east side */
+  trayX: 14.0,
+}
+
+/**
+ * Wellhead platform WHP-N (normally unattended), 40 m north of Alpha. Main / wellhead deck at
+ * deck-local y = 0 (world +28), cellar (spider) deck at -8 (world +20). Plant equipment comes from
+ * model/whpSite.ts; jacket, decks, crane, laydown and the bridge are environment (scene/env/whp*).
+ */
+export const WHP = {
+  deck: { x0: -2, x1: 26, z0: -88, z1: -60 } as PlanRect,
+  legs: [
+    [1, -63],
+    [23, -63],
+    [1, -85],
+    [23, -85],
+  ] as [number, number][],
+  /** spider / cellar deck plate top (deck-local) */
+  cellarY: -8,
+  /** 2 x 3 well bay: conductor centres (wellhead base flange at y = 0) */
+  wells: [
+    [2.5, -71],
+    [6, -71],
+    [2.5, -74],
+    [6, -74],
+    [2.5, -77],
+    [6, -77],
+  ] as [number, number][],
+  /** grated well-bay area of the main deck */
+  wellBay: { x0: 0.6, x1: 8.6, z0: -79, z1: -69 } as PlanRect,
+  /** pedestal crane on the NE leg, boom parked south over the laydown area (scaled offshore crane) */
+  crane: { x: 23.5, z: -85.6, heading: Math.PI / 2, scale: 0.65 },
+  /** laydown area under the crane boom (east edge) */
+  laydown: { x0: 21.8, x1: 25.8, z0: -80.5, z1: -63 } as PlanRect,
+}
+
+/** WHP-N walk obstacles drawn by the environment (crane pedestal, boom rest, laydown cargo) */
+export const WHP_OBSTACLES: PlanRect[] = [
+  { x0: 22.3, x1: 25.2, z0: -86.8, z1: -84.4 }, // crane pedestal (scaled scene/env/crane.ts)
+  { x0: 22.3, x1: 24.7, z0: -69.6, z1: -66.9 }, // boom rest
+  { x0: 23.0, x1: 24.0, z0: -63.1, z1: -61.7 }, // hook pad
+  { x0: 22.2, x1: 25.4, z0: -79.6, z1: -76.9 }, // half-height container
+  { x0: 22.4, x1: 25.2, z0: -74.8, z1: -72.6 }, // cargo baskets
+  { x0: 22.6, x1: 24.9, z0: -66.1, z1: -64.6 }, // tote tanks
+  { x0: 20.6, x1: 21.4, z0: -79.6, z1: -66.4 }, // MPFM return line stanchions along the laydown edge
+]
+
 /** Walkthrough levels for Alpha */
 export const ALPHA_WALK: WalkLevel[] = [
   {
     id: 'production',
     label: 'Production deck · EL +28',
     y: 0,
-    // Alpha deck, the bridge, the LQ main deck and its lifeboat embarkation deck (east, cantilevered)
-    areas: [ALPHA_DECK, BRIDGE_S.walk, LQ.deck, { x0: 21, x1: 23.7, z0: 60, z1: 80 }],
+    // Alpha deck, the south bridge, the LQ main deck and its lifeboat embarkation deck (east, cantilevered),
+    // the north bridge and the WHP-N wellhead deck
+    areas: [ALPHA_DECK, BRIDGE_S.walk, LQ.deck, { x0: 21, x1: 23.7, z0: 60, z1: 80 }, BRIDGE_N.walk, WHP.deck],
     obstacles: [
+      ...WHP_OBSTACLES,
       { x0: LQ.quarters.x0, x1: LQ.quarters.x1, z0: LQ.quarters.z0, z1: LQ.quarters.z1 },
       { x0: LQ.tower.x - 1.4, x1: LQ.tower.x + 1.4, z0: LQ.tower.z - 1.4, z1: LQ.tower.z + 1.4 },
     ],
