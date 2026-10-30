@@ -1,0 +1,313 @@
+/**
+ * Everything standing ON the upper (weather) deck, world coordinates (deck plate top y = 38).
+ * Lower-poly but well proportioned: living quarters + lifeboats, helideck, pedestal crane with
+ * lattice boom + boom rest, turbine enclosures + exhaust stacks, switchgear module, containers,
+ * perimeter guard rail. The flare boom is separate (kept when topsides are hidden).
+ */
+import * as THREE from 'three'
+import type { GeoBatch, V3 } from '../structure/batch'
+import { bar, box, boxMinMax, place, tube } from '../structure/batch'
+import { railPolyline, perimeterDistance, type RailBatches } from '../structure/handrail'
+import { ladder } from '../structure/ladder'
+import { STAIR_TOWERS, towerGap } from '../structure/stairs'
+import { DECK } from '../structure/deckConst'
+
+export const UD = 38 // weather-deck plate top, world
+export const QUARTERS = { x0: -29, x1: -15, z0: -12, z1: 6, storeys: 4, storey: 3.2 }
+export const HELIDECK = { x: -31, z: -3, y: UD + 4 * 3.2 + 4.6, r: 11.5 }
+export const CRANE = { x: 24, z: -17, pedestalTop: UD + 8 }
+export const FLARE = {
+  base: [29.6, UD + 1.5, 8] as V3,
+  dir: new THREE.Vector3(0.924 * Math.SQRT1_2, Math.SQRT1_2, 0.383 * Math.SQRT1_2).normalize(),
+  length: 70,
+}
+export function flareTip(): V3 {
+  const d = FLARE.dir
+  const b = FLARE.base
+  return [b[0] + d.x * FLARE.length, b[1] + d.y * FLARE.length, b[2] + d.z * FLARE.length]
+}
+
+export interface TopsideBatches {
+  steel: GeoBatch
+  steelDark: GeoBatch
+  white: GeoBatch
+  facade: GeoBatch
+  roof: GeoBatch
+  glass: GeoBatch
+  yellow: GeoBatch
+  orange: GeoBatch
+  heli: GeoBatch
+  heliLights: GeoBatch
+  net: GeoBatch
+  soot: GeoBatch
+  red: GeoBatch
+  blue: GeoBatch
+  green: GeoBatch
+  rail: RailBatches
+}
+
+const capsule = new THREE.CapsuleGeometry(1, 1, 6, 16)
+const octagon = (() => {
+  const g = new THREE.CircleGeometry(1, 8, Math.PI / 8)
+  g.rotateX(-Math.PI / 2)
+  return g
+})()
+const cylClosed = new THREE.CylinderGeometry(1, 1, 1, 24, 1, false)
+
+/** Lattice: 4 chords from heel section to tip section with zig-zag lacing on every face. */
+function lattice(b: GeoBatch, lace: GeoBatch, a: V3, e: V3, w0: number, w1: number, up: V3, chordR: number, laceR: number, bay = 1.6, tri = false) {
+  const A = new THREE.Vector3(...a)
+  const E = new THREE.Vector3(...e)
+  const ax = E.clone().sub(A)
+  const L = ax.length()
+  ax.normalize()
+  const u = new THREE.Vector3(...up)
+  u.sub(ax.clone().multiplyScalar(u.dot(ax))).normalize()
+  const s = new THREE.Vector3().crossVectors(ax, u).normalize()
+  const corners: [number, number][] = tri
+    ? [
+        [-0.5, -0.5],
+        [0.5, -0.5],
+        [0, 0.5],
+      ]
+    : [
+        [-0.5, -0.5],
+        [0.5, -0.5],
+        [0.5, 0.5],
+        [-0.5, 0.5],
+      ]
+  const at = (t: number, k: number): V3 => {
+    const w = w0 + (w1 - w0) * t
+    const [cs, cu] = corners[k]
+    const p = A.clone().addScaledVector(ax, L * t).addScaledVector(s, cs * w).addScaledVector(u, cu * w)
+    return [p.x, p.y, p.z]
+  }
+  for (let k = 0; k < corners.length; k++) tube(b, at(0, k), at(1, k), chordR, 8, true)
+  const n = Math.max(2, Math.round(L / bay))
+  for (let i = 0; i < n; i++) {
+    const t0 = i / n
+    const t1 = (i + 1) / n
+    for (let k = 0; k < corners.length; k++) {
+      const k2 = (k + 1) % corners.length
+      if (i % 2 === 0) tube(lace, at(t0, k), at(t1, k2), laceR, 5, true)
+      else tube(lace, at(t0, k2), at(t1, k), laceR, 5, true)
+      // battens
+      tube(lace, at(t0, k), at(t0, k2), laceR * 0.8, 5, true)
+    }
+  }
+  return { at }
+}
+
+export function buildFlareBoom(steel: GeoBatch, lace: GeoBatch, dark: GeoBatch) {
+  const b = FLARE.base
+  const tip = flareTip()
+  lattice(steel, lace, b, tip, 2.6, 1.3, [0, 1, 0], 0.1, 0.045, 2.4, true)
+  // flare header inside the boom
+  tube(dark, [b[0], b[1] + 0.1, b[2]], tip, 0.32, 12, true)
+  // base pedestal / hinge frame on the deck edge
+  tube(steel, [b[0] - 1.5, UD, b[2] - 1.5], [b[0], b[1], b[2]], 0.25, 10, true)
+  tube(steel, [b[0] - 1.5, UD, b[2] + 1.5], [b[0], b[1], b[2]], 0.25, 10, true)
+  boxMinMax(steel, [b[0] - 2.2, UD, b[2] - 2.2], [b[0] - 0.8, UD + 0.4, b[2] + 2.2])
+  // back-stay ties to a support frame on the deck
+  const mid = new THREE.Vector3(...b).addScaledVector(FLARE.dir, 26)
+  tube(steel, [22, UD, 4], [mid.x, mid.y - 0.6, mid.z], 0.18, 8, true)
+  tube(steel, [22, UD, 12], [mid.x, mid.y - 0.6, mid.z], 0.18, 8, true)
+  // flare tip: burner + wind shield, pilot lines
+  const d = FLARE.dir
+  const t1: V3 = [tip[0] + d.x * 3.2, tip[1] + d.y * 3.2, tip[2] + d.z * 3.2]
+  tube(dark, tip, t1, 0.45, 18, false)
+  tube(dark, [tip[0] + d.x * 2.3, tip[1] + d.y * 2.3, tip[2] + d.z * 2.3], t1, 0.62, 18, true)
+  // service platform at the tip
+  const pl = new THREE.Vector3(...tip).addScaledVector(d, -2)
+  boxMinMax(steel, [pl.x - 1.6, pl.y - 1.4, pl.z - 1.6], [pl.x + 1.6, pl.y - 1.32, pl.z + 1.6])
+}
+
+export function buildTopsides(tb: TopsideBatches) {
+  // ---------------- jacket leg stubs above the weather deck (padeye caps)
+  for (const [x, z] of DECK.legs) {
+    if (x > 20 && z < -10) continue // NE leg carries the crane pedestal
+    place(tb.steel, cylClosed, [x, UD + 0.35, z], [0, 0, 0], [DECK.legOD / 2, 0.7, DECK.legOD / 2])
+    box(tb.steel, [x, UD + 0.95, z], [0.08, 0.5, 0.6])
+  }
+  // ---------------- perimeter guard rail with stair openings
+  {
+    const e = 0.05
+    const pts: [number, number][] = [
+      [DECK.x0 + e, DECK.z0 + e],
+      [DECK.x1 - e, DECK.z0 + e],
+      [DECK.x1 - e, DECK.z1 - e],
+      [DECK.x0 + e, DECK.z1 - e],
+    ]
+    const gaps = STAIR_TOWERS.map((t) => {
+      const [g0, g1] = towerGap(t)
+      const x = t.edgeX > 0 ? DECK.x1 - e : DECK.x0 + e
+      const a = perimeterDistance(pts, x, g0)
+      const b2 = perimeterDistance(pts, x, g1)
+      return [Math.min(a, b2), Math.max(a, b2)] as [number, number]
+    })
+    // the quarters west wall sits near the edge; the flare boom base needs an opening
+    const fz = FLARE.base[2]
+    const fa = perimeterDistance(pts, DECK.x1 - e, fz - 2.6)
+    const fb = perimeterDistance(pts, DECK.x1 - e, fz + 2.6)
+    gaps.push([Math.min(fa, fb), Math.max(fa, fb)])
+    railPolyline(tb.rail, pts, UD, gaps, true)
+  }
+
+  // ---------------- living quarters
+  const Q = QUARTERS
+  const qTop = UD + Q.storeys * Q.storey
+  boxMinMax(tb.facade, [Q.x0, UD, Q.z0], [Q.x1, qTop, Q.z1], 'world')
+  boxMinMax(tb.roof, [Q.x0 - 0.05, qTop, Q.z0 - 0.05], [Q.x1 + 0.05, qTop + 0.25, Q.z1 + 0.05])
+  // parapet + roof plant
+  for (const [a, b] of [
+    [[Q.x0, Q.z0], [Q.x1, Q.z0 + 0.15]],
+    [[Q.x0, Q.z1 - 0.15], [Q.x1, Q.z1]],
+    [[Q.x0, Q.z0], [Q.x0 + 0.15, Q.z1]],
+    [[Q.x1 - 0.15, Q.z0], [Q.x1, Q.z1]],
+  ] as [[number, number], [number, number]][])
+    boxMinMax(tb.white, [a[0], qTop + 0.25, a[1]], [b[0], qTop + 1.1, b[1]])
+  boxMinMax(tb.steelDark, [-20, qTop + 0.25, 1], [-16, qTop + 2.2, 5]) // HVAC
+  boxMinMax(tb.white, [-27, qTop + 0.25, 2], [-24, qTop + 3.0, 5]) // stair house
+  // external escape stair landings on the east wall (simple slabs)
+  for (let s = 1; s <= Q.storeys; s++) boxMinMax(tb.steel, [Q.x1, UD + s * Q.storey - 0.15, -11], [Q.x1 + 1.4, UD + s * Q.storey, -7])
+  for (let s = 1; s <= Q.storeys; s++) railPolyline(tb.rail, [[Q.x1 + 1.35, -11], [Q.x1 + 1.35, -7]], UD + s * Q.storey)
+  // doors
+  boxMinMax(tb.steelDark, [Q.x1, UD, -2.6], [Q.x1 + 0.05, UD + 2.2, -1.4])
+  boxMinMax(tb.steelDark, [Q.x1, UD + Q.storey, -10.2], [Q.x1 + 0.05, UD + Q.storey + 2.1, -9.2])
+
+  // ---------------- lifeboats (TEMPSC) in davits on the west face, under the helideck
+  for (const zc of [-7.2, 2.2]) {
+    const x = -31.8
+    const y = UD + 3.4
+    place(tb.orange, capsule, [x, y, zc], [Math.PI / 2, 0, 0], [1.45, 2.8, 1.2])
+    // white canopy band + hatch
+    place(tb.white, capsule, [x, y + 0.55, zc], [Math.PI / 2, 0, 0], [1.2, 2.0, 0.85])
+    boxMinMax(tb.orange, [x - 0.5, y + 1.25, zc - 1.5], [x + 0.5, y + 1.55, zc - 0.6])
+    // gravity davits: two arms + falls
+    for (const dz of [-2.8, 2.8]) {
+      const z = zc + dz
+      bar(tb.steelDark, [-29.6, UD, z], [-29.6, UD + 6.0, z], 0.3, 0.3)
+      bar(tb.steelDark, [-29.6, UD + 6.0, z], [-31.8, UD + 6.6, z], 0.25, 0.35)
+      tube(tb.steelDark, [-31.8, UD + 6.5, z], [x, y + 1.0, z * 0.85 + zc * 0.15], 0.015, 4, true)
+    }
+  }
+
+  // ---------------- helideck on a support truss above the quarters, cantilevered west
+  {
+    const H = HELIDECK
+    place(tb.heli, octagon, [H.x, H.y, H.z], [0, 0, 0], [H.r, 1, H.r])
+    // deck edge / sub-structure plate
+    place(tb.steelDark, new THREE.CylinderGeometry(1, 1, 1, 8, 1, false, Math.PI / 8 + Math.PI / 2), [H.x, H.y - 0.25, H.z], [0, 0, 0], [H.r, 0.48, H.r])
+    // perimeter lights + safety net shelf (grating-like mesh)
+    for (let k = 0; k < 8; k++) {
+      const a0 = (k / 8) * Math.PI * 2 + Math.PI / 8
+      const a1 = ((k + 1) / 8) * Math.PI * 2 + Math.PI / 8
+      const p0: V3 = [H.x + Math.cos(a0) * H.r, H.y, H.z - Math.sin(a0) * H.r]
+      const p1: V3 = [H.x + Math.cos(a1) * H.r, H.y, H.z - Math.sin(a1) * H.r]
+      for (let j = 0; j < 4; j++) {
+        const t = (j + 0.5) / 4
+        box(tb.heliLights, [p0[0] + (p1[0] - p0[0]) * t, H.y + 0.06, p0[2] + (p1[2] - p0[2]) * t], [0.18, 0.12, 0.18])
+      }
+      // net shelf: quad from rim outward 1.5 m, sloping up 10 deg
+      const o = 1.5
+      const q0: V3 = [H.x + Math.cos(a0) * (H.r + o), H.y + 0.15, H.z - Math.sin(a0) * (H.r + o)]
+      const q1: V3 = [H.x + Math.cos(a1) * (H.r + o), H.y + 0.15, H.z - Math.sin(a1) * (H.r + o)]
+      const g = new THREE.BufferGeometry()
+      g.setAttribute('position', new THREE.Float32BufferAttribute([...p0, ...p1, ...q1, ...q0], 3))
+      g.setIndex([0, 1, 2, 0, 2, 3])
+      g.computeVertexNormals()
+      tb.net.add(g, new THREE.Matrix4(), 'world')
+      tube(tb.steel, q0, q1, 0.04, 6, true)
+      // radial truss members down to the quarters roof / west wall
+      const rim: V3 = [H.x + Math.cos(a0) * H.r * 0.95, H.y - 0.5, H.z - Math.sin(a0) * H.r * 0.95]
+      const foot: V3 = [
+        Math.min(Math.max(rim[0], Q.x0 + 0.5), Q.x1 - 0.5),
+        rim[0] < Q.x0 ? UD + 6.5 : qTop + 0.3,
+        Math.min(Math.max(rim[2], Q.z0 + 0.5), Q.z1 - 0.5),
+      ]
+      if (rim[0] < Q.x0) foot[0] = Q.x0
+      tube(tb.steel, rim, foot, 0.2, 10, true)
+      tube(tb.steel, rim, [H.x, H.y - 0.5, H.z], 0.16, 8, true)
+    }
+    // vertical posts from the roof
+    for (const [x, z] of [
+      [-27, -10],
+      [-17, -10],
+      [-27, 4],
+      [-17, 4],
+    ])
+      tube(tb.steel, [x, qTop + 0.25, z], [x, H.y - 0.5, z], 0.3, 12, true)
+    // access ladder from the roof
+    ladder(tb.steel, [-16, qTop + 0.25, 5.2], H.y - qTop - 0.25, [1, 0], true)
+  }
+
+  // ---------------- pedestal crane (NE corner, above the leg), boom pointing west to the boom rest
+  {
+    const C = CRANE
+    place(tb.yellow, cylClosed, [C.x, (UD + C.pedestalTop) / 2, C.z], [0, 0, 0], [1.3, C.pedestalTop - UD, 1.3])
+    place(tb.steelDark, cylClosed, [C.x, C.pedestalTop + 0.3, C.z], [0, 0, 0], [1.7, 0.6, 1.7])
+    // machinery house (slewing platform) + cab
+    const yH = C.pedestalTop + 0.6
+    boxMinMax(tb.white, [C.x - 2.2, yH, C.z - 1.7], [C.x + 3.4, yH + 3.2, C.z + 1.7])
+    boxMinMax(tb.yellow, [C.x - 2.8, yH + 0.2, C.z + 1.7], [C.x - 0.6, yH + 2.7, C.z + 3.6]) // cab
+    boxMinMax(tb.glass, [C.x - 2.85, yH + 1.2, C.z + 1.85], [C.x - 2.79, yH + 2.5, C.z + 3.45])
+    boxMinMax(tb.glass, [C.x - 2.7, yH + 1.2, C.z + 3.6], [C.x - 0.75, yH + 2.5, C.z + 3.65])
+    // A-frame
+    const apex: V3 = [C.x + 1.4, yH + 8.5, C.z]
+    for (const dz of [-1.5, 1.5]) {
+      tube(tb.yellow, [C.x + 3.2, yH + 3.2, C.z + dz], apex, 0.18, 8, true)
+      tube(tb.yellow, [C.x - 1.6, yH + 3.2, C.z + dz], apex, 0.18, 8, true)
+    }
+    // lattice boom resting on the boom rest
+    const heel: V3 = [C.x - 2.4, yH + 1.2, C.z]
+    const tip: V3 = [C.x - 41, UD + 11.6, C.z]
+    const boom = lattice(tb.yellow, tb.yellow, heel, tip, 1.9, 0.9, [0, 1, 0], 0.11, 0.045, 1.7)
+    // tip sheaves + hook block hanging
+    place(tb.steelDark, cylClosed, [tip[0] - 0.4, tip[1] + 0.2, tip[2]], [Math.PI / 2, 0, 0], [0.6, 0.5, 0.6])
+    tube(tb.steelDark, [tip[0] - 0.6, tip[1], tip[2]], [tip[0] - 0.6, tip[1] - 3.5, tip[2]], 0.02, 4, true)
+    boxMinMax(tb.yellow, [tip[0] - 0.95, tip[1] - 4.6, tip[2] - 0.3], [tip[0] - 0.25, tip[1] - 3.5, tip[2] + 0.3])
+    // luffing ropes apex -> boom tip
+    const tb0 = boom.at(1, 2)
+    tube(tb.steelDark, apex, tb0, 0.03, 4, true)
+    tube(tb.steelDark, apex, boom.at(1, 3), 0.03, 4, true)
+    // boom rest
+    const xr = C.x - 30
+    const yRest = heel[1] + ((tip[1] - heel[1]) * (heel[0] - xr)) / (heel[0] - tip[0]) - 1.2
+    for (const dz of [-1.4, 1.4]) bar(tb.yellow, [xr, UD, C.z + dz], [xr, yRest, C.z + dz], 0.3, 0.3)
+    bar(tb.yellow, [xr, yRest, C.z - 1.6], [xr, yRest, C.z + 1.6], 0.35, 0.3, [0, 1, 0])
+  }
+
+  // ---------------- turbine generator enclosures + exhaust stacks
+  for (const zc of [4.5, 11.5]) {
+    boxMinMax(tb.white, [2, UD, zc - 2.3], [15, UD + 5.2, zc + 2.3], 'world')
+    boxMinMax(tb.steelDark, [-1.5, UD + 3.0, zc - 2.0], [2, UD + 7.0, zc + 2.0]) // air intake filter house
+    boxMinMax(tb.steelDark, [2, UD, zc - 2.4], [15, UD + 0.25, zc + 2.4]) // skid base
+    const sx = 12.5
+    tube(tb.steel, [sx, UD + 5.2, zc], [sx, UD + 17.0, zc], 1.1, 24, false)
+    tube(tb.soot, [sx, UD + 17.0, zc], [sx, UD + 18.6, zc], 1.1, 24, true)
+    tube(tb.steelDark, [sx, UD + 9.5, zc], [sx, UD + 9.8, zc], 1.2, 24, false)
+    tube(tb.steelDark, [sx, UD + 14.5, zc], [sx, UD + 14.8, zc], 1.2, 24, false)
+    // stack support struts
+    for (const dz of [-1, 1]) tube(tb.steel, [sx - 2, UD + 5.2, zc + dz * 2], [sx, UD + 12, zc + dz * 1.1], 0.1, 6, true)
+  }
+
+  // ---------------- switchgear / LER module, 2-storey
+  boxMinMax(tb.white, [-12, UD, -14], [-2, UD + 7.0, -5], 'world')
+  boxMinMax(tb.roof, [-12.1, UD + 7.0, -14.1], [-1.9, UD + 7.25, -4.9])
+  boxMinMax(tb.steelDark, [-9, UD + 7.25, -12], [-5, UD + 8.8, -8])
+  for (const x of [-10.5, -4.5]) boxMinMax(tb.steelDark, [x, UD, -5.0], [x + 1.2, UD + 2.2, -4.95])
+
+  // ---------------- laydown: ISO containers + cargo baskets
+  boxMinMax(tb.red, [13, UD, -12.5], [19.06, UD + 2.59, -10.06])
+  boxMinMax(tb.blue, [13, UD, -9.6], [19.06, UD + 2.59, -7.16])
+  boxMinMax(tb.green, [13.5, UD + 2.59, -12.3], [16.5, UD + 4.9, -10.0])
+  boxMinMax(tb.steelDark, [20, UD, -12], [23, UD + 1.0, -9.5])
+
+  // ---------------- deck crane laydown markings: hatched yellow kerb boxes
+  for (const [x0, z0, x1, z1] of [[12.5, -13, 23.5, -6.5]] as [number, number, number, number][]) {
+    boxMinMax(tb.yellow, [x0, UD, z0], [x1, UD + 0.08, z0 + 0.12])
+    boxMinMax(tb.yellow, [x0, UD, z1 - 0.12], [x1, UD + 0.08, z1])
+    boxMinMax(tb.yellow, [x0, UD, z0], [x0 + 0.12, UD + 0.08, z1])
+    boxMinMax(tb.yellow, [x1 - 0.12, UD, z0], [x1, UD + 0.08, z1])
+  }
+}
