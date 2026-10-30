@@ -480,7 +480,7 @@ function ModelBox() {
   const selected = useCctv((s) => s.callUp ?? s.selected)
   const now = Object.values(live).flat()
   const people = now.filter((d) => d.kind === 'person').length
-  const ppe = now.filter((d) => d.kind === 'noHardHat' || d.kind === 'noVest').length
+  const ppe = now.filter((d) => d.kind === 'noHardHat' || d.kind === 'noVest' || d.kind === 'restrictedZone').length
   const hazards = now.filter((d) => d.kind === 'fire' || d.kind === 'gasCloud').length
   const per = 1000 / FEED_INTERVAL_MS
   const others = Math.max(1, feedCanvases.size - 1)
@@ -489,7 +489,7 @@ function ModelBox() {
     <Box title="Detector model">
       <div className="h-kpis cctv-kpis">
         <Kpi label="People in view" value={String(people)} />
-        <Kpi label="PPE violations" value={String(ppe)} abn={ppe > 0} />
+        <Kpi label="PPE / zone violations" value={String(ppe)} abn={ppe > 0} />
         <Kpi label="Hazards" value={String(hazards)} bad={hazards > 0} />
       </div>
       <table className="h-tbl cctv-model">

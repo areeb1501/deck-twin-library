@@ -38,13 +38,13 @@ const NIGHT_HAZE = new THREE.Color('#0d1522')
 const NIGHT_STORM = new THREE.Color('#11161b')
 const SUN_COLOR = new THREE.Color('#fff1dc')
 const MOON_COLOR = new THREE.Color('#9fb4d8')
-const HEMI_DAY = { sky: new THREE.Color('#c4d8ea'), ground: new THREE.Color('#6d7c80'), k: 0.4 }
+const HEMI_DAY = { sky: new THREE.Color('#b9d5f2'), ground: new THREE.Color('#6d7c80'), k: 0.4 }
 const HEMI_NIGHT = { sky: new THREE.Color('#ffcf9e'), ground: new THREE.Color('#2a3036'), k: 0.22 }
 /** shadow frustum half-sizes (m), picked by camera distance */
 const SHADOW_HALF = [56, 84, 126, 170]
 const SUN_DIST = 220
 
-const SKY = { turbidity: 2.4, rayleigh: 2.2, mieCoefficient: 0.003, mieDirectionalG: 0.8 }
+const SKY = { turbidity: 1.7, rayleigh: 2.9, mieCoefficient: 0.0025, mieDirectionalG: 0.8 }
 const SUN_POS = SUN_DIR.clone().multiplyScalar(1000)
 
 function HorizonHaze() {
@@ -66,10 +66,10 @@ function HorizonHaze() {
           varying vec3 vDir;
           void main() {
             float y = normalize(vDir).y;
-            float above = 1.0 - smoothstep(0.0, 0.085, y);
+            float above = 1.0 - smoothstep(0.0, 0.05, y);
             above = above * above * (3.0 - 2.0 * above);
             vec3 col = mix(uHaze, uDeep, smoothstep(-0.004, -0.09, y));
-            float a = y < 0.0 ? 1.0 : above * 0.92;
+            float a = y < 0.0 ? 1.0 : above * 0.8;
             gl_FragColor = vec4(col, a);
             #include <tonemapping_fragment>
             #include <colorspace_fragment>
@@ -302,7 +302,7 @@ export function SkyAndLights({ shadowMapSize = 4096 }: { shadowMapSize?: number 
       <NightSky dome={domeRef} />
       <Weather light={lightRef} sky={skyRef} dome={domeRef} hemi={hemiRef} bounce={bounceRef} />
       <HorizonHaze />
-      <hemisphereLight ref={hemiRef} args={['#c4d8ea', '#6d7c80', 0.4]} />
+      <hemisphereLight ref={hemiRef} args={['#b9d5f2', '#6d7c80', 0.4]} />
       {/* sea/deck bounce: lifts the undersides of decks and beams (no shadows) */}
       <directionalLight ref={bounceRef} position={[-20, -60, 10]} intensity={0.25} color="#9fb8c0" />
       <directionalLight

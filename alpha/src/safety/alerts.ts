@@ -27,6 +27,7 @@ import { SCENARIOS } from '../sim/scenarios'
 import { detectors, fireZones, platformOfTag } from '../sim/fg'
 import { useRisk } from './risk'
 import { useCctv, CAMERAS } from './cctv'
+import { useWorkers } from './workers'
 import { barrierErosion, recordDriftSamples, sensorDrift, type DriftFinding, type ErosionFinding } from './agentTools'
 
 /** default alert recipient (prototype). Never abdullahweb24bd@gmail.com. */
@@ -506,6 +507,20 @@ function ruleCctv() {
         observer: 'cctv',
         evidence: [{ camera: d.camera, kind: d.kind, worker: d.workerId ?? null, confidence: d.confidence, box: d.box, model: d.model }],
         actions: ['Area authority to stop the job and correct the PPE', 'Log the observation in the safety system'],
+      })
+    } else if (d.kind === 'restrictedZone') {
+      const who = useWorkers.getState().roster.find((w) => w.id === d.workerId)?.name
+      raise({
+        severity: 'warning',
+        source: 'cctv',
+        rule: 'machinery-zone',
+        platform,
+        title: `Too close to running ${d.tag ?? 'machinery'}${who ? `: ${who}` : ''}`,
+        body: `Camera ${cam?.name ?? d.camera} sees ${who ?? 'a person'} ${d.dist ?? '?'} m from the skid of running ${d.tag ?? 'machinery'}, inside its exclusion zone (confidence ${(d.confidence * 100).toFixed(0)} %, model ${d.model}).`,
+        tags: d.tag ? [d.tag] : [],
+        observer: 'cctv',
+        evidence: [{ camera: d.camera, kind: d.kind, worker: d.workerId ?? null, machine: d.tag ?? null, distance_m: d.dist ?? null, confidence: d.confidence, box: d.box, model: d.model }],
+        actions: [`Area authority to confirm the person holds an authorisation for work near ${d.tag ?? 'the machine'}, or clear them out`, 'If the work needs closer access, stop the machine and work under a permit with isolation'],
       })
     } else if (d.kind === 'fire' || d.kind === 'gasCloud') {
       raise({

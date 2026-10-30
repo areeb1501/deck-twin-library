@@ -10,10 +10,10 @@ const AZ = THREE.MathUtils.degToRad(22) // from east towards south
 export const SUN_DIR = new THREE.Vector3(Math.cos(EL) * Math.cos(AZ), Math.sin(EL), Math.cos(EL) * Math.sin(AZ)).normalize()
 
 /** Haze / fog colour == sky colour at the horizon (linear-sRGB Color). */
-export const HAZE = new THREE.Color('#c3d3df')
+export const HAZE = new THREE.Color('#a8c8e4')
 /** Deep-water colour used for the underwater tint and the backdrop below the horizon. */
 export const DEEP = new THREE.Color('#0a2e3a')
-export const FOG_DENSITY = 0.00042
+export const FOG_DENSITY = 0.0003
 
 /** Global environment clock shared by ocean, flare, vessel. */
 export const envTime = { value: 0 }

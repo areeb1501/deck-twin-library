@@ -196,7 +196,7 @@ export const DETECTION_LABEL: Record<DetectionKind, string> = {
   person: 'Person',
   noHardHat: 'No hard hat',
   noVest: 'No hi-vis vest',
-  restrictedZone: 'Person in restricted zone',
+  restrictedZone: 'Too close to running machinery',
   gasCloud: 'Gas cloud',
   fire: 'Flame',
 }
@@ -207,6 +207,10 @@ export interface Detection {
   camera: string
   kind: DetectionKind
   workerId?: string
+  /** restrictedZone: the running machine whose exclusion zone the person is in */
+  tag?: string
+  /** restrictedZone: distance from the machine's skid edge, m */
+  dist?: number
   /** normalised image box [x0, y0, x1, y1] in 0 … 1 (origin top-left) */
   box: [number, number, number, number]
   confidence: number

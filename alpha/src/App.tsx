@@ -6,7 +6,7 @@ import { HoverTip, Legend, Toolbar } from './ui/Toolbar'
 import { WalkHud } from './ui/WalkHud'
 import { IsolationPanel } from './ui/IsolationPanel'
 import { useStore } from './state/store'
-import { usePlant } from './state/plantStore'
+import { usePlant, usePlantStore } from './state/plantStore'
 import { PlantMenu } from './ui/PlantMenu'
 import { LabelOverlay } from './ui/labels'
 import { BuilderPanel } from './ui/builder/BuilderPanel'
@@ -30,9 +30,22 @@ import { CraneCabHud } from './ui/CraneCabHud'
 import './safety/risk'
 import './safety/alerts'
 import { useSim } from './state/sim'
+import { sample } from './ui/live'
+import { enterRoom, goToTag, walkToTag } from './ui/walkTo'
+import { startTour } from './tour/engine'
 import './app.css'
 
 if (import.meta.env.DEV) (window as unknown as Record<string, unknown>).__sim = useSim
+// dev: hooks for the demo-video recorder (video/) and scripted checks
+if (import.meta.env.DEV)
+  Object.assign(window, {
+    __live: (tag: string) => {
+      const inst = usePlantStore.getState().plant.instruments.find((i) => i.tag === tag)
+      return inst ? { v: sample(inst, useSim.getState().t), unit: inst.unit } : null
+    },
+    __walkTo: { walkToTag, enterRoom, goToTag },
+    __startTour: startTour,
+  })
 
 export default function App() {
   const plant = usePlant()

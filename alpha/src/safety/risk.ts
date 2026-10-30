@@ -326,7 +326,7 @@ export function computeRisk(): RiskSnapshot {
   const roster = useWorkers.getState()?.roster ?? []
   const ppe: Partial<Record<PlatformId, { n: number; last: string; worker?: string }>> = {}
   for (const d of log) {
-    if (d.kind !== 'noHardHat' && d.kind !== 'noVest') continue
+    if (d.kind !== 'noHardHat' && d.kind !== 'noVest' && d.kind !== 'restrictedZone') continue
     if (t - d.t > P.window || d.t > t + 1) continue
     const cam = CAMERAS.find((x) => x.id === d.camera)
     const pl = cam?.platform ?? roster.find((w) => w.id === d.workerId)?.platform ?? home
@@ -334,12 +334,12 @@ export function computeRisk(): RiskSnapshot {
     e.n++
     if (!e.last) {
       const who = roster.find((w) => w.id === d.workerId)?.name
-      e.last = `${d.kind === 'noHardHat' ? 'no hard hat' : 'no hi-vis vest'}${who ? ` (${who})` : ''}${cam ? ` on ${cam.name}` : ''}`
+      e.last = `${d.kind === 'noHardHat' ? 'no hard hat' : d.kind === 'noVest' ? 'no hi-vis vest' : `too close to running ${d.tag ?? 'machinery'}`}${who ? ` (${who})` : ''}${cam ? ` on ${cam.name}` : ''}`
       e.worker = d.workerId
     }
   }
   for (const [pl, e] of Object.entries(ppe) as [PlatformId, NonNullable<(typeof ppe)[PlatformId]>][]) {
-    add({ id: `ppe:${pl}`, platform: pl, category: 'people', text: `${e.n} PPE violation${e.n > 1 ? 's' : ''} on CCTV in 2 min — latest: ${e.last}`, points: Math.min(P.max, e.n * P.each) })
+    add({ id: `ppe:${pl}`, platform: pl, category: 'people', text: `${e.n} PPE / machinery-zone violation${e.n > 1 ? 's' : ''} on CCTV in 2 min — latest: ${e.last}`, points: Math.min(P.max, e.n * P.each) })
   }
 
   // ---- roll up per platform, then the field

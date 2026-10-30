@@ -171,6 +171,8 @@ function Rig({ root }: { root: React.RefObject<THREE.Group | null> }) {
     if (!c) return
     const p = PRESETS.overview
     c.setLookAt(...p.pos, ...p.target, false)
+    // dev: the demo-video recorder (video/) drives the camera directly
+    if (import.meta.env.DEV) Object.assign(window, { __controls: c })
   }, [])
 
   useEffect(() => {
@@ -248,7 +250,7 @@ function Effects({ selectedObjs }: { selectedObjs: THREE.Object3D[] }) {
       <N8AO ref={patchN8AO} enabled={ao && viewMode === 'shaded' && !section} halfRes aoRadius={1.1} distanceFalloff={0.6} intensity={2.2} quality="medium" />
       <Outline selection={selectedObjs} edgeStrength={3.2} visibleEdgeColor={0xffffff} hiddenEdgeColor={0x000000} xRay={false} blur pulseSpeed={0} />
       <SMAA />
-      <ToneMapping mode={ToneMappingMode.ACES_FILMIC} />
+      <ToneMapping mode={ToneMappingMode.NEUTRAL} />
     </EffectComposer>
   )
 }

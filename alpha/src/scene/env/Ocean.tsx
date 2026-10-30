@@ -140,7 +140,7 @@ function polarGrid(segments = 384, rings = 190, radius = 4000, first = 0.55) {
 
 function makeOceanMaterial() {
   const m = new THREE.MeshPhysicalMaterial({
-    color: '#0d3d4b',
+    color: '#0c4a62',
     roughness: 0.06,
     metalness: 0,
     ior: 1.333,

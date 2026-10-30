@@ -22,10 +22,11 @@ import type { Incident, PlatformId, ZoneStatus } from '../sim/types'
 import type { CctvCamera, Detection, DetectionKind } from './types'
 import { DECK_WORLD_Y } from '../state/store'
 import { usePlantStore } from '../state/plantStore'
-import { registerSimPlugin, useSim } from '../state/sim'
+import { isRunning, registerSimPlugin, useSim } from '../state/sim'
 import { cloudShape, flameHeight, zoneAt, zoneById, zoneCentre, zoneOfTag } from '../sim/fg'
 import { getWind } from '../sim/fg/live'
 import { useWorkers, workerPose } from './workers'
+import { footprints, type Footprint } from '../model/footprint'
 
 export type CameraType = 'ptz' | 'thermal'
 
@@ -393,6 +394,8 @@ export function detect(
       out.push(mk('noHardHat', clip([cx - hw, top - h * 0.02, cx + hw, top + h * 0.17]), conf(`${cam.id}${w.id}h`, 0.72, 0.94), { workerId: w.id }))
     }
     if (!w.vest) out.push(mk('noVest', clip([cx - halfW * 1.05, top + h * 0.2, cx + halfW * 1.05, top + h * 0.55]), conf(`${cam.id}${w.id}v`, 0.7, 0.92), { workerId: w.id }))
+    const zone = p.speed < 0.2 ? machineZoneAt(p.x, p.z, p.footY) : null
+    if (zone) out.push(mk('restrictedZone', clip(box), conf(`${cam.id}${w.id}z`, 0.78, 0.95), { workerId: w.id, ref: `${w.id}:${zone.tag}`, tag: zone.tag, dist: +zone.dist.toFixed(1) }))
   }
 
   // ---- hazards from the live incidents (deck-local pos → world)
@@ -426,6 +429,38 @@ export function detect(
     }
   }
   return out
+}
+
+// ---------------------------------------------------------------- machinery exclusion zones
+
+/**
+ * Exclusion zone around running rotating machinery, metres from the skid edge. A person standing inside it
+ * on CCTV is a `restrictedZone` detection: the area authority confirms they hold an authorisation, or clears
+ * them out. Walking past on the walkway doesn't count (only someone who stops there), and normal gauge
+ * rounds stand ~1.9 m off a skid (safety/workers.ts), outside every zone.
+ */
+export const MACHINE_ZONE_M: Partial<Record<string, number>> = { compressorPackage: 1.5, pumpPackage: 1.2, gasTurbineGenerator: 1.0 }
+
+const zoneCache = new WeakMap<Plant, { tag: string; kind: string; y: number; f: Footprint }[]>()
+function rotatingMachines(plant: Plant) {
+  let z = zoneCache.get(plant)
+  if (!z) {
+    const fps = footprints(plant.equipment, 0)
+    z = plant.equipment.flatMap((e, i) => (MACHINE_ZONE_M[e.kind] ? [{ tag: e.tag, kind: e.kind, y: e.position[1], f: fps[i] }] : []))
+    zoneCache.set(plant, z)
+  }
+  return z
+}
+
+/** the running machine whose exclusion zone (same deck, plan distance to the skid) holds this point, if any */
+export function machineZoneAt(x: number, z: number, footY: number): { tag: string; dist: number } | null {
+  let best: { tag: string; dist: number } | null = null
+  for (const m of rotatingMachines(usePlantStore.getState().plant)) {
+    if (Math.abs(footY - DECK_WORLD_Y - m.y) > 2.5 || !isRunning(m.tag)) continue
+    const d = Math.hypot(Math.max(m.f.x0 - x, 0, x - m.f.x1), Math.max(m.f.z0 - z, 0, z - m.f.z1))
+    if (d < MACHINE_ZONE_M[m.kind]! && (!best || d < best.dist)) best = { tag: m.tag, dist: d }
+  }
+  return best
 }
 
 function corners(x0: number, y0: number, z0: number, x1: number, y1: number, z1: number): Vec3[] {

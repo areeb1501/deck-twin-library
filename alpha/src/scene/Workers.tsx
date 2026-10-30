@@ -93,6 +93,8 @@ interface Agent {
   /** wall-clock seconds when idling ends */
   until: number
   faceYaw: number | null
+  /** seconds to stay at the next goal instead of the usual 6–20 s (dev: __sendWorker) */
+  hold?: number
   fails: number
   rng: () => number
 }
@@ -208,7 +210,8 @@ function stepAgents(plant: Plant, agents: Agent[], queue: Agent[], dt: number, n
       if (a.seg >= a.path.length) {
         a.mode = 'idle'
         a.speed = 0
-        a.until = now + 6 + a.rng() * 14
+        a.until = now + (a.hold ?? 6 + a.rng() * 14)
+        a.hold = undefined
         const g = a.goal
         a.faceYaw = g ? yawTo(g.face[0] - a.x, g.face[1] - a.z) : null
         if (g) setWorkerTask(a.w.id, taskText(a.w, g))
@@ -283,6 +286,25 @@ export function Workers() {
     const agents = buildAgents(plant)
     agentsRef.current = agents
     for (const a of agents) workerPose[a.w.id] = { x: a.x, z: a.z, footY: a.footY, yaw: a.yaw, speed: 0 }
+    // dev (demo video, tests): walk a worker to a plan point on their deck — the last leg may step off the
+    // planned walkway, e.g. right up to a machine skid — face a tag and stay there for `hold` seconds
+    if (import.meta.env.DEV)
+      Object.assign(window, {
+        __sendWorker: (id: string, to: [number, number], faceTag: string, hold = 120, via?: [number, number]) => {
+          const a = agents.find((x) => x.w.id === id)
+          const e = plant.equipment.find((x) => x.tag === faceTag)
+          if (!a || !e) return false
+          const y = a.footY - DECK_WORLD_Y
+          const path = planPath(plant, a.li, [a.x, a.z], via ?? to) ?? []
+          path.push({ x: to[0], z: to[1], y })
+          a.path = path
+          a.seg = 0
+          a.goal = { x: to[0], z: to[1], tag: e.tag, face: [e.position[0], e.position[2]], platform: a.w.platform, kind: e.kind }
+          a.mode = 'walk'
+          a.hold = hold
+          return path.length
+        },
+      })
     return () => {
       for (const a of agents) delete workerPose[a.w.id]
       agentsRef.current = []
