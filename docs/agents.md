@@ -22,10 +22,11 @@ This writes `.claude/skills/deck-twin/`: `SKILL.md` plus the `references/` files
 
 | File | Purpose |
 |---|---|
-| `SKILL.md` | The two workflows and the rules |
+| `SKILL.md` | The commands, `validate`, the two workflows and the rules |
 | `references/component-map.md` | Maps P&ID symbols and equipment names to registry names |
 | `references/sizing.md` | Rules of thumb for pressure class, line size, vessel, pump and driver sizes when the drawing is silent |
 | `references/layout.md` | Deck levels, flow order, spacing, partners, pipe racks, cranes |
+| `references/documents.md` | How to read each kind of document: drawings, lists, datasheets, plot plans and notes |
 | `references/plant-json.md` | The schema, with the rules the checker and renderer enforce |
 | `references/pid-symbols.md` | Generated: every component's P&ID symbol, tag letters, ISA codes and datasheet → props mapping |
 | `scripts/tile.py` | Cuts large P&ID scans into legible tiles |
@@ -57,6 +58,6 @@ Every component page shows its symbol, tag letters and datasheet mapping, under 
 
 Give it the skill, the equipment table and one instruction:
 
-> Follow Workflow B in SKILL.md. Use only names from `deck-twin list` and ports from `deck-twin info`. Run `deck-twin check plant.json` after every change until it reports no errors, then run `deck-twin assemble plant.json`.
+> Follow Workflow B in SKILL.md. Use only names from `deck-twin list` and ports from `deck-twin info`. Run `deck-twin validate plant.json` after every change until it reports no errors, then run `deck-twin assemble plant.json`.
 
 The check loop does most of the work. Every error names the item and tells the model what to change.

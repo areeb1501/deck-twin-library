@@ -166,7 +166,7 @@ export function Home() {
                 <Mono dark>deck-twin info &lt;name&gt;</Mono> returns one component as JSON
               </Check>
               <Check>
-                <Mono dark>deck-twin check plant.json</Mono> finds unknown parts, bad ports, and line-number or class mismatches
+                <Mono dark>deck-twin validate plant.json</Mono> finds unknown parts, bad ports, and line-number or class mismatches
               </Check>
             </ul>
             <div className="mt-8 max-w-md">

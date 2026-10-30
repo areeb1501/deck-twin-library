@@ -1,11 +1,11 @@
 #!/usr/bin/env node
-// deck-twin: add components, inspect the registry, check and assemble plant.json. Zero dependencies.
+// deck-twin: add components, inspect the registry, validate and assemble plant.json. Zero dependencies.
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { dirname, join, relative, resolve } from 'node:path'
 import { spawnSync } from 'node:child_process'
 import { checkPlant } from './check.mjs'
 
-const VERSION = '0.1.0'
+const VERSION = '0.2.0'
 const DEFAULT_REGISTRY = 'https://deck-twin-library.demoareeb.workers.dev'
 const PEERS = ['three', '@react-three/fiber', '@react-three/drei']
 
@@ -202,7 +202,7 @@ async function check(file, quiet = false) {
     for (const i of issues) console.log(`${i.level === 'error' ? c.red('error  ') : c.yellow('warning')} ${c.bold(i.where)}  ${i.message}`)
     const e = issues.filter((i) => i.level === 'error').length
     console.log(e ? c.red(`\n✗ ${e} error(s), ${issues.length - e} warning(s)`) : c.green(`✓ ${spec.items?.length ?? 0} items, ${spec.lines?.length ?? 0} lines${issues.length ? `, ${issues.length} warning(s)` : ', no issues'}`))
-    console.log(c.dim('Geometry checks (overlaps, floating items) run in <Plant onReport> and on the website playground.'))
+    console.log(c.dim('Line clearances, overlaps and floating items need the drawn plant: <Plant onReport>, the playground or the viewer report them.'))
   }
   return { spec, issues }
 }
@@ -281,8 +281,8 @@ const HELP = `deck-twin ${VERSION}: standards-based three.js components for oil 
   deck-twin list [category]           list components by category
   deck-twin search <words>            find components by name, tag or standard
   deck-twin info <name> [--json]      props, ranges, defaults and ports of one component
-  deck-twin check <plant.json>        validate a plant: components, ports, sizes, wiring
-  deck-twin assemble <plant.json>     check, install everything it uses, write PlantScene.tsx
+  deck-twin validate <plant.json>     is this plant valid? components, ports, sizes, wiring (exit 0 = valid)
+  deck-twin assemble <plant.json>     validate, install everything it uses, write PlantScene.tsx
   deck-twin skill [--dir path]        install the agent skill (default .claude/skills/deck-twin)
 
   --dir <path>        install directory (default src/components/deck-twin)
@@ -302,7 +302,7 @@ try {
   } else if (cmd === 'list' || cmd === 'ls') await list()
   else if (cmd === 'search') await search()
   else if (cmd === 'info') await info()
-  else if (cmd === 'check') {
+  else if (cmd === 'validate' || cmd === 'check') {
     const { issues } = await check(args[0] ?? 'plant.json')
     if (issues.some((i) => i.level === 'error')) process.exitCode = 1
   } else if (cmd === 'assemble') await assemble(args[0] ?? 'plant.json')

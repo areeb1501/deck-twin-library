@@ -7,16 +7,16 @@ Standards-based three.js / React Three Fiber components for oil & gas digital tw
 - **Components**: separators, columns, tanks, pumps, compressors, gas turbines, exchangers, valves, piping, instruments, fire & gas devices, decks, pipe racks, jackets, bridges, cranes, process packages, and an animated ocean and day or night sky for offshore scenes. Each is one readable `.tsx` file.
 - **Standards**: sized from ASME B36.10, B16.5, B16.9, B16.10 and VIII-1, API 526/594/609/610/617/618/650, TEMA, IEC 60072, ISO 14122 and ISO 14726. Change the NPS or the class and the geometry follows.
 - **Ports**: every flange face is a port. `plant.json` wires ports together, and `<Plant>` routes the pipe with B16.9 elbows, mating flanges, gaskets, studs, inline valves, colour bands and supports.
-- **For agents**: `SKILL.md`, `/r/index.json`, `llms.txt`, and `deck-twin check` and `assemble` that any model can drive, including cost-effective ones.
+- **For agents**: `SKILL.md`, `/r/index.json`, `llms.txt`, and `deck-twin validate` and `assemble` that any model can drive, including cost-effective ones.
 
 ## Use
 
-Until it is published to npm, run the CLI from the deployed site: `npx -y <site>/cli/deck-twin.tgz <command>`. The examples below use the short `npx deck-twin`.
+Until it is published to npm, run the CLI from the deployed site: `npx -y <site>/cli/deck-twin-0.2.0.tgz <command>`. The examples below use the short `npx deck-twin`.
 
 ```bash
 npx deck-twin add horizontal-separator centrifugal-pump gate-valve
 npx deck-twin info centrifugal-pump
-npx deck-twin check plant.json && npx deck-twin assemble plant.json
+npx deck-twin validate plant.json && npx deck-twin assemble plant.json
 npx deck-twin skill
 ```
 

@@ -69,4 +69,4 @@ Use the footprint from `deck-twin info <name>` → `bounds.size`: x is length, z
 
 ## 7. Before you render
 
-Run `deck-twin check plant.json` and fix all errors. Then render with `assemble`, and check the overlap and floating warnings.
+Run `deck-twin validate plant.json` and fix all errors. Then render with `assemble`, and check the overlap and floating warnings.

@@ -1,4 +1,8 @@
 /** The rules an AI agent needs to write a plant.json that loads first time. Copied from the plant menu. */
+import { version } from '../../cli/package.json'
+
+const cli = (site: string) => `npx -y ${site}/cli/deck-twin-${version}.tgz`
+
 export const agentBrief = (site: string) => `Write this plant as a Deck Twin plant.json. There is one format and it is built from the component library, so follow it exactly.
 
 ## Format
@@ -33,13 +37,13 @@ They belong to other formats and the file will be rejected: "equipment", "deck",
 8. Keep items far enough apart that a line has room for two flanges.
 9. A line can't start or end in the middle of another line. Add a "tee" item with "ends": "flanged" at the height of the line, join it through ports run-a, run-b and branch, and split the line. Add a letter to the second piece's sequence number: 4"-PO-303-D6A-N and 4"-PO-303A-D6A-N.
 
-## Check before you hand it over
+## Validate before you hand it over
 
-Run these with no install. The Load button applies the same rules, so a clean check is a file that loads.
+Run these with no install. validate exits 0 when the file is valid. The Load button applies the same rules, plus one that needs the drawn plant: a line's ends must be far enough apart for two flanges.
 
-npx -y ${site}/cli/deck-twin.tgz search <words>
-npx -y ${site}/cli/deck-twin.tgz info <name>
-npx -y ${site}/cli/deck-twin.tgz check plant.json
+${cli(site)} search <words>
+${cli(site)} info <name>
+${cli(site)} validate plant.json
 
 Fix every error and re-run until it is clean. Then report every assumption and any warning that remains.
 

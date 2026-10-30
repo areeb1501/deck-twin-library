@@ -5,7 +5,7 @@ import { dirname, join, relative } from 'node:path'
 import { fileURLToPath, pathToFileURL } from 'node:url'
 import { CATEGORIES, type ComponentMeta } from '../registry/meta'
 import { metas } from './list'
-import { agentPrompt } from '../src/prompt'
+import { agentPrompt, cliCommand } from '../src/prompt'
 import { spawnSync } from 'node:child_process'
 import { tmpdir } from 'node:os'
 
@@ -175,7 +175,7 @@ writeFileSync(
       $schema: 'https://json-schema.org/draft/2020-12/schema',
       $id: `${SITE}/r/plant.schema.json`,
       title: 'Deck Twin plant.json',
-      description: 'A plant built from registry components. Take component names, props and port ids from the CLI, and run `deck-twin check` on the result.',
+      description: 'A plant built from registry components. Take component names, props and port ids from the CLI, and run `deck-twin validate` on the result.',
       type: 'object',
       required: ['name', 'items'],
       additionalProperties: false,
@@ -406,7 +406,7 @@ if (missingPid.length) console.warn(`! ${missingPid.length} component(s) without
 if (existsSync(join(root, 'skill'))) {
   rmSync(join(root, 'public/skill'), { recursive: true, force: true })
   cpSync(join(root, 'skill'), join(root, 'public/skill'), { recursive: true })
-  const cli = `npx -y ${SITE}/cli/deck-twin.tgz`
+  const cli = cliCommand(SITE)
   for (const f of walk(join(root, 'public/skill')).filter((x) => x.endsWith('.md'))) writeFileSync(f, read(f).replaceAll('{{CLI}}', cli).replaceAll('{{SITE}}', SITE))
   const files = walk(join(root, 'skill')).map((f) => relative(join(root, 'skill'), f)).filter((f) => !f.split('/').pop()!.startsWith('.'))
   writeFileSync(join(root, 'public/skill/manifest.json'), JSON.stringify({ files }, null, 1))
@@ -416,7 +416,7 @@ if (existsSync(join(reg, 'examples'))) {
   for (const f of readdirSync(join(reg, 'examples'))) cpSync(join(reg, 'examples', f), join(out, 'examples', f))
 }
 
-// Agent prompt and the CLI tarball (runs as `npx -y <site>/cli/deck-twin.tgz` until it is on npm)
+// Agent prompt and the CLI tarball (runs as `npx -y <site>/cli/deck-twin-<version>.tgz` until it is on npm)
 writeFileSync(join(root, 'public/prompt.md'), agentPrompt(SITE))
 {
   const tmp = join(tmpdir(), `deck-twin-cli-${process.pid}`)

@@ -10,7 +10,7 @@ There is exactly one plant format for agents: the one on this page. It is built 
 | Take `"component"` from `deck-twin search`, and props and ports from `deck-twin info <name>`. | Invent a name, a prop or a port id, or guess one from a similar component. |
 | Join items with lines: `"from": "V-100.gas"`, `"to": "K-101.suction"`. | Write coordinates for a pipe's route unless you need waypoints (`"via"`). The router builds it. |
 | Put valves and other inline parts in the line's `"inline"` list. | Add top-level `"valves"` or `"instruments"`, or put an inline valve in `"items"`. |
-| Run `deck-twin check plant.json` and fix every error before you hand it over. | Hand over a file that hasn't been checked. |
+| Run `deck-twin validate plant.json` and fix every error before you hand it over. | Hand over a file that hasn't been checked. |
 
 The JSON Schema is at [/r/plant.schema.json](/r/plant.schema.json), with the full list of component names. Use it for editor validation or structured output, and start the file with `"$schema"` pointing at it.
 

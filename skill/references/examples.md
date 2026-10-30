@@ -1,6 +1,6 @@
 # Worked examples
 
-Each example is a complete, checked plant.json in the registry: `<registry>/r/examples/<name>.plant.json`. All six pass `deck-twin check` with no errors and the renderer's geometry checks with no issues. The wellhead platform shows two warnings for manifold slots 5 and 6: `check` reads ports at default props, and that manifold is set to `slots: 4`. Copy the patterns below rather than inventing new ones.
+Each example is a complete, checked plant.json in the registry: `<registry>/r/examples/<name>.plant.json`. All six pass `deck-twin validate` with no errors and the renderer's geometry checks with no issues. The wellhead platform shows two warnings for manifold slots 5 and 6: `check` reads ports at default props, and that manifold is set to `slots: 4`. Copy the patterns below rather than inventing new ones.
 
 | Example | Level | Items / lines | Shows |
 |---|---|---|---|
@@ -150,7 +150,7 @@ The pipeline arrives through valve station PVS-1001 and pig receiver L-1010, is 
 ## Checking your own plant
 
 ```bash
-deck-twin check plant.json      # names, ports, props, line numbers, unconnected ports
+deck-twin validate plant.json      # names, ports, props, line numbers, unconnected ports
 deck-twin assemble plant.json   # installs everything and writes src/PlantScene.tsx
 ```
 Then render it. `<Plant onReport>` and the website playground add overlap and floating checks. Fix each one by moving the item, changing its rotation or changing `elevation`.
