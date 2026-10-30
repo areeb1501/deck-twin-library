@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { highlight } from 'sugar-high'
 import { Link } from 'wouter'
 import { cameFrom } from '../url'
+import { track } from '../analytics'
 
 export function CopyButton({ text, className = '' }: { text: string; className?: string }) {
   const [done, setDone] = useState(false)
@@ -9,6 +10,7 @@ export function CopyButton({ text, className = '' }: { text: string; className?:
     <button
       onClick={() => {
         navigator.clipboard.writeText(text)
+        track('copied_code', { text: text.slice(0, 120) })
         setDone(true)
         setTimeout(() => setDone(false), 1400)
       }}

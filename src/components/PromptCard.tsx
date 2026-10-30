@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react'
 import { agentPrompt } from '../prompt'
 import { SITE } from '../site'
+import { track } from '../analytics'
 
 export function PromptCard() {
   const prompt = useMemo(() => agentPrompt(SITE), [])
@@ -16,6 +17,7 @@ export function PromptCard() {
         <button
           onClick={() => {
             navigator.clipboard.writeText(prompt)
+            track('copied_agent_prompt', { source: 'card' })
             setCopied(true)
             setTimeout(() => setCopied(false), 1600)
           }}
@@ -48,6 +50,7 @@ export function AgentLine({ className = '' }: { className?: string }) {
       <button
         onClick={() => {
           navigator.clipboard.writeText(text)
+          track('copied_agent_prompt', { source: 'line' })
           setCopied(true)
           setTimeout(() => setCopied(false), 1600)
         }}
