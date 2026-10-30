@@ -70,6 +70,8 @@ const loaded = new WeakMap<object, ComponentMap>()
 export const libraryComponents = (spec: PlantSpec) => loaded.get(spec) as ComponentMap
 
 const said = (i: { where: string; message: string }) => `${i.where}: ${i.message}`
+/** What only the layout or the geometry can tell. The rest repeats `deck-twin check`, which has already spoken, so Load and the CLI report one count. */
+export const onlyDrawing = (i: { level: string; message: string }) => i.level === 'warning' && /^(No straight run|Items overlap|Stands at y)/.test(i.message)
 const namesIn = (s: PlantSpec) => [...new Set([...(s.items ?? []).map((i) => i.component), ...(s.lines ?? []).flatMap((l) => (l.inline ?? []).map((v) => v.component))])]
 
 export async function loadLibraryPlant(json: Record<string, unknown>): Promise<PlantLoad> {
@@ -95,7 +97,7 @@ export async function loadLibraryPlant(json: Record<string, unknown>): Promise<P
 
   const layout = resolve(spec, components)
   const blocked = layout.issues.filter((i) => i.level === 'error').map(said)
-  const all = [...new Set([...warnings, ...layout.issues.filter((i) => i.level === 'warning').map(said)])]
+  const all = [...warnings, ...layout.issues.filter(onlyDrawing).map(said)]
   if (blocked.length) return { errors: blocked, warnings: all }
 
   const eq: Equipment[] = layout.items.map((it) => {

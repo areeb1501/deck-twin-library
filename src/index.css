@@ -3,7 +3,6 @@
 @import '@fontsource/ibm-plex-mono/400.css';
 @import '@fontsource/ibm-plex-mono/500.css';
 
-/* The engine in alpha/ has its own styles: its sources must not feed this stylesheet. */
 @source not "../alpha";
 
 /* Inter's optical-size cut, kept under its own name: only the top nav loads it. */

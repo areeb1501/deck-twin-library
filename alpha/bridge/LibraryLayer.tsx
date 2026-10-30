@@ -14,7 +14,7 @@ import { usePlantStore } from '../src/state/plantStore'
 import { frameBuilderPlant } from '../src/state/specStore'
 import { useStore } from '../src/state/store'
 import { sectionPlanes } from '../src/three/materials'
-import { applyBounds, libraryComponents } from './load'
+import { applyBounds, libraryComponents, onlyDrawing } from './load'
 
 const XRAY_OPACITY = 0.18
 const eachMaterial = (root: THREE.Object3D, fn: (m: THREE.Material) => void) => {
@@ -39,7 +39,7 @@ export default function LibraryLayer({ plant }: { plant: Plant }) {
   const xray = useStore((s) => s.viewMode === 'xray')
   const top = useRef<THREE.Group>(null)
   const inline = useMemo(() => plant.equipment.filter((e) => !spec.items.some((i) => i.tag === e.tag)), [plant, spec])
-  const report = useCallback((issues: Issue[]) => useImportNotes.getState().add(issues.filter((i) => i.level === 'warning').map((i) => `${i.where}: ${i.message}`)), [])
+  const report = useCallback((issues: Issue[]) => useImportNotes.getState().add(issues.filter(onlyDrawing).map((i) => `${i.where}: ${i.message}`)), [])
 
   useLayoutEffect(() => {
     const g = top.current
@@ -47,11 +47,12 @@ export default function LibraryLayer({ plant }: { plant: Plant }) {
     if (!g || !drawn) return
     const [items, ...rest] = drawn.children
     const lines = plant.lines
+    const pipework = spec.sea ? rest.slice(0, -1) : rest
     for (const c of items.children) c.userData.pick = { tag: c.name, kind: 'equipment' } satisfies PickData
     rest.slice(0, lines.length).forEach((c, i) => (c.userData.pick = { tag: lines[i].tag, kind: 'line' } satisfies PickData))
     g.traverse((o) => (o.userData.noCull = true))
     eachMaterial(items, (m) => (m.clippingPlanes = sectionPlanes))
-    for (const c of rest.slice(0, lines.length)) eachMaterial(c, (m) => (m.clippingPlanes = sectionPlanes))
+    for (const c of pipework) eachMaterial(c, (m) => (m.clippingPlanes = sectionPlanes))
     if (measured.has(spec)) return
     measured.add(spec)
     g.updateWorldMatrix(true, true)
@@ -65,8 +66,9 @@ export default function LibraryLayer({ plant }: { plant: Plant }) {
   useEffect(() => {
     const drawn = top.current?.children[0]
     if (!drawn) return
-    const lines = drawn.children.slice(1, 1 + plant.lines.length)
-    for (const root of [drawn.children[0], ...lines])
+    // lines and inline valves follow the items; the sea, when there is one, comes last and stays as it is
+    const parts = spec.sea ? drawn.children.slice(0, -1) : drawn.children
+    for (const root of parts)
       eachMaterial(root, (m) => {
         if (!solidLook.has(m)) solidLook.set(m, { transparent: m.transparent, opacity: m.opacity, depthWrite: m.depthWrite })
         const look = solidLook.get(m)!
