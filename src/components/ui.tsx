@@ -43,6 +43,48 @@ export function Command({ cmd }: { cmd: string }) {
   )
 }
 
+const pill = 'h-8 shrink-0 items-center whitespace-nowrap gap-1.5 rounded-md border border-border px-2.5 text-[12.5px] font-medium text-fg-3 transition-colors hover:border-line-strong hover:text-ink'
+
+export function CopyMarkdown({ md }: { md: string }) {
+  const [state, setState] = useState<'idle' | 'copied' | 'failed'>('idle')
+  const settle = (s: 'copied' | 'failed') => {
+    setState(s)
+    setTimeout(() => setState('idle'), 1400)
+  }
+  return (
+    <button
+      disabled={!md}
+      className={`${pill} inline-flex disabled:opacity-50`}
+      onClick={() =>
+        navigator.clipboard.writeText(md).then(
+          () => {
+            track('copied_markdown', { text: md.slice(0, 120) })
+            settle('copied')
+          },
+          () => settle('failed'),
+        )
+      }
+    >
+      <svg viewBox="0 0 16 16" className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+        {state === 'copied' ? <path d="m3.5 8.5 3 3 6-7" /> : state === 'failed' ? <path d="m4.5 4.5 7 7m0-7-7 7" /> : <><rect x="5.5" y="5.5" width="8" height="8" rx="1.5" /><path d="M10.5 5.5v-2a1 1 0 0 0-1-1h-6a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1h2" /></>}
+      </svg>
+      {state === 'copied' ? 'Copied' : state === 'failed' ? 'Copy failed' : 'Copy as Markdown'}
+    </button>
+  )
+}
+
+export function ViewMarkdown({ href }: { href: string }) {
+  return (
+    <a href={href} target="_blank" rel="noopener" className={`${pill} hidden sm:inline-flex`}>
+      <svg viewBox="0 0 16 16" className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+        <rect x="1.5" y="3.5" width="13" height="9" rx="1.5" />
+        <path d="M4 10V6l1.75 2L7.5 6v4M10.5 6v4M9 8.5l1.5 1.5L12 8.5" />
+      </svg>
+      View as Markdown
+    </a>
+  )
+}
+
 export function Tabs<T extends string>({ tabs, value, onChange, right }: { tabs: readonly { id: T; label: string }[]; value: T; onChange: (t: T) => void; right?: ReactNode }) {
   return (
     <div className="flex items-center gap-1 border-b border-border">

@@ -2,8 +2,10 @@ import { useEffect, useMemo, useState, type ReactNode } from 'react'
 import { Link } from 'wouter'
 import { BY_NAME, CATEGORIES, loadModule, loadSource, type ComponentModule, type Item } from '../registry'
 import { Viewer, type Bounds } from '../viewer/Viewer'
-import { Controls, frac } from '../viewer/Controls'
-import { Badge, Code, Command, Crumbs, RichText, Tabs } from '../components/ui'
+import { Controls } from '../viewer/Controls'
+import { frac } from '../frac'
+import { Badge, Code, Command, CopyMarkdown, Crumbs, RichText, Tabs, ViewMarkdown } from '../components/ui'
+import { componentMarkdown, portOrigin, propRange, propType, usageSnippet } from '../componentMarkdown'
 import { add, CLI, SITE } from '../site'
 import { PID, symbolUrl } from '../pid'
 import { NotFound } from './NotFound'
@@ -33,11 +35,18 @@ function Detail({ item }: { item: Item }) {
   const ports = useMemo(() => (mod?.ports ? mod.ports(values) : []), [mod, values])
   const cat = CATEGORIES.find((c) => c.id === item.category)!
   const usage = useMemo(() => usageSnippet(item, values, mod?.defaults ?? {}), [item, values, mod])
+  const md = useMemo(() => (mod && source ? componentMarkdown({ item, source, values, defaults: mod.defaults ?? {}, ports, pid: PID[item.name], site: SITE }) : ''), [item, source, values, mod, ports])
 
   return (
     <div className="mx-auto max-w-[1180px] px-6 py-10 lg:px-10">
       <Crumbs items={[{ label: 'Components', href: '/components' }, { label: cat.title, href: `/components?category=${cat.id}` }, { label: item.title }]} />
-      <h1 className="text-[34px] leading-tight font-semibold head-grad tracking-[-0.035em]">{item.title}</h1>
+      <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-3">
+        <h1 className="text-[34px] leading-tight font-semibold head-grad tracking-[-0.035em]">{item.title}</h1>
+        <div className="flex shrink-0 gap-2">
+          <CopyMarkdown md={md} />
+          <ViewMarkdown href={`/r/${item.name}.md`} />
+        </div>
+      </div>
       <p className="mt-3 max-w-3xl text-[16px] leading-7 text-fg-3">
         <RichText text={item.description} />
       </p>
@@ -116,7 +125,7 @@ function Detail({ item }: { item: Item }) {
         <>
           <H2>Ports</H2>
           <p className="mb-3 text-[13px] text-muted-fg">
-            Flange faces in the component's local frame, metres. Origin: {item.anchor === 'base' ? 'centre of the footprint at deck level (y = 0)' : 'pipe centreline, flow along X'}. The assembler routes pipes between these.
+            Flange faces in the component's local frame, metres. Origin: {portOrigin(item)}. The assembler routes pipes between these.
           </p>
           <Table
             head={['Id', 'Label', 'Position', 'Direction', 'Size', 'Class']}
@@ -158,32 +167,9 @@ function Detail({ item }: { item: Item }) {
   )
 }
 
-function usageSnippet(item: Item, values: Record<string, unknown>, defaults: Record<string, unknown>) {
-  const changed = Object.entries(values).filter(([k, v]) => JSON.stringify(defaults[k]) !== JSON.stringify(v))
-  const props = changed.map(([k, v]) => (typeof v === 'string' ? `${k}="${v}"` : `${k}={${JSON.stringify(v)}}`)).join(' ')
-  return `import { Canvas } from '@react-three/fiber'
-import { OrbitControls } from '@react-three/drei'
-import { Stage } from './components/deck-twin/lib/stage'
-import { ${item.export} } from './components/deck-twin/${item.category}/${item.file.replace(/\.tsx$/, '')}'
-
-export default function Scene() {
-  return (
-    <Canvas shadows camera={{ position: [8, 5, 9], fov: 35 }}>
-      <Stage>
-        <${item.export}${props ? ' ' + props : ''} />
-      </Stage>
-      <OrbitControls makeDefault />
-    </Canvas>
-  )
-}
-`
-}
-
 function PropsTable({ item, defaults }: { item: Item; defaults: Record<string, unknown> }) {
   const rows = item.params.map((p) => {
-    const type = p.type === 'select' ? p.options.map((o) => JSON.stringify(typeof o === 'object' ? o.value : o)).join(' | ') : p.type === 'nps' ? 'number (NPS, in)' : p.type === 'rating' ? '150 | 300 | 600 | 900 | 1500 | 2500' : p.type === 'number' ? `number${p.unit ? ` (${p.unit})` : ''}` : p.type === 'bool' ? 'boolean' : 'string'
-    const range = p.type === 'number' ? `${p.min} – ${p.max}` : ''
-    return [<code className="font-mono text-xs">{p.key}</code>, <span className="font-mono text-xs text-fg-3">{type}</span>, <span className="font-mono text-xs">{JSON.stringify(defaults[p.key] ?? null)}</span>, range]
+    return [<code className="font-mono text-xs">{p.key}</code>, <span className="font-mono text-xs text-fg-3">{propType(p)}</span>, <span className="font-mono text-xs">{JSON.stringify(defaults[p.key] ?? null)}</span>, propRange(p)]
   })
   return <Table head={['Prop', 'Type', 'Default', 'Range']} rows={[...rows, [<code className="font-mono text-xs">...group</code>, <span className="font-mono text-xs text-fg-3">position, rotation, scale…</span>, '', '']]} />
 }

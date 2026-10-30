@@ -3,6 +3,7 @@ import { lazy, Suspense, useEffect, useMemo, useRef, useState, type RefObject } 
 import { Link, useLocation } from 'wouter'
 import { marked, type Tokens } from 'marked'
 import { highlight } from 'sugar-high'
+import { CopyMarkdown, ViewMarkdown } from '../components/ui'
 import { DOCS, docSource } from './docs'
 
 const NotFound = lazy(() => import('./NotFound').then((m) => ({ default: m.NotFound })))
@@ -71,7 +72,7 @@ function Doc({ slug }: { slug: string }) {
             <h1 className="text-[36px] leading-tight font-semibold tracking-[-0.035em] text-ink" dangerouslySetInnerHTML={{ __html: title }} />
             <div className="flex shrink-0 gap-2">
               <CopyMarkdown md={md} />
-              <ViewMarkdown slug={slug} />
+              <ViewMarkdown href={`/docs/${slug}.md`} />
             </div>
           </div>
           <article
@@ -137,40 +138,6 @@ function useActiveHeading(article: RefObject<HTMLElement | null>, html: string) 
     return () => io.disconnect()
   }, [article, html])
   return active
-}
-
-const pill = 'h-8 shrink-0 items-center whitespace-nowrap gap-1.5 rounded-md border border-border px-2.5 text-[12.5px] font-medium text-fg-3 transition-colors hover:border-line-strong hover:text-ink'
-
-function CopyMarkdown({ md }: { md: string }) {
-  const [done, setDone] = useState(false)
-  return (
-    <button
-      className={`${pill} inline-flex`}
-      onClick={() =>
-        navigator.clipboard.writeText(md).then(() => {
-          setDone(true)
-          setTimeout(() => setDone(false), 1400)
-        })
-      }
-    >
-      <svg viewBox="0 0 16 16" className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" aria-hidden>
-        {done ? <path d="m3.5 8.5 3 3 6-7" strokeLinecap="round" /> : <><rect x="5.5" y="5.5" width="8" height="8" rx="1.5" /><path d="M10.5 5.5v-2a1 1 0 0 0-1-1h-6a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1h2" /></>}
-      </svg>
-      {done ? 'Copied' : 'Copy as Markdown'}
-    </button>
-  )
-}
-
-function ViewMarkdown({ slug }: { slug: string }) {
-  return (
-    <a href={`/docs/${slug}.md`} target="_blank" rel="noopener" className={`${pill} hidden sm:inline-flex`}>
-      <svg viewBox="0 0 16 16" className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-        <rect x="1.5" y="3.5" width="13" height="9" rx="1.5" />
-        <path d="M4 10V6l1.75 2L7.5 6v4M10.5 6v4M9 8.5l1.5 1.5L12 8.5" />
-      </svg>
-      View as Markdown
-    </a>
-  )
 }
 
 function Pager({ href, hint, title, right }: { href: string; hint: string; title: string; right?: boolean }) {

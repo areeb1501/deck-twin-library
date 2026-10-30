@@ -51,6 +51,7 @@ Every component page shows its symbol, tag letters and datasheet mapping, under 
 | `/r/index.json` | Every component with category, description, props (type, range, options), defaults, ports at defaults, bounds at defaults, standards and its P&ID entry (symbol, tags, ISA letters, datasheet → props) |
 | `/symbols/legend.svg` | All P&ID symbols on one sheet, for side-by-side matching |
 | `/r/<name>.json` | One item in the shadcn registry-item format, with file contents |
+| `/r/<name>.md` | The component's page as Markdown: description, standards, install command, usage, props, ports, P&ID entry and source. Each component page has **Copy as Markdown** and **View as Markdown** buttons for it |
 | `/llms.txt` | Short catalogue for LLM context |
 | `/r/examples/*.plant.json` | The example plants |
 

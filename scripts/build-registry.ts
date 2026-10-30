@@ -4,8 +4,10 @@ import { cpSync, existsSync, mkdirSync, readFileSync, readdirSync, rmSync, write
 import { dirname, join, relative } from 'node:path'
 import { fileURLToPath, pathToFileURL } from 'node:url'
 import { CATEGORIES, type ComponentMeta } from '../registry/meta'
+import type { Port } from '../registry/lib/ports'
 import { metas } from './list'
 import { agentPrompt, cliCommand } from '../src/prompt'
+import { componentMarkdown } from '../src/componentMarkdown'
 import { spawnSync } from 'node:child_process'
 import { tmpdir } from 'node:os'
 
@@ -124,6 +126,7 @@ for (const m of all) {
   if (m.anchor === 'inline' && !(exp.some((p) => p.id === 'A') && exp.some((p) => p.id === 'B'))) errors.push(`${m.name}: inline components need ports A and B`)
   if (new Set(exp.map((p) => p.id)).size !== exp.length) errors.push(`${m.name}: duplicate port ids`)
   write(m.name, item(m.name, 'registry:component', m.title, m.description, files.map(file), deps2, { categories: [m.category], meta: { export: m.export, anchor: m.anchor, standards: m.standards } }))
+  if (!CHECK) writeFileSync(join(out, `${m.name}.md`), componentMarkdown({ item: m, source: read(abs), values: { ...defaults, ...(m.preview ?? {}) }, defaults, ports: ports as Port[], pid: pid[m.name], site: PUBLIC_SITE }))
   index.push({ ...entry(m, defaults, ports, deps2, bounds[m.name]), pid: pid[m.name] ? { ...pid[m.name], symbol: `${SITE}/symbols/${pid[m.name].symbol}` } : null })
 }
 
@@ -271,6 +274,7 @@ const llms = [
   '',
   '## Machine-readable',
   `- [index.json](${SITE}/r/index.json): every component with params, ranges, defaults, ports and bounds`,
+  `- \`${SITE}/r/<name>.md\`: one component's page as Markdown (install, usage, props, ports, source)`,
   `- [SKILL.md](${SITE}/skill/SKILL.md): agent skill (find, install, assemble)`,
   `- [plant schema](${SITE}/r/plant.json): the assembler and the plant.json types`,
   '',

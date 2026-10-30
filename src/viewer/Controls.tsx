@@ -1,5 +1,6 @@
 import type { Param } from '../../registry/meta'
 import { NPS_SIZES, RATINGS } from '../../registry/lib/standards'
+import { frac } from '../frac'
 
 type Values = Record<string, unknown>
 
@@ -98,13 +99,4 @@ function Input({ p, value, onChange }: { p: Param; value: unknown; onChange: (v:
     case 'text':
       return <input value={String(value ?? '')} onChange={(e) => onChange(e.target.value)} className={selectCls} />
   }
-}
-
-export function frac(n: number) {
-  const w = Math.floor(n)
-  const f = n - w
-  const map: Record<string, string> = { '0.125': '1/8', '0.25': '1/4', '0.375': '3/8', '0.5': '1/2', '0.75': '3/4' }
-  const fs = map[String(+f.toFixed(3))]
-  if (!f) return String(w)
-  return w ? `${w}-${fs ?? f}` : (fs ?? String(n))
 }
