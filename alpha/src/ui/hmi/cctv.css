@@ -1,0 +1,100 @@
+/* CCTV & PPE camera wall (plan 07) — a control-room monitor wall: black bezels, camera OSD, F&G overlay */
+.hmi .cctv { display: grid; grid-template-columns: minmax(0, 1fr) 360px; gap: 10px; align-items: start; }
+.hmi .cctv-wall {
+  display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 5px; padding: 6px;
+  background: #0a0b0c; border: 1px solid #1c1f22; border-radius: 3px; box-shadow: inset 0 0 0 1px #000;
+}
+.hmi .cctv-tile {
+  position: relative; aspect-ratio: 16 / 9; background: #000; overflow: hidden; cursor: pointer; min-width: 0;
+  outline: 1px solid #23272b; outline-offset: 0; font-family: var(--mono);
+}
+.hmi .cctv-tile.big { grid-column: 1 / span 3; grid-row: 1 / span 3; aspect-ratio: auto; cursor: default; }
+.hmi .cctv-tile:not(.big):hover { outline-color: #7d8d9b; }
+.hmi .cctv-tile canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; object-fit: cover; }
+/* scanline + vignette: the monitor, not the picture */
+.hmi .cctv-tile::after {
+  content: ''; position: absolute; inset: 0; pointer-events: none;
+  background: radial-gradient(ellipse at center, transparent 62%, rgba(0, 0, 0, 0.45) 100%),
+    repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.07) 0 1px, transparent 1px 3px);
+}
+.hmi .cctv-tile.callup { outline: 3px solid #e0453a; outline-offset: -3px; animation: cctv-pulse 1.2s ease-in-out infinite; }
+@keyframes cctv-pulse { 50% { outline-color: #7a1f19; } }
+
+.hmi .cctv-osd { position: absolute; z-index: 2; color: #f4f4f2; font-size: 10px; line-height: 1.3; text-shadow: 0 0 2px #000, 1px 1px 0 #000; pointer-events: none; white-space: nowrap; }
+.hmi .cctv-tile.big .cctv-osd { font-size: 12.5px; }
+.hmi .cctv-osd .sub { color: #c9cdd0; font-size: 0.86em; }
+.hmi .cctv-osd.tl { left: 7px; top: 5px; max-width: 54%; overflow: hidden; text-overflow: ellipsis; }
+.hmi .cctv-osd.tl > div { overflow: hidden; text-overflow: ellipsis; }
+.hmi .cctv-tile.big .cctv-osd.tl { max-width: 66%; }
+.hmi .cctv-osd.bl { left: 7px; bottom: 5px; }
+.hmi .cctv-osd.br { right: 7px; bottom: 5px; }
+.hmi .cctv-osd .rec { color: #ff5a4a; }
+.hmi .cctv-scale { position: absolute; z-index: 2; left: 7px; bottom: 26px; display: flex; align-items: center; gap: 5px; font-size: 10.5px; color: #eee; text-shadow: 1px 1px 0 #000; pointer-events: none; }
+.hmi .cctv-scale i { width: 110px; height: 8px; border: 1px solid #000; background: linear-gradient(90deg, #000, #200058 18%, #910096 38%, #e13c23 58%, #fca000 76%, #ffe446 90%, #fffff5); }
+
+/* detection boxes */
+.hmi .cctv-boxes { position: absolute; inset: 0; z-index: 1; pointer-events: none; }
+.hmi .cctv-det { position: absolute; border: 1.5px solid var(--c); box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.5); }
+.hmi .cctv-det span {
+  position: absolute; left: -1.5px; bottom: 100%; padding: 0 3px; font-size: 9px; line-height: 13px; white-space: nowrap;
+  background: var(--c); color: #111; font-weight: 600;
+}
+.hmi .cctv-tile.big .cctv-det span { font-size: 11px; line-height: 15px; }
+.hmi .cctv-det.person { --c: #c3c8cc; }
+.hmi .cctv-det.ppe { --c: #f0b429; border-width: 2px; }
+.hmi .cctv-det.fire { --c: #ff4a3d; border-width: 2px; }
+.hmi .cctv-det.gas { --c: #3fd4e6; border-style: dashed; border-width: 2px; }
+.hmi .cctv-det.noHardHat span, .hmi .cctv-det.noVest span, .hmi .cctv-det.top span { bottom: auto; top: 100%; }
+.hmi .cctv-det.top.gas span, .hmi .cctv-det.top.fire span { top: 40px; left: 6px; }
+.hmi .cctv-det.noVest span { left: auto; right: -1.5px; }
+
+/* call-up banner */
+.hmi .cctv-callup {
+  position: absolute; z-index: 3; left: 50%; bottom: 30px; transform: translateX(-50%); display: flex; align-items: center; gap: 10px;
+  background: rgba(150, 22, 16, 0.92); color: #fff; padding: 4px 6px 4px 10px; font-size: 13px; font-weight: 600; border: 1px solid #ff6a5e; white-space: nowrap;
+}
+.hmi .cctv-callup button { font-size: 11px; padding: 1px 8px; background: #2c2e31; }
+.hmi .cctv-callup .blink { animation: cctv-blink 1s steps(2, start) infinite; }
+@keyframes cctv-blink { to { visibility: hidden; } }
+
+/* F&G detector overlay (top right) */
+.hmi .cctv-fg {
+  position: absolute; z-index: 2; right: 5px; top: 5px; width: 42%; max-width: 160px; padding: 2px 4px;
+  background: rgba(8, 10, 12, 0.66); border: 1px solid rgba(255, 255, 255, 0.12); font-size: 8.5px; color: #dfe2e4; pointer-events: none;
+}
+.hmi .cctv-fg.big { max-width: 270px; width: 30%; font-size: 11px; padding: 5px 7px; }
+.hmi .cctv-fg .zones { display: flex; flex-wrap: wrap; gap: 3px; margin-bottom: 2px; }
+.hmi .cctv-fg .chip { padding: 0 4px; background: #3a3e43; color: #e7e9ea; border-radius: 2px; }
+.hmi .cctv-fg .chip.warn { background: #d6b23a; color: #111; }
+.hmi .cctv-fg .chip.alarm { background: #e0453a; color: #fff; animation: cctv-pulse-bg 1s steps(2, start) infinite; }
+@keyframes cctv-pulse-bg { to { background: #8a2018; } }
+.hmi .cctv-fg .row { display: grid; grid-template-columns: 5.6em 1fr 4.6em; align-items: center; gap: 4px; line-height: 1.45; }
+.hmi .cctv-fg .row .tag { color: #b9bec2; overflow: hidden; text-overflow: ellipsis; }
+.hmi .cctv-fg .row .v { text-align: right; }
+.hmi .cctv-fg .row .fd { grid-column: 2 / span 2; text-align: right; color: #9aa0a5; }
+.hmi .cctv-fg .row.alarm .v, .hmi .cctv-fg .row.alarm .fd { color: #ff6a5e; font-weight: 700; }
+.hmi .cctv-fg .row.warn .v, .hmi .cctv-fg .row.warn .fd { color: #f0c84a; }
+.hmi .cctv-fg .bar { position: relative; height: 5px; background: #2a2e32; }
+.hmi .cctv-fg .bar i { position: absolute; left: 0; top: 0; bottom: 0; background: #8d9297; }
+.hmi .cctv-fg .row.warn .bar i { background: #d6b23a; }
+.hmi .cctv-fg .row.alarm .bar i { background: #e0453a; }
+.hmi .cctv-fg .bar em { position: absolute; top: -1px; bottom: -1px; width: 1px; background: rgba(255, 255, 255, 0.55); }
+.hmi .cctv-fg .cnt { color: #8d9297; margin-top: 2px; }
+.hmi .cctv-fg.big .row { grid-template-columns: 6.4em 1fr 6.2em; }
+
+/* right column */
+.hmi .cctv-side { display: grid; gap: 10px; min-width: 0; }
+.hmi .cctv-callbox.on { border-color: #e0453a; box-shadow: inset 3px 0 0 #e0453a; }
+.hmi .cctv-log .scroll { max-height: 380px; overflow: auto; }
+.hmi .cctv-log td { white-space: nowrap; }
+.hmi .cctv-log td { padding-left: 4px; padding-right: 4px; }
+.hmi .cctv-log td:nth-child(4) { max-width: 78px; overflow: hidden; text-overflow: ellipsis; }
+.hmi .cctv-log tr.ppe td:first-child { box-shadow: inset 3px 0 0 #f0b429; }
+.hmi .cctv-log tr.fire td:first-child { box-shadow: inset 3px 0 0 #e0453a; }
+.hmi .cctv-log tr.gas td:first-child { box-shadow: inset 3px 0 0 #3fd4e6; }
+.hmi .cctv-k.ppe { color: #f0c84a; }
+.hmi .cctv-k.fire { color: #ff6a5e; }
+.hmi .cctv-k.gas { color: #6fe0ee; }
+.hmi .cctv-kpis { grid-template-columns: repeat(3, 1fr); margin-bottom: 6px; }
+.hmi .cctv-model td { vertical-align: top; line-height: 1.4; }
+.hmi .cctv-model td:first-child { white-space: nowrap; width: 1%; }
