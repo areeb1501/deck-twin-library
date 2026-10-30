@@ -3,4 +3,4 @@ Allow: /
 Disallow: /shot/
 Disallow: /shot-plant/
 
-Sitemap: https://deck-twin-library.demoareeb.workers.dev/sitemap.xml
+Sitemap: https://decktwin.com/sitemap.xml

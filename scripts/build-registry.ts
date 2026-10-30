@@ -13,6 +13,7 @@ const root = join(dirname(fileURLToPath(import.meta.url)), '..')
 const reg = join(root, 'registry')
 const out = join(root, 'public/r')
 const SITE = (process.env.REGISTRY_URL ?? 'https://deck-twin-library.demoareeb.workers.dev').replace(/\/$/, '')
+const PUBLIC_SITE = 'https://decktwin.com'
 const PEERS = ['three', '@react-three/fiber', '@react-three/drei']
 const ALLOWED = [/^react$/, /^three$/, /^three\/examples\/jsm\//, /^@react-three\/fiber$/, /^@react-three\/drei$/]
 const TARGET = 'components/deck-twin'
@@ -296,12 +297,13 @@ const pages = [
   ...readdirSync(join(root, 'docs')).filter((f) => f.endsWith('.md')).map((f) => `/docs/${f.replace(/\.md$/, '')}`).sort(),
   ...all.map((m) => `/components/${m.name}`),
   ...readdirSync(join(reg, 'examples')).filter((f) => f.endsWith('.plant.json')).map((f) => `/examples/${f.replace(/\.plant\.json$/, '')}`).sort(),
+  ...(existsSync(join(reg, 'pid/library.json')) ? (JSON.parse(read(join(reg, 'pid/library.json'))).symbols as { id: string }[]).map((s) => `/symbols/${encodeURIComponent(s.id)}`) : []),
 ]
 writeFileSync(
   join(root, 'public/sitemap.xml'),
-  `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${pages.map((p) => `  <url><loc>${SITE}${p}</loc></url>`).join('\n')}\n</urlset>\n`,
+  `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${pages.map((p) => `  <url><loc>${PUBLIC_SITE}${p}</loc></url>`).join('\n')}\n</urlset>\n`,
 )
-writeFileSync(join(root, 'public/robots.txt'), ['User-agent: *', 'Allow: /', 'Disallow: /shot/', 'Disallow: /shot-plant/', '', `Sitemap: ${SITE}/sitemap.xml`, ''].join('\n'))
+writeFileSync(join(root, 'public/robots.txt'), ['User-agent: *', 'Allow: /', 'Disallow: /shot/', 'Disallow: /shot-plant/', '', `Sitemap: ${PUBLIC_SITE}/sitemap.xml`, ''].join('\n'))
 
 // P&ID: symbols, legend sheet and the generated skill reference
 rmSync(join(root, 'public/symbols'), { recursive: true, force: true })
