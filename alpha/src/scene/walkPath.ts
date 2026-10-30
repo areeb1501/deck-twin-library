@@ -10,7 +10,8 @@ import { blockers, walkLevels, type AutoPt } from './Walk'
 import { walkSurfaces } from './walkSurfaces'
 import { DECK } from './structure/deckConst'
 import { RACK } from './structure/rack'
-import { RP, WI } from '../model/site'
+import { RP, WEATHER_FLOOR, WI } from '../model/site'
+import { CELLAR_OUTFIT_FOOTPRINTS, RIG_FLOOR_FOOTPRINTS, SAT_CELLAR_FOOTPRINTS, WHP_CELLAR_OUTFIT_FOOTPRINTS } from './env/outfitFootprints'
 
 const CELL = 0.4
 
@@ -55,6 +56,10 @@ function steel(p: Plant, y: number): PlanRect[] {
   const sq = (x: number, z: number, r: number): PlanRect => ({ x0: x - r, x1: x + r, z0: z - r, z1: z + r })
   const out: PlanRect[] = []
   if (y === -8 || y === 0 || y === 10) for (const [x, z] of DECK.legs) out.push(sq(x, z, DECK.legOD / 2 + 0.4))
+  // floor-standing environment outfit on the cellar decks (scene/env/cellarOutfit.ts, whpCellarOutfit.ts)
+  if (y === -8) out.push(...CELLAR_OUTFIT_FOOTPRINTS, ...WHP_CELLAR_OUTFIT_FOOTPRINTS, ...SAT_CELLAR_FOOTPRINTS)
+  // ... and on the drill floor (scene/env/drillingRig.ts buildRigOutfit)
+  if (y === WEATHER_FLOOR + 8) out.push(...RIG_FLOOR_FOOTPRINTS)
   if (y === 0) {
     for (const [x, z] of DECK.columns) out.push(sq(x, z, 0.6))
     for (const x of RACK.bents) for (const z of [RACK.zMin, RACK.zMax]) out.push(sq(x, z, 0.5))

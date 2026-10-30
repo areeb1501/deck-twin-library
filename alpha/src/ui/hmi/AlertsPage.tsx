@@ -26,6 +26,9 @@ import { PROVIDER_LABEL, useProvider } from '../../agents/provider'
 const ACTOR_ICON: Record<TraceStep['actor'], string> = { sensor: '◉', rule: '§', risk: '▲', cctv: '◎', assistant: '✦', operator: '●', model: '◆', tool: '⚙' }
 const SUGGESTIONS = [
   'How is the plant doing?',
+  'What should I focus on?',
+  'What is at risk in dollars?',
+  'Do we have a dry gas seal cartridge for K-2200?',
   'What is the risk on Alpha?',
   'Why is the risk up?',
   'What alarms are active?',

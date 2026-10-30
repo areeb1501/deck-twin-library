@@ -85,7 +85,8 @@ export interface RiskHistoryPoint {
 // ---------------------------------------------------------------- alerts + traceability (plan 04)
 
 export type AlertSeverity = 'info' | 'warning' | 'critical'
-export type AlertSource = 'risk' | 'alarm' | 'shutdown' | 'fireGas' | 'cctv' | 'machinery' | 'assistant'
+/** `rtls`: worn personnel tags (real-time location system) — the camera-independent hazardous-area tracking (plan 14) */
+export type AlertSource = 'risk' | 'alarm' | 'shutdown' | 'fireGas' | 'cctv' | 'machinery' | 'assistant' | 'rtls'
 
 /** an alert is delivered as an email (prototype: drafted into the outbox, not sent from the browser) */
 export interface EmailDraft {
@@ -164,6 +165,8 @@ export interface WorkerInfo {
   /** PPE worn — a missing item is a violation the CCTV detector can see */
   hardHat: boolean
   vest: boolean
+  /** personal 4-gas monitor (LEL / H2S / CO / O2) clipped to the chest — required in Zone 1 (plan 14) */
+  gasMonitor: boolean
   /** what they are doing, in words */
   task: string
 }
@@ -191,7 +194,8 @@ export interface CctvCamera {
   fov: number
 }
 
-export type DetectionKind = 'person' | 'noHardHat' | 'noVest' | 'restrictedZone' | 'gasCloud' | 'fire'
+/** zone0Entry / zonePpe: a person in a classified hazardous area (plan 14, safety/hazardAreas.ts) */
+export type DetectionKind = 'person' | 'noHardHat' | 'noVest' | 'restrictedZone' | 'gasCloud' | 'fire' | 'zone0Entry' | 'zonePpe'
 export const DETECTION_LABEL: Record<DetectionKind, string> = {
   person: 'Person',
   noHardHat: 'No hard hat',
@@ -199,6 +203,8 @@ export const DETECTION_LABEL: Record<DetectionKind, string> = {
   restrictedZone: 'Too close to running machinery',
   gasCloud: 'Gas cloud',
   fire: 'Flame',
+  zone0Entry: 'Zone 0 entry',
+  zonePpe: 'Hazardous area — PPE missing',
 }
 
 export interface Detection {
@@ -211,9 +217,44 @@ export interface Detection {
   tag?: string
   /** restrictedZone: distance from the machine's skid edge, m */
   dist?: number
+  /** zone0Entry / zonePpe: the hazardous-area zone the person is in (tag = its release source) */
+  zone?: 0 | 1 | 2
+  /** zonePpe: PPE / gear missing for the zone (hardHat / vest seen by the camera; gasMonitor from the worn tag) */
+  missing?: ('hardHat' | 'vest' | 'gasMonitor')[]
   /** normalised image box [x0, y0, x1, y1] in 0 … 1 (origin top-left) */
   box: [number, number, number, number]
   confidence: number
   /** 'sim' today; 'sam-3.1' when the Modal detector is wired (plan 09) */
   model: 'sim' | 'sam-3.1'
+}
+
+// ---------------------------------------------------------------- hazardous areas (plan 14)
+
+/**
+ * A person in a classified hazardous area (IEC 60079-10-1 Zone 0 / 1 / 2) without what the zone requires.
+ * TRACKED: raised from the worn personnel tag (RTLS position + the PPE / gas-monitor pairing on the tag),
+ * independent of the cameras; `camera` is set when a CCTV detection later confirms it.
+ */
+export interface HazardViolation {
+  id: string
+  kind: 'zone0Entry' | 'zonePpe'
+  workerId: string
+  zone: 0 | 1 | 2
+  /** release source the zone belongs to (equipment tag, VS-…, FLARE) */
+  tag: string
+  /** the classified volume, in words */
+  reason: string
+  /** PPE / gear missing for the zone */
+  missing: ('hardHat' | 'vest' | 'gasMonitor')[]
+  platform: PlatformId
+  /** world position when it started */
+  pos: Vec3
+  t0: number
+  /** when it ended (left the zone / PPE back on); undefined while it lasts */
+  t1?: number
+  /** first camera that saw it, and when */
+  camera?: string
+  cameraAt?: number
+  /** started by the instructor (demo drill) */
+  drill?: boolean
 }

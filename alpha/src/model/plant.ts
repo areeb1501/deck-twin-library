@@ -44,6 +44,7 @@ import { extendWHP } from './whpSite'
 import { extendRP } from './rpSite'
 import { extendWI } from './wiSite'
 import { extendCranes } from './cranes'
+import { extendLogistics } from './logistics'
 import { ALPHA_WALK } from './site'
 
 // ---------------------------------------------------------------- pipe rack
@@ -452,11 +453,12 @@ const L_OIL1BP = add_({
   system: 'production',
   nps: 4,
   insulation: 'H',
+  // the LV-1101 station (and this bypass round it) sits east of V-1100's head, which ends at x −6.1
   route: [
-    [-7.35, 0.9, o0[2]],
-    [-7.35, 0.9, o0[2] - 0.85],
-    [-2.65, 0.9, o0[2] - 0.85],
-    [-2.65, 0.9, o0[2]],
+    [-5.75, 0.9, o0[2]],
+    [-5.75, 0.9, o0[2] - 0.85],
+    [-2.6, 0.9, o0[2] - 0.85],
+    [-2.6, 0.9, o0[2]],
   ],
   from: { line: L_OIL1 },
   to: { line: L_OIL1 },
@@ -818,9 +820,10 @@ export const valves: Valve[] = [
   v({ tag: 'HV-1002', type: 'gate', line: L_TEST, seg: 2, t: 0.45, actuator: 'handwheel' }),
   v({ tag: 'NRV-1002', type: 'check', line: L_TEST, seg: 1, t: 0.6 }),
   // LV-1101 control station
-  v({ tag: 'HV-1101A', type: 'gate', line: L_OIL1, seg: 1, t: 0.22, actuator: 'handwheel' }),
-  v({ tag: 'LV-1101', type: 'control', line: L_OIL1, seg: 1, t: 0.5, actuator: 'diaphragm', failAction: 'FC', design: { notes: 'Oil level control, equal-% trim, Cv 180' } }),
-  v({ tag: 'HV-1101B', type: 'gate', line: L_OIL1, seg: 1, t: 0.78, actuator: 'handwheel' }),
+  // LV-1101 station clear of V-1100's east head: HV-1101A x −5.2, LV-1101 x −4.2, HV-1101B x −3.2 (seg 1: x −8 → −2)
+  v({ tag: 'HV-1101A', type: 'gate', line: L_OIL1, seg: 1, t: 0.467, actuator: 'handwheel' }),
+  v({ tag: 'LV-1101', type: 'control', line: L_OIL1, seg: 1, t: 0.633, actuator: 'diaphragm', failAction: 'FC', design: { notes: 'Oil level control, equal-% trim, Cv 180' } }),
+  v({ tag: 'HV-1101B', type: 'gate', line: L_OIL1, seg: 1, t: 0.8, actuator: 'handwheel' }),
   v({ tag: 'HV-1101C', type: 'globe', line: L_OIL1BP, seg: 1, t: 0.5, actuator: 'handwheel', normally: 'closed', design: { notes: 'Bypass, locked closed' } }),
   v({ tag: 'LV-1102', type: 'control', line: L_WATER, seg: 1, t: 0.55, actuator: 'diaphragm', failAction: 'FC', design: { notes: 'Interface level control' } }),
   v({ tag: 'HV-1102', type: 'gate', line: L_WATER, seg: 1, t: 0.2, actuator: 'handwheel' }),
@@ -908,6 +911,8 @@ extendRP({ equipment, lines, valves, instruments })
 extendWI({ equipment, lines, valves, instruments })
 // cranes and cold vent stacks on every platform (after the platforms, so their decks exist)
 extendCranes({ equipment, lines, valves, instruments })
+// materials store, flare-gas recovery package, meter prover (static, plan 13): model/logistics.ts — appended last so no existing index shifts
+extendLogistics({ equipment })
 
 export const plant: Plant = {
   name: 'Alpha Platform',

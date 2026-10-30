@@ -5,7 +5,7 @@
  */
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { usePlant } from '../state/plantStore'
-import { useStore } from '../state/store'
+import { WALK_DIST, useStore } from '../state/store'
 import { footprints } from '../model/footprint'
 import type { Module, Plant, PlanRect, WalkLevel } from '../model/types'
 import { levelAt, placeWalker, walkAuto, walkLevels, walkPose } from '../scene/Walk'
@@ -15,6 +15,7 @@ import './hmi/hmi.css'
 import './minimap.css'
 import { walkSurfaces } from '../scene/walkSurfaces'
 import { enterRoom, goToTag } from './walkTo'
+import { HAZ_COLOR, PPE_LABEL, ZONE_RULES, personZone, type HazZone } from '../safety/hazardAreas'
 
 export function WalkHud() {
   const walk = useStore((s) => s.walk)
@@ -31,12 +32,71 @@ export function WalkHud() {
         <button className="link" onClick={() => setView(view === 'third' ? 'first' : 'third')} title="V">
           {view === 'third' ? 'Hide person' : 'Show person'} (V)
         </button>{' '}
+        · scroll or − / + to zoom{' '}
         · <button className="link" onClick={() => setWalk(false)}>Exit (Esc)</button>
       </div>
+      <CamControl />
       <MapPanel />
       <Levels />
       <ConsolePrompt />
+      <HazardZoneChip />
     </>
+  )
+}
+
+/**
+ * Walk-mode camera: through the eyes, behind the person, or in front of them (to see the face and kit), and how
+ * far away — a slider plus Reset (3.6 m). The mouse wheel and the − / + keys move the same distance.
+ */
+function CamControl() {
+  const view = useStore((s) => s.walkView)
+  const dist = useStore((s) => s.walkDist)
+  const front = useStore((s) => s.walkFront)
+  const st = useStore.getState
+  const mode = view === 'first' ? 'eyes' : front ? 'front' : 'behind'
+  const setMode = (m: 'eyes' | 'behind' | 'front') => {
+    if (m === 'eyes') return st().setWalkView('first')
+    st().setWalkView('third')
+    st().setWalkFront(m === 'front')
+  }
+  return (
+    <div className="walk-cam-ctl small" aria-label="Walk camera">
+      <span className="lbl">Camera</span>
+      <div className="seg">
+        {(['eyes', 'behind', 'front'] as const).map((m) => (
+          <button key={m} className={mode === m ? 'on' : ''} onClick={() => setMode(m)} title={m === 'eyes' ? 'Through the eyes (V)' : m === 'behind' ? 'Behind the person (V)' : 'In front, looking back at the person'}>
+            {m === 'eyes' ? 'Eyes' : m === 'behind' ? 'Behind' : 'Front'}
+          </button>
+        ))}
+      </div>
+      <label className="dist" title="Distance from the person — or scroll / − +">
+        <span className="faint">Close</span>
+        <input
+          type="range"
+          min={WALK_DIST.min}
+          max={WALK_DIST.max}
+          step={0.1}
+          value={dist}
+          disabled={mode === 'eyes'}
+          onChange={(e) => st().setWalkDist(Number(e.target.value))}
+          onPointerUp={(e) => (e.currentTarget as HTMLInputElement).blur()}
+        />
+        <span className="faint">Far</span>
+        <span className="mono val">{mode === 'eyes' ? '—' : `${dist.toFixed(1)} m`}</span>
+      </label>
+      <button
+        className="reset"
+        onClick={() => {
+          st().setWalkView('third')
+          st().setWalkFront(false)
+          st().setWalkDist(WALK_DIST.def)
+        }}
+        disabled={mode === 'behind' && Math.abs(dist - WALK_DIST.def) < 0.05}
+        title={`Back to the default: behind the person, ${WALK_DIST.def} m`}
+      >
+        Reset
+      </button>
+    </div>
   )
 }
 
@@ -619,6 +679,59 @@ function ConsolePrompt() {
       </span>
       <kbd>Enter</kbd>
       <button onClick={() => useStore.getState().setHmi('dashboard')}>Open console</button>
+    </div>
+  )
+}
+
+/** hazardous-area zone the walker stands in (chest height) and what it requires — plan 14 (4 Hz poll, no per-frame state) */
+function HazardZoneChip() {
+  const plant = usePlant()
+  const [here, setHere] = useState<{ zone: HazZone; tag: string; reason: string } | null>(null)
+  useEffect(() => {
+    const id = window.setInterval(() => {
+      const h = personZone(walkPose.x, walkPose.floor, walkPose.z, plant)
+      const next = h ? { zone: h.zone, tag: h.volume.tag, reason: h.volume.reason } : null
+      setHere((cur) => (cur?.zone === next?.zone && cur?.tag === next?.tag ? cur : next))
+    }, 250)
+    return () => clearInterval(id)
+  }, [plant])
+  const rule = ZONE_RULES.find((r) => r.zone === (here ? here.zone : 'safe'))!
+  const c = here ? HAZ_COLOR[here.zone] : null
+  const needs = rule.ppe.length ? rule.ppe.map((k) => PPE_LABEL[k]).join(' · ') : 'site minimum PPE'
+  return (
+    <div
+      className="hz-walk-chip"
+      data-hz-zone={here ? here.zone : 'safe'}
+      title={here ? `${here.reason} — ${rule.entry}. ${rule.also.join('. ')}` : 'Unclassified (safe) area'}
+      style={{
+        position: 'absolute',
+        zIndex: 11,
+        left: '50%',
+        top: 132, // under the toolbar, the value strip and the alarm banner
+        transform: 'translateX(-50%)',
+        display: 'flex',
+        alignItems: 'center',
+        gap: 8,
+        padding: '4px 10px 4px 4px',
+        borderRadius: 7,
+        background: 'rgba(16,19,23,0.82)',
+        border: `1px solid ${c ?? 'rgba(255,255,255,0.18)'}`,
+        color: '#e8eaec',
+        font: '12px/1.3 system-ui, sans-serif',
+        whiteSpace: 'nowrap',
+        pointerEvents: 'auto',
+      }}
+    >
+      <b style={{ padding: '1px 7px', borderRadius: 4, background: c ?? 'transparent', color: c ? '#111' : '#cfd3d6', border: c ? 'none' : '1px solid rgba(255,255,255,0.3)', fontSize: 11.5 }}>{here ? `ZONE ${here.zone}` : 'SAFE AREA'}</b>
+      <span>
+        {here ? (
+          <>
+            <span className="mono">{here.tag}</span> · {here.zone === 0 ? <b style={{ color: '#ff8a80' }}>no entry without a confined-space permit</b> : needs}
+          </>
+        ) : (
+          'unclassified · site minimum PPE'
+        )}
+      </span>
     </div>
   )
 }

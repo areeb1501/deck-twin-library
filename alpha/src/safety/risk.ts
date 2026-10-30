@@ -18,7 +18,7 @@ import { CRANES } from '../model/cranes'
 import { fireZones, detectors as fgDetectors, platformOfTag, type Detector, type FireZone } from '../sim/fg'
 import { FIELD_PLATFORMS, SHUTDOWN_RANK, type PlatformId, type ShutdownLevel, type SimState } from '../sim/types'
 import { useCctv, CAMERAS } from './cctv'
-import { useWorkers } from './workers'
+import { useHazardTrack, useWorkers } from './workers'
 import { bandOf, type PlatformRisk, type RiskContributor, type RiskHistoryPoint, type RiskSnapshot } from './types'
 
 // ================================================================= tuning table
@@ -48,6 +48,8 @@ export const RULES = {
   work: { hot: 6, hotWithGas: 20, confined: 5 },
   weather: { windHi: 15, windHiPts: 5, windVhi: 20, windVhiPts: 12, craneSuspended: 4 },
   people: { window: 120, each: 5, max: 15 },
+  /** hazardous areas (plan 14), live tracked violations: Zone 0 entry / Zone 1 / Zone 2 PPE missing, capped per platform */
+  hazardous: { zone0: 25, zone1: 10, zone2: 5, max: 35 },
   /** field score = worst platform + `others` × sum of the other platforms */
   field: { others: 0.15 },
   /** recompute period (sim seconds) and history length */
@@ -340,6 +342,25 @@ export function computeRisk(): RiskSnapshot {
   }
   for (const [pl, e] of Object.entries(ppe) as [PlatformId, NonNullable<(typeof ppe)[PlatformId]>][]) {
     add({ id: `ppe:${pl}`, platform: pl, category: 'people', text: `${e.n} PPE / machinery-zone violation${e.n > 1 ? 's' : ''} on CCTV in 2 min — latest: ${e.last}`, points: Math.min(P.max, e.n * P.each) })
+  }
+
+  // ---- hazardous areas: people tracked (worn tag / RTLS) in a Zone 0 / 1 / 2 without what it needs
+  const HZ = RULES.hazardous
+  const hz: Partial<Record<PlatformId, { pts: number; top: number; n: number; worst: string; tag?: string }>> = {}
+  for (const v of useHazardTrack.getState()?.active ?? []) {
+    const pts = v.kind === 'zone0Entry' ? HZ.zone0 : v.zone === 1 ? HZ.zone1 : HZ.zone2
+    const e = (hz[v.platform] ??= { pts: 0, top: 0, n: 0, worst: '' })
+    e.n++
+    if (pts > e.top) {
+      e.top = pts
+      const who = roster.find((w) => w.id === v.workerId)?.name ?? v.workerId
+      e.worst = v.kind === 'zone0Entry' ? `${who} inside Zone 0 of ${v.tag} (no confined-space permit)` : `${who} in Zone ${v.zone} at ${v.tag} without ${v.missing.map((k) => (k === 'gasMonitor' ? 'gas monitor' : k === 'hardHat' ? 'hard hat' : 'hi-vis / FR')).join(', ')}`
+      e.tag = v.tag
+    }
+    e.pts += pts
+  }
+  for (const [pl, e] of Object.entries(hz) as [PlatformId, NonNullable<(typeof hz)[PlatformId]>][]) {
+    add({ id: `hz:${pl}`, platform: pl, category: 'people', tag: e.tag && c.items.has(e.tag) ? e.tag : undefined, text: `Hazardous area: ${e.worst}${e.n > 1 ? ` (+${e.n - 1} more)` : ''} — tracked by worn tag`, points: Math.min(HZ.max, e.pts) })
   }
 
   // ---- roll up per platform, then the field

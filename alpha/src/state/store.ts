@@ -1,7 +1,10 @@
 import { create } from 'zustand'
 import type { PickData, Vec3 } from '../model/types'
 
-export type LayerId = 'equipment' | 'piping' | 'instruments' | 'structure' | 'ceiling' | 'environment' | 'labels' | 'flow' | 'fireGas' | 'fgCoverage'
+/** walkthrough third-person camera distance behind the person, m: closest, default, farthest, and the cap indoors */
+export const WALK_DIST = { min: 2.2, def: 3.6, max: 8, indoorMax: 3 }
+
+export type LayerId = 'equipment' | 'piping' | 'instruments' | 'structure' | 'ceiling' | 'environment' | 'labels' | 'flow' | 'fireGas' | 'fgCoverage' | 'hazAreas'
 export type ViewMode = 'shaded' | 'xray'
 export type CameraPreset = 'overview' | 'deck' | 'plan' | 'rack' | 'separator' | 'compressor' | 'underdeck' | 'field' | 'rig' | 'wellbay' | 'lq' | 'bridge' | 'whp' | 'bridgeN' | 'rp' | 'wi'
 
@@ -36,6 +39,12 @@ interface State {
   /** walkthrough camera: through the eyes, or behind a visible person */
   walkView: 'first' | 'third'
   setWalkView: (v: 'first' | 'third') => void
+  /** third-person camera distance behind the person, m (wheel / − + in walk mode) — remembered */
+  walkDist: number
+  setWalkDist: (d: number) => void
+  /** third-person camera in front of the person, looking back at them (to see the face and kit) */
+  walkFront: boolean
+  setWalkFront: (v: boolean) => void
   /** night-time scene: dark sky, moonlight, floodlit decks — remembered */
   night: boolean
   setNight: (v: boolean) => void
@@ -106,6 +115,8 @@ export const useStore = create<State>((set) => ({
     flow: true,
     fireGas: false,
     fgCoverage: false,
+    /** hazardous-area classification, Zone 0 / 1 / 2 (scene/HazardAreaOverlay.tsx) */
+    hazAreas: false,
   },
   section: { enabled: false, min: [-32, -1, -22], max: [32, 14, 22] },
   flyTo: null,
@@ -136,6 +147,14 @@ export const useStore = create<State>((set) => ({
   walkStart: null,
   walkView: (localStorage.getItem('deck-twin.walkView') as 'first' | 'third') || 'third',
   setWalkView: (walkView) => (localStorage.setItem('deck-twin.walkView', walkView), set({ walkView })),
+  walkDist: Math.min(WALK_DIST.max, Math.max(WALK_DIST.min, Number(localStorage.getItem('deck-twin.walkDist')) || WALK_DIST.def)),
+  walkFront: false,
+  setWalkFront: (walkFront) => set({ walkFront }),
+  setWalkDist: (d) => {
+    const walkDist = Math.round(Math.min(WALK_DIST.max, Math.max(WALK_DIST.min, d)) * 100) / 100
+    localStorage.setItem('deck-twin.walkDist', String(walkDist))
+    set({ walkDist })
+  },
   night: localStorage.getItem('deck-twin.night') === '1',
   setNight: (night) => (localStorage.setItem('deck-twin.night', night ? '1' : '0'), set({ night })),
   kbTag: null,

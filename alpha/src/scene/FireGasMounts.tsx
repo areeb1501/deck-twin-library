@@ -20,6 +20,10 @@ import { RACK } from './structure/rack'
 import type { Plant, PlanRect } from '../model/types'
 
 const FG = new Set(['FD', 'GD', 'OGD', 'HD', 'SD', 'MAC'])
+/** equipment whose footprint box IS its surface (enclosures and buildings: a device within a hand's width of it is
+ *  fixed to it). Next to vessels, trees, pig traps, pump baseplates and tank skids the footprint box is wider than
+ *  the steel, so devices there get their own stanchion instead of hanging in the air (tools/floating.mjs checks). */
+const BOXY = new Set(['module', 'compressorPackage', 'gasTurbineGenerator', 'transformer'])
 const noPick = () => null
 
 interface Member {
@@ -49,7 +53,9 @@ export function FireGasMounts({ built }: { built: BuiltPiping }) {
     const levels = plant.deck.walk ?? [{ id: 'deck', label: '', y: 0, areas: [{ x0: plant.deck.extent.minX, x1: plant.deck.extent.maxX, z0: plant.deck.extent.minZ, z1: plant.deck.extent.maxZ }] }]
     const mem = members(plant)
     const fps = footprints(plant.equipment, 0)
-    const boxes = plant.equipment.filter((e) => e.kind !== 'proxy').map((e, i) => ({ f: fps[plant.equipment.indexOf(e)] ?? fps[i], y0: levels.reduce((f, l) => (l.y <= e.position[1] + 0.5 && l.y > f ? l.y : f), -1e9), y1: labelHeight(e) - 1.0 }))
+    // top of the steel: a module's roof is its real height (labelHeight adds a clearance for the tag)
+    const topOf = (e: Plant['equipment'][number]) => (e.kind === 'module' ? e.position[1] + e.size[1] : labelHeight(e) - 1.0)
+    const boxes = plant.equipment.filter((e) => BOXY.has(e.kind)).map((e) => ({ f: fps[plant.equipment.indexOf(e)], y0: levels.reduce((f, l) => (l.y <= e.position[1] + 0.5 && l.y > f ? l.y : f), -1e9), y1: topOf(e) }))
     const parts: THREE.BufferGeometry[] = []
     const rod = (a: THREE.Vector3, b: THREE.Vector3, r: number) => {
       const d = b.clone().sub(a)
@@ -78,7 +84,7 @@ export function FireGasMounts({ built }: { built: BuiltPiping }) {
       const onSurface = boxes.some(({ f, y0, y1 }) => {
         const dx = Math.max(f.x0 - p.x, 0, p.x - f.x1)
         const dz = Math.max(f.z0 - p.z, 0, p.z - f.z1)
-        return Math.hypot(dx, dz) < 0.22 && p.y >= y0 - 0.1 && p.y <= y1 + 0.6
+        return Math.hypot(dx, dz) < 0.22 && p.y >= y0 - 0.1 && p.y <= y1 + 0.3
       })
       if (onSurface) continue
 

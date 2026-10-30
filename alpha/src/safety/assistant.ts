@@ -35,9 +35,12 @@ const push = (m: Omit<ChatMessage, 'id' | 't'>): ChatMessage => {
 }
 
 // ---------------------------------------------------------------- intents
-export type Intent = 'status' | 'risk' | 'equipment' | 'alarms' | 'shutdown' | 'fireGas' | 'whatif' | 'permits' | 'barriers' | 'drift' | 'help'
+export type Intent = 'status' | 'risk' | 'equipment' | 'alarms' | 'shutdown' | 'fireGas' | 'whatif' | 'permits' | 'barriers' | 'drift' | 'spares' | 'value' | 'insights' | 'help'
 
 const INTENT_RULES: [Intent, RegExp][] = [
+  ['insights', /\b(insights?|summary|summari[sz]e|brief(ing)?|priorit\w*|recommend\w*|focus|worry|what should (i|we) do|what matters|biggest (issue|problem|loss))\b/],
+  ['spares', /\b(spares?|spare parts?|stock\w*|inventory|reorder|purchase orders?|lead.?times?|cartridges?|seal kits?|bearings?|deliver\w*|supply (boat|vessel|base)|helicopter)\b|do we have (a|an|any)\b/],
+  ['value', /\b(revenue|money|costs?|dollars?|financ\w*|economics?|cash|margin|lifting cost|worth|at risk|exposure|carbon|emissions?|co2)\b|\$/],
   ['whatif', /\bwhat (happens|would happen|if)\b|\bwhat-if\b|\bif .* (trips?|fails?|stops?|leaks?)\b/],
   ['barriers', /\b(barriers?|swiss|erosion|hidden|combinations?|line[sd]? up|safety layers?)\b/],
   ['drift', /\b(drift\w*|creep\w*|trend\w*|slowly|heading (to|for))\b/],
@@ -208,8 +211,54 @@ function renderDrift(r: J): string {
     .join('; ')}.`
 }
 
+function renderInsights(r: J): string {
+  const list = arr(r.insights)
+  const lines = [String(r.headline ?? '')]
+  if (list.length) lines.push(`Top findings: ${list.slice(0, 4).map((x, i) => `${i + 1}. ${x.title}${Number(x.usdPerDay) > 0 && x.area !== 'safety' ? ` (${usd(x.usdPerDay)}/d)` : ''}`).join(' ')}`)
+  else lines.push('Nothing stands out right now.')
+  return `${lines.filter(Boolean).join(' ')} (From simulated data — see Asset & economics → Insights.)`
+}
+function renderSpares(r: J): string {
+  const parts = arr(r.parts)
+  const cover = (r.cover as J | null) ?? null
+  const lines: string[] = []
+  if (cover && cover.status && cover.status !== 'notStocked') lines.push(`Repair cover: ${String(cover.note ?? cover.status)}${Number(cover.waitDays) > 0 ? ` (≈ ${Math.round(Number(cover.waitDays))} d to get the parts offshore)` : ''}.`)
+  for (const p of parts.slice(0, 4)) {
+    const pos = arr(p.openOrders)
+    lines.push(
+      `${p.id} ${p.name} (class ${p.criticality}): ${p.offshore} offshore, ${p.base} at the supply base${Number(p.reserved) ? `, ${p.reserved} reserved` : ''}; lead ${p.leadDays} d standard / ${p.expediteDays} d expedited${pos.length ? `; on order: ${pos.map((o) => `${o.id} ×${o.qty} (${String(o.stage)}, ETA ${o.eta})`).join(', ')}` : ''}.`,
+    )
+  }
+  if (!parts.length) {
+    const short = arr(r.short)
+    lines.push(short.length ? `Parts short or below their reorder point: ${short.map((x) => `${x.id} ${x.name} (${x.offshore} offshore, ${x.base} base)`).join('; ')}.` : 'No part is short or below its reorder point.')
+  }
+  if (Number(r.awaitingMaterials) > 0) lines.push(`${r.awaitingMaterials} work order(s) are waiting for materials.`)
+  return `${lines.join(' ')} (Simulated stock — see Spares & supply.)`
+}
+const usd = (v: unknown) => {
+  const n = Number(v)
+  if (!Number.isFinite(n)) return '—'
+  const a = Math.abs(n)
+  return `${n < 0 ? '−' : ''}$${a >= 1e6 ? `${(a / 1e6).toFixed(2)} M` : a >= 1e3 ? `${(a / 1e3).toFixed(0)} k` : a.toFixed(0)}`
+}
+function renderValue(r: J): string {
+  const s = (r.session as J) ?? {}
+  const risks = arr(r.atRisk)
+  const def = arr(s.deferredUsd)
+  const deck = (r.priceDeck as J) ?? {}
+  return [
+    `At the assumed price deck ($${deck.oilUsdBbl}/bbl oil, $${deck.gasUsdMMBtu}/MMBtu gas) the field earns ${usd(r.revenueUsdD)}/d, cash margin ${usd(r.cashUsdD)}/d, lifting cost $${r.liftingCostUsdBoe}/boe, carbon intensity ${r.intensityKgBoe} kgCO2e/boe.`,
+    def.length ? `Deferred revenue this session: ${def.map((d) => `${String(d.category)} ${usd(d.usd)}`).join(', ')}${Number(s.awaitingSparesUsd) > 0 ? ` (of which ${usd(s.awaitingSparesUsd)} waiting for spares)` : ''}.` : 'Nothing deferred this session yet.',
+    risks.length ? `Most at risk over 30 days: ${risks.slice(0, 3).map((a) => `${a.tag} ${usd(a.exposureUsd)} (P ${a.pFail30d} %, spare ${a.spare}) — ${a.action}`).join('; ')}.` : '',
+    '(Simulated economics — see Asset & economics.)',
+  ]
+    .filter(Boolean)
+    .join(' ')
+}
+
 const HELP =
-  'Ask me about the live plant: "How is the plant doing?", "What is the risk on Alpha?", "Tell me about K-2200", "What alarms are active?", "Why did Alpha shut down?", "Any gas?", "Is hot work safe now?", "What happens if P-1500A trips?", "Any hidden barrier erosion?", "Is anything drifting towards a trip?". I only read the twin — I never operate it.'
+  'Ask me about the live plant: "How is the plant doing?", "What is at risk in dollars?", "Do we have a dry gas seal cartridge?", "What is the risk on Alpha?", "Tell me about K-2200", "What alarms are active?", "Why did Alpha shut down?", "Any gas?", "Is hot work safe now?", "What happens if P-1500A trips?", "Any hidden barrier erosion?", "Is anything drifting towards a trip?". I only read the twin — I never operate it.'
 
 /** tags mentioned in a text that are real plant items */
 function tagsInText(text: string, traceId: string, known: Set<string>): string[] {
@@ -308,6 +357,15 @@ export function localAnswer(question: string, traceId: string): { text: string; 
         }
         break
       }
+      case 'insights':
+        parts.push(renderInsights(c('get_insights')))
+        break
+      case 'spares':
+        parts.push(renderSpares(c('get_spares', { ...(tag ? { tag } : {}), query: question })))
+        break
+      case 'value':
+        parts.push(renderValue(c('get_economics')))
+        break
       case 'equipment':
         if (!tag) break
         {
@@ -320,7 +378,7 @@ export function localAnswer(question: string, traceId: string): { text: string; 
         break
     }
   }
-  if (tag && !done.has('equipment') && !done.has('whatif') && !done.has('drift')) {
+  if (tag && !done.has('equipment') && !done.has('whatif') && !done.has('drift') && !done.has('spares') && !done.has('value')) {
     const e = c('get_equipment', { tag })
     if (!e.error) parts.push(renderEquipment(e))
   }

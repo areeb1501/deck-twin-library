@@ -13,20 +13,30 @@
  *    off-screen renderer only works while someone watches.
  *  - Call-up (sim plugin `cctv`): a rising F&G edge in a zone (gas high / confirmed, flame single /
  *    confirmed) calls up the first camera covering that zone, as a control room does.
+ *  - Hazardous areas (plan 14): a person the worn-tag tracker (workers.ts useHazardTrack) has in a Zone 0 /
+ *    1 / 2 violation, still standing in that zone and visible to the camera, gets a `zone0Entry` / `zonePpe`
+ *    box. The camera contributes the zone (its zone map), the person and the hard hat / vest; "no gas
+ *    monitor" comes from the tag (vision can't see a clip-on monitor). The first sighting confirms the
+ *    tracked violation (confirmByCamera); a Zone 0 entry calls the best camera up (plugin `cctv-hazard`).
+ *    camerasSeeing(p) ranks the cameras that see a world point (frustum, range, equipment-box occlusion).
  */
 import * as THREE from 'three'
 import { create } from 'zustand'
 import type { Vec3 } from '../model/types'
 import type { Plant } from '../model/types'
 import type { Incident, PlatformId, ZoneStatus } from '../sim/types'
-import type { CctvCamera, Detection, DetectionKind } from './types'
+import { DETECTION_LABEL, type CctvCamera, type Detection, type DetectionKind } from './types'
 import { DECK_WORLD_Y } from '../state/store'
 import { usePlantStore } from '../state/plantStore'
 import { isRunning, registerSimPlugin, useSim } from '../state/sim'
 import { cloudShape, flameHeight, zoneAt, zoneById, zoneCentre, zoneOfTag } from '../sim/fg'
 import { getWind } from '../sim/fg/live'
-import { useWorkers, workerPose } from './workers'
+import { confirmByCamera, openViolationOf, useHazardTrack, useWorkers, workerPose } from './workers'
 import { footprints, type Footprint } from '../model/footprint'
+import { personZone } from './hazardAreas'
+import { labelHeight } from '../ui/labels'
+import { levelAt, walkLevels } from '../scene/Walk'
+import { ALPHA_DECK, LQ, RP, WHP, WI } from '../model/site'
 
 export type CameraType = 'ptz' | 'thermal'
 
@@ -253,7 +263,7 @@ export interface CctvStore {
 const LOG_CAP = 300
 const DEDUP_S = 60
 const lastLogged = new Map<string, number>()
-const LOGGED = new Set<DetectionKind>(['noHardHat', 'noVest', 'restrictedZone', 'fire', 'gasCloud'])
+const LOGGED = new Set<DetectionKind>(['noHardHat', 'noVest', 'restrictedZone', 'fire', 'gasCloud', 'zone0Entry', 'zonePpe'])
 
 export const useCctv = create<CctvStore>((set, get) => ({
   live: {},
@@ -284,7 +294,9 @@ export const useCctv = create<CctvStore>((set, get) => ({
     const fresh: Detection[] = []
     for (const d of dets) {
       if (!LOGGED.has(d.kind)) continue
-      const key = `${d.kind}:${d.workerId ?? d.id.split('|')[1] ?? camera}`
+      // hazardous areas: the first sighting confirms the tracked violation (one store write per violation)
+      if ((d.kind === 'zone0Entry' || d.kind === 'zonePpe') && d.workerId && d.zone !== undefined) confirmByCamera(d.workerId, d.kind, d.zone, camera, d.t)
+      const key = `${d.kind}:${d.workerId ?? d.id.split('|')[1] ?? camera}${d.zone !== undefined ? `:${d.zone}` : ''}`
       const last = lastLogged.get(key)
       if (last !== undefined && d.t - last < DEDUP_S && d.t >= last) continue
       lastLogged.set(key, d.t)
@@ -396,6 +408,21 @@ export function detect(
     if (!w.vest) out.push(mk('noVest', clip([cx - halfW * 1.05, top + h * 0.2, cx + halfW * 1.05, top + h * 0.55]), conf(`${cam.id}${w.id}v`, 0.7, 0.92), { workerId: w.id }))
     const zone = p.speed < 0.2 ? machineZoneAt(p.x, p.z, p.footY) : null
     if (zone) out.push(mk('restrictedZone', clip(box), conf(`${cam.id}${w.id}z`, 0.78, 0.95), { workerId: w.id, ref: `${w.id}:${zone.tag}`, tag: zone.tag, dist: +zone.dist.toFixed(1) }))
+    // hazardous area: the tracked violation, while the person still stands in that zone
+    const hv = openViolationOf(w.id)
+    const here = hv ? personZone(p.x, p.footY - DECK_WORLD_Y, p.z) : null
+    if (hv && here && here.zone <= hv.zone) {
+      const pad = halfW * 0.35
+      out.push(
+        mk(hv.kind, clip([box[0] - pad, box[1] - h * 0.05, box[2] + pad, box[3] + h * 0.03]), conf(`${cam.id}${w.id}${hv.kind}`, hv.kind === 'zone0Entry' ? 0.84 : 0.74, 0.96), {
+          workerId: w.id,
+          ref: `${w.id}:${hv.kind}:${hv.zone}`,
+          tag: hv.tag,
+          zone: hv.zone,
+          missing: hv.missing,
+        }),
+      )
+    }
   }
 
   // ---- hazards from the live incidents (deck-local pos → world)
@@ -476,6 +503,70 @@ function corners(x0: number, y0: number, z0: number, x1: number, y1: number, z1:
   ]
 }
 
+/** the label on a camera box / in the detection log (zone boxes say what is missing; the gas monitor comes from the tag) */
+export function detLabel(d: Detection): string {
+  const short = { hardHat: 'hard hat', vest: 'hi-vis', gasMonitor: 'gas monitor (tag)' } as const
+  if (d.kind === 'zone0Entry') return `ZONE 0 ENTRY · ${d.tag ?? ''}`.trim()
+  if (d.kind === 'zonePpe') return `ZONE ${d.zone ?? '?'} · no ${(d.missing ?? []).map((k) => short[k]).join(' + ')}`
+  return DETECTION_LABEL[d.kind]
+}
+
+// ---------------------------------------------------------------- which cameras see a point (hazardous-area drills, call-up)
+
+/** the renderer's occluders (scene/CctvRenderer.tsx): equipment boxes, shrunk a little, and the deck plates */
+const occCache = new WeakMap<Plant, THREE.Box3[]>()
+function occluderBoxes(plant: Plant): THREE.Box3[] {
+  let boxes = occCache.get(plant)
+  if (boxes) return boxes
+  const levels = walkLevels(plant)
+  const fps = footprints(plant.equipment, 0)
+  boxes = []
+  plant.equipment.forEach((e, i) => {
+    if (e.kind === 'proxy') return
+    const f = fps[i]
+    const floor = levels[levelAt(levels, e.position[1])]?.y ?? 0
+    const top = Math.max(floor + 1, labelHeight(e) - 1.1)
+    boxes!.push(new THREE.Box3(new THREE.Vector3(f.x0 + 0.15, floor + DECK_WORLD_Y, f.z0 + 0.15), new THREE.Vector3(f.x1 - 0.15, top + DECK_WORLD_Y, f.z1 - 0.15)))
+  })
+  const slab = (r: { x0: number; x1: number; z0: number; z1: number }, y0: number, y1: number) => boxes!.push(new THREE.Box3(new THREE.Vector3(r.x0, y0 + DECK_WORLD_Y, r.z0), new THREE.Vector3(r.x1, y1 + DECK_WORLD_Y, r.z1)))
+  slab(ALPHA_DECK, 9.4, 10)
+  for (const r of [ALPHA_DECK, WHP.deck, RP.deck, WI.deck, LQ.deck]) slab(r, -0.9, -0.05)
+  occCache.set(plant, boxes)
+  return boxes
+}
+const _pc = new THREE.PerspectiveCamera(46, FEED_W / FEED_H, 0.3, 900)
+const _ray = new THREE.Ray()
+const _o = new THREE.Vector3()
+const _p = new THREE.Vector3()
+const _hit = new THREE.Vector3()
+
+/**
+ * Cameras that see a person standing at WORLD point `feet` (chest in frame, within detection range, not
+ * behind an equipment box), best first: cameras aimed at `tag` first, then the nearest / most central.
+ */
+export function camerasSeeing(feet: Vec3, tag?: string): CctvCameraEx[] {
+  const boxes = occluderBoxes(usePlantStore.getState().plant)
+  _p.set(feet[0], feet[1] + 1.3, feet[2])
+  const ranked: { c: CctvCameraEx; score: number }[] = []
+  for (const c of CAMERAS) {
+    _o.set(c.pos[0], c.pos[1], c.pos[2])
+    const d = _o.distanceTo(_p)
+    if (d > WORKER_RANGE) continue
+    _pc.fov = c.fov
+    _pc.aspect = FEED_W / FEED_H
+    _pc.position.copy(_o)
+    _pc.lookAt(c.target[0], c.target[1], c.target[2])
+    _pc.updateProjectionMatrix()
+    _pc.updateMatrixWorld()
+    const q = toImage(_pc, _p.x, _p.y, _p.z)
+    if (!q || q[0] < 0.05 || q[0] > 0.95 || q[1] < 0.08 || q[1] > 0.95) continue
+    _ray.set(_o, _hit.copy(_p).sub(_o).normalize())
+    if (boxes.some((b) => !b.containsPoint(_p) && _ray.intersectBox(b, _hit) && _o.distanceTo(_hit) < d - 0.4)) continue
+    ranked.push({ c, score: d / 10 + (tag && c.watches.includes(tag) ? 0 : 1.5) + Math.hypot(q[0] - 0.5, q[1] - 0.5) * 2 })
+  }
+  return ranked.sort((a, b) => a.score - b.score).map((r) => r.c)
+}
+
 // ---------------------------------------------------------------- automatic call-up on F&G alarms
 
 /** no camera covers the zone: the nearest one on the zone's platform (else the nearest overall) */
@@ -519,5 +610,25 @@ registerSimPlugin({
     prevFg = {}
     lastLogged.clear()
     useCctv.setState({ live: {}, log: [], callUp: null, callUpReason: null, callUpAt: null })
+  },
+})
+
+// a tracked Zone 0 entry calls up the best camera on the person (unless an F&G call-up is showing)
+const calledFor = new Set<string>()
+registerSimPlugin({
+  id: 'cctv-hazard',
+  step(_dt, t) {
+    for (const v of useHazardTrack.getState().active) {
+      if (v.kind !== 'zone0Entry' || calledFor.has(v.id)) continue
+      calledFor.add(v.id)
+      if (useCctv.getState().callUp) continue
+      const cam = camerasSeeing(v.pos, v.tag)[0]
+      if (!cam) continue
+      const who = useWorkers.getState().roster.find((w) => w.id === v.workerId)?.name ?? v.workerId
+      useCctv.setState({ callUp: cam.id, callUpReason: `Zone 0 entry: ${who} at ${v.tag} (no confined-space permit)`, callUpAt: t })
+    }
+  },
+  reset() {
+    calledFor.clear()
   },
 })

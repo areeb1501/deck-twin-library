@@ -35,7 +35,9 @@ import {
 import { EMPTY_OBJ, fmt, runOf, sim, useS } from './simApi'
 import { Box, Kpi, Msg, RunPill, TagLink } from './common'
 import { goToMachine } from '../fieldOps'
+import { fmtEta, useSpares, woMaterialsMap } from '../../sim/spares'
 import './maintenance.css'
+import './spares.css'
 
 type Tab = 'wo' | 'permits' | 'cm' | 'pm' | 'log'
 const TABS: [Tab, string][] = [
@@ -49,6 +51,13 @@ const PTYPES = Object.keys(PERMIT_LABEL) as PermitType[]
 const WTYPES = Object.keys(WO_TYPE_LABEL) as WoType[]
 const hrs = (h: number | undefined | null) => (typeof h === 'number' && Number.isFinite(h) ? (h >= 100 ? h.toFixed(0) : h >= 10 ? h.toFixed(1) : h.toFixed(2)) : '—')
 const say = (r: string | null, ok: string) => r ?? `✓ ${ok}`
+/** materials status of every work order (sim/spares.ts reservations), memoised on the spares store */
+function useWoMats() {
+  const reservations = useSpares((s) => s.reservations)
+  const orders = useSpares((s) => s.orders)
+  const parts = useSpares((s) => s.parts)
+  return useMemo(() => woMaterialsMap({ reservations, orders, parts }), [reservations, orders, parts])
+}
 
 type Prefill = { tag: string; n: number }
 /** where a focus request lands: the tag's open work order, else the raise form prefilled with the tag */
@@ -202,6 +211,7 @@ function WoBacklog({ wos, sel, pick, prefill }: { wos: WorkOrder[]; sel: string 
   const [type, setType] = useState<WoType | 'all'>('all')
   const [prio, setPrio] = useState<number>(0)
   const [q, setQ] = useState('')
+  const mats = useWoMats()
   const list = useMemo(() => {
     const ql = q.trim().toLowerCase()
     return wos
@@ -257,6 +267,7 @@ function WoBacklog({ wos, sel, pick, prefill }: { wos: WorkOrder[]; sel: string 
                 <th>Title</th>
                 <th>Type</th>
                 <th>Status</th>
+                <th title="Spare parts reserved for the job (simulated stores)">Materials</th>
                 <th>Raised</th>
                 <th>By</th>
                 <th style={{ textAlign: 'right' }}>Est h</th>
@@ -279,6 +290,7 @@ function WoBacklog({ wos, sel, pick, prefill }: { wos: WorkOrder[]; sel: string 
                   <td>
                     <StatusChip s={w.status} />
                   </td>
+                  <td>{mats.get(w.id) && isOpen(w) ? <span className={`sp-mat ${mats.get(w.id)!.state}`} data-mat={mats.get(w.id)!.state}>{mats.get(w.id)!.text}</span> : ''}</td>
                   <td className="mono dim">{fmtClock(w.raisedAt)}</td>
                   <td className="dim">{w.raisedBy}</td>
                   <td className="num">{hrs(w.estH)}</td>
@@ -315,6 +327,7 @@ function WoDetail({ id, close }: { id: string | null; close: () => void }) {
   const machine: Pick<MachineSim, 'tripCause' | 'localReset'> = { tripCause, localReset }
   const [ptype, setPtype] = useState<PermitType | null>(null)
   const [msg, setMsg] = useState<string | null>(null)
+  const mats = useWoMats()
   if (!w) {
     return (
       <aside className="faceplate mt-detail">
@@ -396,6 +409,19 @@ function WoDetail({ id, close }: { id: string | null; close: () => void }) {
             </dd>
           </>
         )}
+        {mats.get(w.id) && (
+          <>
+            <dt>Materials</dt>
+            <dd className="sp-matlines" data-wo-mat={mats.get(w.id)!.state}>
+              {mats.get(w.id)!.lines.map((l) => (
+                <div key={l.partId} className={!l.kitted && !l.issued ? 'short' : ''}>
+                  {l.qty} × {l.name} — {l.where}
+                  {!l.kitted && !l.issued && l.eta !== undefined ? `, ETA ${fmtEta(l.eta)}` : ''}
+                </div>
+              ))}
+            </dd>
+          </>
+        )}
         {lock && (
           <>
             <dt>Lock-out</dt>
@@ -471,6 +497,7 @@ function WoDetail({ id, close }: { id: string | null; close: () => void }) {
           </button>
         )}
       </div>
+      {isOpen(w) && w.status !== 'inProgress' && w.status !== 'complete' && w.type !== 'preventive' && mats.get(w.id)?.state === 'awaiting' && <div className="h-msg">Work cannot start: {mats.get(w.id)!.text} — expedite or transfer on the Spares &amp; supply page</div>}
       <Msg text={msg} />
       {permit && <PermitCard p={permit} say={setMsg} />}
       <h5 className="mt-h5">History</h5>

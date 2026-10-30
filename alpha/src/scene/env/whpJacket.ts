@@ -7,11 +7,13 @@
  * X-braced faces, K-braces in the top bay, anodes. Six 30" conductors from the wellheads to below the
  * mudline through conductor guide frames at every frame level and the cellar deck. Boat landing on the
  * WEST face with a caged ladder up to the cellar (spider) deck.
+ * Joint cans / brace stubs / stand-off anodes / barge bumpers / fibre J-tube: jacketDetail.ts.
  */
 import type { GeoBatch, V3 } from '../structure/batch'
 import { bar, boxMinMax, tube } from '../structure/batch'
 import { ladder } from '../structure/ladder'
 import { WHP } from '../../model/site'
+import { bargeBumper, jTube, standardJacketDetail, type JacketShape } from './jacketDetail'
 
 const cx = (WHP.legs[0][0] + WHP.legs[1][0]) / 2
 const cz = (WHP.legs[0][1] + WHP.legs[2][1]) / 2
@@ -53,8 +55,37 @@ export function whpFoamPoints(): [number, number, number][] {
   }
   const L = WHP_JACKET.landing
   out.push([L.x, L.z[0], 0.3], [L.x, L.z[L.z.length - 1], 0.3])
+  for (const sz of [-1, 1]) {
+    const p = whpBumperAt(sz, 0)
+    out.push([p[0], p[2], 0.3])
+  }
+  out.push([whpJTubeAt(0)[0], WHP_JTUBE.z, WHP_JTUBE.r])
   return out
 }
+
+/** barge bumpers on the two west legs (boat-landing side) */
+const WHP_BUMPER_OFF = WHP_JACKET.legOD / 2 + 1.2
+function whpBumperAt(sz: number, y: number): V3 {
+  const p = whpLegAt(-1, sz, y)
+  return [p[0] - Math.SQRT1_2 * WHP_BUMPER_OFF, y, p[2] + sz * Math.SQRT1_2 * WHP_BUMPER_OFF]
+}
+/** fibre-optic cable J-tube down the east face */
+export const WHP_JTUBE = { z: -76.5, r: 0.15 }
+export function whpJTubeAt(y: number): V3 {
+  return [whpLegAt(1, 1, Math.min(y, WHP_JACKET.kinkY))[0] + 1.1, y, WHP_JTUBE.z]
+}
+const whpShape = (): JacketShape => ({
+  at: whpLegAt,
+  kinkY: WHP_JACKET.kinkY,
+  seabed: WHP_JACKET.seabed,
+  frames: WHP_JACKET.frames,
+  legOD: WHP_JACKET.legOD,
+  braceOD: WHP_JACKET.braceOD,
+  frameOD: WHP_JACKET.frameOD,
+  planR: 0.24,
+  kTopY: WHP_JACKET.cellarY - 0.7,
+  kR: 0.28,
+})
 
 export interface WhpJacketBatches {
   steel: GeoBatch // marine-growth shader
@@ -79,7 +110,6 @@ export function buildWhpJacket(jb: WhpJacketBatches) {
     const k = whpLegAt(sx, sz, J.kinkY)
     tube(jb.steel, k, [k[0], topY, k[2]], R, 28, true)
     tube(jb.steel, whpLegAt(sx, sz, J.seabed), k, R, 28, true)
-    for (const y of J.frames) tube(jb.steel, whpLegAt(sx, sz, y - 0.6), whpLegAt(sx, sz, y + 0.6), R + 0.03, 28, true)
     for (const y of [J.cellarY - 0.5, J.mainY - 0.55]) tube(jb.steel, [k[0], y, k[2]], [k[0], y + 0.05, k[2]], R + 0.025, 28, false)
     // pile sleeves at the mudline
     tube(jb.steel, whpLegAt(sx, sz, J.seabed), whpLegAt(sx, sz, J.seabed + 4), R + 0.22, 20, false)
@@ -117,16 +147,10 @@ export function buildWhpJacket(jb: WhpJacketBatches) {
     tube(jb.steel, B, top, 0.28, 10, true)
   }
 
-  // anodes on the lower legs
-  for (const y of [-20, -42]) {
-    for (const [sx, sz] of corners) {
-      const p = whpLegAt(sx, sz, y)
-      const ox = -sx * 1.3
-      boxMinMax(jb.anode, [p[0] + ox - 0.13, y - 1.0, p[2] - 0.13], [p[0] + ox + 0.13, y + 1.0, p[2] + 0.13])
-      const oz = -sz * 1.3
-      boxMinMax(jb.anode, [p[0] - 0.13, y - 6.0, p[2] + oz - 0.13], [p[0] + 0.13, y - 4.0, p[2] + oz + 0.13])
-    }
-  }
+  // node cans, brace stubs, crossing cans, stand-off anodes; barge bumpers; fibre-optic J-tube
+  standardJacketDetail(jb.steel, jb.anode, whpShape())
+  for (const sz of [-1, 1]) bargeBumper(jb.steel, (y) => whpLegAt(-1, sz, y), [-Math.SQRT1_2, sz * Math.SQRT1_2], WHP_BUMPER_OFF)
+  jTube(jb.conductor, jb.steel, whpJTubeAt, J.cellarY + 0.55, J.seabed + 5.5, [1, 0], WHP_JTUBE.r, [...J.frames, 16.5].filter((y) => y > J.seabed + 6), (y) => [whpLegAt(1, 1, Math.min(y, J.kinkY))[0], y, WHP_JTUBE.z])
 
   // ---- conductors (wellhead load plate at deck-local -0.032 → world 27.97; tree draws the top 0.6 m)
   const RC = J.conductorOD / 2

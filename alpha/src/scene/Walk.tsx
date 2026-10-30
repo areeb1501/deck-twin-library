@@ -24,7 +24,7 @@ const STEP = 1.0
 import { footprints } from '../model/footprint'
 import { labelHeight } from '../ui/labels'
 import { usePlantStore } from '../state/plantStore'
-import { DECK_WORLD_Y, useStore } from '../state/store'
+import { DECK_WORLD_Y, WALK_DIST, useStore } from '../state/store'
 
 export const EYE = 1.7
 const WALK = 2.2 // m/s
@@ -208,6 +208,26 @@ function gazeBoxes(p: Plant, li: number) {
   )
 }
 
+/**
+ * Pull the third-person camera back (dir 1) or in (dir −1) by `amount` (1 = one mouse-wheel notch). Zooming out
+ * from the eyes shows the person at the closest distance; V still switches back to the eyes.
+ */
+export function zoomWalk(dir: 1 | -1, amount = 1) {
+  const st = useStore.getState()
+  if (st.walkView === 'first') {
+    if (dir > 0) {
+      st.setWalkView('third')
+      st.setWalkDist(WALK_DIST.min)
+    }
+    return
+  }
+  st.setWalkDist(st.walkDist * Math.exp(dir * 0.14 * amount))
+}
+
+const camRay = new THREE.Ray()
+const camDir = new THREE.Vector3()
+const camHit = new THREE.Vector3()
+
 const MOVE_KEYS = new Set(['arrowup', 'arrowdown', 'arrowleft', 'arrowright', 'w', 'a', 's', 'd', 'q', 'e', 'pageup', 'pagedown', 'shift'])
 
 export function WalkDriver({ controls, root }: { controls: React.RefObject<CameraControls | null>; root: React.RefObject<THREE.Group | null> }) {
@@ -229,6 +249,8 @@ export function WalkDriver({ controls, root }: { controls: React.RefObject<Camer
   const allBoxes = useMemo(() => levels.flatMap((_, i) => gazeBoxes(plant, i)), [plant, levels])
   const keys = useRef(new Set<string>())
   const gaze = useRef<{ tag: string | null; t: number }>({ tag: null, t: 0 })
+  /** current third-person camera distance (eases toward the chosen one) */
+  const camBack = useRef(useStore.getState().walkDist)
 
   // start where the orbit camera was looking, facing the same way
   useEffect(() => {
@@ -270,6 +292,9 @@ export function WalkDriver({ controls, root }: { controls: React.RefObject<Camer
         st.setWalkView(st.walkView === 'third' ? 'first' : 'third')
         return
       }
+      // camera distance behind the person
+      if (k === '-' || k === '_') return zoomWalk(1)
+      if (k === '=' || k === '+') return zoomWalk(-1)
       if (/^[1-9]$/.test(k) && Number(k) <= levels.length) {
         if (walkAuto.active) walkAuto.onInterrupt?.()
         useStore.getState().setWalkLevel(Number(k) - 1)
@@ -291,6 +316,19 @@ export function WalkDriver({ controls, root }: { controls: React.RefObject<Camer
       window.removeEventListener('blur', blur)
     }
   }, [levels])
+
+  // mouse wheel / trackpad: camera distance (the orbit controls are off while walking)
+  useEffect(() => {
+    const onWheel = (e: WheelEvent) => {
+      if (useStore.getState().hmi) return
+      e.preventDefault()
+      const px = e.deltaMode === 1 ? e.deltaY * 33 : e.deltaY
+      if (Math.abs(px) < 0.5) return
+      zoomWalk(px > 0 ? 1 : -1, Math.min(2, Math.abs(px) / 100))
+    }
+    dom.addEventListener('wheel', onWheel, { passive: false })
+    return () => dom.removeEventListener('wheel', onWheel)
+  }, [dom])
 
   // level change (keys 1–9 or the HUD): stay at the same plan position if it is walkable there
   useEffect(() => {
@@ -530,9 +568,29 @@ export function WalkDriver({ controls, root }: { controls: React.RefObject<Camer
     const look = eye.clone().addScaledVector(forward(walkPose.yaw, walkPose.pitch), 2)
     if (useStore.getState().walkView === 'third') {
       const indoor = raise.current > 0.3
-      const back = indoor ? 2.2 : 3.6
-      const cam = eye.clone().addScaledVector(fwd0, -back).add(new THREE.Vector3(0, indoor ? 0.45 : 0.9, 0))
-      const tgt = eye.clone().addScaledVector(forward(walkPose.yaw, walkPose.pitch), 3).add(new THREE.Vector3(0, -0.25, 0))
+      // chosen distance (wheel / − +), shorter indoors; eased so a zoom glides rather than jumps
+      const want = indoor ? Math.min(WALK_DIST.indoorMax, useStore.getState().walkDist * 0.61) : useStore.getState().walkDist
+      camBack.current += (want - camBack.current) * (1 - Math.exp(-dt * 7))
+      const back = camBack.current
+      // a little higher the further back, so the person stays low in the frame and you see over the kit
+      const up = indoor ? 0.45 : 0.9 + Math.max(0, back - WALK_DIST.def) * 0.22
+      // behind the person (default), or swung round in front of them looking back (Front view)
+      const front = useStore.getState().walkFront
+      const cam = eye.clone().addScaledVector(fwd0, front ? back : -back).add(new THREE.Vector3(0, front ? Math.min(up, 0.5) : up, 0))
+      // keep equipment out from between the camera and the person: pull in to the first thing the boom hits
+      camRay.set(eye, camDir.subVectors(cam, eye).normalize())
+      const len = eye.distanceTo(cam)
+      let free = len
+      for (const b of boxes) {
+        if (b.proxy || b.box.containsPoint(eye)) continue
+        if (camRay.intersectBox(b.box, camHit)) free = Math.min(free, camHit.distanceTo(eye) - 0.35)
+      }
+      if (free < len) {
+        cam.copy(eye).addScaledVector(camDir, Math.max(0.8, free))
+        camBack.current = Math.min(camBack.current, Math.max(0.8, free))
+      }
+      const far = Math.max(0, back - WALK_DIST.def)
+      const tgt = front ? eye.clone().add(new THREE.Vector3(0, -0.35, 0)) : eye.clone().addScaledVector(forward(walkPose.yaw, walkPose.pitch), 3 + far * 0.35).add(new THREE.Vector3(0, -0.25 - far * 0.06, 0))
       c.setLookAt(cam.x, cam.y, cam.z, tgt.x, tgt.y, tgt.z, false)
     } else c.setLookAt(eye.x, eye.y, eye.z, look.x, look.y, look.z, false)
 

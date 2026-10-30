@@ -23,9 +23,12 @@ import { envMat } from './envShared'
 import { facadeTextures, helideckTexture } from './envTextures'
 import { FlareFlame } from './Flare'
 import { SupplyVessel } from './Vessel'
+import { Helicopter } from './Helicopter'
+import { AlphaLogistics } from './AlphaLogistics'
 import { LQPlatform } from './LQPlatform'
 import { WHPPlatform } from './WHPPlatform'
 import { SatellitePlatforms } from './SatellitePlatforms'
+import { EnvOutfit } from './EnvOutfit'
 import { Cranes } from './Cranes'
 import { Vents } from './Vents'
 import { Windsocks } from './Windsock'
@@ -70,7 +73,7 @@ function useEnvMaterials(): Record<MatKey, THREE.Material> {
     return {
       jacket: envMat('jacket', { color: '#bcb59f', roughness: 0.62, metalness: 0.35 }, { splash: true }),
       riser: envMat('riser', { color: '#454a4e', roughness: 0.5, metalness: 0.4 }, { splash: true }),
-      anode: envMat('anode', { color: '#8d9295', roughness: 0.5, metalness: 0.8 }),
+      anode: envMat('anode', { color: '#a7aba9', roughness: 0.82, metalness: 0.2 }), // matte cast aluminium
       landing: envMat('landing', { color: '#7b7f80', roughness: 0.7, metalness: 0.3 }, { splash: true }),
       ladder: sm.galv,
       steel: sm.steel,
@@ -133,7 +136,7 @@ function buildBase(): Part[] {
     tree: get('cdTree', 'tree'),
   })
   buildFlareBoom(get('flare', 'flareSteel'), get('flareLace', 'flareSteel'), get('flareDark', 'steelDark'))
-  return collect(B, m, (k) => k !== 'cdGrating')
+  return collect(B, m, (k) => k !== 'cdGrating' && k !== 'anode')
 }
 
 function buildUpper(): Part[] {
@@ -218,9 +221,12 @@ export function Surroundings({ upperDeck = true, vessel = true }: SurroundingsPr
         <TripHalos plant={plant} />
       </group>
       {vessel && <SupplyVessel />}
+      <Helicopter />
+      <AlphaLogistics upperDeck={upperDeck} />
       <LQPlatform mats={mats} />
       <WHPPlatform mats={mats} />
       <SatellitePlatforms mats={mats} />
+      <EnvOutfit mats={mats} upperDeck={upperDeck} />
       <Cranes mats={mats} upperDeck={upperDeck} />
       <Vents upperDeck={upperDeck} />
       <Windsocks upperDeck={upperDeck} />

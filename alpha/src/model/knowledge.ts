@@ -12,9 +12,10 @@ import { LINE_VALVE_KNOWLEDGE } from './knowledgeLinesValves'
 import { INSTRUMENT_KNOWLEDGE } from './knowledgeInstruments'
 import { CRANE_VENT_KNOWLEDGE } from './knowledgeCranesVents'
 import { RP_WI_KNOWLEDGE } from './knowledgeRpWi'
+import { LOGISTICS_KNOWLEDGE } from './knowledgeLogistics'
 
 export const KNOWLEDGE: Record<string, Knowledge> = Object.fromEntries(
-  [...EQUIPMENT_KNOWLEDGE, ...UTILITY_KNOWLEDGE, ...LINE_VALVE_KNOWLEDGE, ...INSTRUMENT_KNOWLEDGE, ...RP_WI_KNOWLEDGE, ...CRANE_VENT_KNOWLEDGE].map((k) => [k.id, k]),
+  [...EQUIPMENT_KNOWLEDGE, ...UTILITY_KNOWLEDGE, ...LINE_VALVE_KNOWLEDGE, ...INSTRUMENT_KNOWLEDGE, ...RP_WI_KNOWLEDGE, ...CRANE_VENT_KNOWLEDGE, ...LOGISTICS_KNOWLEDGE].map((k) => [k.id, k]),
 )
 
 // ───────────────────────────── equipment ─────────────────────────────
@@ -28,6 +29,9 @@ const VESSELS: EqKind[] = ['horizontalVessel', 'verticalVessel']
  */
 const NAME_RULES: { re: RegExp; id: string; kinds?: EqKind[]; except?: EqKind[] }[] = [
   // unmistakable roles, whatever kind they were modelled as
+  // plan 13 items (model/knowledgeLogistics.ts) — before the flare / vessel / module rules they would also match
+  { re: /materials? store|laydown/, id: 'materials-store' },
+  { re: /\bprover\b/, id: 'meter-prover' },
   { re: /crane/, id: 'crane' },
   { re: /vent stack|cold vent/, id: 'vent-stack' },
   // RP / WI (model/knowledgeRpWi.ts)

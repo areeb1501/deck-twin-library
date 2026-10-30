@@ -9,11 +9,13 @@
  *    flame, gas cloud).
  *  - Right column: the call-up, the detection log (Walk to), and the detector-model card. Detections are
  *    simulated from the twin's ground truth today; SAM 3.1 on a Modal GPU is the planned replacement.
+ *  - Below the wall: Hazardous areas (plan 14, HazardAreasPanel.tsx) — zone / PPE matrix, people per zone,
+ *    violations, instructor drills; zone boxes (Zone 0 entry red, Zone 1 orange, Zone 2 yellow) on the feeds.
  */
 import { memo, useEffect, useMemo, useRef, useState } from 'react'
 import { Box, Kpi } from './common'
 import { EMPTY_ARR, EMPTY_OBJ, useS } from './simApi'
-import { CAMERAS, FEED_H, FEED_INTERVAL_MS, FEED_W, SEG_BY_ID, SEG_CLASSES, cameraById, feedCanvases, feedStats, registerFeed, segFrames, unregisterFeed, useCctv, type CctvCameraEx, type SegInstance } from '../../safety/cctv'
+import { CAMERAS, FEED_H, FEED_INTERVAL_MS, FEED_W, SEG_BY_ID, SEG_CLASSES, cameraById, detLabel, feedCanvases, feedStats, registerFeed, segFrames, unregisterFeed, useCctv, type CctvCameraEx, type SegInstance } from '../../safety/cctv'
 import { useWorkers } from '../../safety/workers'
 import { DETECTION_LABEL, type Detection, type DetectionKind, type WorkerInfo } from '../../safety/types'
 import { fmtClock, type DetectorSim, type ZoneStatus } from '../../sim/types'
@@ -21,6 +23,7 @@ import { usePlant } from '../../state/plantStore'
 import { useStore } from '../../state/store'
 import { zoneById, zoneDetectors, GAS_HIGH, GAS_LOW, OGD_HIGH, OGD_LOW, OGD_MAX, type Detector } from '../../sim/fg'
 import { walkToTag } from '../walkTo'
+import { HazardAreasPanel } from './HazardAreasPanel'
 import './cctv.css'
 
 const GROUPS: [string, string][] = [
@@ -34,7 +37,7 @@ const GROUPS: [string, string][] = [
 ]
 const BIG_W = 960
 const BIG_H = 540
-const KIND_CLASS: Record<DetectionKind, string> = { person: 'person', noHardHat: 'ppe', noVest: 'ppe', restrictedZone: 'ppe', fire: 'fire', gasCloud: 'gas' }
+const KIND_CLASS: Record<DetectionKind, string> = { person: 'person', noHardHat: 'ppe', noVest: 'ppe', restrictedZone: 'ppe', fire: 'fire', gasCloud: 'gas', zone0Entry: 'hz0', zonePpe: 'hz' }
 const EMPTY_DET: Detection[] = EMPTY_ARR
 const EMPTY_ROSTER: WorkerInfo[] = EMPTY_ARR
 
@@ -72,6 +75,7 @@ export function CctvPage() {
           <Tile key={c.id} cam={c} slot={i} />
         ))}
       </div>
+      <HazardAreasPanel />
       </div>
       <div className="cctv-side">
         <CallUpBox />
@@ -170,9 +174,10 @@ function Boxes({ cam, big }: { cam: string; big: boolean }) {
     <div className="cctv-boxes">
       {live.map((d) => {
         const [x0, y0, x1, y1] = d.box
-        const label = `${DETECTION_LABEL[d.kind]}${big && d.kind === 'person' && d.workerId ? ` · ${names.get(d.workerId) ?? d.workerId}` : ''} ${Math.round(d.confidence * 100)}%`
+        const who = d.workerId && (big || d.kind === 'zone0Entry') ? ` · ${names.get(d.workerId) ?? d.workerId}` : ''
+        const label = `${detLabel(d)}${(d.kind === 'person' && big) || d.kind === 'zone0Entry' || (d.kind === 'zonePpe' && big) ? who : ''} ${Math.round(d.confidence * 100)}%`
         return (
-          <div key={d.id} className={`cctv-det ${KIND_CLASS[d.kind]} ${d.kind} ${y0 < 0.07 ? 'top' : ''}`} style={{ left: `${x0 * 100}%`, top: `${y0 * 100}%`, width: `${(x1 - x0) * 100}%`, height: `${(y1 - y0) * 100}%` }}>
+          <div key={d.id} className={`cctv-det ${KIND_CLASS[d.kind]} ${d.kind} ${d.zone !== undefined ? `z${d.zone}` : ''} ${y0 < 0.07 ? 'top' : ''}`} style={{ left: `${x0 * 100}%`, top: `${y0 * 100}%`, width: `${(x1 - x0) * 100}%`, height: `${(y1 - y0) * 100}%` }}>
             {(big || d.kind !== 'person') && <span>{label}</span>}
           </div>
         )
@@ -346,7 +351,10 @@ function LogBox() {
                     <td className="mono">{fmtClock(d.t, false)}</td>
                     <td className="mono">{d.camera.replace('CCTV-', '')}</td>
                     <td>
-                      <span className={`cctv-k ${KIND_CLASS[d.kind]}`}>{DETECTION_LABEL[d.kind]}</span> <span className="dim">{Math.round(d.confidence * 100)}%</span>
+                      <span className={`cctv-k ${KIND_CLASS[d.kind]}`} title={d.tag}>
+                        {d.kind === 'zone0Entry' || d.kind === 'zonePpe' ? detLabel(d) : DETECTION_LABEL[d.kind]}
+                      </span>{' '}
+                      <span className="dim">{Math.round(d.confidence * 100)}%</span>
                     </td>
                     <td title={d.workerId ? names.get(d.workerId) : undefined}>{d.workerId ? names.get(d.workerId) ?? d.workerId : '—'}</td>
                     <td className="act">
@@ -480,7 +488,7 @@ function ModelBox() {
   const selected = useCctv((s) => s.callUp ?? s.selected)
   const now = Object.values(live).flat()
   const people = now.filter((d) => d.kind === 'person').length
-  const ppe = now.filter((d) => d.kind === 'noHardHat' || d.kind === 'noVest' || d.kind === 'restrictedZone').length
+  const ppe = now.filter((d) => d.kind === 'noHardHat' || d.kind === 'noVest' || d.kind === 'restrictedZone' || d.kind === 'zone0Entry' || d.kind === 'zonePpe').length
   const hazards = now.filter((d) => d.kind === 'fire' || d.kind === 'gasCloud').length
   const per = 1000 / FEED_INTERVAL_MS
   const others = Math.max(1, feedCanvases.size - 1)
@@ -512,7 +520,7 @@ function ModelBox() {
           </tr>
           <tr>
             <td className="dim">Classes</td>
-            <td>{SEG_CLASSES.length} segmentation prompts · person · no hard hat · no hi-vis vest · flame · gas cloud</td>
+            <td>{SEG_CLASSES.length} segmentation prompts · person · no hard hat · no hi-vis vest · flame · gas cloud · hazardous-area zone (Zone 0 entry / Zone 1–2 PPE: zone map per camera; gas monitor from the worn tag)</td>
           </tr>
         </tbody>
       </table>

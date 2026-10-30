@@ -6,74 +6,28 @@
  * to a task point on their own level and platform → walk it at 1.2–1.5 m/s wall time → idle 6–20 s facing
  * the equipment → repeat. Poses are written into the mutable `workerPose` (CCTV reads it).
  *
- * Figure: a light procedural operator (orange coverall with reflective tape, white hard hat, hi-vis vest,
- * boots, gloves), drawn as 7 InstancedMeshes for ALL workers (vertex-coloured parts, one draw call each).
- * A missing hard hat shows dark hair; a missing vest hides the vest band. Not pickable.
+ * Figure (people/crowd.ts): the walk-mode avatar's body at a lower detail level — FR coverall (orange, red or navy
+ * with hi-vis panels) with retro tape, belt + radio, gloves, steel-toe boots, glasses, a face and a haircut — drawn
+ * as 11 InstancedMeshes for ALL workers, animated with the avatar's gait (people/gait.ts) from each worker's
+ * measured movement. Per-worker coverall / skin / hair / hat colour and height (±~4 %). PPE follows the live
+ * roster flags every frame: hard hat (white / orange) vs visible hair, hi-vis vest, a bright 4-gas monitor at
+ * the collar. Not pickable, no shadow casting.
  */
 import { useEffect, useMemo, useRef } from 'react'
 import { useFrame } from '@react-three/fiber'
-import * as THREE from 'three'
-import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js'
 import { DECK_WORLD_Y } from '../state/store'
 import { usePlant } from '../state/plantStore'
 import { planPath } from './walkPath'
 import { walkLevels, type AutoPt } from './Walk'
-import { setWorkerTask, taskText, useWorkers, workerLevelIndex, workerPose, workerTaskPoints, type TaskPoint } from '../safety/workers'
+import { setWorkerTask, taskText, useWorkers, workerCmd, workerLevelIndex, workerPose, workerTaskPoints, type SendWorkerFn, type TaskPoint } from '../safety/workers'
 import type { WorkerInfo } from '../safety/types'
 import type { Plant } from '../model/types'
-
-// ---------------------------------------------------------------- figure (m; faces −Z like the walker)
-const HIP_Y = 0.93
-const HIP_X = 0.095
-const SHOULDER_Y = 1.47
-const SHOULDER_X = 0.235
-const HEAD_Y = 1.63
-const STEP = 0.78 // m per step
-
-const C = {
-  coverall: '#e2661c',
-  tape: '#c9cdd2',
-  boot: '#2a2622',
-  glove: '#3a3d40',
-  skin: '#c99a7a',
-  hat: '#f2f2f0',
-  hair: '#2b2118',
-  vest: '#d7f22a',
-}
-
-function part(g: THREE.BufferGeometry, color: string, x = 0, y = 0, z = 0) {
-  g.translate(x, y, z)
-  const c = new THREE.Color(color)
-  const n = g.attributes.position.count
-  const a = new Float32Array(n * 3)
-  for (let i = 0; i < n; i++) a.set([c.r, c.g, c.b], i * 3)
-  g.setAttribute('color', new THREE.BufferAttribute(a, 3))
-  return g
-}
-const box = (w: number, h: number, d: number) => new THREE.BoxGeometry(w, h, d)
-const merge = (gs: THREE.BufferGeometry[]) => mergeGeometries(gs, false)!
-
-function figureGeometries() {
-  // leg, hanging from the hip joint: coverall leg, shin tape, boot (toe forward = −Z)
-  const leg = merge([part(box(0.15, 0.8, 0.17), C.coverall, 0, -0.4, 0), part(box(0.156, 0.04, 0.176), C.tape, 0, -0.56, 0), part(box(0.15, 0.13, 0.27), C.boot, 0, -0.865, -0.04)])
-  // arm, hanging from the shoulder: sleeve, cuff tape, glove
-  const arm = merge([part(box(0.1, 0.56, 0.11), C.coverall, 0, -0.28, 0), part(box(0.106, 0.035, 0.116), C.tape, 0, -0.44, 0), part(box(0.095, 0.11, 0.1), C.glove, 0, -0.61, 0)])
-  // torso from the hip joint up: coverall, waist + chest tape, belt, neck
-  const torso = merge([
-    part(box(0.38, 0.58, 0.22), C.coverall, 0, 0.29, 0),
-    part(box(0.386, 0.06, 0.226), C.boot, 0, 0.05, 0),
-    part(box(0.386, 0.035, 0.226), C.tape, 0, 0.4, 0),
-    part(new THREE.CylinderGeometry(0.05, 0.055, 0.1, 8), C.skin, 0, 0.62, 0),
-  ])
-  // hi-vis vest band over the torso, with two reflective stripes
-  const vest = merge([part(box(0.405, 0.36, 0.245), C.vest, 0, 0.32, 0), part(box(0.41, 0.035, 0.25), C.tape, 0, 0.22, 0), part(box(0.41, 0.035, 0.25), C.tape, 0, 0.4, 0)])
-  const head = part(new THREE.SphereGeometry(0.11, 14, 10), C.skin)
-  const hat = merge([part(new THREE.SphereGeometry(0.128, 16, 8, 0, Math.PI * 2, 0, Math.PI / 2), C.hat, 0, 0.025, 0), part(new THREE.CylinderGeometry(0.16, 0.16, 0.015, 18), C.hat, 0, 0.03, -0.015)])
-  const hair = part(new THREE.SphereGeometry(0.114, 14, 6, 0, Math.PI * 2, 0, Math.PI / 2.2), C.hair, 0, 0.012, 0.004)
-  return { leg, arm, torso, vest, head, hat, hair }
-}
+import { Crowd, lookFor } from './people/crowd'
+import { createGait, stepGait, type GaitState } from './people/gait'
 
 // ---------------------------------------------------------------- agents
+
+const STEP = 0.78 // m per step (Agent.phase; the figures take their gait from people/gait.ts)
 
 interface Agent {
   w: WorkerInfo
@@ -141,12 +95,6 @@ function buildAgents(plant: Plant): Agent[] {
     }
   })
 }
-
-const noRaycast = () => null
-const HIDDEN = new THREE.Matrix4().makeScale(0, 0, 0)
-
-const PARTS = ['leg', 'arm', 'torso', 'vest', 'head', 'hat', 'hair'] as const
-type Meshes = Record<(typeof PARTS)[number], THREE.InstancedMesh>
 
 /** advance every worker by dt (wall seconds); at most one A* search per call */
 function stepAgents(plant: Plant, agents: Agent[], queue: Agent[], dt: number, now: number) {
@@ -228,125 +176,79 @@ function stepAgents(plant: Plant, agents: Agent[], queue: Agent[], dt: number, n
   }
 }
 
-const _root = new THREE.Matrix4()
-const _local = new THREE.Matrix4()
-const _out = new THREE.Matrix4()
-function setPart(mesh: THREE.InstancedMesh, i: number, x: number, y: number, z: number, rx: number) {
-  _local.makeRotationX(rx).setPosition(x, y, z)
-  _out.multiplyMatrices(_root, _local)
-  mesh.setMatrixAt(i, _out)
-}
+// roster by id, rebuilt only when the roster array changes (PPE flags change during the session)
+let rosterRef: WorkerInfo[] | null = null
+const rosterById = new Map<string, WorkerInfo>()
 
-/** pose every figure: walk cycle from distance travelled, PPE from the roster */
-function writeInstances(r: Meshes, agents: Agent[], roster: WorkerInfo[], now: number) {
-  agents.forEach((a, i) => {
-    const info = roster.find((w) => w.id === a.w.id) ?? a.w
-    const walking = a.speed > 0.05
-    const swing = walking ? Math.sin(a.phase * Math.PI) * 0.5 : 0
-    const bob = walking ? Math.abs(Math.cos(a.phase * Math.PI)) * 0.025 : Math.sin(now * 1.6 + i) * 0.004
-    const lean = walking ? -0.05 : 0
-    _root.makeRotationY(a.yaw).setPosition(a.x, a.footY + bob, a.z)
-    setPart(r.leg, i * 2, -HIP_X, HIP_Y, 0, swing)
-    setPart(r.leg, i * 2 + 1, HIP_X, HIP_Y, 0, -swing)
-    setPart(r.arm, i * 2, -SHOULDER_X, SHOULDER_Y, 0, -swing * 0.8)
-    setPart(r.arm, i * 2 + 1, SHOULDER_X, SHOULDER_Y, 0, swing * 0.8)
-    setPart(r.torso, i, 0, HIP_Y, 0, lean)
-    if (info.vest) setPart(r.vest, i, 0, HIP_Y, 0, lean)
-    else r.vest.setMatrixAt(i, HIDDEN)
-    setPart(r.head, i, 0, HEAD_Y, 0, 0)
-    if (info.hardHat) {
-      setPart(r.hat, i, 0, HEAD_Y, 0, 0)
-      r.hair.setMatrixAt(i, HIDDEN)
-    } else {
-      r.hat.setMatrixAt(i, HIDDEN)
-      setPart(r.hair, i, 0, HEAD_Y, 0, 0)
-    }
-  })
-  for (const k of PARTS) r[k].instanceMatrix.needsUpdate = true
+/** pose every figure: gait from each worker's measured movement, PPE from the live roster */
+function writeInstances(crowd: Crowd, agents: Agent[], gaits: GaitState[], roster: WorkerInfo[], dt: number) {
+  if (roster !== rosterRef) {
+    rosterRef = roster
+    rosterById.clear()
+    for (const w of roster) rosterById.set(w.id, w)
+  }
+  const n = Math.min(agents.length, crowd.capacity)
+  for (let i = 0; i < n; i++) {
+    const a = agents[i]
+    const info = rosterById.get(a.w.id) ?? a.w
+    const g = (gaits[i] ??= createGait(i + 1))
+    // speed from displacement (not a.speed): corners slow the walker down, the feet must not slide
+    stepGait(g, a.x, a.z, a.yaw, undefined, dt, false)
+    crowd.setFigure(i, a.x, a.footY, a.z, a.yaw, g.pose, info)
+  }
+  crowd.hideFrom(n)
+  crowd.commit()
 }
 
 export function Workers() {
   const plant = usePlant()
-  const geos = useMemo(() => figureGeometries(), [])
-  const mat = useMemo(() => new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.75, metalness: 0 }), [])
-  const N = useWorkers.getState().roster.length
-  const refs = {
-    leg: useRef<THREE.InstancedMesh>(null),
-    arm: useRef<THREE.InstancedMesh>(null),
-    torso: useRef<THREE.InstancedMesh>(null),
-    vest: useRef<THREE.InstancedMesh>(null),
-    head: useRef<THREE.InstancedMesh>(null),
-    hat: useRef<THREE.InstancedMesh>(null),
-    hair: useRef<THREE.InstancedMesh>(null),
-  }
+  const crowd = useMemo(() => new Crowd(useWorkers.getState().roster.length), [])
+  useEffect(() => () => crowd.dispose(), [crowd])
 
   const agentsRef = useRef<Agent[]>([])
+  const gaitsRef = useRef<GaitState[]>([])
   // agents (re)built per plant; poses out, cleaned up on unmount
   useEffect(() => {
     const agents = buildAgents(plant)
     agentsRef.current = agents
+    gaitsRef.current = agents.map((_, i) => createGait(i + 1))
+    agents.forEach((a, i) => i < crowd.capacity && crowd.setLook(i, lookFor(a.w.id)))
     for (const a of agents) workerPose[a.w.id] = { x: a.x, z: a.z, footY: a.footY, yaw: a.yaw, speed: 0 }
-    // dev (demo video, tests): walk a worker to a plan point on their deck — the last leg may step off the
-    // planned walkway, e.g. right up to a machine skid — face a tag and stay there for `hold` seconds
-    if (import.meta.env.DEV)
-      Object.assign(window, {
-        __sendWorker: (id: string, to: [number, number], faceTag: string, hold = 120, via?: [number, number]) => {
-          const a = agents.find((x) => x.w.id === id)
-          const e = plant.equipment.find((x) => x.tag === faceTag)
-          if (!a || !e) return false
-          const y = a.footY - DECK_WORLD_Y
-          const path = planPath(plant, a.li, [a.x, a.z], via ?? to) ?? []
-          path.push({ x: to[0], z: to[1], y })
-          a.path = path
-          a.seg = 0
-          a.goal = { x: to[0], z: to[1], tag: e.tag, face: [e.position[0], e.position[2]], platform: a.w.platform, kind: e.kind }
-          a.mode = 'walk'
-          a.hold = hold
-          return path.length
-        },
-      })
+    // walk a worker to a plan point on their deck — the last leg may step off the planned walkway, e.g. right up
+    // to a machine skid — face a tag and stay there for `hold` seconds (safety/workers.ts sendWorker; dev: demo video, tests)
+    const send: SendWorkerFn = (id, to, faceTag, hold = 120, via) => {
+      const a = agents.find((x) => x.w.id === id)
+      const e = plant.equipment.find((x) => x.tag === faceTag)
+      if (!a || !e) return false
+      const y = a.footY - DECK_WORLD_Y
+      const path = planPath(plant, a.li, [a.x, a.z], via ?? to) ?? []
+      path.push({ x: to[0], z: to[1], y })
+      a.path = path
+      a.seg = 0
+      a.goal = { x: to[0], z: to[1], tag: e.tag, face: [e.position[0], e.position[2]], platform: a.w.platform, kind: e.kind }
+      a.mode = 'walk'
+      a.hold = hold
+      return path.length
+    }
+    workerCmd.send = send
+    if (import.meta.env.DEV) Object.assign(window, { __sendWorker: send })
     return () => {
+      if (workerCmd.send === send) workerCmd.send = null
       for (const a of agents) delete workerPose[a.w.id]
       agentsRef.current = []
     }
-  }, [plant])
+  }, [plant, crowd])
 
   const clock = useRef(0)
   const queue = useRef<Agent[]>([])
-  useEffect(
-    () => () => {
-      for (const g of Object.values(geos)) g.dispose()
-      mat.dispose()
-    },
-    [geos, mat],
-  )
 
   useFrame((_, rawDt) => {
     const dt = Math.min(rawDt, 0.1)
     const now = (clock.current += dt)
     const agents = agentsRef.current
     stepAgents(plant, agents, queue.current, dt, now)
-    const meshes = {} as Meshes
-    for (const k of PARTS) {
-      const mesh = refs[k].current
-      if (!mesh) return
-      meshes[k] = mesh
-    }
-    writeInstances(meshes, agents, useWorkers.getState().roster, now)
+    writeInstances(crowd, agents, gaitsRef.current, useWorkers.getState().roster, Math.max(dt, 1e-4))
   })
 
-  const im = (key: keyof typeof refs, geo: THREE.BufferGeometry, count: number) => (
-    <instancedMesh key={key} ref={refs[key]} args={[geo, mat, count]} frustumCulled={false} raycast={noRaycast} />
-  )
-  return (
-    <group name="field-workers">
-      {im('leg', geos.leg, N * 2)}
-      {im('arm', geos.arm, N * 2)}
-      {im('torso', geos.torso, N)}
-      {im('vest', geos.vest, N)}
-      {im('head', geos.head, N)}
-      {im('hat', geos.hat, N)}
-      {im('hair', geos.hair, N)}
-    </group>
-  )
+  return <primitive object={crowd.group} />
 }

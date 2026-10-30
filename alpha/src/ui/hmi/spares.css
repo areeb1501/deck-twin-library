@@ -1,0 +1,84 @@
+/* Spares & supply console page (plan 13 A) — ISA-101 grey; colour only for abnormal (short / stock-out red,
+   below ROP / approval / weather hold amber). Also the materials badge on the Maintenance page (.sp-mat). */
+.sp-page { display: grid; grid-template-columns: minmax(0, 1fr) 400px; gap: 10px; align-items: start; }
+.sp-head { display: flex; align-items: flex-end; gap: 14px; flex-wrap: wrap; }
+.sp-head h2 { margin: 0; font-size: 15px; font-weight: 600; letter-spacing: 0.02em; }
+.sp-head .grow { flex: 1; }
+.sp-sim { margin-top: 2px; font-size: 10.5px; color: var(--h-dim); letter-spacing: 0.02em; }
+.sp-sim::before { content: 'SIMULATED'; font-weight: 700; font-size: 9.5px; letter-spacing: 0.08em; padding: 0 5px; margin-right: 6px; border: 1px dashed var(--h-line2); border-radius: 2px; color: var(--h-fg); }
+.sp-ctl { display: flex; align-items: center; gap: 6px; }
+.sp-ctl .seg2 { display: flex; gap: 2px; }
+.sp-ctl .seg2 button { padding: 2px 8px; }
+.sp-tabs { margin-bottom: 0; }
+.sp-badge { display: inline-block; min-width: 15px; margin-left: 6px; padding: 0 4px; border-radius: 7px; font-size: 10px; text-align: center; background: var(--h-p2); color: #1d1f22; font-weight: 600; }
+.sp-badge.bad { background: var(--h-p1); color: #fff; }
+button.on .sp-badge { box-shadow: 0 0 0 1px #1d1f22; }
+.sp-abn { color: #ffd7a0; }
+.sp-bad { color: #ffb8b2; font-weight: 600; }
+
+/* logistics strip */
+.sp-log { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.sp-log .h-box.sp-hold { border-color: var(--h-p2); }
+.sp-leg { font-size: 10.5px; padding: 0 6px; border: 1px solid var(--h-line2); border-radius: 2px; color: var(--h-fg); text-transform: none; letter-spacing: 0; font-weight: 400; }
+.sp-leg.weatherHold, .sp-hold .sp-leg { border-color: var(--h-p2); color: #ffd7a0; font-weight: 600; }
+.sp-steps { display: flex; gap: 2px; flex-wrap: wrap; margin-bottom: 4px; }
+.sp-steps span { font-size: 10px; padding: 1px 5px; border: 1px solid var(--h-line); border-radius: 2px; color: var(--h-faint); }
+.sp-steps span.on { color: #1d1f22; background: var(--h-fg); border-color: var(--h-fg); font-weight: 600; }
+.sp-steps span.on.hold { background: var(--h-p2); border-color: var(--h-p2); }
+.sp-bar { height: 6px; background: #1d1f22; border: 1px solid var(--h-line2); margin: 2px 0 6px; position: relative; }
+.sp-bar i { position: absolute; left: 0; top: 0; bottom: 0; background: #a7abaf; }
+.sp-kv { gap: 2px 10px; font-size: 11.5px; }
+.hmi .sp-kv span:nth-child(even) { text-align: left; }
+.sp-kv .wrap { white-space: normal; font-family: var(--mono); font-size: 11px; }
+
+/* tables */
+.sp-tbl tr.click { cursor: pointer; }
+.sp-tbl td.num, .sp-tbl td.mono { white-space: nowrap; }
+.sp-tbl tr.sel td { background: rgba(255,255,255,0.06); }
+.sp-tbl tr.sel td:first-child { box-shadow: inset 3px 0 0 var(--h-fg); }
+.sp-tbl tr.closed td { color: var(--h-faint); }
+.sp-tbl tr.st-short td:first-child, .sp-tbl tr.st-out td:first-child { box-shadow: inset 3px 0 0 var(--h-p1); }
+.sp-tbl tr.st-low td:first-child, .sp-tbl tr.st-approve td:first-child, .sp-tbl tr.st-rop td:first-child { box-shadow: inset 3px 0 0 var(--h-p2); }
+.sp-crit { font-family: var(--mono); font-size: 10.5px; padding: 0 5px; border-radius: 2px; border: 1px solid var(--h-line2); color: var(--h-dim); }
+.sp-crit.cA { color: var(--h-fg); border-color: #8d9297; font-weight: 600; }
+.sp-st { font-size: 10.5px; padding: 0 6px; border-radius: 2px; border: 1px solid var(--h-line2); white-space: nowrap; color: var(--h-dim); }
+.sp-st.short, .sp-st.out { border-color: var(--h-p1); color: #ffb8b2; font-weight: 600; }
+.sp-st.low, .sp-st.approve, .sp-st.rop { border-color: var(--h-p2); color: #ffd7a0; }
+.sp-st.ropOrdered { border-style: dashed; }
+
+/* PO stage bar */
+.sp-stages { display: inline-flex; gap: 1px; }
+.sp-stages i { font-style: normal; font-size: 9.5px; padding: 0 4px; border: 1px solid var(--h-line); color: var(--h-faint); background: #1d1f22; }
+.sp-stages i.done { color: var(--h-dim); border-color: var(--h-line2); background: #3a3d41; }
+.sp-stages i.on { color: #1d1f22; background: var(--h-fg); border-color: var(--h-fg); font-weight: 600; }
+.sp-stages.requisition i.on { background: var(--h-p2); border-color: var(--h-p2); }
+.sp-stages i.x { text-decoration: line-through; }
+
+/* part detail */
+.sp-detail { max-height: calc(100vh - 140px); overflow: auto; }
+.sp-detail .sub { white-space: normal; }
+.sp-fits { display: flex; flex-wrap: wrap; gap: 3px 8px; font-size: 11px; margin-bottom: 4px; }
+.sp-loc td { font-size: 11px; }
+.sp-po { padding: 5px 6px; margin-bottom: 4px; border: 1px solid var(--h-line2); border-radius: 3px; background: rgba(255,255,255,0.015); }
+.sp-po .btns button { padding: 1px 7px; font-size: 11px; }
+.sp-modes { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; }
+.hmi .sp-modes button { display: grid; text-align: left; gap: 1px; white-space: normal; padding: 4px 7px; }
+.sp-modes button small { color: var(--h-dim); font-size: 10px; font-family: var(--mono); }
+.sp-modes button.warn small { color: #e9c79a; }
+.sp-fc { margin-top: 6px; display: grid; gap: 6px; }
+.sp-fan { width: 100%; height: 120px; display: block; background: var(--h-bg); border: 1px solid var(--h-line); }
+.sp-fan .band { fill: rgba(167,171,175,0.25); stroke: none; }
+.sp-fan .mid { fill: none; stroke: #d7d9db; stroke-width: 1.5; vector-effect: non-scaling-stroke; }
+.sp-fan .ax { stroke: var(--h-line2); stroke-width: 1; vector-effect: non-scaling-stroke; }
+.sp-fan .rop { stroke: rgba(243,156,31,0.75); stroke-dasharray: 4 3; stroke-width: 1; vector-effect: non-scaling-stroke; }
+.sp-fan text { fill: var(--h-dim); font-size: 9px; font-family: var(--mono); }
+
+/* materials badge on the Maintenance page */
+.sp-mat { font-size: 10.5px; padding: 0 6px; border-radius: 2px; border: 1px solid var(--h-line2); white-space: nowrap; color: var(--h-dim); }
+.mt-tbl .sp-mat { display: inline-block; white-space: normal; max-width: 200px; line-height: 1.3; }
+.sp-mat.awaiting { border-color: var(--h-p2); color: #ffd7a0; font-weight: 600; }
+.sp-mat.issued { border-style: dashed; color: var(--h-faint); }
+.sp-matlines { display: grid; gap: 2px; font-size: 11px; font-family: inherit; white-space: normal; }
+.sp-matlines .short { color: #ffd7a0; }
+
+@media (max-width: 1500px) { .sp-page { grid-template-columns: minmax(0, 1fr) 340px; } .sp-log { grid-template-columns: 1fr; } }

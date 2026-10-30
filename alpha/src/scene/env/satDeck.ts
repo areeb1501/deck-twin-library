@@ -288,8 +288,9 @@ function idBoards(get: SatGet, S: SatDef) {
     const size: V3 = alongZ ? [0.04, 1.0, 2.8] : [2.8, 1.0, 0.04]
     box(get(S.idKey), [x, Y + 0.65, z], size)
     for (const t of [-1.0, 1.0]) {
+      // the posts stand along the board, one under each end
       const px = alongZ ? x : x + t
-      const pz = alongZ ? z : z + t
+      const pz = alongZ ? z + t : z
       bar(get('galv'), [px, Y + 0.1, pz], [px, Y + 1.2, pz], 0.05, 0.05)
     }
   }

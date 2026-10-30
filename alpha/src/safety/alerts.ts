@@ -8,7 +8,7 @@
  *   - carries a trace: observe → assess → decide → notify (TraceStep[] in `useAlerts.trace`).
  *
  * Rules: p1-alarm · fg-confirmed · fg-gas-high · fg-fire-single · shutdown · risk-band-up ·
- * machine-alarm · ppe-violation · cctv-flame, plus two "hard to spot" agent checks that run every
+ * machine-alarm · spares-exposure · awaiting-spares · ppe-violation · cctv-flame · hazardous-area, plus two "hard to spot" agent checks that run every
  * minute of sim time: barrier-erosion (Swiss-cheese alignment in one fire zone) and slow-drift (a
  * sensor creeping towards its trip while still inside its alarm limits). Both checks live in
  * agentTools.ts so the assistant, the investigation and a future LLM call exactly the same code.
@@ -21,13 +21,15 @@ import type { PlatformId, Shutdown, ZoneStatus } from '../sim/types'
 import { fmtClock } from '../sim/types'
 import { registerSimPlugin, useSim } from '../state/sim'
 import { usePlantStore } from '../state/plantStore'
-import { useMaint, type Stage } from '../sim/maintenance'
+import { impactBoeD, useMaint, type Stage } from '../sim/maintenance'
+import { coverFor, useSpares } from '../sim/spares'
 import { CE_BY_ID } from '../sim/causeEffect'
 import { SCENARIOS } from '../sim/scenarios'
 import { detectors, fireZones, platformOfTag } from '../sim/fg'
 import { useRisk } from './risk'
 import { useCctv, CAMERAS } from './cctv'
-import { useWorkers } from './workers'
+import { useHazardTrack, useWorkers } from './workers'
+import { PPE_LABEL } from './hazardAreas'
 import { barrierErosion, recordDriftSamples, sensorDrift, type DriftFinding, type ErosionFinding } from './agentTools'
 
 /** default alert recipient (prototype). Never abdullahweb24bd@gmail.com. */
@@ -276,6 +278,8 @@ const seenShutdowns = new Set<string>()
 const seenCctv = new Set<string>()
 const seenFg = new Map<string, Pick<ZoneStatus, 'gas' | 'fire'>>()
 const seenStage = new Map<string, Stage>()
+const seenCover = new Map<string, Stage>()
+const seenWam = new Set<string>()
 const seenBand = new Map<PlatformId, RiskBand>()
 const prevScore = new Map<PlatformId, number>()
 const activeErosion = new Set<string>()
@@ -293,11 +297,15 @@ function resetRules() {
   seenCctv.clear()
   seenFg.clear()
   seenStage.clear()
+  seenCover.clear()
+  seenWam.clear()
   seenBand.clear()
   prevScore.clear()
   activeErosion.clear()
   activeDrift.clear()
   lastRaised.clear()
+  hazAlerted.clear()
+  hazLast.clear()
   nextHard = 0
 }
 
@@ -307,8 +315,13 @@ function seed(t: number) {
   for (const a of s.alarms ?? []) seenAlarms.add(a.id)
   for (const x of s.shutdowns ?? []) seenShutdowns.add(x.id)
   for (const z of Object.values(s.fg ?? {})) seenFg.set(z.zone, { gas: z.gas, fire: z.fire })
-  for (const [tag, h] of Object.entries(useMaint.getState().health ?? {})) seenStage.set(tag, h.stage)
+  for (const [tag, h] of Object.entries(useMaint.getState().health ?? {})) {
+    seenStage.set(tag, h.stage)
+    seenCover.set(tag, h.stage)
+  }
+  for (const r of useSpares.getState().reservations ?? []) seenWam.add(`${r.wo}:${r.partId}`)
   for (const d of useCctv.getState().log ?? []) seenCctv.add(d.id)
+  for (const v of useHazardTrack.getState().active ?? []) hazAlerted.set(v.id, { traceId: '', camera: v.camera })
   const now = useRisk.getState().now
   for (const [p, pr] of Object.entries(now?.platforms ?? {})) if (pr) seenBand.set(p as PlatformId, pr.band)
   for (const f of safe(() => barrierErosion({}), [] as ErosionFinding[])) if (f.aligned) activeErosion.add(f.zone)
@@ -488,6 +501,60 @@ function ruleMachines() {
   }
 }
 
+/**
+ * Spares (plan 13): a machine that starts degrading while its repair parts are not on the island is flagged
+ * at the CM alert, before the failure — the window in which expediting still helps. A work order that
+ * cannot start for want of an A / B-class part is flagged once.
+ */
+function ruleSpares() {
+  for (const [tag, h] of Object.entries(useMaint.getState().health ?? {})) {
+    const prev = seenCover.get(tag) ?? 'normal'
+    seenCover.set(tag, h.stage)
+    if (prev !== 'normal' || h.stage === 'normal') continue
+    const cover = safe(() => coverFor(tag, h.mode), null)
+    if (!cover || cover.status === 'onboard' || cover.status === 'notStocked' || cover.waitDays < 2) continue
+    const sp = useSpares.getState()
+    const names = cover.partIds.map((id) => sp.parts.find((x) => x.id === id)?.name ?? id)
+    const boeD = safe(() => impactBoeD(tag), 0)
+    const platform = safe(() => platformOfTag(plant(), tag), 'Alpha' as PlatformId)
+    raise({
+      severity: boeD > 0 ? 'warning' : 'info',
+      source: 'machinery',
+      rule: 'spares-exposure',
+      platform,
+      title: `${tag} degrading — repair parts not offshore (≈ ${Math.round(cover.waitDays)} d)`,
+      body: `${tag} entered condition-monitoring ${h.stage}${h.mode ? ` (${h.mode})` : ''}. The repair needs ${names.join(', ')}: ${cover.note}. If it fails before the parts arrive it stays down${boeD > 0 ? `, deferring about ${Math.round(boeD).toLocaleString()} boe/d` : ' (the standby covers production)'}. Simulated stock.`,
+      tags: [tag],
+      evidence: [`${tag} stage normal → ${h.stage}`, `spare cover: ${cover.status}, ${Math.round(cover.waitDays)} d to offshore`, ...cover.partIds.map((id) => `${id}: ${sp.stock[id]?.offshore ?? 0} offshore, ${sp.stock[id]?.base ?? 0} at base`)],
+      values: [`Degradation ${(h.degr * 100).toFixed(0)} %`, `Production at stake ${Math.round(boeD).toLocaleString()} boe/d`],
+      actions: ['Expedite or transfer the part now (Control room → Spares & supply)', 'Plan the condition-based repair for when the part lands', 'Check the dollar exposure on Asset & economics'],
+    })
+  }
+  const sp = useSpares.getState()
+  for (const r of sp.reservations ?? []) {
+    if (r.kitted || r.issued) continue
+    const key = `${r.wo}:${r.partId}`
+    if (seenWam.has(key)) continue
+    seenWam.add(key)
+    const part = sp.parts.find((x) => x.id === r.partId)
+    if (!part || part.criticality === 'C') continue
+    const platform = safe(() => platformOfTag(plant(), r.tag), 'Alpha' as PlatformId)
+    const cover = safe(() => coverFor(r.tag), null)
+    raise({
+      severity: 'warning',
+      source: 'machinery',
+      rule: 'awaiting-spares',
+      platform,
+      title: `${r.wo} on ${r.tag} waiting for ${part.name}`,
+      body: `Work order ${r.wo} on ${r.tag} cannot start: ${part.name} (${part.id}, class ${part.criticality}) is not in the offshore store (${sp.stock[part.id]?.base ?? 0} at the supply base). ${cover?.note ?? ''} Simulated stock.`,
+      tags: [r.tag],
+      evidence: [`${r.wo} reservation ${part.id} ×${r.qty} not kitted`, `stock offshore ${sp.stock[part.id]?.offshore ?? 0}, base ${sp.stock[part.id]?.base ?? 0}`],
+      actions: ['Transfer from the supply base by helicopter, or expedite the order', 'Keep the standby running and the permit open until the part lands'],
+      dedupKey: `awaiting-spares:${r.wo}`,
+    })
+  }
+}
+
 function ruleCctv() {
   const log = useCctv.getState().log ?? []
   for (const d of log) {
@@ -535,6 +602,93 @@ function ruleCctv() {
         evidence: [{ camera: d.camera, kind: d.kind, confidence: d.confidence, box: d.box, model: d.model }],
       })
     }
+  }
+}
+
+// ---------------------------------------------------------------- hazardous areas (plan 14)
+/** violation id → the trace of the alert it raised (a later camera confirmation is added to that trace) */
+const hazAlerted = new Map<string, { traceId: string; camera?: string }>()
+/** worker|kind|zone → last alert: a re-entry inside the dedup window adds to that trace instead of a new alert */
+const hazLast = new Map<string, { t: number; traceId: string }>()
+
+/**
+ * hazardous-area: a person in a classified area without what the zone needs, from the worn-tag tracker
+ * (camera-independent). Zone 0 entry without a confined-space permit = critical; Zone 1 / 2 PPE or gas
+ * monitor missing = warning. One alert per violation start; deduped per worker + zone + kind (10 min) —
+ * instructor drills always raise. CCTV confirmation is appended to the alert's trace.
+ */
+function ruleHazardArea(t: number) {
+  const active = useHazardTrack.getState().active ?? []
+  if (!active.length) return
+  const roster = useWorkers.getState().roster
+  for (const v of active) {
+    const w = roster.find((x) => x.id === v.workerId)
+    const who = w?.name ?? v.workerId
+    const missing = v.missing.map((k) => PPE_LABEL[k]).join(', ')
+    const camName = (id: string) => CAMERAS.find((c) => c.id === id)?.name ?? id
+    const seen = hazAlerted.get(v.id)
+    if (seen) {
+      if (v.camera && !seen.camera) {
+        seen.camera = v.camera
+        if (seen.traceId)
+          addTrace(seen.traceId, {
+            actor: 'cctv',
+            kind: 'observe',
+            text: `${v.camera} (${camName(v.camera)}) confirms on video: ${who} in Zone ${v.zone} at ${v.tag}${v.kind === 'zone0Entry' ? ' — inside the shell' : missing ? ` without ${missing}` : ''}`,
+            data: { camera: v.camera, at: v.cameraAt ?? t, worker: v.workerId, zone: v.zone, source: v.tag, kind: v.kind },
+          })
+      }
+      continue
+    }
+    const k = `${v.workerId}|${v.kind}|${v.zone}`
+    const last = hazLast.get(k)
+    if (!v.drill && last && t - last.t < DEDUP_S && t >= last.t) {
+      addTrace(last.traceId, { actor: 'sensor', kind: 'observe', text: `${who} back in Zone ${v.zone} at ${v.tag}${missing ? ` without ${missing}` : ''} — covered by this alert, not re-sent` })
+      hazAlerted.set(v.id, { traceId: last.traceId, camera: v.camera })
+      continue
+    }
+    const z0 = v.kind === 'zone0Entry'
+    const role = w ? ` (${w.role})` : ''
+    const a = raise({
+      severity: z0 ? 'critical' : 'warning',
+      source: 'rtls',
+      rule: 'hazardous-area',
+      platform: v.platform,
+      title: z0 ? `Zone 0 entry: ${who} inside ${v.tag} without a confined-space permit${v.drill ? ' (drill)' : ''}` : `Zone ${v.zone} hazardous area without ${missing}: ${who} at ${v.tag}${v.drill ? ' (drill)' : ''}`,
+      body: z0
+        ? `${who}${role} is inside the Zone 0 hazardous area of ${v.tag} — ${v.reason}. Zone 0 is no-entry except under an issued confined-space entry permit with a gas test, a standby man and a rescue plan; none is issued for ${v.tag}. Tracked by the worn tag (RTLS)${v.camera ? `; seen on ${v.camera}` : ''}.`
+        : `${who}${role} is in Zone ${v.zone} (IEC 60079-10-1) — ${v.reason} — without ${missing}. Zone ${v.zone} requires ${v.zone === 1 ? 'a hard hat, hi-vis / FR coverall and a personal gas monitor; Ex devices only; hot work only under a hot-work permit' : 'a hard hat and hi-vis / FR coverall'}. Tracked by the worn tag (RTLS)${v.camera ? `; seen on ${v.camera}` : ''}.`,
+      tags: isPlantTag(v.tag) ? [v.tag] : [],
+      observer: 'sensor',
+      evidence: [
+        {
+          text: `Worn tag (RTLS): ${who} in Zone ${v.zone} at ${v.tag}${z0 ? ', no confined-space permit issued' : ` without ${missing}`}`,
+          method: 'worn tag (RTLS)',
+          worker: v.workerId,
+          name: who,
+          zone: v.zone,
+          source: v.tag,
+          area: v.reason,
+          missing: v.missing,
+          position_world: v.pos,
+          camera: v.camera ?? null,
+          drill: !!v.drill,
+        },
+      ],
+      values: [`${who}: Zone ${v.zone} — ${v.reason}`, z0 ? 'Confined-space entry permit: none issued' : `Missing: ${missing}`, `Position (world): ${v.pos.map((n) => n.toFixed(1)).join(', ')}`],
+      actions: z0
+        ? ['Call the person out now (radio / area authority) — do not send anyone in after them without breathing apparatus', 'Gas test and issue a confined-space entry permit before any re-entry', 'Check the person on the muster / POB board']
+        : [`Area authority to stop the person and get them out of Zone ${v.zone}`, v.missing.includes('gasMonitor') ? 'Issue a bump-tested personal gas monitor before re-entry' : 'Correct the PPE before re-entry', 'Log the observation in the safety system'],
+      dedupKey: v.drill ? `hazardous-area:${k}:${v.id}` : `hazardous-area:${k}`,
+    })
+    if (a) {
+      hazAlerted.set(v.id, { traceId: a.traceId, camera: v.camera })
+      hazLast.set(k, { t, traceId: a.traceId })
+    }
+  }
+  if (hazAlerted.size > 600) {
+    const keep = new Set(active.map((v) => v.id))
+    for (const id of [...hazAlerted.keys()]) if (!keep.has(id)) hazAlerted.delete(id)
   }
 }
 
@@ -595,7 +749,9 @@ function step(_dt: number, t: number) {
   ruleShutdowns()
   ruleRisk()
   ruleMachines()
+  ruleSpares()
   ruleCctv()
+  ruleHazardArea(t)
   if (t >= nextHard) {
     nextHard = t + HARD_EVERY_S
     ruleHard()

@@ -120,3 +120,44 @@
 .hmi .cctv-groups button { font-size: 11.5px; padding: 2px 8px; }
 .hmi .cctv-groups .small { margin-left: 6px; }
 .hmi .cctv-tile.thermal .cctv-segtag { bottom: 52px; }
+
+/* hazardous areas (plan 14): zone boxes on the feeds — Zone 0 red, Zone 1 orange, Zone 2 yellow */
+.hmi .cctv-det.hz, .hmi .cctv-det.hz0 { border-width: 2px; border-style: dashed; }
+.hmi .cctv-det.zonePpe.z1 { --c: #f08c1e; }
+.hmi .cctv-det.zonePpe.z2 { --c: #f2d02b; }
+.hmi .cctv-det.zonePpe.z0, .hmi .cctv-det.hz0 { --c: #e0453a; }
+.hmi .cctv-det.hz0 { border-style: solid; border-width: 3px; animation: cctv-pulse-hz 0.9s steps(2, start) infinite; }
+.hmi .cctv-det.hz0 span { color: #fff; }
+@keyframes cctv-pulse-hz { to { border-color: #7a1f19; } }
+.hmi .cctv-log tr.hz td:first-child { box-shadow: inset 3px 0 0 #f08c1e; }
+.hmi .cctv-log tr.hz0 td:first-child { box-shadow: inset 3px 0 0 #e0453a; }
+.hmi .cctv-k.hz { color: #f5a54a; }
+.hmi .cctv-k.hz0 { color: #ff6a5e; font-weight: 600; }
+
+/* hazardous-areas panel under the camera wall */
+.hmi .hz-panel { margin-top: 2px; }
+.hmi .hz-grid { display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr) minmax(0, 1fr); gap: 12px; align-items: start; }
+.hmi .hz-col { min-width: 0; display: flex; flex-direction: column; gap: 6px; }
+.hmi .hz-chip { display: inline-block; min-width: 2.2em; text-align: center; padding: 0 5px; border-radius: 2px; font: 600 10.5px/1.5 var(--mono); color: #111; background: var(--c); }
+.hmi .hz-chip.safe { background: transparent; color: var(--h-dim); border: 1px solid var(--h-line2); }
+.hmi .hz-matrix td { vertical-align: top; line-height: 1.35; }
+.hmi .hz-matrix td:first-child { width: 1%; }
+.hmi .hz-matrix .small, .hmi .hz-class td { font-size: 10.5px; }
+.hmi .hz-class td { vertical-align: top; line-height: 1.3; }
+.hmi .hz-fine { font-size: 10.5px; }
+.hmi .hz-kpis { grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 4px; }
+.hmi .hz-people, .hmi .hz-log { max-height: 220px; overflow: auto; }
+.hmi .hz-log { max-height: 420px; }
+.hmi .hz-people td, .hmi .hz-log td { white-space: nowrap; }
+.hmi .hz-log td:nth-child(3) { white-space: normal; min-width: 110px; }
+.hmi .hz-log td:nth-child(4) { white-space: normal; }
+.hmi .hz-bad { color: #ffb08a; }
+.hmi tr.bad td:first-child { box-shadow: inset 3px 0 0 #f08c1e; }
+.hmi .hz-log tr.z0 td:first-child { box-shadow: inset 3px 0 0 #e0453a; }
+.hmi .hz-log tr.ended { opacity: 0.62; }
+.hmi .hz-live { color: #f5a54a; font-weight: 600; }
+.hmi .hz-drills { border-top: 1px solid var(--h-line); padding-top: 6px; margin-top: 2px; }
+.hmi .hz-drills select { max-width: 60%; font-size: 11px; }
+.hmi .hz-btns { display: flex; flex-wrap: wrap; gap: 5px; }
+.hmi .hz-btns button { font-size: 11.5px; padding: 3px 8px; text-align: left; }
+@media (max-width: 1500px) { .hmi .hz-grid { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); } .hmi .hz-grid > .hz-col:first-child { grid-column: 1 / -1; } }

@@ -9,6 +9,8 @@
  * X-bracing, X-braced faces, K-braces in the top bay, anodes, and a boat landing on the WEST face with a
  * caged ladder up to the cellar deck.
  *
+ * Joint cans / brace stubs / stand-off anodes / barge bumpers / a cable J-tube each: jacketDetail.ts.
+ *
  * Leaf module (imports nothing from jacket.ts), so jacket.ts can take the foam points from here.
  */
 import type { GeoBatch, V3 } from '../structure/batch'
@@ -16,6 +18,7 @@ import { bar, boxMinMax, tube } from '../structure/batch'
 import { ladder } from '../structure/ladder'
 import { RP, WI } from '../../model/site'
 import type { PlanRect } from '../../model/types'
+import { bargeBumper, jTube, standardJacketDetail, type JacketShape } from './jacketDetail'
 
 export interface SatJacketDef {
   cx: number
@@ -60,8 +63,12 @@ function jacketDef(p: { deck: PlanRect; legs: [number, number][]; cellarY: numbe
   }
 }
 
+/** cable J-tube per jacket (see jTubeAt) */
+const JTUBES = new Map<SatJacketDef, { side: 'n' | 'e'; t: number; r: number }>()
 export const RP_JACKET = jacketDef(RP, [-6, -8, -10, -12], -13.2)
 export const WI_JACKET = jacketDef(WI, [-132, -134, -136, -138], -139.2)
+JTUBES.set(RP_JACKET, { side: 'n', t: -0.55, r: 0.15 })
+JTUBES.set(WI_JACKET, { side: 'e', t: 0.25, r: 0.2 })
 
 /** World point of a leg at height y (battered below the kink). sx, sz = +-1. */
 export function satLegAt(J: SatJacketDef, sx: number, sz: number, y: number): V3 {
@@ -77,6 +84,46 @@ export const WI_CAISSONS: [number, number][] = [
   [3.0, -143.0],
 ]
 
+/** barge bumpers on the two west legs (boat-landing side), diagonally outboard */
+const bumperOff = (J: SatJacketDef) => J.legOD / 2 + 1.2
+function bumperAt(J: SatJacketDef, sz: number, y: number): V3 {
+  const p = satLegAt(J, -1, sz, y)
+  const o = bumperOff(J) * Math.SQRT1_2
+  return [p[0] - o, y, p[2] + sz * o]
+}
+/**
+ * One cable J-tube per platform: RP down the north face (fibre to shore, out north), WI down the east face
+ * (power cable, out east). `side` picks the face; `t` is the position along it (−1 … 1 between the legs).
+ */
+function jTubeAt(J: SatJacketDef, y: number): V3 {
+  const j = JTUBES.get(J)!
+  const yy = Math.min(y, J.kinkY)
+  if (j.side === 'n') {
+    const p = satLegAt(J, -1, -1, yy)
+    return [J.cx + j.t * J.hx, y, p[2] - 1.1]
+  }
+  const p = satLegAt(J, 1, 1, yy)
+  return [p[0] + 1.1, y, J.cz + j.t * J.hz]
+}
+function jTubeTie(J: SatJacketDef, y: number): V3 {
+  const j = JTUBES.get(J)!
+  const yy = Math.min(y, J.kinkY)
+  if (j.side === 'n') return [J.cx + j.t * J.hx, y, satLegAt(J, -1, -1, yy)[2]]
+  return [satLegAt(J, 1, 1, yy)[0], y, J.cz + j.t * J.hz]
+}
+const shape = (J: SatJacketDef): JacketShape => ({
+  at: (sx, sz, y) => satLegAt(J, sx, sz, y),
+  kinkY: J.kinkY,
+  seabed: J.seabed,
+  frames: J.frames,
+  legOD: J.legOD,
+  braceOD: J.braceOD,
+  frameOD: J.frameOD,
+  planR: 0.24,
+  kTopY: J.cellarY - 0.7,
+  kR: 0.28,
+})
+
 function legFoam(J: SatJacketDef): [number, number, number][] {
   const out: [number, number, number][] = []
   for (const sx of [-1, 1]) for (const sz of [-1, 1]) {
@@ -85,6 +132,12 @@ function legFoam(J: SatJacketDef): [number, number, number][] {
   }
   const L = J.landing
   out.push([L.x, L.z[0], 0.3], [L.x, L.z[L.z.length - 1], 0.3])
+  for (const sz of [-1, 1]) {
+    const p = bumperAt(J, sz, 0)
+    out.push([p[0], p[2], 0.3])
+  }
+  const jt = jTubeAt(J, 0)
+  out.push([jt[0], jt[2], JTUBES.get(J)!.r])
   return out
 }
 /** Waterline obstacles for the ocean foam (x, z, radius): legs, outer landing piles, risers / caissons. */
@@ -119,7 +172,6 @@ function buildFrame(J: SatJacketDef, jb: SatJacketBatches) {
     const k = at(sx, sz, J.kinkY)
     tube(jb.steel, k, [k[0], topY, k[2]], R, 28, true)
     tube(jb.steel, at(sx, sz, J.seabed), k, R, 28, true)
-    for (const y of J.frames) tube(jb.steel, at(sx, sz, y - 0.6), at(sx, sz, y + 0.6), R + 0.03, 28, true)
     for (const y of [J.cellarY - 0.5, J.mainY - 0.55]) tube(jb.steel, [k[0], y, k[2]], [k[0], y + 0.05, k[2]], R + 0.025, 28, false)
     tube(jb.steel, at(sx, sz, J.seabed), at(sx, sz, J.seabed + 4), R + 0.22, 20, false)
   }
@@ -145,14 +197,12 @@ function buildFrame(J: SatJacketDef, jb: SatJacketBatches) {
     tube(jb.steel, at(ax, az, J.frames[0]), top, 0.28, 10, true)
     tube(jb.steel, at(bx, bz, J.frames[0]), top, 0.28, 10, true)
   }
-  for (const y of [-20, -42]) {
-    for (const [sx, sz] of corners) {
-      const p = at(sx, sz, y)
-      const ox = -sx * 1.3
-      boxMinMax(jb.anode, [p[0] + ox - 0.13, y - 1.0, p[2] - 0.13], [p[0] + ox + 0.13, y + 1.0, p[2] + 0.13])
-      const oz = -sz * 1.3
-      boxMinMax(jb.anode, [p[0] - 0.13, y - 6.0, p[2] + oz - 0.13], [p[0] + 0.13, y - 4.0, p[2] + oz + 0.13])
-    }
+  // node cans, brace stubs, crossing cans, stand-off anodes; barge bumpers; cable J-tube
+  standardJacketDetail(jb.steel, jb.anode, shape(J))
+  for (const sz of [-1, 1]) bargeBumper(jb.steel, (y) => at(-1, sz, y), [-Math.SQRT1_2, sz * Math.SQRT1_2], bumperOff(J))
+  {
+    const jt = JTUBES.get(J)!
+    jTube(jb.riser, jb.steel, (y) => jTubeAt(J, y), J.cellarY + 0.55, J.seabed + 5.5, jt.side === 'n' ? [0, -1] : [1, 0], jt.r, [...J.frames, 16.5].filter((y) => y > J.seabed + 6), (y) => jTubeTie(J, y))
   }
   // boat landing on the west face: bumper piles, fender rails, ties back, landing + caged ladder
   {

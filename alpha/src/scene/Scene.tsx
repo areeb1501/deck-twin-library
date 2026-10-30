@@ -30,6 +30,7 @@ import { CctvRenderer } from './CctvRenderer'
 import { IsolationOverlay } from './IsolationOverlay'
 import { FireGasOverlay } from './FireGasOverlay'
 import { FgCoverageOverlay } from './FgCoverageOverlay'
+import { HazardAreaOverlay } from './HazardAreaOverlay'
 import { GasCloud } from './GasCloud'
 import { DeckLights } from './env/DeckLights'
 import { AdaptiveQuality } from './perf/AdaptiveQuality'
@@ -119,6 +120,7 @@ const PRESETS: Record<CameraPreset, { pos: [number, number, number]; target: [nu
 function Rig({ root }: { root: React.RefObject<THREE.Group | null> }) {
   const controls = useRef<CameraControls>(null)
   const camera = useThree((s) => s.camera)
+  const scene = useThree((s) => s.scene)
   const focus = useStore((s) => s.focus)
   const preset = useStore((s) => s.preset)
   const sectionAround = useStore((s) => s.sectionAround)
@@ -171,9 +173,9 @@ function Rig({ root }: { root: React.RefObject<THREE.Group | null> }) {
     if (!c) return
     const p = PRESETS.overview
     c.setLookAt(...p.pos, ...p.target, false)
-    // dev: the demo-video recorder (video/) drives the camera directly
-    if (import.meta.env.DEV) Object.assign(window, { __controls: c })
-  }, [])
+    // dev: the demo-video recorder (video/) drives the camera directly; checks query the scene graph
+    if (import.meta.env.DEV) Object.assign(window, { __controls: c, __scene: scene })
+  }, [scene])
 
   useEffect(() => {
     if (!preset || !controls.current) return
@@ -345,6 +347,7 @@ function Plant() {
         <IsolationOverlay built={built} />
         <FireGasOverlay built={built} />
         <FgCoverageOverlay built={built} />
+        <HazardAreaOverlay />
         <GasCloud />
         <EyeProjector built={built} />
       </group>

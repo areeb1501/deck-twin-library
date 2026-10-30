@@ -1,0 +1,232 @@
+/*
+ * Asset & economics page (plan 13 B) + the value strip. Prefix econ- / vstrip.
+ * ISA-101 grey, colour only for money lost / abnormal, a restrained steel-blue accent for revenue and cash.
+ * The page sits inside .hmi (console variables); .vstrip defines its own so it also works over the 3D view.
+ */
+.econ {
+  --e-loss: #e0604f;
+  --e-loss-t: #ffb3a8;
+  --e-acc: #7fb0cc;
+  --e-acc-t: #b9d9ea;
+  --e-total: #a7acb1;
+  --e-cost: #686d73;
+  display: grid; gap: 10px;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  align-items: stretch;
+}
+.econ > * { min-width: 0; }
+.econ .dim { color: var(--h-dim); }
+.econ .neg { color: var(--e-loss-t); }
+.econ .sub { font-size: 10.5px; color: var(--h-faint); line-height: 1.3; }
+.econ-empty { color: var(--h-dim); font-size: 12px; padding: 18px 4px; }
+.econ-sim { display: inline-block; font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--h-dim); border: 1px dashed var(--h-line2); border-radius: 2px; padding: 0 5px; line-height: 15px; }
+.hmi button.econ-mini { padding: 1px 8px; font-size: 10.5px; text-transform: none; letter-spacing: 0; }
+.econ-seg { display: inline-flex; gap: 2px; text-transform: none; letter-spacing: 0; font-weight: 400; }
+.hmi .econ-seg button { padding: 1px 8px; font-size: 11px; }
+
+/* ---------------------------------------------------------------- header */
+.econ-head {
+  grid-column: 1 / -1; display: flex; align-items: center; gap: 16px;
+  background: linear-gradient(90deg, #26292d, var(--h-bg2) 60%); border: 1px solid var(--h-line); border-radius: 3px; padding: 10px 14px;
+}
+.econ-title { min-width: 0; }
+.econ-title h2 { margin: 0; font-size: 19px; font-weight: 600; letter-spacing: 0.01em; color: var(--h-fg); }
+.econ-title p { margin: 3px 0 0; font-size: 11.5px; color: var(--h-dim); }
+.econ-slot { margin-left: auto; display: flex; align-items: center; gap: 8px; }
+.econ-slot:empty { display: none; }
+.econ-atrisk { display: grid; justify-items: end; padding: 2px 0 2px 16px; border-left: 1px solid var(--h-line); }
+.econ-slot:empty + .econ-atrisk { margin-left: auto; }
+.econ-atrisk .l { font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--h-dim); }
+.econ-atrisk b { font-family: var(--mono); font-size: 28px; font-weight: 600; letter-spacing: -0.03em; line-height: 1.1; color: var(--h-fg); }
+.econ-atrisk .s { font-size: 11px; color: var(--h-faint); font-family: var(--mono); }
+.econ-atrisk.hot b { color: var(--e-loss-t); }
+
+/* ---------------------------------------------------------------- KPI tiles */
+.econ-kpis { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); gap: 8px; }
+.econ-tile { background: var(--h-bg2); border: 1px solid var(--h-line); border-radius: 3px; padding: 8px 10px 9px; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.econ-tile .l { font-size: 10px; letter-spacing: 0.07em; text-transform: uppercase; color: var(--h-dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.econ-tile .n { font-family: var(--mono); font-size: 24px; font-weight: 600; letter-spacing: -0.03em; color: var(--h-fg); white-space: nowrap; line-height: 1.2; }
+.econ-tile .n small { font-family: inherit; font-size: 10.5px; font-weight: 400; letter-spacing: 0; color: var(--h-dim); margin-left: 4px; }
+.econ-tile .s { font-size: 10.5px; color: var(--h-faint); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.econ-tile .s .mono { color: var(--h-dim); }
+.econ-tile .bar { height: 4px; background: #34373b; border-radius: 1px; overflow: hidden; margin: 2px 0 1px; }
+.econ-tile .bar i { display: block; height: 100%; background: #9da2a7; transition: width 0.4s ease; }
+.econ-tile.acc { border-top: 2px solid var(--e-acc); padding-top: 7px; }
+.econ-tile.acc .n { color: var(--e-acc-t); }
+.econ-tile.abn { border-color: var(--h-p2); }
+.econ-tile.abn .n { color: #ffd7a0; }
+.econ-tile.abn .bar i { background: var(--h-p2); }
+.econ-tile.loss { border-color: var(--e-loss); background: color-mix(in srgb, var(--e-loss) 6%, var(--h-bg2)); }
+.econ-tile.loss .n { color: var(--e-loss-t); }
+.econ-tile.loss .bar i { background: var(--e-loss); }
+
+/* insights panel (InsightsPanel.tsx, its own styles) — full width under the KPI tiles */
+.econ-ins { grid-column: 1 / -1; min-width: 0; }
+.econ-ins > .h-box { margin: 0; }
+
+/* ---------------------------------------------------------------- charts (shared) */
+.econ-chart { width: 100%; height: auto; display: block; background: var(--h-bg); border: 1px solid #383b3f; border-radius: 2px; }
+.econ-chart .grid { stroke: #383b3f; stroke-width: 1; }
+.econ-chart .ax { fill: var(--h-faint); font-size: 9.5px; font-family: var(--mono); text-anchor: middle; }
+.econ-chart .ax.ay { text-anchor: end; }
+.econ-chart .ax.a0 { text-anchor: start; }
+.econ-chart .ax.a1 { text-anchor: end; }
+.econ-legend, .econ-read { text-transform: none; letter-spacing: 0; font-weight: 400; font-size: 11px; color: var(--h-dim); display: inline-flex; align-items: center; gap: 5px; white-space: nowrap; }
+.econ-read { color: var(--h-fg); }
+.econ-legend i { display: inline-block; width: 14px; height: 0; border-top: 2px solid; margin-left: 6px; }
+.econ-legend .lg-pot { border-top: 2px dashed #a7acb1; }
+.econ-legend .lg-act { border-color: #e3e5e7; }
+.econ-legend .lg-oil { border-top: 1px solid #7a7f85; }
+.econ-legend .lg-gap { height: 8px; border: 0; background: color-mix(in srgb, var(--e-loss) 45%, transparent); }
+
+/* production */
+.econ-prod { grid-column: span 6; display: flex; flex-direction: column; }
+.econ-prod .econ-chart .area { fill: #ffffff; opacity: 0.035; }
+.econ-prod .econ-chart .gap { fill: var(--e-loss); opacity: 0.42; }
+.econ-prod .econ-chart .pot { fill: none; stroke: #a7acb1; stroke-width: 1.3; stroke-dasharray: 5 3; }
+.econ-prod .econ-chart .act { fill: none; stroke: #e3e5e7; stroke-width: 2; stroke-linejoin: round; }
+.econ-prod .econ-chart .oil { fill: none; stroke: #7a7f85; stroke-width: 1; }
+.econ-prod .econ-chart .dot { fill: #e3e5e7; }
+.econ-prod .econ-chart .hov line { stroke: #8d9297; stroke-width: 1; stroke-dasharray: 2 2; }
+.econ-prod .econ-chart .hov .hp { fill: #a7acb1; }
+.econ-prod .econ-chart .hov .ha { fill: #fff; }
+.econ-prod-ft { display: flex; gap: 14px; align-items: baseline; font-size: 11.5px; margin-top: 6px; flex-wrap: wrap; }
+.econ-prod-ft b { font-weight: 600; }
+.econ-prod-ft .grow-r { margin-left: auto; font-size: 10.5px; }
+
+/* waterfall */
+.econ-wf { grid-column: span 6; display: flex; flex-direction: column; }
+.econ-chart.wf .zero { stroke: #4a4e53; stroke-width: 1; }
+.econ-chart.wf rect { shape-rendering: crispEdges; }
+.econ-chart.wf .k-total rect { fill: var(--e-total); }
+.econ-chart.wf .k-loss rect { fill: var(--e-loss); }
+.econ-chart.wf .k-rev rect { fill: var(--e-acc); }
+.econ-chart.wf .k-cost rect { fill: var(--e-cost); }
+.econ-chart.wf .k-cash rect { fill: var(--e-acc-t); }
+.econ-chart.wf .k-cash.neg rect { fill: var(--e-loss); }
+.econ-chart.wf .conn { stroke: #6b7076; stroke-width: 1; stroke-dasharray: 2 2; }
+.econ-chart.wf .val { fill: var(--h-fg); font-size: 10px; font-family: var(--mono); text-anchor: middle; }
+.econ-chart.wf .k-loss .val { fill: var(--e-loss-t); }
+.econ-chart.wf .k-cost .val { fill: var(--h-dim); }
+.econ-chart.wf .k-rev .val, .econ-chart.wf .k-cash .val { fill: var(--e-acc-t); font-weight: 600; }
+.econ-chart.wf .k-cash.neg .val { fill: var(--e-loss-t); }
+.econ-chart.wf .lbl { fill: var(--h-dim); font-size: 10px; text-anchor: middle; }
+.econ-chart.wf .k-total .lbl, .econ-chart.wf .k-rev .lbl, .econ-chart.wf .k-cash .lbl { fill: var(--h-fg); font-weight: 600; }
+.econ-wf-note { font-size: 11.5px; margin-top: 6px; display: flex; align-items: center; gap: 6px; }
+.econ-wf-note .hatch { display: inline-block; width: 14px; height: 10px; vertical-align: -1px; margin-right: 4px; border: 1px solid var(--e-loss); background: repeating-linear-gradient(135deg, var(--e-loss) 0 2px, transparent 2px 5px); }
+
+/* ---------------------------------------------------------------- risk register */
+.econ-risk { grid-column: 1 / -1; }
+.econ-tot { font-size: 11px; text-transform: none; letter-spacing: 0; color: var(--h-dim); font-weight: 400; margin-left: 10px; }
+.econ-tot b { font-size: 15px; color: var(--h-fg); margin-left: 4px; font-weight: 600; }
+.econ-rscroll { overflow-x: auto; }
+.econ-rtbl th.r, .econ-rtbl td.num { text-align: right; }
+.econ-rtbl td { padding: 5px 6px; }
+.econ-rtbl .rk { width: 22px; color: var(--h-faint); }
+.econ-rtbl .mach .nm { font-size: 10.5px; color: var(--h-faint); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 190px; }
+.econ-rtbl .mach .link { font-size: 12.5px; font-weight: 600; }
+.econ-rtbl th.exp, .econ-rtbl td.exp { width: 170px; }
+.econ-rtbl td.exp .ebar { height: 6px; background: #33363a; border-radius: 1px; overflow: hidden; margin-bottom: 3px; }
+.econ-rtbl td.exp .ebar i { display: block; height: 100%; background: #9da2a7; transition: width 0.4s ease; }
+.econ-rtbl td.exp b { font-size: 13px; font-weight: 600; }
+.econ-rtbl .pbar { display: block; height: 3px; background: #33363a; margin-top: 2px; margin-left: auto; width: 46px; border-radius: 1px; overflow: hidden; }
+.econ-rtbl .pbar i { display: block; height: 100%; background: #8d9297; }
+.econ-rtbl td.num .sub, .econ-rtbl td.num, .econ-rtbl td.cov { white-space: nowrap; }
+.econ-rtbl td.act-t { min-width: 260px; max-width: 420px; line-height: 1.35; }
+.econ-rtbl td.act-t .lev { color: var(--h-fg); }
+.econ-rtbl tr.hot td.exp .ebar i { background: var(--e-loss); }
+.econ-rtbl tr.hot td.exp b { color: var(--e-loss-t); }
+.econ-rtbl tr.hot td:first-child { box-shadow: inset 3px 0 0 var(--e-loss); }
+.econ-rtbl tr.s-failed td:first-child { box-shadow: inset 3px 0 0 var(--h-p1); }
+.econ-rtbl tr.econ-msgrow td { border-bottom: 0; padding-top: 0; }
+.econ-rtbl tr.econ-msgrow .h-msg { margin-top: 0; }
+.econ-stage { display: inline-block; font-size: 10px; letter-spacing: 0.04em; padding: 0 5px; border-radius: 2px; border: 1px solid var(--h-line2); color: var(--h-dim); line-height: 15px; }
+.econ-stage.s-alert { border-color: var(--h-p3); color: #f3e48a; }
+.econ-stage.s-alarm { border-color: var(--h-p2); color: #ffd7a0; background: color-mix(in srgb, var(--h-p2) 12%, transparent); }
+.econ-stage.s-failed { border-color: var(--h-p1); background: var(--h-p1); color: #fff; font-weight: 600; }
+.econ-cov { display: inline-block; font-size: 10px; padding: 0 5px; border-radius: 2px; border: 1px solid var(--h-line2); color: var(--h-dim); line-height: 15px; white-space: nowrap; }
+.econ-cov.c-onboard { color: var(--h-fg); }
+.econ-cov.c-base { border-style: dashed; color: var(--h-fg); }
+.econ-cov.c-onOrder { border-color: var(--h-p2); color: #ffd7a0; }
+.econ-cov.c-none { border-color: var(--e-loss); color: var(--e-loss-t); }
+.econ-cov.c-notStocked { border-style: dotted; color: var(--h-faint); }
+.econ-risk-ft { display: flex; gap: 14px; align-items: baseline; margin-top: 6px; font-size: 10.5px; }
+
+/* ---------------------------------------------------------------- price deck, emissions, spend */
+.econ-deck, .econ-emis, .econ-spend { grid-column: span 4; }
+.econ-assume { font-size: 11px; color: #ffd7a0; border-left: 3px solid var(--h-p2); background: rgba(243,156,31,0.07); padding: 3px 8px; margin-bottom: 8px; }
+.econ-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 5px 12px; }
+.econ-field { display: grid; grid-template-columns: minmax(0, 1fr) 70px 62px; gap: 6px; align-items: center; font-size: 11.5px; }
+.econ-field .l { color: var(--h-dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.econ-field .u { color: var(--h-faint); font-size: 10.5px; white-space: nowrap; }
+.hmi .econ-field input[type='number'] { width: 100%; padding: 2px 5px; font-family: var(--mono); text-align: right; }
+.econ-units { margin-top: 8px; font-size: 10.5px; color: var(--h-faint); }
+.econ-ebars { display: grid; gap: 5px; margin-bottom: 8px; }
+.econ-erow { display: grid; grid-template-columns: 70px minmax(0, 1fr) 64px 92px; gap: 8px; align-items: center; font-size: 11.5px; }
+.econ-erow .l { color: var(--h-dim); }
+.econ-erow .bar { height: 8px; background: #33363a; border-radius: 1px; overflow: hidden; }
+.econ-erow .bar i { display: block; height: 100%; background: #9da2a7; transition: width 0.4s ease; }
+.econ-erow .mono { text-align: right; }
+.econ-erow.abn .bar i { background: var(--h-p2); }
+.econ-erow.abn .l { color: #ffd7a0; }
+.econ-pairs { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 14px; }
+.econ-pairs > div { display: flex; flex-direction: column; gap: 1px; padding: 4px 0; border-top: 1px solid #383b3f; min-width: 0; }
+.econ-pairs span { font-size: 10.5px; color: var(--h-dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.econ-pairs b { font-size: 15px; font-weight: 600; color: var(--h-fg); }
+.econ-pairs small { font-size: 10px; color: var(--h-faint); }
+.econ-pairs .neg b, .econ-pairs b.neg { color: var(--e-loss-t); }
+.econ-pairs.col { grid-template-columns: 1fr 1fr; }
+.econ-foot { margin: 8px 0 0; font-size: 10.5px; color: var(--h-faint); line-height: 1.4; }
+
+@media (max-width: 1500px) {
+  .econ-kpis { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}
+@media (max-width: 1280px) {
+  .econ-prod, .econ-wf, .econ-deck, .econ-emis, .econ-spend { grid-column: 1 / -1; }
+}
+
+/* ================================================================= value strip (works inside .hmi and over the 3D view) */
+.vstrip {
+  --v-fg: #e3e5e7;
+  --v-dim: #969ba0;
+  --v-faint: #6c7176;
+  --v-loss: #ffa898;
+  --v-loss-b: #e0604f;
+  --v-acc: #a9cfe2;
+  --v-line: rgba(255, 255, 255, 0.1);
+  box-sizing: border-box;
+  display: flex; align-items: stretch; gap: 0; min-width: 0;
+  color: var(--v-fg); font-size: 12px; line-height: 1.25; text-align: left;
+  cursor: pointer; user-select: none; outline: none;
+}
+.vstrip * { box-sizing: border-box; }
+.vstrip:focus-visible { box-shadow: 0 0 0 2px var(--v-acc); }
+.vstrip.console {
+  grid-column: 1 / -1; width: 100%;
+  background: #24262a; border: 1px solid #43474c; border-radius: 3px; padding: 6px 4px;
+}
+.vstrip.console:hover { border-color: #565a60; background: #282a2e; }
+.vstrip.hud {
+  display: inline-flex;
+  background: rgba(22, 24, 27, 0.78); border: 1px solid rgba(255, 255, 255, 0.14); border-radius: 6px; padding: 5px 2px;
+  backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.35);
+  pointer-events: auto;
+}
+.vstrip.hud:hover { border-color: rgba(255, 255, 255, 0.28); }
+.vstrip .vs-i { display: flex; flex-direction: column; justify-content: center; gap: 1px; padding: 0 14px; border-left: 1px solid var(--v-line); min-width: 0; }
+.vstrip .vs-i:first-child { border-left: 0; }
+.vstrip.console .vs-i { flex: 1 1 0; }
+.vstrip .vs-i .l { font-size: 9.5px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--v-dim); white-space: nowrap; }
+.vstrip .vs-i .v { font-family: var(--mono, ui-monospace, 'SF Mono', Menlo, Consolas, monospace); font-size: 16px; font-weight: 600; letter-spacing: -0.02em; white-space: nowrap; }
+.vstrip.hud .vs-i .v { font-size: 14px; }
+.vstrip .vs-i .v small { font-size: 10px; font-weight: 400; color: var(--v-dim); margin-left: 3px; letter-spacing: 0; }
+.vstrip .vs-i .v small.now { color: var(--v-loss); margin-left: 6px; }
+.vstrip .vs-i.acc .v { color: var(--v-acc); }
+.vstrip .vs-i.loss .v { color: var(--v-loss); }
+.vstrip .vs-i.loss .l { color: var(--v-loss); }
+.vstrip .vs-i.risk .tg { font-weight: 600; color: var(--v-fg); }
+.vstrip .vs-i.risk.loss .tg { color: var(--v-loss); }
+.vstrip .vs-i .none { font-weight: 400; font-size: 12px; color: var(--v-faint); }
+.vstrip .vs-sim { align-self: center; margin: 0 8px 0 4px; font-size: 9px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--v-faint); border: 1px dashed rgba(255, 255, 255, 0.18); border-radius: 2px; padding: 0 4px; line-height: 14px; white-space: nowrap; }
+.vstrip.console .vs-sim { margin-left: auto; }

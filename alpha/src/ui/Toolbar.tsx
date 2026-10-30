@@ -41,6 +41,7 @@ const LAYERS: [LayerId, string][] = [
   ['flow', 'Flow'],
   ['fireGas', 'F&G coverage'],
   ['fgCoverage', 'F&G mapping (heatmap)'],
+  ['hazAreas', 'Hazardous areas (Zone 0/1/2)'],
 ]
 
 export function Toolbar() {
@@ -99,7 +100,7 @@ export function Toolbar() {
       </div>
       {/* operate: run the plant */}
       <div className="seg" role="group" aria-label="Operate">
-        <button onClick={(e) => (e.currentTarget.blur(), setMenu(null), setHmi('dashboard'))} title="Open the control-room console: live dashboard, risk & what-if, CCTV & PPE, alerts & assistant, process, alarms, shutdowns, F&G, maintenance and scenarios" data-hmi-open>
+        <button onClick={(e) => (e.currentTarget.blur(), setMenu(null), setHmi('economics'))} title="Open the control-room console: asset & economics, spares & supply, live dashboard, risk & what-if, CCTV & PPE, alerts & assistant, process, alarms, shutdowns, F&G, maintenance and scenarios" data-hmi-open>
           Control room
         </button>
         {tourable && (

@@ -17,7 +17,7 @@ import { foamPoints } from './jacket'
 import { seaStateNow, windNow } from '../../sim/cranes'
 
 /** foam ring centres accepted from the jackets */
-const MAX_FOAM = 64
+const MAX_FOAM = 96
 /** ring centres the shader loops over per pixel (the nearest to the camera) */
 const FOAM_SLOTS = 32
 /** default significant wave height the wave table is tuned for, m */

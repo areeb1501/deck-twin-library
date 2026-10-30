@@ -378,6 +378,33 @@ if (hot) hot.data.useMaint = useMaint
 const M = () => useMaint.getState()
 const setM = (p: Partial<MaintData> | ((s: MaintData) => Partial<MaintData>)) => useMaint.setState(p)
 
+// ================================================================= materials hook (sim/spares.ts registers it)
+
+/** spares integration: reserve parts at raise, refuse to start work while parts are short, issue on completion */
+export interface MaterialsHook {
+  onRaise?(wo: WorkOrder): void
+  /** why the job cannot start for lack of materials (null = it can) */
+  gate?(wo: WorkOrder): string | null
+  onComplete?(wo: WorkOrder): void
+  onCancel?(wo: WorkOrder): void
+}
+let materials: MaterialsHook | null = (hot?.data?.materials as MaterialsHook | undefined) ?? null
+export function registerMaterialsHook(h: MaterialsHook | null) {
+  materials = h
+  if (hot) hot.data.materials = h
+}
+/** a materials failure never breaks the maintenance workflow */
+function mat<K extends keyof MaterialsHook>(k: K, wo: WorkOrder | undefined): string | null {
+  if (!wo || !materials?.[k]) return null
+  try {
+    const r = (materials[k] as (w: WorkOrder) => string | null | void)(wo)
+    return typeof r === 'string' ? r : null
+  } catch (e) {
+    console.error(`[materials ${k}]`, e)
+    return null
+  }
+}
+
 // ================================================================= helpers
 
 const fmtH = (h: number) => (h >= 10 ? h.toFixed(0) : h.toFixed(1))
@@ -475,6 +502,7 @@ function raise(tag: string, o: RaiseOpts): { id: string | null; why: string | nu
   setM((m) => ({ wos: [wo, ...m.wos].slice(0, 400), seq: { ...m.seq, wo: seq } }))
   rec(o.who ?? 'operator', 'woRaise', tag, `${id} ${WO_TYPE_LABEL[o.type]} P${wo.priority}: ${wo.title}`)
   mlog(`${id} raised for ${tag} — ${wo.title} (P${wo.priority}, by ${wo.raisedBy})`, o.type === 'corrective' ? 'warn' : 'info', id)
+  mat('onRaise', wo)
   return { id, why: null }
 }
 
@@ -646,6 +674,8 @@ function startWork(id: string): string | null {
   const lk = S().lockouts?.[w.tag]
   if (p.isolations.some((i) => i.kind === 'machine') && lk?.by !== p.id) return `${id}: ${w.tag} is not locked out under ${p.id}`
   if (w.status !== 'isolated') return `${id} is ${WO_STATUS_LABEL[w.status]}`
+  const short = mat('gate', w)
+  if (short) return short
   woStatus(id, 'inProgress', 'Maintenance technician', `work started under ${p.id}`)
   rec('operator', 'woStart', w.tag, `${id} work started under ${p.id}`)
   return null
@@ -737,6 +767,7 @@ function cancel(id: string, why = 'cancelled by the operator'): string | null {
   if (w.status === 'complete') return `${id} is complete — return it to service instead`
   if (w.permit) closePermit(w.permit, `WO cancelled (${why})`, 'operator')
   woStatus(id, 'cancelled', 'CCR operator', why)
+  mat('onCancel', woById(id))
   rec('operator', 'woCancel', w.tag, `${id}: ${why}`)
   return null
 }
@@ -1032,6 +1063,7 @@ function stepPermits(t: number, dt: number) {
       if (actualH >= w.workH) {
         patchWo(w.id, (x) => ({ ...x, actualH }))
         woStatus(w.id, 'complete', 'Maintenance technician', `work done in ${fmtH(actualH)} h (estimate ${fmtH(w.estH)} h)`)
+        mat('onComplete', woById(w.id))
         restoreHealth(w)
         // a PM that hasn't started yet is done with this job
         for (const o of M().wos) if (o.id !== w.id && o.tag === w.tag && o.type === 'preventive' && (o.status === 'raised' || o.status === 'approved')) woStatus(o.id, 'cancelled', 'Planner', `combined with ${w.id}`)

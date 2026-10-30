@@ -41,7 +41,7 @@ const MAT: Record<WhpKey, string | null> = {
   navLight: 'whp:navLight',
   idBoard: 'whp:idBoard',
 }
-const NO_SHADOW = new Set<string>(['grating', 'lamp', 'navLight'])
+const NO_SHADOW = new Set<string>(['grating', 'lamp', 'navLight', 'anode'])
 
 function idBoardTexture() {
   const c = document.createElement('canvas')

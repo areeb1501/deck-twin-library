@@ -32,6 +32,10 @@ import { sample } from '../ui/live'
 import { useRisk } from './risk'
 import { useCctv, CAMERAS } from './cctv'
 import { addTrace } from './alerts'
+import { coverFor, useSpares } from '../sim/spares'
+import { useFinance } from '../sim/finance'
+import { assetRisks } from '../sim/assetRisk'
+import { useInsights } from '../sim/insights'
 
 // ---------------------------------------------------------------- small helpers
 const S = () => useSim.getState() as Partial<SimState> & { t: number }
@@ -784,6 +788,100 @@ export const AGENT_TOOLS: AgentTool[] = [
     },
   },
   {
+    name: 'get_spares',
+    description: 'Spare parts (simulated stock): parts that fit an equipment tag or match words, with stock offshore / at the supply base, open purchase orders and ETA, and whether a repair job on that tag is covered. Also lists parts short or below the reorder point.',
+    params: { tag: p('string', 'Equipment tag, e.g. K-2200'), query: p('string', 'Words, e.g. "dry gas seal" or "methanol"') },
+    run: (args) => {
+      const sp = useSpares.getState()
+      const tag = str(args.tag)
+      const q = str(args.query).toLowerCase()
+      const words = q
+        .replace(/[^a-z0-9\s-]/g, ' ')
+        .split(/\s+/)
+        .filter((w) => w.length >= 3 && !/\d/.test(w) && !['the', 'and', 'for', 'have', 'any', 'spare', 'spares', 'part', 'parts', 'stock', 'what', 'how', 'many', 'with', 'there', 'our', 'need'].includes(w))
+      const t = S().t
+      const open = sp.orders.filter((o) => o.stage !== 'received' && o.stage !== 'cancelled')
+      const view = (id: string) => {
+        const part = sp.parts.find((x) => x.id === id)
+        if (!part) return null
+        const st = sp.stock[id] ?? { offshore: 0, base: 0, reserved: 0 }
+        const pos = open.filter((o) => o.partId === id)
+        return {
+          id,
+          name: part.name,
+          criticality: part.criticality,
+          fits: part.fits,
+          offshore: st.offshore,
+          base: st.base,
+          reserved: st.reserved,
+          reorderPoint: part.rop,
+          unitCostUsd: part.unitCost,
+          leadDays: part.leadDays,
+          expediteDays: part.expediteDays,
+          openOrders: pos.map((o) => ({ id: o.id, qty: o.qty, mode: o.mode, stage: o.stage, eta: fmtClock(o.eta), etaInS: Math.max(0, Math.round(o.eta - t)) })),
+        }
+      }
+      // parts that fit the tag, or match at least half the words; best word match first
+      const hits = (x: (typeof sp.parts)[number]) => {
+        const hay = `${x.id} ${x.name} ${x.usedFor.join(' ')}`.toLowerCase()
+        return words.filter((w) => hay.includes(w)).length
+      }
+      const scored = sp.parts.map((x) => ({ id: x.id, n: hits(x), fit: !!tag && x.fits.includes(tag) }))
+      const anyFit = scored.some((x) => x.fit)
+      const ids = scored
+        .filter((x) => (anyFit ? x.fit : words.length > 0 && x.n >= Math.max(1, Math.ceil(words.length / 2))))
+        .sort((a, b) => b.n - a.n)
+        .map((x) => x.id)
+      const short = sp.parts
+        .filter((x) => {
+          const st = sp.stock[x.id]
+          return st && (st.offshore + st.base + open.filter((o) => o.partId === x.id).reduce((a, o) => a + o.qty, 0) - st.reserved <= x.rop || (x.criticality === 'A' && st.offshore <= 0))
+        })
+        .slice(0, 8)
+        .map((x) => ({ id: x.id, name: x.name, criticality: x.criticality, offshore: sp.stock[x.id]?.offshore ?? 0, base: sp.stock[x.id]?.base ?? 0 }))
+      const cover = tag ? coverFor(tag) : null
+      return { simulated: true, mode: sp.mode, parts: ids.slice(0, 10).map(view).filter(Boolean), cover, short, awaitingMaterials: sp.kpis.wam, inventoryValueUsd: Math.round(sp.kpis.inventoryValue) }
+    },
+  },
+  {
+    name: 'get_economics',
+    description: 'Production value now (simulated price deck): revenue and cash-margin run-rates, deferred revenue by cause this session, lifting cost, carbon intensity, and the machines with the most dollars at risk over the next 30 days.',
+    params: {},
+    run: () => {
+      const f = useFinance.getState()
+      const d = f.deck
+      const def = Object.entries(f.totals.deferred)
+        .filter(([k, v]) => k !== 'materials' && v > 0)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 4)
+        .map(([k, v]) => ({ category: k, usd: Math.round(v) }))
+      return {
+        simulated: true,
+        priceDeck: { oilUsdBbl: d.oil, gasUsdMMBtu: d.gas, carbonUsdT: d.carbon },
+        revenueUsdD: Math.round(f.rate.revenue),
+        cashUsdD: Math.round(f.rate.cash),
+        deferredRateUsdD: Math.round(f.rate.deferred),
+        liftingCostUsdBoe: r1(f.rate.liftingCost, 1),
+        intensityKgBoe: r1(f.rate.intensity, 1),
+        session: { revenueUsd: Math.round(f.totals.revenue), deferredUsd: def, awaitingSparesUsd: Math.round(f.totals.deferred.materials ?? 0), co2t: Math.round(f.totals.co2t) },
+        atRisk: (f.risks?.length ? f.risks : assetRisks(30, d))
+          .slice(0, 5)
+          .map((a) => ({ tag: a.tag, name: a.name, stage: a.stage, pFail30d: r1(a.pFail * 100, 0), exposureUsd: Math.round(a.exposureUsd), spare: a.cover.status, action: a.action })),
+      }
+    },
+  },
+  {
+    name: 'get_insights',
+    description: 'The ranked findings the twin derives from its own data (production constraints in $/d, where deferred revenue went, dollars at risk per machine and the lever that removes it, supply-chain shortfalls, flaring, wells, safety), plus a one-paragraph shift headline.',
+    params: { area: p('string', 'Only this area: production, value, asset, supply, carbon, safety, wells, opportunity') },
+    run: (args) => {
+      const st = useInsights.getState()
+      const area = str(args.area).toLowerCase()
+      const list = st.list.filter((x) => !area || x.area === area)
+      return { simulated: true, headline: st.headline, count: list.length, insights: list.slice(0, 8).map((x) => ({ kind: x.kind, area: x.area, title: x.title, detail: x.detail, usdPerDay: Math.round(x.usdD), tags: x.tags })) }
+    },
+  },
+  {
     name: 'search_tags',
     description: 'Search equipment, instrument and valve tags and names.',
     params: { query: p('string', 'Tag or words, e.g. "K-2200" or "export pump"', true) },
@@ -841,6 +939,12 @@ export function summarise(name: string, r: unknown): string {
       return `${(o.drifting as unknown[])?.length ?? 0} drifting of ${o.signalsWatched} watched`
     case 'search_tags':
       return `${o.count} match(es)`
+    case 'get_spares':
+      return `${(o.parts as unknown[])?.length ?? 0} part(s), ${(o.short as unknown[])?.length ?? 0} short${(o.cover as { status?: string } | null)?.status ? `, cover ${(o.cover as { status: string }).status}` : ''}`
+    case 'get_insights':
+      return `${o.count} insight(s)`
+    case 'get_economics':
+      return `revenue ${o.revenueUsdD} $/d, cash ${o.cashUsdD} $/d, ${(o.atRisk as unknown[])?.length ?? 0} asset(s) at risk`
   }
   return 'ok'
 }

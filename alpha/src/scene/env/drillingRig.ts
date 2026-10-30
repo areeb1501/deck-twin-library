@@ -23,7 +23,7 @@
  */
 import * as THREE from 'three'
 import type { GeoBatch, V3 } from '../structure/batch'
-import { bar, box, boxMinMax, place, sphere, tube, unitCyl } from '../structure/batch'
+import { angle, bar, box, boxMinMax, place, sphere, tube, unitCyl } from '../structure/batch'
 import { railPolyline, perimeterDistance, type RailBatches } from '../structure/handrail'
 import { ladder } from '../structure/ladder'
 import { gratingRect, type GratingBatches } from '../structure/panels'
@@ -99,6 +99,7 @@ export function buildDrillingRig(rb: RigBatches) {
   buildPipeHandling(rb)
   buildMudModule(rb)
   buildSilos(rb)
+  buildRigOutfit(rb)
 }
 
 // ---------------------------------------------------------------- substructure + drill floor
@@ -203,27 +204,70 @@ function buildDerrick(rb: RigBatches) {
     [-1, 1],
   ]
   const dh = H / bays
-  // legs: built-up box legs + base shoes
+  // legs: built-up box legs (faces square to the derrick faces) + base shoes with gussets
   for (const [sx, sz] of C) {
-    tube(rb.derrick, leg(sx, sz, 0), leg(sx, sz, H), 0.21, 8, true)
+    bar(rb.derrick, leg(sx, sz, 0), leg(sx, sz, H), 0.44, 0.44, [1, 0, 0])
     const p = leg(sx, sz, 0)
-    boxMinMax(rb.steelDark, [p[0] - 0.45, F, p[2] - 0.45], [p[0] + 0.45, F + 0.35, p[2] + 0.45])
+    boxMinMax(rb.steelDark, [p[0] - 0.5, F, p[2] - 0.5], [p[0] + 0.5, F + 0.3, p[2] + 0.5])
+    for (const [gx, gz] of [
+      [-sx, 0],
+      [0, -sz],
+    ])
+      box(rb.derrick, [p[0] + gx * 0.42, F + 0.75, p[2] + gz * 0.42], [gx ? 0.5 : 0.03, 0.9, gz ? 0.5 : 0.03])
   }
   const vBays = 3 // V-door opening height on the east face (bays)
+  /** horizontal unit normal (outward) of face k (0 N, 1 E, 2 S, 3 W) */
+  const NRM: [number, number][] = [
+    [0, -1],
+    [1, 0],
+    [0, 1],
+    [-1, 0],
+  ]
+  const kBays = 4 // lower bays (face wider than ~7.8 m): K / chevron bracing; above: X with secondary girts
   for (let i = 0; i <= bays; i++) {
     const h0 = i * dh
+    // panel-point splice / gusset plates on every leg (in both face planes)
+    if (i > 0 && i < bays) {
+      for (const [sx, sz] of C) {
+        const p = leg(sx, sz, h0)
+        bar(rb.derrick, [p[0], p[1] - 0.35, p[2]], [p[0], p[1] + 0.35, p[2]], 0.52, 0.52, [1, 0, 0])
+        box(rb.derrick, [p[0] - sx * 0.5, p[1], p[2]], [0.62, 0.7, 0.025])
+        box(rb.derrick, [p[0], p[1], p[2] - sz * 0.5], [0.025, 0.7, 0.62])
+      }
+    }
     for (let k = 0; k < 4; k++) {
       const [ax, az] = C[k]
       const [bx, bz] = C[(k + 1) % 4]
       const east = k === 1
-      // girt
-      if (i > 0 && !(east && i < vBays)) tube(rb.derrick, leg(ax, az, h0), leg(bx, bz, h0), 0.1, 6, true)
+      const n: V3 = [NRM[k][0], 0, NRM[k][1]]
+      // girt (channel-like bar, flanges in the face plane)
+      if (i > 0 && !(east && i < vBays)) bar(rb.derrick, leg(ax, az, h0), leg(bx, bz, h0), 0.2, 0.16, n)
       if (i === bays) continue
-      // X-diagonals per bay (none inside the V-door)
+      // diagonals (angle sections; none inside the V-door)
       if (east && i < vBays) continue
       const h1 = h0 + dh
-      tube(rb.derrick, leg(ax, az, h0), leg(bx, bz, h1), 0.065, 6, true)
-      tube(rb.derrick, leg(bx, bz, h0), leg(ax, az, h1), 0.065, 6, true)
+      const A0 = leg(ax, az, h0)
+      const B0 = leg(bx, bz, h0)
+      const A1 = leg(ax, az, h1)
+      const B1 = leg(bx, bz, h1)
+      const mid = (p: V3, q: V3): V3 => [(p[0] + q[0]) / 2, (p[1] + q[1]) / 2, (p[2] + q[2]) / 2]
+      if (i < kBays) {
+        // alternating chevrons (K-bracing) meeting at the girt mid-points
+        if (i % 2 === 0) {
+          angle(rb.derrick, A0, mid(A1, B1), n, 0.16, 0.016)
+          angle(rb.derrick, B0, mid(A1, B1), n, 0.16, 0.016)
+        } else {
+          angle(rb.derrick, mid(A0, B0), A1, n, 0.16, 0.016)
+          angle(rb.derrick, mid(A0, B0), B1, n, 0.16, 0.016)
+        }
+        // vertical sub-strut at the panel centre (half height) stiffening the long girt
+        bar(rb.derrick, mid(A0, B0), mid(mid(A0, B0), mid(A1, B1)), 0.1, 0.1, n)
+      } else {
+        angle(rb.derrick, A0, B1, n, 0.13, 0.014)
+        angle(rb.derrick, B0, A1, n, 0.13, 0.014)
+        // secondary girt through the X crossing on the wider panels
+        if (dw(h0 + dh / 2) > 2.4) bar(rb.derrick, mid(A0, A1), mid(B0, B1), 0.1, 0.1, n)
+      }
     }
     // plan bracing every third level (kept clear of the well centre: corner knee braces)
     if (i > 0 && i < bays && i % 3 === 0) {
@@ -235,14 +279,14 @@ function buildDerrick(rb: RigBatches) {
         const pc = leg(C[(k + 3) % 4][0], C[(k + 3) % 4][1], h0)
         const m1: V3 = [pa[0] + (pb[0] - pa[0]) * 0.35, h0 + F, pa[2] + (pb[2] - pa[2]) * 0.35]
         const m2: V3 = [pa[0] + (pc[0] - pa[0]) * 0.35, h0 + F, pa[2] + (pc[2] - pa[2]) * 0.35]
-        tube(rb.derrick, m1, m2, 0.055, 6, true)
+        bar(rb.derrick, m1, m2, 0.12, 0.12)
       }
     }
   }
   // inverted-V V-door frame on the east face
   const apex: V3 = [SX + dw(vBays * dh), F + vBays * dh, SZ]
-  tube(rb.derrick, leg(1, -1, 0), apex, 0.12, 6, true)
-  tube(rb.derrick, leg(1, 1, 0), apex, 0.12, 6, true)
+  bar(rb.derrick, leg(1, -1, 0), apex, 0.26, 0.26, [1, 0, 0])
+  bar(rb.derrick, leg(1, 1, 0), apex, 0.26, 0.26, [1, 0, 0])
 
   // racking (monkey) board: frame, fingers, derrickman's platform outside the east face
   const hm = RIG.monkey
@@ -275,7 +319,7 @@ function buildDerrick(rb: RigBatches) {
       [SX - hw - 0.65, SZ + hw + 0.65],
     ],
     yc + 0.03,
-    [],
+    [[0.68, 1.28]], // derrick ladder arrives here (buildRigOutfit)
     true,
   )
   for (const s of [-1, 1]) boxMinMax(rb.steelDark, [SX - 1.1, yc, SZ + s * 0.95 - 0.08], [SX + 1.1, yc + 1.9, SZ + s * 0.95 + 0.08])
@@ -710,3 +754,178 @@ function buildSilos(rb: RigBatches) {
   ladder(rb.steel, [p.x0 - 0.05, UD, a[1] + 0.8], yp - UD, [-1, 0], true)
   box(rb.steelDark, [(a[0] + b[0]) / 2, yp + 0.5, a[1]], [0.6, 1.0, 0.6]) // dust collector
 }
+
+// ---------------------------------------------------------------- outfitting
+/**
+ * Derrick ladder (caged, in vertical flights with rest platforms, up the outside of the north face by
+ * the NW leg), derrickman's escape line (Geronimo) from the racking board to the pipe deck, stabbing
+ * board on the V-door side, monkey-board windwalls, standpipe manifold valves, two air tuggers, the
+ * poor-boy degasser (mud-gas separator) with its vent up the NW leg, desander / desilter hydrocyclones on
+ * the mud tanks. Everything stays inside the existing weather-deck / drill-floor obstacle rectangles.
+ */
+function buildRigOutfit(rb: RigBatches) {
+  const H = RIG.derrick.h
+  // ---- derrick ladder: 5 flights, each vertical, stepping in with the derrick's taper
+  const flights = [0, 8.6, 17.2, 25.8, 34.4, H]
+  for (let f = 0; f < flights.length - 1; f++) {
+    const h0 = flights[f]
+    const h1 = flights[f + 1]
+    const x = SX - dw(h0) + 0.95
+    const z = SZ - dw(h0) - 0.55
+    const top = f === flights.length - 2 ? h1 + 0.6 : h1
+    ladder(rb.steel, [x, F + h0, z], top - h0, [0, -1], true)
+    // stand-off brackets to the face every ~3 m
+    for (let h = h0 + 2.5; h < h1 - 0.5; h += 3) bar(rb.steel, [x, F + h, z + 0.02], [x, F + h, SZ - dw(h) + 0.05], 0.06, 0.06)
+    if (f < flights.length - 2) {
+      // rest platform at the top of the flight, reaching the foot of the next one (which steps in)
+      const xn = SX - dw(h1) + 0.95
+      const zn = SZ - dw(h1) - 0.55
+      const P = { x0: Math.min(x, xn) - 0.55, x1: Math.max(x, xn) + 0.55, z0: Math.min(z, zn) - 0.75, z1: Math.max(z, zn) + 0.2 }
+      gratingRect(rb, P.x0, P.z0, P.x1, P.z1, F + h1)
+      bar(rb.steel, [P.x0, F + h1 - 0.1, P.z1], [P.x1, F + h1 - 0.1, P.z1], 0.12, 0.15)
+      railPolyline(rb.rail, [[P.x1, P.z1], [P.x1, P.z0], [P.x0, P.z0], [P.x0, P.z1]], F + h1)
+    }
+  }
+  // ---- derrickman's escape line: wire from the racking-board platform down to an anchor on the pipe deck
+  {
+    const ym = F + RIG.monkey
+    const xb = SX + dw(RIG.monkey) + 1.2
+    const a: V3 = [xb - 0.05, ym + 2.1, SZ + 1.15]
+    // anchor post at the south-east corner of the pipe deck (clear of the casing rack bent at x 21.6)
+    const e: V3 = [21.9, UD + 1.8, -6.62]
+    tube(rb.steelDark, [xb - 0.05, ym - 0.1, SZ + 1.15], a, 0.04, 6, true) // davit post
+    tube(rb.steelDark, a, [a[0] - 0.4, a[1], a[2]], 0.035, 6, true)
+    tube(rb.steelDark, a, e, 0.011, 4, true)
+    boxMinMax(rb.yellow, [a[0] + 0.05, a[1] - 0.45, a[2] - 0.1], [a[0] + 0.3, a[1] - 0.1, a[2] + 0.1]) // trolley + brake (parked)
+    boxMinMax(rb.steelDark, [e[0] - 0.15, UD, e[2] - 0.13], [e[0] + 0.15, UD + 0.12, e[2] + 0.13]) // base plate
+    tube(rb.yellow, [e[0], UD + 0.12, e[2]], e, 0.06, 8, true)
+  }
+  // ---- stabbing board (casing running) on the V-door side, 11 m above the floor
+  {
+    const hs = 11
+    const xe = SX + dw(hs)
+    gratingRect(rb, xe - 1.1, SZ - 1.3, xe - 0.15, SZ + 1.3, F + hs)
+    bar(rb.steel, [xe - 0.15, F + hs - 0.1, SZ - 1.3], [xe - 0.15, F + hs - 0.1, SZ + 1.3], 0.12, 0.15)
+    railPolyline(rb.rail, [[xe - 0.15, SZ - 1.3], [xe - 1.1, SZ - 1.3], [xe - 1.1, SZ + 1.3], [xe - 0.15, SZ + 1.3]], F + hs)
+    for (const s of [-1, 1]) tube(rb.steel, [xe - 1.1, F + hs - 0.1, SZ + s * 1.3], leg(1, s, hs - 2.5), 0.05, 6, true)
+  }
+  // ---- monkey-board windwalls (corrugated sheet on the N and S faces round the racking board)
+  {
+    const h0 = RIG.monkey - 1.2
+    const h1 = RIG.monkey + 2.4
+    for (const sz of [-1, 1]) {
+      const z = (h: number) => SZ + sz * (dw(h) + 0.24)
+      for (let x = SX + 0.2; x < SX + dw(h1) - 0.2; x += 0.3) {
+        const d = (Math.round((x - SX) / 0.3) % 2) * 0.05 * sz
+        boxMinMax(rb.white, [x, F + h0, Math.min(z(h0), z(h0) + d) - 0.012], [x + 0.3, F + h1, Math.max(z(h0), z(h0) + d) + 0.012])
+      }
+      bar(rb.steel, [SX, F + h0, z(h0)], [SX + dw(h0), F + h0, z(h0)], 0.08, 0.12)
+      bar(rb.steel, [SX, F + h1, z(h0)], [SX + dw(h1), F + h1, z(h0)], 0.08, 0.12)
+    }
+  }
+  // ---- standpipe manifold: two gate valves + a gauge on the standpipe just above the drill floor
+  {
+    const s0: V3 = [SX - dw(0) - 0.35, F, SZ + dw(0) - 0.35]
+    for (const y of [F + 1.0, F + 1.7]) {
+      cylY(rb.steelDark, s0[0], y - 0.22, y + 0.22, s0[2], 0.13, 12)
+      cylX(rb.steelDark, s0[0] - 0.42, s0[0] - 0.13, y, s0[2], 0.03, 6) // stem
+      cylX(rb.red, s0[0] - 0.47, s0[0] - 0.43, y, s0[2], 0.16, 14) // handwheel
+    }
+    cylZ(rb.steelDark, s0[0], F + 2.2, s0[2], s0[2] + 0.35, 0.025, 6)
+    cylZ(rb.white, s0[0], F + 2.2, s0[2] + 0.35, s0[2] + 0.42, 0.08, 14) // gauge
+  }
+  // ---- air tuggers on the drill floor (NW + SW corners)
+  for (const [x, z] of [
+    [-3.0, -18.7],
+    [-3.0, -6.95],
+  ] as [number, number][]) {
+    boxMinMax(rb.steelDark, [x - 0.45, F, z - 0.32], [x + 0.45, F + 0.12, z + 0.32])
+    cylX(rb.yellow, x - 0.3, x + 0.3, F + 0.45, z, 0.26, 16) // drum
+    for (const s of [-1, 1]) boxMinMax(rb.yellow, [x + s * 0.3 - 0.04, F + 0.12, z - 0.3], [x + s * 0.3 + 0.04, F + 0.8, z + 0.3])
+    cylX(rb.blue, x + 0.34, x + 0.62, F + 0.45, z, 0.15, 12) // air motor
+  }
+  // ---- poor-boy degasser (mud-gas separator) at the NE corner of the mud module, vent up the NW derrick leg
+  {
+    const x = -5.9
+    const z = -19.0
+    const y0 = UD + 0.3
+    for (const [dx, dz] of [
+      [-0.35, -0.35],
+      [0.35, -0.35],
+      [-0.35, 0.35],
+      [0.35, 0.35],
+    ])
+      bar(rb.steel, [x + dx, UD, z + dz * 0.6], [x + dx, y0 + 0.8, z + dz * 0.6], 0.1, 0.1, [1, 0, 0])
+    place(rb.equip, cone(), [x, y0 + 1.1, z], [0, 0, 0], [0.42, 0.6, 0.42])
+    cylY(rb.equip, x, y0 + 1.4, y0 + 5.2, z, 0.42, 20)
+    place(rb.equip, dome(), [x, y0 + 5.2, z], [0, 0, 0], [0.42, 0.25, 0.42])
+    // vent: up, across to the NW leg, then up the outside of the leg to above the crown
+    const lg = leg(-1, -1, 0)
+    const vx = lg[0] - 0.4
+    const vz = -18.4 // between the drill-floor girders at z −17.9 and −19.3
+    const yv = y0 + 5.6
+    run(rb.steelDark, [[x, y0 + 5.4, z], [x, yv, z], [vx, yv, z], [vx, yv, vz], [vx, F + 1.0, vz]], 0.085, 10)
+    const top = leg(-1, -1, H)
+    const lgTop: V3 = [top[0] - 0.4, top[1] + 2.5, top[2] - 0.4]
+    tube(rb.steelDark, [vx, F + 1.0, vz], lgTop, 0.085, 10, true)
+    for (let h = 4; h < H; h += 5) {
+      const p = leg(-1, -1, h)
+      const t = h / H
+      bar(rb.steelDark, [vx + (lgTop[0] - vx) * t, F + h, vz + (lgTop[2] - vz) * t], p, 0.05, 0.05)
+    }
+    // liquid seal (U-tube) back to the shaker header box
+    run(rb.steelDark, [[x + 0.42, y0 + 0.9, z], [-4.85, y0 + 0.9, z], [-4.85, y0 + 0.9, -12.3], [-4.85, UD + 3.9, -12.3]], 0.1, 10)
+  }
+  // ---- desander (3 × 10") + desilter (6 × 4") hydrocyclones over the active pit, between the agitators
+  {
+    const yt = UD + 3.3
+    const x = -8.75
+    const za = -10.75
+    const zb = -8.6
+    run(rb.steelDark, [[x, yt + 1.7, za], [x, yt + 1.7, zb]], 0.08, 10) // feed manifold
+    for (const [x2, z2] of [
+      [x - 0.25, za],
+      [x + 0.25, za],
+      [x - 0.25, zb],
+      [x + 0.25, zb],
+    ])
+      bar(rb.steel, [x2, yt, z2], [x2, yt + 1.75, z2], 0.08, 0.08, [1, 0, 0])
+    for (let k = 0; k < 3; k++) {
+      const z = za + 0.35 + k * 0.42
+      place(rb.equip, cone(), [x, yt + 1.15, z], [0, 0, 0], [0.14, 0.9, 0.14])
+      cylY(rb.equip, x, yt + 1.6, yt + 1.75, z, 0.14, 12)
+    }
+    for (let k = 0; k < 6; k++) {
+      const z = za + 1.55 + k * 0.1
+      place(rb.equip, cone(), [x, yt + 1.35, z], [0, 0, 0], [0.05, 0.5, 0.05])
+    }
+  }
+}
+
+/**
+ * Derrick floodlights (Ex-d, bracket-mounted on the legs, aimed down at the drill floor / racking board).
+ * Separate from the rig batches because they use the shared lamp materials (EnvOutfit draws them).
+ */
+export function buildRigFloodlights(b: { lamp: GeoBatch; lampBody: GeoBatch }) {
+  const flood = (p: V3, dir: V3) => {
+    const e: V3 = [p[0] + dir[0] * 0.4, p[1], p[2] + dir[2] * 0.4]
+    tube(b.lampBody, p, e, 0.03, 6, true)
+    const ry = Math.atan2(dir[0], dir[2])
+    place(b.lampBody, _lampBox(), [e[0] + dir[0] * 0.14, e[1], e[2] + dir[2] * 0.14], [0, ry, 0], [0.42, 0.26, 0.22])
+    place(b.lamp, _lampBox(), [e[0] + dir[0] * 0.26, e[1] - 0.07, e[2] + dir[2] * 0.26], [0, ry, 0], [0.36, 0.2, 0.01])
+  }
+  for (const [sx, sz] of [
+    [-1, -1],
+    [1, -1],
+    [1, 1],
+    [-1, 1],
+  ]) {
+    for (const h of [7.5, 15, RIG.monkey + 3]) {
+      const p = leg(sx, sz, h)
+      const d = Math.SQRT1_2
+      flood([p[0] - sx * 0.3, p[1], p[2] - sz * 0.3], [-sx * d, 0, -sz * d])
+    }
+  }
+}
+let _lb: THREE.BufferGeometry | null = null
+const _lampBox = () => (_lb ??= new THREE.BoxGeometry(1, 1, 1))

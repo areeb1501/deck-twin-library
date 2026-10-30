@@ -6,11 +6,13 @@
  * 4 legs (OD 1.5 m) vertical from the kink (+19) up to the underside of the LQ main-deck plate, battered
  * 1:10 below like Alpha's. Horizontal frames at +12 / -10 / -30 / -55 with plan X-bracing, X-braced faces,
  * K-braces in the top bay, anodes, and a boat landing on the WEST face with a caged ladder to the cellar deck.
+ * Joint cans / brace stubs / stand-off anodes / barge bumpers: jacketDetail.ts.
  */
 import type { GeoBatch, V3 } from '../structure/batch'
 import { bar, boxMinMax, tube } from '../structure/batch'
 import { ladder } from '../structure/ladder'
 import { LQ } from '../../model/site'
+import { bargeBumper, standardJacketDetail, type JacketShape } from './jacketDetail'
 
 const cx = (LQ.legs[0][0] + LQ.legs[1][0]) / 2
 const cz = (LQ.legs[0][1] + LQ.legs[2][1]) / 2
@@ -49,8 +51,32 @@ export function lqFoamPoints(): [number, number, number][] {
     const p = lqLegAt(sx, sz, 0)
     out.push([p[0], p[2], LQ_JACKET.legOD / 2])
   }
+  for (const sz of [-1, 1]) {
+    const p = lqBumperAt(sz, 0)
+    out.push([p[0], p[2], 0.3])
+  }
   return out
 }
+
+/** barge bumpers on the two west legs (the boat-landing side), diagonally outboard */
+const LQ_BUMPER_OFF = LQ_JACKET.legOD / 2 + 1.2
+function lqBumperAt(sz: number, y: number): V3 {
+  const p = lqLegAt(-1, sz, y)
+  return [p[0] - Math.SQRT1_2 * LQ_BUMPER_OFF, y, p[2] + sz * Math.SQRT1_2 * LQ_BUMPER_OFF]
+}
+
+const lqShape = (): JacketShape => ({
+  at: lqLegAt,
+  kinkY: LQ_JACKET.kinkY,
+  seabed: LQ_JACKET.seabed,
+  frames: LQ_JACKET.frames,
+  legOD: LQ_JACKET.legOD,
+  braceOD: LQ_JACKET.braceOD,
+  frameOD: LQ_JACKET.frameOD,
+  planR: 0.25,
+  kTopY: LQ_JACKET.cellarY - 0.7,
+  kR: 0.3,
+})
 
 export interface LqJacketBatches {
   steel: GeoBatch // marine-growth shader
@@ -75,8 +101,6 @@ export function buildLqJacket(jb: LqJacketBatches) {
     const k = lqLegAt(sx, sz, J.kinkY)
     tube(jb.steel, k, [k[0], topY, k[2]], R, 32, true)
     tube(jb.steel, lqLegAt(sx, sz, J.seabed), k, R, 32, true)
-    // node cans
-    for (const y of J.frames) tube(jb.steel, lqLegAt(sx, sz, y - 0.7), lqLegAt(sx, sz, y + 0.7), R + 0.03, 32, true)
     // leg cans at the cellar and main deck girders
     for (const y of [J.cellarY - 0.5, J.mainY - 0.55]) tube(jb.steel, [k[0], y, k[2]], [k[0], y + 0.05, k[2]], R + 0.025, 32, false)
   }
@@ -114,16 +138,9 @@ export function buildLqJacket(jb: LqJacketBatches) {
     tube(jb.steel, B, top, 0.3, 10, true)
   }
 
-  // sacrificial anodes on the lower legs
-  for (const y of [-20, -42]) {
-    for (const [sx, sz] of corners) {
-      const p = lqLegAt(sx, sz, y)
-      const ox = -sx * 1.4
-      boxMinMax(jb.anode, [p[0] + ox - 0.14, y - 1.1, p[2] - 0.14], [p[0] + ox + 0.14, y + 1.1, p[2] + 0.14])
-      const oz = -sz * 1.4
-      boxMinMax(jb.anode, [p[0] - 0.14, y - 6.1, p[2] + oz - 0.14], [p[0] + 0.14, y - 3.9, p[2] + oz + 0.14])
-    }
-  }
+  // node cans, brace stubs, crossing cans, stand-off anodes; barge bumpers
+  standardJacketDetail(jb.steel, jb.anode, lqShape())
+  for (const sz of [-1, 1]) bargeBumper(jb.steel, (y) => lqLegAt(-1, sz, y), [-Math.SQRT1_2, sz * Math.SQRT1_2], LQ_BUMPER_OFF)
 
   // boat landing on the west face: bumper piles, fender rails, ties back to the face, landing + ladder
   {

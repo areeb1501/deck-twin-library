@@ -1,0 +1,23 @@
+/* Demo story launcher (DemoStory.tsx) */
+.hmi .story { position: relative; display: flex; align-items: center; }
+.hmi .story-go { border-color: #c98a2e; color: #ffd9a3; font-weight: 600; }
+.hmi .story-go:hover:not(:disabled) { background: rgba(242, 163, 58, 0.12); border-color: #f2a33a; }
+.hmi .story-chip {
+  display: flex; align-items: center; gap: 8px; padding: 3px 4px 3px 9px; border: 1px solid #c98a2e; border-radius: 3px;
+  background: rgba(242, 163, 58, 0.08); max-width: 760px; min-width: 0;
+}
+.hmi .story-dot { width: 8px; height: 8px; border-radius: 50%; background: #f2a33a; animation: story-pulse 1.6s ease-in-out infinite; flex: none; }
+@keyframes story-pulse { 50% { opacity: 0.35; } }
+.hmi .story-note { color: var(--h-dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; flex: 1; }
+.hmi .story-crew { display: flex; align-items: center; gap: 4px; color: var(--h-dim); white-space: nowrap; }
+.hmi .story-chip button { padding: 1px 8px; }
+.hmi .story-menu {
+  position: absolute; top: calc(100% + 6px); right: 0; z-index: 5; width: 380px; display: grid; gap: 6px; padding: 8px;
+  background: var(--h-bg2); border: 1px solid var(--h-line2); border-radius: 4px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
+}
+.hmi .story-menu button { display: grid; gap: 3px; text-align: left; white-space: normal; padding: 8px 10px; }
+.hmi .story-menu button span { color: var(--h-dim); font-size: 11.5px; line-height: 1.4; }
+.hmi .story-foot { margin: 2px 2px 0; color: var(--h-faint); font-size: 11px; }
+.hmi .story-choice { display: flex; align-items: center; gap: 6px; white-space: nowrap; }
+.hmi .story-choice.done { color: #c4ecd1; }
+.hmi .story-err { color: #ffd7a0; }

@@ -7,6 +7,7 @@
  * numbers, so the bridge, platforms, equipment and piping line up.
  */
 import type { PlanRect, WalkLevel } from './types'
+import { CELLAR_OUTFIT_FOOTPRINTS, RIG_FLOOR_FOOTPRINTS, SAT_CELLAR_FOOTPRINTS, WHP_CELLAR_OUTFIT_FOOTPRINTS } from '../scene/env/outfitFootprints'
 
 /** Alpha production deck (deck-local y = 0) */
 export const ALPHA_DECK: PlanRect = { x0: -30, x1: 30, z0: -20, z1: 20 }
@@ -229,6 +230,26 @@ export const WI_OBSTACLES: PlanRect[] = [
   { x0: 22.6, x1: 24.9, z0: -140.4, z1: -138.9 }, // tote tanks
 ]
 
+/**
+ * Alpha weather-deck materials handling, SE corner (plan 13 C — plant items in model/logistics.ts, drawing in
+ * scene/env/AlphaLogistics.tsx). Everything sits inside the reach of pedestal crane CR-A1 (NE leg, boom 32 m,
+ * hook radius 10.8 … 35.3 m), which also works the supply vessel alongside the east face:
+ *   B-9510  offshore materials store, a containerised walk-in store against the east edge (door west)
+ *   laydown kerb-marked area west of the 4 m aisle: 10 ft spares container, cargo basket, pipe rack
+ * The 4 m aisle x 21.8 … 25.8 (CR-A1's hook pad at (24, 18.4) is in it) stays clear from the GT gap to the
+ * south-edge walkway.
+ */
+export const ALPHA_STORE = { x: 27.7, z: 16.4, size: [3.8, 3.6, 6.0] as [number, number, number] }
+export const ALPHA_LAYDOWN: PlanRect = { x0: 16.6, x1: 21.8, z0: 10.4, z1: 14.0 }
+/** pallet racking inside B-9510 (walk obstacles; the door is on the west wall at z 14.9) */
+export const STORE_RACKS: PlanRect[] = [
+  { x0: 28.75, x1: 29.4, z0: 13.6, z1: 19.2 }, // east wall, full length
+  { x0: 26.0, x1: 26.6, z0: 16.4, z1: 19.2 }, // west wall, south of the door
+  { x0: 27.6, x1: 28.5, z0: 13.6, z1: 14.2 }, // issue counter
+]
+/** compact meter prover on RP, east of the oil fiscal meter X-R150 (skid = walk obstacle) */
+export const RP_PROVER = { x: -71.9, z: -20.6, skid: { x0: -72.7, x1: -71.1, z0: -22.4, z1: -18.8 } as PlanRect }
+
 /** Walkthrough levels for Alpha */
 export const ALPHA_WALK: WalkLevel[] = [
   {
@@ -244,6 +265,7 @@ export const ALPHA_WALK: WalkLevel[] = [
       ...WI_OBSTACLES,
       { x0: LQ.quarters.x0, x1: LQ.quarters.x1, z0: LQ.quarters.z0, z1: LQ.quarters.z1 },
       { x0: LQ.tower.x - 1.4, x1: LQ.tower.x + 1.4, z0: LQ.tower.z - 1.4, z1: LQ.tower.z + 1.4 },
+      RP_PROVER.skid,
     ],
   },
   {
@@ -266,6 +288,8 @@ export const ALPHA_WALK: WalkLevel[] = [
       { x0: -1.2, x1: 1.4, z0: 15.3, z1: 18.7 }, // CR-A2 boom rest
       { x0: 22.4, x1: 25.6, z0: 8.0, z1: 10.2 }, // CR-A1 boom rest (approx.)
       { x0: 27.4, x1: 29.4, z0: 2.6, z1: 4.6 }, // VS-A300 cold vent stack
+      ALPHA_LAYDOWN, // SE laydown cargo (container, basket, pipe rack)
+      ...STORE_RACKS, // racking inside B-9510
     ],
   },
   {
@@ -284,6 +308,7 @@ export const ALPHA_WALK: WalkLevel[] = [
       { x0: RIG_SLOT[0] + 1.3, x1: RIG_SLOT[0] + 4.1, z0: RIG_SLOT[1] + 0.6, z1: RIG_SLOT[1] + 2.5 }, // setback (south)
       { x0: RIG_SLOT[0] - 2.6, x1: RIG_SLOT[0] - 1.6, z0: RIG_SLOT[1] + 1.85, z1: RIG_SLOT[1] + 2.75 }, // iron roughneck
       ...[[-1, -1], [1, -1], [-1, 1], [1, 1]].map(([sx, sz]) => ({ x0: RIG_SLOT[0] + sx * 4.5 - 0.5, x1: RIG_SLOT[0] + sx * 4.5 + 0.5, z0: RIG_SLOT[1] + sz * 4.5 - 0.5, z1: RIG_SLOT[1] + sz * 4.5 + 0.5 })), // derrick legs
+      ...RIG_FLOOR_FOOTPRINTS, // derrick ladder foot, air tuggers, degasser vent, standpipe valves (drillingRig.ts)
     ],
   },
   {
@@ -299,6 +324,10 @@ export const ALPHA_WALK: WalkLevel[] = [
       { x0: RIG_SLOT[0] - 1.3, x1: RIG_SLOT[0] + 1.3, z0: RIG_SLOT[1] - 1.3, z1: RIG_SLOT[1] + 1.3 },
       { x0: 6.4, x1: 8.8, z0: -15.2, z1: -11 },
       { x0: 6.2, x1: 9.6, z0: -19, z1: -16.4 },
+      // cellar outfit drawn by the environment (cellarOutfit.ts, whpCellarOutfit.ts, satJacket.ts)
+      ...CELLAR_OUTFIT_FOOTPRINTS,
+      ...WHP_CELLAR_OUTFIT_FOOTPRINTS,
+      ...SAT_CELLAR_FOOTPRINTS,
     ],
   },
 ]

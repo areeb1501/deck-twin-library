@@ -261,6 +261,20 @@
   padding: 6px 12px; border-radius: 8px; background: var(--ui-bg); border: 1px solid var(--ui-line); backdrop-filter: blur(12px);
 }
 .app:has(.walk-hint) .hint, .app:has(.walk-hint) .legend, .app:has(.walk-hint) .hovertip { display: none; }
+/* walk camera control (WalkHud CamControl): just above the walk hint */
+.walk-cam-ctl {
+  position: absolute; z-index: 11; left: 50%; bottom: 52px; transform: translateX(-50%); display: flex; align-items: center; gap: 10px;
+  padding: 5px 8px 5px 12px; border-radius: 8px; background: var(--ui-bg); border: 1px solid var(--ui-line); backdrop-filter: blur(12px); white-space: nowrap;
+}
+.walk-cam-ctl .lbl { color: var(--ui-muted); font-weight: 600; letter-spacing: 0.04em; }
+.walk-cam-ctl .seg button { padding: 3px 10px; }
+.walk-cam-ctl .dist { display: flex; align-items: center; gap: 6px; }
+.walk-cam-ctl input[type='range'] { width: 130px; accent-color: #f2a33a; }
+.walk-cam-ctl input[type='range']:disabled { opacity: 0.35; }
+.walk-cam-ctl .val { min-width: 42px; text-align: right; }
+.walk-cam-ctl .reset { padding: 3px 10px; border-radius: 6px; background: var(--ui-hover); border: 1px solid var(--ui-line); cursor: pointer; }
+.walk-cam-ctl .reset:disabled { opacity: 0.4; cursor: default; }
+.app:has(.tour) .walk-cam-ctl { display: none; }
 .minimap {
   position: absolute; z-index: 10; left: 324px; bottom: 12px; padding: 8px; display: grid; gap: 4px;
   background: var(--ui-bg); backdrop-filter: blur(18px); border: 1px solid var(--ui-line); border-radius: 9px;
@@ -476,3 +490,10 @@
 .pop.views .quick { padding: 0 4px 4px; }
 /* menus drop over the alarm banner */
 .toolbar { z-index: 13; }
+
+/* value strip over the 3D view (ValueStrip hud, plan 13) — under the alarm banner */
+.vstrip.app-vhud { position: absolute; z-index: 11; top: 94px; left: 50%; transform: translateX(-50%); max-width: calc(100vw - 744px); overflow: hidden; }
+.app.left-off .vstrip.app-vhud, .app.right-off .vstrip.app-vhud { max-width: calc(100vw - 420px); }
+@media (max-width: 1560px) { .vstrip.app-vhud .vs-i.risk { display: none; } }
+@media (max-width: 1360px) { .app:not(.left-off):not(.right-off) .vstrip.app-vhud { display: none; } }
+@media (max-width: 1000px) { .vstrip.app-vhud { display: none; } }

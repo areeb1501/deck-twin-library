@@ -46,7 +46,7 @@ const MAT: Record<LqKey, string | null> = {
   cable: 'lq:cable',
   aviation: 'lq:aviation',
 }
-const NO_SHADOW = new Set<LqKey>(['grating', 'net', 'heliLights', 'lamp', 'aviation'])
+const NO_SHADOW = new Set<LqKey>(['grating', 'net', 'heliLights', 'lamp', 'aviation', 'anode'])
 
 function lqMaterials(): Record<string, THREE.Material> {
   const sm = structMats('env')

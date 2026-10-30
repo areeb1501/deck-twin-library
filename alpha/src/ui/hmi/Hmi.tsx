@@ -3,7 +3,7 @@
  * ("Control room") or by sitting at a console in the CCR / WHP-N local control room. Shown while
  * `useStore.hmi` names a page. ISA-101 style: grey, quiet, colour only when something is abnormal.
  *
- *   Live dashboard · Risk & what-if · CCTV & PPE · Alerts & assistant ·
+ *   Asset & economics · Spares & supply · Live dashboard · Risk & what-if · CCTV & PPE · Alerts & assistant ·
  *   Overview · Process · Alarms · Shutdown · F&G · Trends · Machines · Instructor
  *
  * Esc closes. While it is open the walker and the viewer hot-keys ignore the keyboard.
@@ -28,9 +28,14 @@ import { DashboardPage } from './Dashboard'
 import { RiskPage } from './RiskPage'
 import { CctvPage } from './CctvPage'
 import { AlertsPage } from './AlertsPage'
+import { EconomicsPage } from './EconomicsPage'
+import { SparesPage } from './SparesPage'
+import { DemoStory } from './DemoStory'
 import './hmi.css'
 
 const HMI_PAGES = [
+  ['economics', 'Asset & economics'],
+  ['spares', 'Spares & supply'],
   ['dashboard', 'Live dashboard'],
   ['risk', 'Risk & what-if'],
   ['cctv', 'CCTV & PPE'],
@@ -87,7 +92,7 @@ export function Hmi() {
 
 function Console({ page }: { page: string }) {
   const setHmi = useStore((s) => s.setHmi)
-  const cur = HMI_PAGES.some(([k]) => k === page) ? page : 'dashboard'
+  const cur = HMI_PAGES.some(([k]) => k === page) ? page : 'economics'
   return (
     <div className="hmi" role="dialog" aria-label="Control room console">
       <Header />
@@ -101,6 +106,8 @@ function Console({ page }: { page: string }) {
         ))}
       </nav>
       <main className="hmi-body" data-hmi-page={cur}>
+        {cur === 'economics' && <EconomicsPage headerExtra={<DemoStory />} />}
+        {cur === 'spares' && <SparesPage />}
         {cur === 'dashboard' && <DashboardPage />}
         {cur === 'risk' && <RiskPage />}
         {cur === 'cctv' && <CctvPage />}

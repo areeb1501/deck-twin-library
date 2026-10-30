@@ -24,6 +24,7 @@ import { walkToTag } from '../walkTo'
 import { pickOf, showIn3D } from './nav'
 import { EMPTY_ARR, EMPTY_OBJ, PLATFORMS, fmt, useS } from './simApi'
 import { Box, Kpi, TagLink } from './common'
+import { ValueStrip } from './ValueStrip'
 import './dash.css'
 
 // ================================================================= shared bits
@@ -80,6 +81,9 @@ export function DashboardPage() {
   const [plat, setPlat] = useState<PlatformId | null>(null)
   return (
     <div className="dsh" data-dash="page">
+      <div style={{ gridColumn: 'span 12' }}>
+        <ValueStrip />
+      </div>
       <FieldRisk />
       <FieldKpis />
       <PlatformCards sel={plat} onSel={(p) => setPlat((x) => (x === p ? null : p))} />

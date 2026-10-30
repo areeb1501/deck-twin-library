@@ -115,7 +115,7 @@ function boxesFor(c: SegCtx, cam3: THREE.PerspectiveCamera): SegBox[] {
     if (!p) continue
     const v = (x0: number, y0: number, z0: number, x1: number, y1: number, z1: number) => [new THREE.Vector3(p.x + x0, p.footY + y0, p.z + z0), new THREE.Vector3(p.x + x1, p.footY + y1, p.z + z1)] as const
     if (w.hardHat) {
-      const [a, b] = v(-0.2, 1.7, -0.2, 0.2, 2.0, 0.2)
+      const [a, b] = v(-0.2, 1.6, -0.2, 0.2, 2.0, 0.2) // from 1.6 m: the shortest workers (×0.965) carry the rim at ~1.63 m
       out.push({ min: a, max: b, cls: 'hardHat', ref: w.id, name: w.name })
     }
     if (w.vest) {
