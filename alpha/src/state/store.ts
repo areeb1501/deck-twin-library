@@ -54,6 +54,12 @@ interface State {
   setHmi: (page: string | null) => void
   /** isolation / LOTO planner target */
   isolation: { target: string; mode: 'valve' | 'positive' } | null
+  /** simulated field workers walking the decks (off by default; CCTV / PPE detection watches them) */
+  workers: boolean
+  setWorkers: (on: boolean) => void
+  /** sitting in this crane's cab (manual crane operation + cab camera), or null */
+  craneCab: string | null
+  setCraneCab: (tag: string | null) => void
 
   select: (p: PickData | null) => void
   hover: (p: PickData | null) => void
@@ -110,6 +116,11 @@ export const useStore = create<State>((set) => ({
   walk: false,
   lookAt: null,
   isolation: null,
+  workers: false,
+  setWorkers: (workers) => set({ workers }),
+  craneCab: null,
+  // the cab camera takes over from the walker
+  setCraneCab: (craneCab) => set(craneCab ? { craneCab, walk: false, lookAt: null, hmi: null } : { craneCab }),
   hmi: null,
   setHmi: (hmi) => set({ hmi }),
   panels: loadPanels(),

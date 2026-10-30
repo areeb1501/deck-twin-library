@@ -137,7 +137,7 @@ export function OperationsPanel() {
             </button>
           ))}
         </span>
-        <button className="primary small" onClick={() => useStore.getState().setHmi('overview')} title="The control-room console: alarms, process mimic, shutdowns, cause & effect, F&G, instructor">
+        <button className="primary small" onClick={() => useStore.getState().setHmi('dashboard')} title="The control-room console: alarms, process mimic, shutdowns, cause & effect, F&G, instructor">
           Console{unack ? ` · ${unack} alarms` : ''}
         </button>
       </div>

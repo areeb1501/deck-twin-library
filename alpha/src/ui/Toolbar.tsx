@@ -5,6 +5,8 @@ import { findItemIn, usePlant } from '../state/plantStore'
 import { DeckNavigator } from './DeckNavigator'
 import { startTour, exitTour, useTour } from '../tour/engine'
 import { ALPHA_TOUR } from '../tour/alphaTour'
+import { OIL_TOUR } from '../tour/oilTour'
+import { CRANES } from '../model/cranes'
 
 const PRESETS: [CameraPreset, string][] = [
   ['overview', 'Platform'],
@@ -49,7 +51,11 @@ export function Toolbar() {
   const preset = useStore((s) => s.requestPreset)
   const section = useStore((s) => s.section)
   const setSection = useStore((s) => s.setSection)
-  const [menu, setMenu] = useState<'layers' | 'section' | 'views' | 'decks' | null>(null)
+  const [menu, setMenu] = useState<'layers' | 'section' | 'views' | 'decks' | 'cranes' | null>(null)
+  const workers = useStore((s) => s.workers)
+  const setWorkers = useStore((s) => s.setWorkers)
+  const craneCab = useStore((s) => s.craneCab)
+  const setCraneCab = useStore((s) => s.setCraneCab)
   const walk = useStore((s) => s.walk)
   const setWalk = useStore((s) => s.setWalk)
   const plant = usePlant()
@@ -93,15 +99,40 @@ export function Toolbar() {
       </div>
       {/* operate: run the plant */}
       <div className="seg" role="group" aria-label="Operate">
-        <button onClick={(e) => (e.currentTarget.blur(), setMenu(null), setHmi('overview'))} title="Open the control-room DCS console: live process, alarms, shutdowns, F&G, maintenance, trends, instructor and scenarios" data-hmi-open>
+        <button onClick={(e) => (e.currentTarget.blur(), setMenu(null), setHmi('dashboard'))} title="Open the control-room console: live dashboard, risk & what-if, CCTV & PPE, alerts & assistant, process, alarms, shutdowns, F&G, maintenance and scenarios" data-hmi-open>
           Control room
         </button>
+        {tourable && (
+          <button className={workers ? 'on' : ''} onClick={(e) => (e.currentTarget.blur(), setWorkers(!workers))} title="Simulated field workers walking the decks — the CCTV PPE detector watches them" data-workers>
+            Workers
+          </button>
+        )}
+        {tourable && (
+          <button className={craneCab || menu === 'cranes' ? 'on' : ''} onClick={(e) => (e.currentTarget.blur(), craneCab ? setCraneCab(null) : setMenu(menu === 'cranes' ? null : 'cranes'))} title="Sit in a crane cab: operate the crane and look around the field" data-crane-menu>
+            {craneCab ? 'Leave cab' : 'Crane ▾'}
+          </button>
+        )}
         {tourable && (
           <button className={`tour-btn ${touring ? 'on' : ''}`} onClick={(e) => (e.currentTarget.blur(), touring ? exitTour() : (setMenu(null), startTour(ALPHA_TOUR)))} title="One-click guided tour of the whole field: fly-overs and a walk through every deck, with live data">
             {touring ? 'End tour' : '▶ Tour'}
           </button>
         )}
+        {tourable && !touring && OIL_TOUR.length > 0 && (
+          <button className="tour-btn" onClick={(e) => (e.currentTarget.blur(), setMenu(null), startTour(OIL_TOUR))} title="Follow the oil: from the reservoir through every process step to the export riser" data-oil-tour>
+            ▶ Oil path
+          </button>
+        )}
       </div>
+      {menu === 'cranes' && (
+        <div className="pop views">
+          <div className="pop-head">Sit in a crane cab</div>
+          {CRANES.map((c) => (
+            <button key={c.tag} className="pop-item" onClick={() => (setMenu(null), setCraneCab(c.tag))} data-crane={c.tag}>
+              {c.tag} · {c.platform}
+            </button>
+          ))}
+        </div>
+      )}
       {menu === 'views' && (
         <div className="pop views">
           <div className="pop-head">Quick views</div>

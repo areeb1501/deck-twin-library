@@ -176,7 +176,7 @@ function ConsolePrompt() {
     const onKey = (e: KeyboardEvent) => {
       if (e.key !== 'Enter' || e.repeat || ['INPUT', 'SELECT', 'TEXTAREA'].includes((e.target as HTMLElement)?.tagName)) return
       e.preventDefault() // focus may still be on a toolbar button: Enter must not click it
-      useStore.getState().setHmi('overview')
+      useStore.getState().setHmi('dashboard')
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
@@ -188,7 +188,7 @@ function ConsolePrompt() {
         {room.name} — <b>sit at the console</b>
       </span>
       <kbd>Enter</kbd>
-      <button onClick={() => useStore.getState().setHmi('overview')}>Open console</button>
+      <button onClick={() => useStore.getState().setHmi('dashboard')}>Open console</button>
     </div>
   )
 }

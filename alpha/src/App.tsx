@@ -25,6 +25,10 @@ import './sim/cranes'
 import './sim/scenarios'
 import './sim/maintenance'
 import { ScenarioChip } from './ui/ScenarioChip'
+import { CraneCabHud } from './ui/CraneCabHud'
+// safety twin: risk engine and alert rules step with the simulation
+import './safety/risk'
+import './safety/alerts'
 import { useSim } from './state/sim'
 import './app.css'
 
@@ -113,6 +117,7 @@ export default function App() {
       <TourPlayer />
       <AlarmBanner />
       <ScenarioChip />
+      <CraneCabHud />
       <Hmi />
       <div className="hint muted small">Drag to orbit · Shift + drag to pan · scroll to zoom · click to inspect · X x-ray · C section · F frame · Esc clear</div>
     </div>

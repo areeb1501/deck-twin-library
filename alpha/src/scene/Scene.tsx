@@ -24,6 +24,8 @@ import { DeckStructure } from './structure/DeckStructure'
 import { GradePad } from './structure/GradePad'
 import { NozzleMarkers } from '../ui/builder/NozzleMarkers'
 import { WalkDriver, leaveWalk } from './Walk'
+import { CraneCabDriver } from './CraneCab'
+import { Workers } from './Workers'
 import { IsolationOverlay } from './IsolationOverlay'
 import { FireGasOverlay } from './FireGasOverlay'
 import { FgCoverageOverlay } from './FgCoverageOverlay'
@@ -121,6 +123,7 @@ function Rig({ root }: { root: React.RefObject<THREE.Group | null> }) {
   const sectionAround = useStore((s) => s.sectionAround)
   const flyTo = useStore((s) => s.flyTo)
   const walk = useStore((s) => s.walk)
+  const craneCab = useStore((s) => s.craneCab)
   const wasWalking = useRef(false)
   useEffect(() => {
     // a preset / fly-to that ended the walk runs its own transition right after this effect
@@ -218,9 +221,10 @@ function Rig({ root }: { root: React.RefObject<THREE.Group | null> }) {
   return (
     <>
     {walk && <WalkDriver controls={controls} root={root} />}
+    {craneCab && !walk && <CraneCabDriver controls={controls} />}
     <CameraControls
       ref={controls}
-      enabled={!walk}
+      enabled={!walk && !craneCab}
       makeDefault
       minDistance={0.6}
       maxDistance={900}
@@ -387,6 +391,12 @@ function ShadowOnDemand() {
   return null
 }
 
+/** simulated field workers (off by default — Toolbar → Workers) */
+function FieldWorkers() {
+  const on = useStore((s) => s.workers)
+  return on ? <Workers /> : null
+}
+
 function WalkAvatar() {
   const show = useStore((s) => s.walk && s.walkView === 'third')
   return show ? <Avatar /> : null
@@ -427,6 +437,7 @@ export function Scene() {
         <Plant />
         {/* after Plant (which holds the walker) so the person draws this frame's pose */}
         <WalkAvatar />
+        <FieldWorkers />
       </Suspense>
     </Canvas>
   )
