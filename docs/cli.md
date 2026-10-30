@@ -1,6 +1,6 @@
 # CLI
 
-> **The CLI runs straight from this site.** The `deck-twin` package isn't published to npm yet, so run it as `npx -y https://<this site>/cli/deck-twin-0.2.0.tgz <command>`. It needs no install and no dependencies. Wherever these docs say `npx deck-twin`, use that command instead. The landing page's **Copy prompt** already uses the full command.
+> **The CLI runs straight from this site.** The `deck-twin` package isn't published to npm yet, so run it as `npx -y https://<this site>/cli/deck-twin-0.2.1.tgz <command>`. It needs no install and no dependencies. Wherever these docs say `npx deck-twin`, use that command instead. The landing page's **Copy prompt** already uses the full command.
 
 `deck-twin` is a single Node script with no dependencies. It needs Node 18 or later.
 
@@ -44,7 +44,13 @@ npx deck-twin <command>
 - **Inline components** that aren't inline, meaning they have no ports `A` and `B`.
 - **Process ports** left unconnected.
 
-Errors exit with code 1. Warnings don't.
+Every problem is reported in one run, with where it is and how to fix it. Add `--json` for a loop an agent can follow: each issue has a `level`, a stable `code`, `where`, a `path` into the file (`lines[3].from`), a `message` and a `fix`, and the result ends with `valid` and `next`.
+
+| Exit code | Means |
+|---|---|
+| 0 | Valid. Warnings may remain |
+| 1 | Not valid |
+| 2 | Couldn't run, for example with no network. This says nothing about the file |
 
 Ports are checked at each component's default props. Some ports exist only for some props, such as the water boot on a 3-phase separator. If an item overrides its props, a missing port is a warning rather than an error.
 

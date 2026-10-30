@@ -69,7 +69,7 @@ const loaded = new WeakMap<object, ComponentMap>()
 /** Component modules of a plant that has been through loadLibraryPlant. */
 export const libraryComponents = (spec: PlantSpec) => loaded.get(spec) as ComponentMap
 
-const said = (i: { where: string; message: string }) => `${i.where}: ${i.message}`
+const said = (i: { where: string; message: string; fix?: string }) => `${i.where}: ${i.message}${i.fix ? ` ${i.fix}` : ''}`
 /** What only the layout or the geometry can tell. The rest repeats `deck-twin validate`, which has already spoken, so Load and the CLI report one count. */
 export const onlyDrawing = (i: { level: string; message: string }) => i.level === 'warning' && /^(No straight run|Items overlap|Stands at y)/.test(i.message)
 const namesIn = (s: PlantSpec) => [...new Set([...(s.items ?? []).map((i) => i.component), ...(s.lines ?? []).flatMap((l) => (l.inline ?? []).map((v) => v.component))])]

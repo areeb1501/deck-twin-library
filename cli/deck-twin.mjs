@@ -3,9 +3,9 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { dirname, join, relative, resolve } from 'node:path'
 import { spawnSync } from 'node:child_process'
-import { checkPlant } from './check.mjs'
+import { checkPlant, nextStep } from './check.mjs'
 
-const VERSION = '0.2.0'
+const VERSION = '0.2.1'
 const DEFAULT_REGISTRY = 'https://deck-twin-library.demoareeb.workers.dev'
 const PEERS = ['three', '@react-three/fiber', '@react-three/drei']
 
@@ -189,28 +189,48 @@ async function info() {
   }
 }
 
-async function check(file, quiet = false) {
-  const idx = await index()
+/** Reads and checks a plant, and always answers with issues: a file that won't parse is feedback too. */
+async function readPlant(file) {
+  let text
+  try {
+    text = readFileSync(resolve(cwd, file), 'utf8')
+  } catch {
+    return { issues: [{ level: 'error', code: 'no-file', where: file, path: '', message: `Cannot read ${file}.`, fix: 'Check the path.' }] }
+  }
   let spec
   try {
-    spec = JSON.parse(readFileSync(resolve(cwd, file), 'utf8'))
+    spec = JSON.parse(text)
   } catch (e) {
-    throw new Error(`cannot read ${file}: ${e.message}`)
+    return { issues: [{ level: 'error', code: 'bad-json', where: file, path: '', message: `Not valid JSON: ${e.message}`, fix: 'Fix the syntax at that position, then run validate again.' }] }
   }
-  const issues = checkPlant(spec, idx.items)
-  if (!quiet) {
-    for (const i of issues) console.log(`${i.level === 'error' ? c.red('error  ') : c.yellow('warning')} ${c.bold(i.where)}  ${i.message}`)
-    const e = issues.filter((i) => i.level === 'error').length
-    console.log(e ? c.red(`\n✗ ${e} error(s), ${issues.length - e} warning(s)`) : c.green(`✓ ${spec.items?.length ?? 0} items, ${spec.lines?.length ?? 0} lines${issues.length ? `, ${issues.length} warning(s)` : ', no issues'}`))
-    console.log(c.dim('Line clearances, overlaps and floating items need the drawn plant: <Plant onReport>, the playground or the viewer report them.'))
+  return { spec, issues: checkPlant(spec, (await index()).items) }
+}
+
+function printIssues(file, spec, issues) {
+  const e = issues.filter((i) => i.level === 'error').length
+  const w = issues.length - e
+  const count = `${e} error(s), ${w} warning(s)`
+  console.log(e ? c.red(`✗ ${file} is not valid: ${count}\n`) : c.green(`✓ ${file} is valid: ${spec.items?.length ?? 0} items, ${spec.lines?.length ?? 0} lines${w ? `, ${w} warning(s)` : ', no issues'}${w ? '\n' : ''}`))
+  for (const i of issues) {
+    console.log(`${i.level === 'error' ? c.red('error  ') : c.yellow('warning')} ${c.bold(i.where)}${i.path ? c.dim(`  ${i.path}`) : ''}\n        ${i.message}\n        ${c.dim('Fix:')} ${i.fix}\n`)
   }
-  return { spec, issues }
+  console.log(nextStep(issues))
+}
+
+async function validate(file) {
+  const { spec, issues } = await readPlant(file)
+  const errors = issues.filter((i) => i.level === 'error').length
+  if (flags.has('json')) console.log(JSON.stringify({ file, valid: !errors, errors, warnings: issues.length - errors, items: spec?.items?.length ?? 0, lines: spec?.lines?.length ?? 0, issues, next: nextStep(issues) }, null, 2))
+  else printIssues(file, spec, issues)
+  if (errors) process.exitCode = 1
 }
 
 const camel = (s) => s.replace(/-([a-z0-9])/g, (_, x) => x.toUpperCase()).replace(/^[0-9]/, (d) => '_' + d)
 
 async function assemble(file) {
-  const { spec, issues } = await check(file)
+  const { spec, issues } = await readPlant(file)
+  printIssues(file, spec, issues)
+  if (!spec) throw new Error('fix the errors above first')
   if (issues.some((i) => i.level === 'error') && !flags.has('force')) throw new Error('fix the errors above first (or pass --force)')
   const names = [...new Set([...spec.items.map((i) => i.component), ...(spec.lines ?? []).flatMap((l) => (l.inline ?? []).map((v) => v.component))])]
   console.log('')
@@ -281,7 +301,7 @@ const HELP = `deck-twin ${VERSION}: standards-based three.js components for oil 
   deck-twin list [category]           list components by category
   deck-twin search <words>            find components by name, tag or standard
   deck-twin info <name> [--json]      props, ranges, defaults and ports of one component
-  deck-twin validate <plant.json>     is this plant valid? components, ports, sizes, wiring (exit 0 = valid)
+  deck-twin validate <plant.json>     every problem in a plant and how to fix it (exit 0 valid, 1 invalid, 2 could not run)
   deck-twin assemble <plant.json>     validate, install everything it uses, write PlantScene.tsx
   deck-twin skill [--dir path]        install the agent skill (default .claude/skills/deck-twin)
 
@@ -290,22 +310,25 @@ const HELP = `deck-twin ${VERSION}: standards-based three.js components for oil 
   --overwrite         replace files you have changed
   --dry-run           show what would be written
   --install           install missing peer dependencies
-  --json              machine-readable output (list, search, info)
+  --json              machine-readable output (list, search, info, validate)
 `
 
 try {
-  if (!cmd || cmd === 'help' || flags.has('help')) console.log(HELP)
-  else if (cmd === '--version' || flags.has('version')) console.log(VERSION)
+  if (flags.has('version')) console.log(VERSION)
+  else if (!cmd || cmd === 'help' || flags.has('help')) console.log(HELP)
   else if (cmd === 'add' || cmd === 'install' || cmd === 'i') {
     if (!args.length) throw new Error('name at least one component, e.g. deck-twin add gate-valve')
     await add(args)
   } else if (cmd === 'list' || cmd === 'ls') await list()
   else if (cmd === 'search') await search()
   else if (cmd === 'info') await info()
-  else if (cmd === 'validate' || cmd === 'check') {
-    const { issues } = await check(args[0] ?? 'plant.json')
-    if (issues.some((i) => i.level === 'error')) process.exitCode = 1
-  } else if (cmd === 'assemble') await assemble(args[0] ?? 'plant.json')
+  else if (cmd === 'validate' || cmd === 'check') await validate(args[0] ?? 'plant.json').catch((e) => {
+    // the file may be fine: exit 2 tells an agent this run proved nothing
+    if (flags.has('json')) console.log(JSON.stringify({ valid: null, error: e.message }))
+    else console.error(c.red(`✗ could not validate: ${e.message}`))
+    process.exitCode = 2
+  })
+  else if (cmd === 'assemble') await assemble(args[0] ?? 'plant.json')
   else if (cmd === 'skill') await skill()
   else if (cmd === 'init') init()
   else throw new Error(`unknown command "${cmd}". Run deck-twin help.`)

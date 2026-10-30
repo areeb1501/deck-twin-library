@@ -11,7 +11,7 @@ Standards-based three.js / React Three Fiber components for oil & gas digital tw
 
 ## Use
 
-Until it is published to npm, run the CLI from the deployed site: `npx -y <site>/cli/deck-twin-0.2.0.tgz <command>`. The examples below use the short `npx deck-twin`.
+Until it is published to npm, run the CLI from the deployed site: `npx -y <site>/cli/deck-twin-0.2.1.tgz <command>`. The examples below use the short `npx deck-twin`.
 
 ```bash
 npx deck-twin add horizontal-separator centrifugal-pump gate-valve

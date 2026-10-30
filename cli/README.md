@@ -43,7 +43,13 @@ npx deck-twin <command>
 - **Inline components** that aren't inline, meaning they have no ports `A` and `B`.
 - **Process ports** left unconnected.
 
-Errors exit with code 1. Warnings don't.
+Every problem is reported in one run, with where it is and how to fix it. Add `--json` for a loop an agent can follow: each issue has a `level`, a stable `code`, `where`, a `path` into the file (`lines[3].from`), a `message` and a `fix`, and the result ends with `valid` and `next`.
+
+| Exit code | Means |
+|---|---|
+| 0 | Valid. Warnings may remain |
+| 1 | Not valid |
+| 2 | Couldn't run, for example with no network. This says nothing about the file |
 
 Ports are checked at each component's default props. Some ports exist only for some props, such as the water boot on a 3-phase separator. If an item overrides its props, a missing port is a warning rather than an error.
 
