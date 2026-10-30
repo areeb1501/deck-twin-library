@@ -17,6 +17,10 @@ import * as THREE from 'three'
 import type { Equipment, Module, ModuleDoor, Plant, PlanRect, WalkLevel } from '../model/types'
 import { useSim } from '../state/sim'
 import { resolveDoors, HF } from './equipment/moduleLayout'
+import { surfaceHeight, walkSurfaces } from './walkSurfaces'
+
+/** largest height difference the walker steps across in one move (stairs are continuous, decks are metres apart) */
+const STEP = 1.0
 import { footprints } from '../model/footprint'
 import { labelHeight } from '../ui/labels'
 import { usePlantStore } from '../state/plantStore'
@@ -38,6 +42,8 @@ export const walkPose = {
   yaw: 0,
   pitch: -0.05,
   level: 0,
+  /** deck-local height of what the walker stands on (a deck, a stair flight, a landing, a ladder) */
+  floor: 0,
   /** world y of the floor under the walker's feet (the avatar stands on it) */
   footY: DECK_WORLD_Y,
   /** horizontal speed along the heading, m/s (negative = backwards) — drives the avatar's walk cycle */
@@ -68,7 +74,7 @@ export function levelAt(levels: WalkLevel[], y: number) {
 }
 const eqLevel = (levels: WalkLevel[], e: Equipment) => levelAt(levels, e.position[1])
 /** deck-local floor height of the walker's level */
-export const floorY = () => walkLevels(usePlantStore.getState().plant)[walkPose.level]?.y ?? 0
+export const floorY = () => walkPose.floor
 
 /** module doors: the same resolution the Module model draws (data, or its default pair) */
 export const moduleDoors = (m: Module): ModuleDoor[] => resolveDoors(m)
@@ -155,6 +161,7 @@ export function placeWalker(x: number, z: number, face?: [number, number], level
   const p = usePlantStore.getState().plant
   if (level !== undefined) walkPose.level = Math.max(0, Math.min(walkLevels(p).length - 1, level))
   ;[walkPose.x, walkPose.z] = freeSpot(p, walkPose.level, x, z)
+  walkPose.floor = walkLevels(p)[walkPose.level]?.y ?? 0
   if (face) walkPose.yaw = Math.atan2(-(face[0] - walkPose.x), -(face[1] - walkPose.z))
 }
 
@@ -182,6 +189,9 @@ export function WalkDriver({ controls, root }: { controls: React.RefObject<Camer
   const level = useStore((s) => s.walkLevel)
   const doors = useSim((s) => s.doors)
   const block = useMemo(() => blockers(plant, level, doors), [plant, level, doors])
+  // every level's blockers + the climbable surfaces between levels (stairs, landings, ladders, roofs)
+  const blockAll = useMemo(() => levels.map((_, i) => (i === level ? block : blockers(plant, i, doors))), [plant, levels, level, block, doors])
+  const surfaces = useMemo(() => walkSurfaces(plant), [plant])
   const scene = useThree((s) => s.scene)
   const raise = useRef(0)
   const last = useRef({ x: walkPose.x, z: walkPose.z })
@@ -326,18 +336,44 @@ export function WalkDriver({ controls, root }: { controls: React.RefObject<Camer
       const dx = (f.x * mf - f.z * ms) * speed
       const dz = (f.z * mf + f.x * ms) * speed
       // slide along obstacles: try the full step, then each axis alone
+      // stand on whichever deck or stair surface here is closest to the current feet height
+      const floorAt = (x: number, z: number): { h: number; li: number | null } | null => {
+        let best: { h: number; li: number | null } | null = null
+        let bd = STEP
+        // on a ladder you are on the ladder, not on the deck it stands on
+        const onLadder = surfaces.some((s) => s.kind === 'ladder' && x >= s.x0 && x <= s.x1 && z >= s.z0 && z <= s.z1)
+        if (!onLadder) levels.forEach((lv, i) => {
+          const d = Math.abs(lv.y - walkPose.floor)
+          if (d <= bd && walkable(plant, i, blockAll[i], x, z)) (bd = d), (best = { h: lv.y, li: i })
+        })
+        for (const s of surfaces) {
+          if (x < s.x0 || x > s.x1 || z < s.z0 || z > s.z1) continue
+          const h = surfaceHeight(s, x, z)
+          const d = Math.abs(h - walkPose.floor)
+          if (d < bd) (bd = d), (best = { h, li: null })
+        }
+        return best
+      }
       const tryMove = (x: number, z: number) => {
-        if (!walkable(plant, walkPose.level, block, x, z)) return false
+        const f = floorAt(x, z)
+        if (!f) return false
         walkPose.x = x
         walkPose.z = z
+        walkPose.floor = f.h
+        // stepping off a stair onto a deck makes that deck the current level (minimap, gaze, buildings)
+        if (f.li !== null && f.li !== walkPose.level) {
+          walkPose.level = f.li
+          useStore.getState().setWalkLevel(f.li)
+        }
         return true
       }
       if (!tryMove(walkPose.x + dx, walkPose.z + dz)) if (!tryMove(walkPose.x + dx, walkPose.z)) tryMove(walkPose.x, walkPose.z + dz)
     }
     // step up onto a module's raised floor when inside it
-    const target = insideModule(plant, walkPose.level, walkPose.x, walkPose.z) ? MODULE_FLOOR : 0
+    const onDeck = Math.abs(walkPose.floor - (levels[walkPose.level]?.y ?? 0)) < 0.05
+    const target = onDeck && insideModule(plant, walkPose.level, walkPose.x, walkPose.z) ? MODULE_FLOOR : 0
     raise.current += (target - raise.current) * Math.min(1, dt * 6)
-    const eye = new THREE.Vector3(walkPose.x, DECK_WORLD_Y + (levels[walkPose.level]?.y ?? 0) + EYE + raise.current, walkPose.z)
+    const eye = new THREE.Vector3(walkPose.x, DECK_WORLD_Y + walkPose.floor + EYE + raise.current, walkPose.z)
 
     // doors open as you walk up to them and close behind you (doors you clicked stay as you left them)
     const ds = doorScan.current

@@ -92,7 +92,7 @@ export default function App() {
       <WalkHud />
       <OpsTicker />
       <KnowledgeCard />
-      <div className="hint muted small">Drag to orbit · right-drag to pan · scroll to zoom · click to inspect · X x-ray · C section · F frame · Esc clear</div>
+      <div className="hint muted small">Drag to orbit · Shift + drag to pan · scroll to zoom · click to inspect · X x-ray · C section · F frame · Esc clear</div>
     </div>
   )
 }

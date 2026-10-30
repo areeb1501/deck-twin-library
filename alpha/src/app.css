@@ -394,3 +394,4 @@
 .kb-live { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
 .kb-live > div { display: grid; padding: 5px 7px; border: 1px solid var(--ui-line); border-radius: 6px; }
 .app.walking .panel.kb { left: 12px; }
+.mm-stair { fill: rgba(255,212,121,0.55); }

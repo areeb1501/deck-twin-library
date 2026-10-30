@@ -5,6 +5,7 @@
  */
 import { Canvas, advance, useFrame, useThree, type ThreeEvent } from '@react-three/fiber'
 import { CameraControls } from '@react-three/drei'
+import CameraControlsImpl from 'camera-controls'
 import { LabelProjector } from '../ui/labels'
 import { EffectComposer, N8AO, Outline, SMAA, ToneMapping } from '@react-three/postprocessing'
 import { ToneMappingMode } from 'postprocessing'
@@ -117,6 +118,28 @@ function Rig({ root }: { root: React.RefObject<THREE.Group | null> }) {
   useEffect(() => {
     if (flyTo && controls.current) controls.current.setLookAt(...flyTo.position, ...flyTo.target, true)
   }, [flyTo])
+
+  // mouse: drag orbits, Shift + drag pans (replaces right-drag pan), wheel zooms
+  useEffect(() => {
+    const A = CameraControlsImpl.ACTION
+    const c = controls.current
+    if (!c) return
+    c.mouseButtons.right = A.NONE
+    const set = (shift: boolean) => {
+      c.mouseButtons.left = shift ? A.TRUCK : A.ROTATE
+    }
+    const down = (e: KeyboardEvent) => e.key === 'Shift' && set(true)
+    const up = (e: KeyboardEvent) => e.key === 'Shift' && set(false)
+    const blur = () => set(false)
+    window.addEventListener('keydown', down)
+    window.addEventListener('keyup', up)
+    window.addEventListener('blur', blur)
+    return () => {
+      window.removeEventListener('keydown', down)
+      window.removeEventListener('keyup', up)
+      window.removeEventListener('blur', blur)
+    }
+  }, [])
 
   const boxOf = (tag: string) => {
     const box = new THREE.Box3()

@@ -4,6 +4,7 @@ import { usePlant } from '../state/plantStore'
 import { useStore } from '../state/store'
 import { footprints } from '../model/footprint'
 import { levelAt, placeWalker, walkLevels, walkPose } from '../scene/Walk'
+import { walkSurfaces } from '../scene/walkSurfaces'
 
 const W = 230
 const HMAX = 250
@@ -19,7 +20,7 @@ export function WalkHud() {
     <>
       {view === 'first' && <div className={`crosshair ${lookAt ? 'on' : ''}`} />}
       <div className="walk-hint small">
-        <b>Walkthrough</b> · ↑↓ walk · ←→ turn · Q/E step sideways · drag to look · Shift run · 1–4 change level · doors open as you approach · click an item to pin it ·{' '}
+        <b>Walkthrough</b> · ↑↓ walk · ←→ turn · Q/E step sideways · drag to look · Shift run · walk up stairs & ladders (or 1–4 to jump decks) · doors open as you approach · click an item to pin it ·{' '}
         <button className="link" onClick={() => setView(view === 'third' ? 'first' : 'third')} title="V">
           {view === 'third' ? 'Hide person' : 'Show person'} (V)
         </button>{' '}
@@ -92,6 +93,11 @@ function Minimap() {
         {lv.areas.map((a, i) => (
           <rect key={`a${i}`} x={sx(a.x0)} y={sz(a.z0)} width={(a.x1 - a.x0) * k} height={(a.z1 - a.z0) * k} rx={2} className="mm-deck" />
         ))}
+        {walkSurfaces(plant)
+          .filter((s) => s.kind !== 'area' && Math.min(s.y0, s.y1) <= lv.y + 0.05 && Math.max(s.y0, s.y1) >= lv.y - 0.05)
+          .map((s, i) => (
+            <rect key={`s${i}`} x={sx(s.x0)} y={sz(s.z0)} width={Math.max(1.5, (s.x1 - s.x0) * k)} height={Math.max(1.5, (s.z1 - s.z0) * k)} className="mm-stair" />
+          ))}
         {(lv.obstacles ?? []).map((a, i) => (
           <rect key={`o${i}`} x={sx(a.x0)} y={sz(a.z0)} width={(a.x1 - a.x0) * k} height={(a.z1 - a.z0) * k} className="mm-obstacle" />
         ))}

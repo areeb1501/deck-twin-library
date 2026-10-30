@@ -173,9 +173,10 @@ export const ALPHA_WALK: WalkLevel[] = [
   },
   {
     id: 'cellar',
-    label: 'Cellar deck · EL +20 (wellheads)',
+    label: 'Cellar decks · EL +20 (wellheads)',
     y: CELLAR_FLOOR,
-    areas: [ALPHA_DECK],
+    // Alpha's cellar, plus the LQ and WHP-N cellar (spider) decks reached by their stair towers
+    areas: [ALPHA_DECK, LQ.deck, WHP.deck],
     // drilling equipment on the cellar deck (scene/env/cellarDeck.ts): BOP stack, choke manifold, accumulator
     obstacles: [
       { x0: RIG_SLOT[0] - 1.3, x1: RIG_SLOT[0] + 1.3, z0: RIG_SLOT[1] - 1.3, z1: RIG_SLOT[1] + 1.3 },
