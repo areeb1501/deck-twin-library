@@ -21,6 +21,8 @@ import { FlowParticles } from './piping/FlowParticles'
 import { EquipmentLayer } from './EquipmentLayer'
 import { DeckStructure } from './structure/DeckStructure'
 import { GradePad } from './structure/GradePad'
+import { NozzleMarkers } from '../ui/builder/NozzleMarkers'
+import { WalkDriver, leaveWalk } from './Walk'
 import type { ComponentType } from 'react'
 
 // environment modules are resolved by name so the app runs while they are being built
@@ -89,6 +91,13 @@ function Rig({ root }: { root: React.RefObject<THREE.Group | null> }) {
   const preset = useStore((s) => s.preset)
   const sectionAround = useStore((s) => s.sectionAround)
   const flyTo = useStore((s) => s.flyTo)
+  const walk = useStore((s) => s.walk)
+  const wasWalking = useRef(false)
+  useEffect(() => {
+    // a preset / fly-to that ended the walk runs its own transition right after this effect
+    if (wasWalking.current && !walk && controls.current) leaveWalk(controls.current)
+    wasWalking.current = walk
+  }, [walk])
 
   useEffect(() => {
     if (flyTo && controls.current) controls.current.setLookAt(...flyTo.position, ...flyTo.target, true)
@@ -117,7 +126,7 @@ function Rig({ root }: { root: React.RefObject<THREE.Group | null> }) {
   }, [preset])
 
   useEffect(() => {
-    if (!focus || !controls.current) return
+    if (!focus || !controls.current || useStore.getState().walk) return // the walker handles "walk to"
     const box = boxOf(focus.tag)
     if (box.isEmpty()) return
     const c = box.getCenter(new THREE.Vector3())
@@ -156,8 +165,11 @@ function Rig({ root }: { root: React.RefObject<THREE.Group | null> }) {
   }, [sectionAround])
 
   return (
+    <>
+    {walk && <WalkDriver controls={controls} root={root} />}
     <CameraControls
       ref={controls}
+      enabled={!walk}
       makeDefault
       minDistance={0.6}
       maxDistance={900}
@@ -165,6 +177,7 @@ function Rig({ root }: { root: React.RefObject<THREE.Group | null> }) {
       smoothTime={0.35}
       draggingSmoothTime={0.08}
     />
+    </>
   )
 }
 
@@ -260,6 +273,7 @@ function Plant() {
           <Piping built={built} />
         </group>
         <FlowParticles key={plant.name + plant.lines.length} built={built} visible={flowVisible} />
+        <NozzleMarkers />
       </group>
     </>
   )

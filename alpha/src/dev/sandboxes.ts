@@ -8,4 +8,5 @@ export const sandboxes: Record<string, ReturnType<typeof lazy>> = {
   machinery: lazy(() => import('./MachinerySandbox')),
   vessels: lazy(() => import('./VesselsSandbox')),
   structure: lazy(() => import('./StructureSandbox')),
+  library: lazy(() => import('./LibrarySandbox')),
 }

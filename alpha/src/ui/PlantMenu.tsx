@@ -1,12 +1,15 @@
 import { useRef, useState } from 'react'
 import { plant as alpha } from '../model/plant'
 import { onshoreStation } from '../model/examples/onshoreStation'
+import { compileSpec } from '../library/compile'
+import { separationTrainSpec } from '../library/examples/separationTrain'
 import type { Plant } from '../model/types'
 import { usePlantStore, validatePlant } from '../state/plantStore'
 import { useStore } from '../state/store'
 import { buildPiping } from '../scene/piping/build'
 
-const BUILT_IN: Plant[] = [alpha, onshoreStation]
+// the third plant is compiled from a topology-only PlantSpec (see library/) — edit it in the Builder
+const BUILT_IN: Plant[] = [alpha, onshoreStation, compileSpec(separationTrainSpec).plant]
 
 /** Switch between bundled plants, load any plant JSON, or export the current one as a template. */
 export function PlantMenu() {

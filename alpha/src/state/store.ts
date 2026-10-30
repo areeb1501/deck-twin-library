@@ -29,6 +29,10 @@ interface State {
   preset: { name: CameraPreset; nonce: number } | null
   /** simulated historian clock (s) */
   playing: boolean
+  /** first-person walkthrough (arrow keys) */
+  walk: boolean
+  /** walk mode: the equipment in the centre of view (drives the inspection panel) */
+  lookAt: PickData | null
 
   select: (p: PickData | null) => void
   hover: (p: PickData | null) => void
@@ -41,6 +45,8 @@ interface State {
   requestSectionAround: (tag: string) => void
   requestPreset: (name: CameraPreset) => void
   setPlaying: (p: boolean) => void
+  setWalk: (on: boolean) => void
+  setLookAt: (p: PickData | null) => void
 }
 
 let nonce = 0
@@ -65,6 +71,8 @@ export const useStore = create<State>((set) => ({
   sectionAround: null,
   preset: null,
   playing: true,
+  walk: false,
+  lookAt: null,
 
   select: (p) => set({ selected: p }),
   hover: (p) => set({ hovered: p }),
@@ -72,11 +80,14 @@ export const useStore = create<State>((set) => ({
   toggleLayer: (l) => set((s) => ({ layers: { ...s.layers, [l]: !s.layers[l] } })),
   setLayer: (l, v) => set((s) => ({ layers: { ...s.layers, [l]: v } })),
   setSection: (sec) => set((s) => ({ section: { ...s.section, ...sec } })),
-  requestFlyTo: (position, target) => set({ flyTo: { position, target, nonce: ++nonce } }),
+  // camera transitions take the camera back from the walker
+  requestFlyTo: (position, target) => set({ flyTo: { position, target, nonce: ++nonce }, walk: false, lookAt: null }),
   requestFocus: (tag) => set({ focus: { tag, nonce: ++nonce } }),
   requestSectionAround: (tag) => set({ sectionAround: { tag, nonce: ++nonce } }),
-  requestPreset: (name) => set({ preset: { name, nonce: ++nonce } }),
+  requestPreset: (name) => set({ preset: { name, nonce: ++nonce }, walk: false, lookAt: null }),
   setPlaying: (playing) => set({ playing }),
+  setWalk: (walk) => set({ walk, lookAt: null }),
+  setLookAt: (lookAt) => set({ lookAt }),
 }))
 
 /** World Y of the deck-local origin (top of production deck plate). */

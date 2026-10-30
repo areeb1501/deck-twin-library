@@ -31,9 +31,16 @@ export function Toolbar() {
   const section = useStore((s) => s.section)
   const setSection = useStore((s) => s.setSection)
   const [menu, setMenu] = useState<'layers' | 'section' | null>(null)
+  const walk = useStore((s) => s.walk)
+  const setWalk = useStore((s) => s.setWalk)
 
   return (
     <div className="toolbar">
+      <div className="seg">
+        <button className={walk ? 'on' : ''} onClick={() => setWalk(!walk)} title="Walk through the deck with the arrow keys and inspect what you look at (G)">
+          {walk ? 'Exit walk' : 'Walk'}
+        </button>
+      </div>
       <div className="seg">
         {PRESETS.map(([k, label]) => (
           <button key={k} onClick={() => preset(k)}>

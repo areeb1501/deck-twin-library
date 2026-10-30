@@ -7,6 +7,7 @@ import type { Equipment, Instrument, PickData, PipeLine, Valve } from '../model/
 import { useStore } from '../state/store'
 import { fmt, history, sample } from './live'
 import { VALVE_LABEL, kindLabel } from './TagTree'
+import { metricsFor, type Metric } from './metrics'
 
 const mm = (m: number) => `${Math.round(m * 1000)} mm`
 const m2 = (m: number) => `${m.toFixed(2)} m`
@@ -84,6 +85,48 @@ function Live({ inst }: { inst: Instrument }) {
       <Spark data={h} lo={a.lo} hi={a.hi} />
       <div className="muted small">Last 3 min · simulated historian</div>
     </div>
+  )
+}
+
+function alarmState(v: number, a: Instrument['alarms'] = {}) {
+  return (a.hiHi !== undefined && v >= a.hiHi) || (a.loLo !== undefined && v <= a.loLo) ? 'trip' : (a.hi !== undefined && v >= a.hi) || (a.lo !== undefined && v <= a.lo) ? 'alarm' : 'ok'
+}
+
+function MetricCard({ m, t }: { m: Metric; t: number }) {
+  const v = sample(m.inst, t)
+  const h = useMemo(() => history(m.inst, t, 60, 3), [m.inst, t])
+  const a = m.inst.alarms ?? {}
+  const state = alarmState(v, a)
+  return (
+    <div className={`metric ${state}`}>
+      <div className="metric-head">
+        <span className="ell" title={m.label}>{m.label}</span>
+        {state !== 'ok' && <span className={`pill ${state}`}>{state === 'alarm' ? 'Alarm' : 'Trip'}</span>}
+      </div>
+      <div className="metric-val">
+        {fmt(v)} <span className="muted">{m.inst.unit}</span>
+      </div>
+      <Spark data={h} lo={a.lo} hi={a.hi} />
+      <div className="muted small mono ell">{m.simulated ? 'simulated' : m.inst.tag}</div>
+    </div>
+  )
+}
+
+/** Live trends for the inspected item, at the top of the panel. */
+function Metrics({ tag }: { tag: string }) {
+  const plant = usePlant()
+  const t = useClock()
+  const ms = useMemo(() => metricsFor(plant, tag), [plant, tag])
+  if (!ms.length) return null
+  return (
+    <section className="sec">
+      <h4>Live metrics · last 3 min</h4>
+      <div className="metrics">
+        {ms.map((m) => (
+          <MetricCard key={m.inst.tag} m={m} t={t} />
+        ))}
+      </div>
+    </section>
   )
 }
 
@@ -262,7 +305,11 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 
 export function Inspector() {
   const plant = usePlant()
-  const sel = useStore((s) => s.selected)
+  const selected = useStore((s) => s.selected)
+  const walk = useStore((s) => s.walk)
+  const lookAt = useStore((s) => s.lookAt)
+  // walking: show what's being looked at unless something was clicked (pinned)
+  const sel = selected ?? (walk ? lookAt : null)
   const focus = useStore((s) => s.requestFocus)
   const cut = useStore((s) => s.requestSectionAround)
   const section = useStore((s) => s.section.enabled)
@@ -283,16 +330,22 @@ export function Inspector() {
           <div className="insp-title">{title}</div>
           <div className="muted small">{sub}</div>
         </div>
-        <button className="icon" onClick={() => select(null)} title="Close (Esc)">
-          ×
-        </button>
+        {walk && !selected ? (
+          <span className="pill look" title="Turn to look at another item, or click one to pin it">Looking at</span>
+        ) : (
+          <button className="icon" onClick={() => select(null)} title={walk ? 'Unpin and follow your view (Esc)' : 'Close (Esc)'}>
+            ×
+          </button>
+        )}
       </header>
       <div className="insp-actions">
-        <button onClick={() => focus(sel.tag)}>Frame</button>
+        {walk && selected && <button onClick={() => select(null)}>Unpin</button>}
+        <button onClick={() => focus(sel.tag)}>{walk ? 'Walk to' : 'Frame'}</button>
         <button onClick={() => cut(sel.tag)}>Cut open</button>
         {section && <button onClick={() => setSection({ enabled: false })}>Clear cut</button>}
       </div>
       <div className="insp-body">
+        {!inst && <Metrics tag={sel.tag} />}
         {eq && <EquipmentView eq={eq} />}
         {line && <LineView l={line} />}
         {valve && <ValveView v={valve} />}
