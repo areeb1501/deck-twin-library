@@ -1,9 +1,7 @@
-import { useMemo, type ReactNode } from 'react'
+import { lazy, Suspense, useEffect, useMemo, useState, type ComponentProps, type ReactNode } from 'react'
 import { Link } from 'wouter'
 import { CATEGORIES, ITEMS, byCategory, thumb } from '../registry'
 import { EXAMPLES } from '../plants'
-import { LIBRARY } from '../pid'
-import { PlantView } from '../viewer/PlantView'
 import { Code, Command } from '../components/ui'
 import { AgentLine, PromptCard } from '../components/PromptCard'
 import { CLI } from '../site'
@@ -23,6 +21,20 @@ const PLANT_SNIPPET = `{
 
 const BODIES = ['ASME', 'API', 'IEC', 'ISO', 'EN', 'NFPA', 'DNV', 'NORSOK', 'ISA', 'TEMA']
 
+declare const __SYMBOL_COUNT__: number
+const PlantView = lazy(() => import('../viewer/PlantView').then((m) => ({ default: m.PlantView })))
+
+// The 3D view loads after the page is on screen, and only in the browser.
+function HeroPlant(props: ComponentProps<typeof PlantView>) {
+  const [ready, setReady] = useState(false)
+  useEffect(() => setReady(true), [])
+  return ready ? (
+    <Suspense fallback={null}>
+      <PlantView {...props} />
+    </Suspense>
+  ) : null
+}
+
 export function Home() {
   const theme = useTheme()
   const hero = EXAMPLES.find((e) => e.name === 'separation-train') ?? EXAMPLES[0]
@@ -41,7 +53,7 @@ export function Home() {
           <div className="mx-auto max-w-[800px] text-center">
             <Link href="/components" className="group mb-7 inline-flex items-center gap-2 glass rounded-full border border-border py-1 pr-3 pl-3 text-[12.5px] whitespace-nowrap sm:pl-1 sm:text-[13px] text-fg-2 transition-colors hover:border-line-strong hover:text-ink">
               <span className="hidden items-center gap-1.5 rounded-full bg-hover px-2 py-0.5 text-[11.5px] font-medium text-ink sm:inline-flex"><span className="h-1.5 w-1.5 rounded-full bg-signal" />Open source</span>
-              {ITEMS.length} components, {LIBRARY.symbols.length} P&amp;ID symbols
+              {ITEMS.length} components, {__SYMBOL_COUNT__} P&amp;ID symbols
               <span aria-hidden className="text-muted-fg transition-transform group-hover:translate-x-0.5">→</span>
             </Link>
             <h1 className="text-[42px] leading-[1.04] font-semibold tracking-[-0.04em] text-balance sm:text-[72px]">
@@ -78,7 +90,7 @@ export function Home() {
                 </Link>
               )}
             </div>
-            <div className="relative h-[360px] sm:h-[520px] lg:h-[620px]">{heroSpec ? <PlantView spec={heroSpec} className="absolute inset-0" /> : null}</div>
+            <div className="relative h-[360px] sm:h-[520px] lg:h-[620px]">{heroSpec ? <HeroPlant spec={heroSpec} className="absolute inset-0" /> : null}</div>
           </div>
         </div>
       </section>
@@ -88,7 +100,7 @@ export function Home() {
           <dl className="grid grid-cols-3 gap-6 sm:gap-12">
             <Fact value={ITEMS.length} label="Components" />
             <Fact value={cats.length} label="Categories" />
-            <Fact value={LIBRARY.symbols.length} label="P&ID symbols" />
+            <Fact value={__SYMBOL_COUNT__} label="P&ID symbols" />
           </dl>
           <div className="lg:border-l lg:border-border lg:pl-16">
             <div className="text-[14px] text-muted-fg">Dimensions come from the codes your engineers already work to</div>

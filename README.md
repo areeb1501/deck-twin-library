@@ -44,7 +44,7 @@ npx deck-twin skill
 | `src/` | The website: gallery, component pages with live preview and controls, docs, examples, playground |
 | `cli/deck-twin.mjs` | The CLI. Zero dependencies. |
 | `skill/` | The agent skill |
-| `scripts/` | `build-registry.ts` (writes `public/r`, `llms.txt`, `sitemap.xml`, `robots.txt` and the skill), `shoot.mjs` (headless screenshots and thumbnails), `pid-gen/` (per-component P&ID symbols), `pid-legend/` (the extended legend) |
+| `scripts/` | `build-registry.ts` (writes `public/r`, `llms.txt`, `sitemap.xml`, `robots.txt` and the skill), `prerender-home.ts` (renders the home page to `dist/home.html`, which the Worker serves at `/`), `shoot.mjs` (headless screenshots and thumbnails), `pid-gen/` (per-component P&ID symbols), `pid-legend/` (the extended legend) |
 
 ## Develop
 

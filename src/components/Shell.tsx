@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
+import { Suspense, useEffect, useMemo, useRef, useState, useSyncExternalStore, type ReactNode } from 'react'
 import { createPortal } from 'react-dom'
 import { Link, useLocation } from 'wouter'
 import { CATEGORIES, ITEMS, byCategory, themedThumb, thumb } from '../registry'
@@ -9,12 +9,14 @@ import { useScrollMemory } from '../url'
 import { Command, Segmented } from './ui'
 import { setTheme, useTheme, type Theme } from '../theme'
 
-// Site shell: the same top header on every route. Marketing pages add the full footer; docs and component pages add
-// the sidebar and a slim footer.
+export const isDocsRoute = (loc: string) => loc.startsWith('/docs') || loc.startsWith('/components')
+
+// Site shell: the same top header on every route. Marketing pages add the full footer, which waits for the page so it never
+// shows alone; docs and component pages add the sidebar and a slim footer.
 export function Shell({ children }: { children: ReactNode }) {
   const [loc] = useLocation()
   useScrollMemory()
-  const docs = loc.startsWith('/docs') || loc.startsWith('/components')
+  const docs = isDocsRoute(loc)
   const [drawer, setDrawer] = useState(false)
   useEffect(() => setDrawer(false), [loc])
   return (
@@ -25,10 +27,10 @@ export function Shell({ children }: { children: ReactNode }) {
           {children}
         </DocsLayout>
       ) : (
-        <>
+        <Suspense fallback={<main className="min-h-[70vh] flex-1" />}>
           <main className="flex-1">{children}</main>
           <Footer />
-        </>
+        </Suspense>
       )}
       <SearchDialog />
     </div>
@@ -431,7 +433,7 @@ function SlimFooter() {
 
 // Search hint per platform: the Command glyph on Apple devices, Ctrl everywhere else.
 const MAC = typeof navigator !== 'undefined' && /mac|iphone|ipad|ipod/i.test((navigator as Navigator & { userAgentData?: { platform?: string } }).userAgentData?.platform || navigator.platform || navigator.userAgent)
-const KEYS = MAC ? ['⌘', 'K'] : ['Ctrl', 'K']
+const useMac = () => useSyncExternalStore(() => () => {}, () => MAC, () => false)
 const OPEN_SEARCH = 'deck-twin:search'
 const openSearch = () => window.dispatchEvent(new Event(OPEN_SEARCH))
 
@@ -451,23 +453,29 @@ const searchIcon = (
     <path d="m10.5 10.5 3 3" strokeLinecap="round" />
   </svg>
 )
-const keycaps = (
-  <span className="ml-auto flex gap-1">
-    {KEYS.map((k) => (
-      <kbd key={k} className="flex h-5 min-w-5 items-center justify-center rounded border border-border bg-surface px-1 font-sans text-[11px] font-medium text-muted-fg">
-        {k}
-      </kbd>
-    ))}
-  </span>
-)
+function Keycaps() {
+  const mac = useMac()
+  return (
+    <span className="ml-auto flex gap-1">
+      {[mac ? '⌘' : 'Ctrl', 'K'].map((k) => (
+        <kbd key={k} className="flex h-5 min-w-5 items-center justify-center rounded border border-border bg-surface px-1 font-sans text-[11px] font-medium text-muted-fg">
+          {k}
+        </kbd>
+      ))}
+    </span>
+  )
+}
 
 /** Opens the one search dialog: a compact field on wide screens, an icon on narrow ones. */
 function SearchButton() {
+  const mac = useMac()
   return (
-    <button onClick={openSearch} aria-label="Search docs and components" aria-keyshortcuts={MAC ? 'Meta+K' : 'Control+K'} className="flex h-8 w-8 items-center justify-center gap-2 rounded-md text-muted-fg transition-colors hover:bg-muted hover:text-ink lg:w-44 lg:justify-start lg:rounded-full lg:border lg:border-border lg:bg-muted/60 lg:px-3 lg:hover:border-line-strong lg:hover:bg-hover xl:w-56">
+    <button onClick={openSearch} aria-label="Search docs and components" aria-keyshortcuts={mac ? 'Meta+K' : 'Control+K'} className="flex h-8 w-8 items-center justify-center gap-2 rounded-md text-muted-fg transition-colors hover:bg-muted hover:text-ink lg:w-44 lg:justify-start lg:rounded-full lg:border lg:border-border lg:bg-muted/60 lg:px-3 lg:hover:border-line-strong lg:hover:bg-hover xl:w-56">
       {searchIcon}
       <span className="hidden text-left text-[13px] lg:inline">Search</span>
-      <span className="hidden lg:contents">{keycaps}</span>
+      <span className="hidden lg:contents">
+        <Keycaps />
+      </span>
     </button>
   )
 }

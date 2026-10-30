@@ -2,7 +2,7 @@
 import { lazy, Suspense, type ComponentType } from 'react'
 import { Route, Switch, useLocation } from 'wouter'
 import { Boundary, PageError } from './components/Boundary'
-import { Shell } from './components/Shell'
+import { Shell, isDocsRoute } from './components/Shell'
 import { DocPage } from './pages/DocPage'
 
 const page = <T,>(load: () => Promise<T>, pick: (m: T) => ComponentType<any>) => lazy(() => load().then((m) => ({ default: pick(m) })))
@@ -53,23 +53,24 @@ export function App() {
 
 function Pages() {
   const [loc] = useLocation()
+  const routes = (
+    <Switch>
+      <Route path="/" component={Home} />
+      <Route path="/components" component={ComponentsIndex} />
+      <Route path="/components/:name">{(p) => <ComponentPage name={p.name} />}</Route>
+      <Route path="/docs/:slug">{(p) => <DocPage slug={p.slug} />}</Route>
+      <Route path="/docs">{() => <DocPage slug="introduction" />}</Route>
+      <Route path="/examples" component={ExamplesIndex} />
+      <Route path="/examples/:name">{(p) => <ExamplePage name={p.name} />}</Route>
+      <Route path="/playground" component={Playground} />
+      <Route path="/symbols" component={Symbols} />
+      <Route path="/symbols/:id">{(p) => <SymbolPage id={p.id} />}</Route>
+      <Route>{() => <NotFound />}</Route>
+    </Switch>
+  )
   return (
     <Boundary key={loc} fallback={(error, retry) => <PageError error={error} retry={retry} />}>
-      <Suspense fallback={<div className="min-h-[70vh]" />}>
-        <Switch>
-          <Route path="/" component={Home} />
-          <Route path="/components" component={ComponentsIndex} />
-          <Route path="/components/:name">{(p) => <ComponentPage name={p.name} />}</Route>
-          <Route path="/docs/:slug">{(p) => <DocPage slug={p.slug} />}</Route>
-          <Route path="/docs">{() => <DocPage slug="introduction" />}</Route>
-          <Route path="/examples" component={ExamplesIndex} />
-          <Route path="/examples/:name">{(p) => <ExamplePage name={p.name} />}</Route>
-          <Route path="/playground" component={Playground} />
-          <Route path="/symbols" component={Symbols} />
-          <Route path="/symbols/:id">{(p) => <SymbolPage id={p.id} />}</Route>
-          <Route>{() => <NotFound />}</Route>
-        </Switch>
-      </Suspense>
+      {isDocsRoute(loc) ? <Suspense fallback={<div className="min-h-[70vh]" />}>{routes}</Suspense> : routes}
     </Boundary>
   )
 }
