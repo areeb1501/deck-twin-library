@@ -38,7 +38,25 @@ Machine-readable catalogue: `{{SITE}}/r/index.json`. Registry and docs: {{SITE}}
 
 Follow these steps in order. Each step produces something you can check before moving on.
 
-### Step 1. Read the drawings and extract the equipment list
+### Step 1. Read every document, then merge
+
+A plant usually comes from several documents. A P&ID is one source among them, so read everything you were given before you write anything.
+
+| Document | Use it for |
+|---|---|
+| P&ID, PFD | What connects to what, tags, line valves, instruments |
+| Line list | Line numbers, sizes, service, class, insulation, from and to |
+| Equipment list, datasheets, vendor drawings | Sizes, design pressure and temperature, power, nozzle sizes |
+| Plot plan, GA, elevations, isometrics | Positions, levels, rotation, rack routes |
+| Process description, design basis, cause & effect, emails, meeting notes | Intent, duty and standby, what is out of scope, gaps the drawings leave |
+
+When documents disagree on a fact:
+
+1. The newest revision wins.
+2. Otherwise the most specific document wins: a datasheet over an equipment list, a line list over a line number on a drawing, a plot plan over the layout rules.
+3. Never choose silently. Record each conflict, what you chose and why, for the report in Step 7.
+
+Keep a list of what each document contributed, and put every document and revision in the plant's `"source"`. Anything no document gives comes from [references/sizing.md](references/sizing.md) and is an assumption.
 
 If you were given P&IDs (images or PDFs):
 
@@ -55,10 +73,10 @@ If you were given P&IDs (images or PDFs):
 5. **Use line numbers as data.** A line number such as `8"-PG-2101-D6A-N` gives size, service, sequence, piping class and insulation. `<Plant>` and `deck-twin check` parse them, so put the line number in the line's `tag` and you get size, service, colour bands, class and insulation for free.
 6. **Use datasheets.** If you have equipment datasheets, the `Datasheet → props` column in pid-symbols.md tells you which field sets which prop.
 
-From the drawing, datasheet or description, write a table:
+From all of it, write one merged table:
 
-| tag | type (as drawn) | key data (size, pressure, flow, power) | upstream → downstream |
-|---|---|---|---|
+| tag | type | key data (size, pressure, flow, power) | upstream → downstream | source |
+|---|---|---|---|---|
 
 - Use the drawing's own tags (`V-1100`, `P-1500A/B`). For A/B pairs, list both.
 - Include only items that are physically on the plot: vessels, rotating equipment, exchangers, packages, tanks, wellheads, cranes and buildings.
@@ -84,7 +102,8 @@ Apply [references/layout.md](references/layout.md). In short:
 ### Step 4. Wire the lines
 
 - For every P&ID line, add `{ tag, from: "TAG.port", to: "TAG.port", service }`.
-- Port ids come only from `info`.
+- Port ids come only from `info`. Every line has a line number as its `tag`.
+- Where a line branches or two lines join, add a `tee` item and split the line. See "Branches" in [references/plant-json.md](references/plant-json.md).
 - Put line valves and inline instruments in the line's `inline` array, in flow order, with `at` between 0.1 and 0.9.
 - Long runs between distant items: route them over the `pipe-rack` with `via` and set `supports: false`.
 
@@ -114,8 +133,10 @@ deck-twin assemble plant.json      # installs components and writes src/PlantSce
 
 Tell the user:
 
-- what you built;
+- what you built, and which documents it came from;
+- every conflict between documents, and what you chose;
 - every assumption (sizes you chose, components substituted);
+- anything in the documents you couldn't read or model;
 - any remaining warnings.
 
 ---

@@ -3,7 +3,7 @@
 Deck Twin ships with an agent skill: a `SKILL.md` and reference files. With it, a coding agent can:
 
 - **find and install** the right component for a request ("add a seawater lift pump");
-- **assemble** a whole plant from a P&ID, PFD, equipment list or plain description. It extracts the equipment, maps it to components, sizes it, lays it out, wires the ports, checks the result and renders it.
+- **assemble** a whole plant from any mix of documents: P&IDs, PFDs, datasheets, equipment and line lists, plot plans, descriptions and notes. It extracts the equipment, maps it to components, sizes it, lays it out, wires the ports, checks the result and renders it.
 
 The steps are explicit and every name is looked up through the CLI, so a small, inexpensive model can do the assembly. A larger model can prepare the equipment list.
 

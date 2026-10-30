@@ -58,11 +58,28 @@ interface BatteryLimit {               // P&ID off-page connector / tie-in point
 }
 ```
 
+## Branches
+
+A line joins two ports, so it can't start or end in the middle of another line. Where a line branches, or two lines join, add a `tee` as an item and split the line at it.
+
+```json
+{ "tag": "TEE-303", "component": "tee", "position": [-8.3, 0.73, 4.5], "rotation": -90, "props": { "nps": 4, "branchNps": 4, "ends": "flanged", "rating": 300, "branch": "side", "service": "oil" } }
+```
+
+- **Ports:** `run-a`, `run-b` and `branch`. Set `"ends": "flanged"` so the lines can bolt on.
+- **Direction:** `run-a` and `run-b` lie on the tee's local X axis. `"branch"` is `"up"`, `"down"` or `"side"`, and `"side"` points along local +Z. `rotation` turns all of it.
+- **Height:** put the tee at the height of the line it sits on, not at y = 0.
+- **Tags:** the two pieces of a split line are separate lines, and tags are unique. Keep the document's number on one piece and add a letter to the sequence on the other: `4"-PO-303-D6A-N` and `4"-PO-303A-D6A-N`. A letter keeps the tag readable, but a suffix such as `-N-2` does not, and the size and service are then misread.
+
+## Ports move with props
+
+`deck-twin info` lists ports at the component's default props. Resizing an item moves its ports, so treat those positions as approximate when you place something against them, such as a PSV on a vessel. The renderer uses the real positions and reports what doesn't fit.
+
 ## Rules the checker enforces
 
 | Rule | Detail |
 |---|---|
-| Tags | Unique, both items and line tags. |
+| Tags | Every item and every line has one, and all are unique. |
 | `component` | Must be a registry name. |
 | `from` / `to` | Must name an existing item and one of its ports. |
 | `props` | Keys must be that component's props. Numbers must be in range, and select values must be valid options. |

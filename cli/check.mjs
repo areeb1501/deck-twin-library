@@ -66,7 +66,7 @@ export function checkPlant(spec, items) {
   const lineTags = new Set()
   for (const l of spec.lines ?? []) {
     const where = l.tag ?? `${l.from} → ${l.to}`
-    if (!l.tag) warn(where, 'Give the line a line number as "tag", e.g. 6"-PO-1001-C3A-N.')
+    if (!l.tag) err(where, 'Every line needs a line number as "tag", e.g. 6"-PO-1001-C3A-N.')
     else if (lineTags.has(l.tag)) err(where, 'Duplicate line tag.')
     lineTags.add(l.tag)
     if (l.service && !SERVICES.includes(l.service)) warn(where, `service "${l.service}" is not one of ${SERVICES.join(', ')}.`)

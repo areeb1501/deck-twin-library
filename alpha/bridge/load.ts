@@ -140,7 +140,7 @@ export async function loadLibraryPlant(json: Record<string, unknown>): Promise<P
   const plant: Plant = {
     name: spec.name || 'Imported plant',
     deck: {
-      name: spec.source ? spec.source : 'Imported plant',
+      name: spec.source && spec.source.length <= 80 ? spec.source : 'Imported plant',
       elevation: 0,
       extent: { minX: Math.min(...xs, 0) - 6, maxX: Math.max(...xs, 0) + 6, minZ: Math.min(...zs, 0) - 6, maxZ: Math.max(...zs, 0) + 6 },
       site: offshore ? 'none' : 'onshore',

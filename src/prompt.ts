@@ -36,8 +36,8 @@ Machine index of every component: ${site}/r/index.json
 3. \`deck-twin add <name>\`
 4. Use it with props in metres, \`nps\` in inches and \`rating\` as the ASME class.
 
-**Building a plant from P&IDs, a PFD, an equipment list or a description.** Follow Workflow B in SKILL.md:
-1. Tile large drawings with \`scripts/tile.py\`.
+**Building a plant from any mix of documents** (P&IDs, PFDs, datasheets, equipment and line lists, plot plans, descriptions, notes). Follow Workflow B in SKILL.md:
+1. Read every document before writing anything, and merge them. When they disagree, the newest revision and then the most specific document wins, and you report the conflict. Tile large drawings with \`scripts/tile.py\`.
 2. Read the drawing's own legend first, then match symbols with \`references/pid-legend.md\` and \`references/pid-symbols.md\`. Tag letters decide when a shape is ambiguous. Skip logical items: DCS/PLC bubbles, signal lines, notes.
 3. Make the equipment table, then map each row to a component with \`references/component-map.md\`.
 4. Size anything the drawing leaves out with \`references/sizing.md\`, and lay it out with \`references/layout.md\`.

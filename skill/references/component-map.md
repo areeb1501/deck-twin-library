@@ -165,7 +165,7 @@ Subsea items stand on the seabed: y = 0 is the mudline in their frame.
 | Hammer union (Fig 1502) | `hammer-union` (inline) |
 | Drain hub, tundish | `drain-hub` |
 
-Elbows, tees and flanges are made by the router. Add `elbow` and `tee` as items only for hand-built piping.
+The router makes elbows and flanges. It does not branch a line: where one line joins another, add a `tee` as an item (see "Branches" in [plant-json.md](plant-json.md)). Add `elbow` as an item only for hand-built piping.
 
 ## Instruments
 
