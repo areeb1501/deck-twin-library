@@ -89,8 +89,8 @@ export function compileSpec(spec: PlantSpec): CompileResult {
       else usedNozzles.set(key, l.tag)
     }
     const nps = l.nps ?? na?.nps ?? nb!.nps
-    if (na && na.nps !== nps) warnings.push(`${l.tag}: ${nps}" line on a ${na.nps}" nozzle (${'equipment' in l.from ? l.from.equipment : ''}/${na.id}) — no reducer is drawn`)
-    if (nb && nb.nps !== nps) warnings.push(`${l.tag}: ${nps}" line on a ${nb.nps}" nozzle (${'equipment' in l.to ? l.to.equipment : ''}/${nb.id}) — no reducer is drawn`)
+    if (na && na.nps !== nps) warnings.push(`${l.tag}: ${nps}" line on a ${na.nps}" nozzle (${'equipment' in l.from ? l.from.equipment : ''}/${na.id}): no reducer is drawn`)
+    if (nb && nb.nps !== nps) warnings.push(`${l.tag}: ${nps}" line on a ${nb.nps}" nozzle (${'equipment' in l.to ? l.to.equipment : ''}/${nb.id}): no reducer is drawn`)
     let route: Vec3[]
     if (l.route && l.route.length >= 2) route = l.route
     else {
@@ -101,7 +101,7 @@ export function compileSpec(spec: PlantSpec): CompileResult {
     const R = elbowRadius(nps)
     for (let i = 1; i < route.length - 2; i++) {
       const L = dist(route[i], route[i + 1])
-      if (L < 2 * R - 1e-3) { warnings.push(`${l.tag}: ${L.toFixed(2)} m leg between elbows is shorter than 2×R (${(2 * R).toFixed(2)} m) — tight elbows`); break }
+      if (L < 2 * R - 1e-3) { warnings.push(`${l.tag}: ${L.toFixed(2)} m leg between elbows is shorter than 2×R (${(2 * R).toFixed(2)} m): tight elbows`); break }
     }
     const rating = Math.max(na?.rating ?? 0, nb?.rating ?? 0) || 300
     const sysFrom = 'equipment' in l.from ? eqByTag.get(l.from.equipment)?.system : undefined
@@ -348,14 +348,14 @@ function autoRouteLine(
     const route = simplify(pts)
     if (!hasReversal(route)) return { route }
     if (elevation !== undefined) {
-      warning = 'route doubles back on itself at the given elevation — try another elevation or run order'
+      warning = 'route doubles back on itself at the given elevation: try another elevation or run order'
       return { route, warning }
     }
     via += 1.2
   }
   const a = ends[0] ?? freeEnd(fromSpec, ends[1]!)
   const b = ends[1] ?? freeEnd(toSpec, ends[0]!)
-  return { route: simplify([a.pos, b.pos]), warning: 'could not find a clean route — drawn straight' }
+  return { route: simplify([a.pos, b.pos]), warning: 'could not find a clean route: drawn straight' }
 }
 
 const add = (a: Vec3, d: Vec3, s: number): Vec3 => [a[0] + d[0] * s, a[1] + d[1] * s, a[2] + d[2] * s]
@@ -416,7 +416,7 @@ export function placeOnLine(l: PipeLine, at: number, clear: number): { seg: numb
     }
     if (best < 0) {
       best = lens.indexOf(Math.max(...lens))
-      warning = `no straight run on ${l.tag} is long enough (${(2 * clear).toFixed(2)} m) — placed on the longest one`
+      warning = `no straight run on ${l.tag} is long enough (${(2 * clear).toFixed(2)} m): placed on the longest one`
       return { seg: best, t: 0.5, warning }
     }
     acc = lens.slice(0, best).reduce((s, x) => s + x, 0)

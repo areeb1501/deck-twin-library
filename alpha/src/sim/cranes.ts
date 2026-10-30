@@ -142,8 +142,8 @@ export const useCranes = create<CraneStore>((set, get) => ({
     if (!r || !c) return `${tag}: no such crane`
     if (r.engine) return `${tag}: engine already running`
     const h = hazards(c, useSim.getState() as Partial<SimState>)
-    if (h.engineStop) return `${tag}: ${h.engineStop} — cannot restart`
-    if (h.stop) return `${tag}: ${h.stop} — cannot restart`
+    if (h.engineStop) return `${tag}: ${h.engineStop}: cannot restart`
+    if (h.stop) return `${tag}: ${h.stop}: cannot restart`
     set((s) => ({ cranes: { ...s.cranes, [tag]: { ...r, engine: true, clearFor: 0, activity: 'Engine restarted' } } }))
     logEvent(tag, `${tag} diesel engine restarted`, 'info')
     useSim.getState().record?.({ who: 'field', action: 'craneRestart', tag })
@@ -171,11 +171,11 @@ export const useCranes = create<CraneStore>((set, get) => ({
     const c = CRANE_BY_TAG.get(tag)
     const r = st.cranes[tag]
     if (!c || !r) return `${tag}: no such crane`
-    if (r.cargo) return `${tag} has the ${CARGO[r.cargo].label} on the hook — the cab takes control once it is landed`
-    if (r.phase === 'hookOn') return `${tag}: riggers are hooking on — the cab takes control once they are clear`
+    if (r.cargo) return `${tag} has the ${CARGO[r.cargo].label} on the hook: the cab takes control once it is landed`
+    if (r.phase === 'hookOn') return `${tag}: riggers are hooking on, the cab takes control once they are clear`
     if (st.manual) get().takeManual(null)
     const abandoned = r.phase === 'toPick' || r.phase === 'lowerPick'
-    set((s2) => ({ manual: tag, cmd: NO_CMD, cranes: { ...s2.cranes, [tag]: { ...r, back: false, activity: 'Manual — operator in cab' } } }))
+    set((s2) => ({ manual: tag, cmd: NO_CMD, cranes: { ...s2.cranes, [tag]: { ...r, back: false, activity: 'Manual: operator in cab' } } }))
     logEvent(tag, `${tag} under manual control from the cab${abandoned ? ' (lift postponed)' : ''}`, 'info')
     useSim.getState().record?.({ who: 'field', action: 'craneManual', tag, detail: 'operator in cab' })
     return null
@@ -348,7 +348,7 @@ function stepCrane(prev: CraneRun, c: CraneSite, dt: number, s: Partial<SimState
   if (h.engineStop && r.engine) {
     r.engine = false
     r.state = 'suspended'
-    r.reason = `${h.engineStop} — diesel engine shut down (ignition source)`
+    r.reason = `${h.engineStop}: diesel engine shut down (ignition source)`
     r.activity = r.cargo ? `Stopped with the ${CARGO[r.cargo].label} on the hook, brakes on` : 'Stopped, brakes on'
     logEvent(c.tag, `${c.tag} ${r.reason}`, 'trip')
     useSim.getState().record?.({ who: 'auto', action: 'craneEngineStop', tag: c.tag, detail: h.engineStop })
@@ -356,7 +356,7 @@ function stepCrane(prev: CraneRun, c: CraneSite, dt: number, s: Partial<SimState
   }
   if (!r.engine) {
     r.state = 'suspended'
-    if (!h.engineStop && !/restart/.test(r.reason ?? '')) r.reason = `Engine shut down by F&G — ${h.stop ? h.stop.toLowerCase() : 'clear, restart required'}`
+    if (!h.engineStop && !/restart/.test(r.reason ?? '')) r.reason = `Engine shut down by F&G: ${h.stop ? h.stop.toLowerCase() : 'clear, restart required'}`
     r.radius = radiusAt(d, r.luff)
     return r
   }
@@ -371,7 +371,7 @@ function stepCrane(prev: CraneRun, c: CraneSite, dt: number, s: Partial<SimState
   // the sea state only stops boat lifts: the schedule is boat lifts, so it stops the crane unless it is
   // mid-lift with a load bound for the deck
   const boatStop = seaBad && !!job && jobIsBoat(job)
-  if (!block && boatStop) block = `Hs ${hs.toFixed(1)} m > ${CRANE_LIMITS.hsBoat.toFixed(1)} m — supply-boat lifts suspended`
+  if (!block && boatStop) block = `Hs ${hs.toFixed(1)} m > ${CRANE_LIMITS.hsBoat.toFixed(1)} m: supply-boat lifts suspended`
   if (block) {
     if (!wasStopped || r.reason !== block) {
       if (!wasStopped) {
@@ -604,15 +604,15 @@ function stepManual(prev: CraneRun, c: CraneSite, dt: number, s: Partial<SimStat
   const h = hazards(c, s)
   if (h.engineStop && r.engine) {
     r.engine = false
-    r.reason = `${h.engineStop} — diesel engine shut down (ignition source)`
+    r.reason = `${h.engineStop}: diesel engine shut down (ignition source)`
     logEvent(c.tag, `${c.tag} ${r.reason}`, 'trip')
     useSim.getState().record?.({ who: 'auto', action: 'craneEngineStop', tag: c.tag, detail: h.engineStop })
     pushAlarm(c, r.reason)
   }
   if (!r.engine) {
     r.state = 'suspended'
-    if (!h.engineStop && !/restart/.test(r.reason ?? '')) r.reason = `Engine shut down by F&G — ${h.stop ? h.stop.toLowerCase() : 'clear, restart required'}`
-    r.activity = 'Manual — engine stopped, brakes on'
+    if (!h.engineStop && !/restart/.test(r.reason ?? '')) r.reason = `Engine shut down by F&G: ${h.stop ? h.stop.toLowerCase() : 'clear, restart required'}`
+    r.activity = 'Manual: engine stopped, brakes on'
     r.radius = radiusAt(d, r.luff)
     return r
   }
@@ -629,13 +629,13 @@ function stepManual(prev: CraneRun, c: CraneSite, dt: number, s: Partial<SimStat
     r.state = 'suspended'
     r.reason = block
     r.clearFor = 0
-    r.activity = 'Manual — interlock, controls locked'
+    r.activity = 'Manual: interlock, controls locked'
   } else {
     if (wasStopped) {
       r.clearFor += dt
       if (r.clearFor < CRANE_LIMITS.resumeAfter) {
         r.reason = `Resuming in ${Math.ceil(CRANE_LIMITS.resumeAfter - r.clearFor)} s (conditions clear)`
-        r.activity = 'Manual — interlock, controls locked'
+        r.activity = 'Manual: interlock, controls locked'
         r.radius = radiusAt(d, r.luff)
         return r
       }
@@ -646,7 +646,7 @@ function stepManual(prev: CraneRun, c: CraneSite, dt: number, s: Partial<SimStat
     if (performance.now() - drivenAt > 1000) applyCmd(r, c, cmd, Math.min(dt / speed, 2))
     r.reason = null
     r.state = cmd.slew || cmd.luff || cmd.hoist ? 'lifting' : 'idle'
-    r.activity = 'Manual — operator in cab'
+    r.activity = 'Manual: operator in cab'
   }
   r.radius = radiusAt(d, r.luff)
   return r
@@ -668,7 +668,7 @@ export function craneAlarms(): PluginAlarm[] {
   const cr = useCranes.getState().cranes
   for (const c of CRANES) {
     const r = cr[c.tag]
-    if (r && !r.engine) out.push({ key: `${c.tag}:ENGINE`, tag: c.tag, text: `${c.tag} crane diesel engine shut down — ${r.reason ?? 'F&G'}`, priority: 2, kind: 'equipment', platform: c.platform })
+    if (r && !r.engine) out.push({ key: `${c.tag}:ENGINE`, tag: c.tag, text: `${c.tag} crane diesel engine shut down: ${r.reason ?? 'F&G'}`, priority: 2, kind: 'equipment', platform: c.platform })
   }
   return out
 }

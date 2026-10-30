@@ -154,7 +154,7 @@ export function OperationsPanel() {
       </div>
       <div className="muted small ops-note">
         Production efficiency = exported oil + gas (boe) ÷ what the wells could give at their reference chokes. Choking back, flaring, trips and
-        restarts all count — real UK North Sea fields average about 75–80 %.
+        restarts all count: real UK North Sea fields average about 75–80 %.
       </div>
 
       {r.constraints.length > 0 && (
@@ -175,7 +175,7 @@ export function OperationsPanel() {
               <span className={`mono small ops-sd ${s.resetAt ? 'reset' : ''}`}>{s.level}</span>
               <span className="small ell" title={s.cause}>
                 {s.platform}
-                {s.zone ? ` · ${s.zone}` : ''} — {s.cause} <span className="muted">({fmtClock(s.at, false)})</span>
+                {s.zone ? ` · ${s.zone}` : ''} - {s.cause} <span className="muted">({fmtClock(s.at, false)})</span>
               </span>
               {!s.resetAt ? (
                 <button onClick={() => setWhy(resetShutdown(s.id))}>Reset</button>
@@ -196,7 +196,7 @@ export function OperationsPanel() {
       )}
 
       {lossTotal > 1 && (
-        <Section title={`Deferred production — ${fmt(lossTotal)} boe this session`}>
+        <Section title={`Deferred production: ${fmt(lossTotal)} boe this session`}>
           {lossRows.map(([k, v]) => (
             <div key={k} className="ops-loss small">
               <span className="ell">{LOSS_LABEL[k]}</span>
@@ -210,7 +210,7 @@ export function OperationsPanel() {
       )}
 
       {wells.length > 0 && (
-        <Section title="Wells — chokes">
+        <Section title="Wells: chokes">
           {wells.map((w) => {
             const on = knobs.wellOnline[w.tag] ?? true
             const c = knobs.chokes[w.tag] ?? 60
@@ -306,7 +306,7 @@ export function OperationsPanel() {
             <Gauge label="Cold vent" value={proc.vent} unit="MMscfd" hi={1} max={5} />
           </div>
           <div className="muted small ops-note">
-            Oil and gas leave Alpha over the west bridge and down RP's risers — a closed riser ESDV blocks export. Water injection replaces what the wells take out;
+            Oil and gas leave Alpha over the west bridge and down RP's risers: a closed riser ESDV blocks export. Water injection replaces what the wells take out;
             without it the reservoir pressure, and the wells with it, decline over hours.
           </div>
           {['P-W300A', 'P-W300B', 'P-W310A', 'P-W310B'].filter(has).map((tg) => (
@@ -341,7 +341,7 @@ export function OperationsPanel() {
         <Section title="Drilling">
           <label className="check">
             <input type="checkbox" checked={knobs.drilling} onChange={(e) => setKnob('drilling', e.target.checked)} />
-            <span>Drilling ahead (well A-06) — adds 3.5 MW load</span>
+            <span>Drilling ahead (well A-06): adds 3.5 MW load</span>
           </label>
           <Machine tag="DR-100" label="Drilling rig" />
         </Section>
@@ -349,7 +349,7 @@ export function OperationsPanel() {
 
       <Section title="Event log">
         <div className="ops-events">
-          {events.length === 0 && <div className="muted small">No events — plant in normal operation.</div>}
+          {events.length === 0 && <div className="muted small">No events: plant in normal operation.</div>}
           {events.map((e) => (
             <div key={e.id} className={`small ops-ev ${e.level}`}>
               <span className="mono muted">{fmtClock(e.t, false)}</span> {e.text}

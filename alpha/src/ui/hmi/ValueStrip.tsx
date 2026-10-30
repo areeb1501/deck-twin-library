@@ -15,7 +15,7 @@ import { useFinance } from '../../sim/finance'
 import { useStore } from '../../state/store'
 import './econ.css'
 
-const fmtN = (v: number) => (Number.isFinite(v) ? Math.round(v).toLocaleString() : '—')
+const fmtN = (v: number) => (Number.isFinite(v) ? Math.round(v).toLocaleString() : '-')
 
 export function ValueStrip({ variant = 'console', className, onOpen }: { variant?: 'hud' | 'console'; className?: string; onOpen?: () => void }) {
   const rate = useFinance((s) => s.rate)
@@ -39,20 +39,20 @@ export function ValueStrip({ variant = 'console', className, onOpen }: { variant
       tabIndex={0}
       onClick={open}
       onKeyDown={onKey}
-      title="Asset & economics — simulated values at an assumed price deck. Click to open."
+      title="Asset & economics: simulated values at an assumed price deck. Click to open."
       data-value-strip={variant}
     >
       <div className="vs-i">
         <span className="l">Oil</span>
         <span className="v">
-          {live ? fmtN(oil) : '—'}
+          {live ? fmtN(oil) : '-'}
           <small>bbl/d</small>
         </span>
       </div>
       <div className="vs-i acc">
         <span className="l">Revenue</span>
         <span className="v">
-          {live ? fmtUsd(rate.revenue) : '—'}
+          {live ? fmtUsd(rate.revenue) : '-'}
           <small>/d</small>
         </span>
       </div>
@@ -66,7 +66,7 @@ export function ValueStrip({ variant = 'console', className, onOpen }: { variant
       <div className={`vs-i ${rate.cash < 0 ? 'loss' : 'acc'}`}>
         <span className="l">Cash</span>
         <span className="v">
-          {live ? fmtUsd(rate.cash) : '—'}
+          {live ? fmtUsd(rate.cash) : '-'}
           <small>/d</small>
         </span>
       </div>

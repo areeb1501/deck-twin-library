@@ -88,7 +88,7 @@ export const CAUSE_EFFECT: CauseEffectRow[] = [
   // ---------------------------------------------------------------- machinery (USD)
   {
     id: 'k2200-surge',
-    cause: 'Compressor surge — anti-surge valve FV-2201 failed (high vibration)',
+    cause: 'Compressor surge: anti-surge valve FV-2201 failed (high vibration)',
     level: 'USD',
     scope: 'unit',
     effects: ['K-2200 trips (local reset)', 'HP gas goes to flare through the pressure control valve'],
@@ -140,7 +140,7 @@ export const CAUSE_EFFECT: CauseEffectRow[] = [
     cause: 'Confirmed gas, 2ooN at high setpoint in one fire zone',
     level: 'ESD2',
     scope: 'zone',
-    effects: ['PSD of the platform', 'Zone ESD valves close, zone blowdown to flare', 'Ignition sources in the zone isolated', 'HVAC dampers close', 'General alarm (gas) — muster'],
+    effects: ['PSD of the platform', 'Zone ESD valves close, zone blowdown to flare', 'Ignition sources in the zone isolated', 'HVAC dampers close', 'General alarm (gas): muster'],
     loss: 'controlSafety',
   },
   {
@@ -148,7 +148,7 @@ export const CAUSE_EFFECT: CauseEffectRow[] = [
     cause: 'Flame seen by one detector (1ooN)',
     level: 'alarm',
     scope: 'zone',
-    effects: ['High-priority alarm', 'Operator confirms by CCTV — can release deluge manually'],
+    effects: ['High-priority alarm', 'Operator confirms by CCTV: can release deluge manually'],
     loss: 'controlSafety',
   },
   {
@@ -156,7 +156,7 @@ export const CAUSE_EFFECT: CauseEffectRow[] = [
     cause: 'Confirmed fire, 2ooN flame (or 2ooN heat / smoke in a module)',
     level: 'ESD1',
     scope: 'platform',
-    effects: ['Total platform ESD: every ESD valve closes', 'Full blowdown to flare', 'Deluge in the fire zone', 'Firewater pumps start', 'Turbines to diesel', 'General alarm (fire) — muster'],
+    effects: ['Total platform ESD: every ESD valve closes', 'Full blowdown to flare', 'Deluge in the fire zone', 'Firewater pumps start', 'Turbines to diesel', 'General alarm (fire): muster'],
     loss: 'controlSafety',
   },
   // ---------------------------------------------------------------- manual

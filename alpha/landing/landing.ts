@@ -1,21 +1,30 @@
 /**
  * /alpha landing page: plain HTML, no WebGL. Clips and stills come from the R2 bucket through /alpha/media (worker.js).
  * A clip loads as it nears the screen and plays only while it's on it. With reduced motion or data saver on, the posters
- * stay still and no video is fetched.
+ * stay still and no video is fetched. The two long films (data-film) come in three cuts: a small one for phones, AV1 where the
+ * browser plays it, and H.264 for the rest.
  */
 import '@fontsource-variable/inter'
 import './landing.css'
 import { initSearch } from './search'
 
-const MEDIA = '/alpha/media/v1'
+const MEDIA = '/alpha/media/v2'
 const connection = (navigator as Navigator & { connection?: { saveData?: boolean } }).connection
 const still = matchMedia('(prefers-reduced-motion: reduce)').matches || !!connection?.saveData
 
 const clips = [...document.querySelectorAll<HTMLVideoElement>('video[data-clip]')]
 
+const av1 = !!document.createElement('video').canPlayType('video/mp4; codecs="av01.0.08M.08"')
+const small = matchMedia('(max-width: 820px)').matches
+
+function source(v: HTMLVideoElement) {
+  const cut = v.dataset.film === undefined ? '' : small ? '-sm' : av1 ? '.av1' : ''
+  return `${MEDIA}/${v.dataset.clip}${cut}.mp4`
+}
+
 function prepare(v: HTMLVideoElement) {
   if (!v.poster) v.poster = `${MEDIA}/${v.dataset.clip}.webp`
-  if (!still && !v.src) v.src = `${MEDIA}/${v.dataset.clip}.mp4`
+  if (!still && !v.src) v.src = source(v)
 }
 const play = (v: HTMLVideoElement) => void v.play().catch(() => {})
 

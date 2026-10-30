@@ -21,7 +21,7 @@ export function ScenarioChip() {
   const open = () => useStore.getState().setHmi('scenarios')
   if (title !== undefined) {
     return (
-      <button className="scn-chip" onClick={open} title="Training scenario running — open the Scenarios page" data-scn-chip="running">
+      <button className="scn-chip" onClick={open} title="Training scenario running: open the Scenarios page" data-scn-chip="running">
         <span className="dot" />
         <span className="ttl">{title}</span>
         <span className="sep">·</span>
@@ -40,7 +40,7 @@ export function ScenarioChip() {
     return (
       <button className="scn-chip done" onClick={open} data-scn-chip="done">
         <span className="dot" />
-        <span>Scenario complete — score {lastScore}</span>
+        <span>Scenario complete: score {lastScore}</span>
         <span className="sep">·</span>
         <span>open debrief</span>
       </button>

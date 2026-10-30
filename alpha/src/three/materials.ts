@@ -150,7 +150,7 @@ function applyWeather(m: THREE.Material, role: MaterialRole) {
         `#include <project_vertex>
         vec4 w_wp = vec4(transformed, 1.0);
         #ifdef USE_BATCHING
-          w_wp = batchingMatrix * w_wp; // perf: static batching (scene/perf/StaticBatcher) — world position per batched item
+          w_wp = batchingMatrix * w_wp; // perf: static batching (scene/perf/StaticBatcher), world position per batched item
         #endif
         #ifdef USE_INSTANCING
           w_wp = instanceMatrix * w_wp;

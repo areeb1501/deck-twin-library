@@ -12,7 +12,7 @@ import type { PlantSpec } from '../spec'
 export const separationTrainSpec: PlantSpec = {
   version: 1,
   name: 'Charlie Separation Train (from spec)',
-  source: 'Example — hand-written from a simplified P&ID',
+  source: 'Example: hand-written from a simplified P&ID',
   equipment: [
     { tag: 'M-100', type: 'manifold', name: 'Production Manifold', params: { slots: 3, testNps: 0, prodNps: 12 } },
     { tag: 'V-101', type: 'horizontalVessel', name: 'Production Separator', params: { service: '3-phase', id: 2.6, tt: 9, inletNps: 12, gasNps: 8, liquidNps: 6, waterNps: 4 }, design: { pressure: '45 barg', temperature: '-10 / 110 °C' } },

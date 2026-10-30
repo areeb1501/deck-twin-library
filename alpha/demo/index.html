@@ -8,15 +8,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Deck Twin: Alpha field digital twin</title>
     <style>
-      /* back to the landing page; it sits under the twin's own panels, which open over it */
-      #about { position: fixed; top: 14px; right: 14px; z-index: 5; padding: 6px 12px; border-radius: 999px; font: 500 13px/1.3 system-ui, sans-serif; color: #e8e8ec; text-decoration: none; background: rgb(14 15 19 / 0.72); border: 1px solid rgb(255 255 255 / 0.14); }
-      #about:hover { background: rgb(14 15 19 / 0.92); }
-      .lite-body #about { display: none; }
+      /*
+       * The full twin only, set by lite/boot.ts: the page's 90 % is its new 100 %. The UI layers scale, the 3D viewport does not:
+       * R3F sizes the canvas from its own measurements, so a zoomed canvas falls short of the window. Labels shrink by font size because
+       * their position is a JS transform. The minimap's click maths uses plain px, so it stays at 100 %.
+       */
+      html.twin-scale .app > :not(.viewport, .minimap), html.twin-scale .fgp-legend { zoom: 0.9; }
+      html.twin-scale .label-layer .tag-chip { font-size: 10px; }
     </style>
   </head>
   <body>
     <div id="root"></div>
-    <a id="about" href="/alpha/">About this demo</a>
     <script type="module" src="/lite/boot.ts"></script>
   </body>
 </html>

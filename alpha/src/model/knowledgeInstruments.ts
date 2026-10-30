@@ -39,12 +39,12 @@ export const INSTRUMENT_KNOWLEDGE: Knowledge[] = [
       'Heat tracing on impulse lines in hydrate / waxy service',
     ],
     issues: [
-      'Plugged or frozen impulse line (hydrates, wax, sand) — reading goes flat or sluggish',
-      'Manifold left closed or equalising valve open after maintenance — false steady reading',
-      'Diaphragm damage or fill-fluid loss from over-pressure or corrosion — drift / offset',
-      'Liquid trapped in gas impulse lines (or gas in liquid lines) — offset error',
-      'Water ingress into the housing or cable gland — intermittent or bad-quality signal',
-      'Wrong range or damping configured after replacement — trip too slow or never reached',
+      'Plugged or frozen impulse line (hydrates, wax, sand): reading goes flat or sluggish',
+      'Manifold left closed or equalising valve open after maintenance: false steady reading',
+      'Diaphragm damage or fill-fluid loss from over-pressure or corrosion: drift / offset',
+      'Liquid trapped in gas impulse lines (or gas in liquid lines): offset error',
+      'Water ingress into the housing or cable gland: intermittent or bad-quality signal',
+      'Wrong range or damping configured after replacement: trip too slow or never reached',
     ],
     maintenance: [
       'Calibration / as-found check typically every 12–24 months (risk-based)',
@@ -65,7 +65,7 @@ export const INSTRUMENT_KNOWLEDGE: Knowledge[] = [
     id: 'inst-pi',
     title: 'Pressure Indicator (PI)',
     summary:
-      'A pressure indication point — either a local digital indicator or a DCS display-only tag — used by operators to read pressure without any control or trip function.',
+      'A pressure indication point, either a local digital indicator or a DCS display-only tag, used by operators to read pressure without any control or trip function.',
     howItWorks:
       'A PI is any pressure measurement whose only job is indication. Locally it may be a loop-powered digital display or an indicating transmitter; in the control system it is the display tag of a transmitter that has no controller attached. Because it has no control action, it is often used to check equipment condition, e.g. pump discharge pressure or pressure after a regulator.',
     useCases: [
@@ -82,7 +82,7 @@ export const INSTRUMENT_KNOWLEDGE: Knowledge[] = [
     ],
     instrumentation: ['Root valve and isolation / bleed valve', 'Loop-powered display or DCS indication tag', 'Optional HART for remote diagnostics'],
     issues: [
-      'Blocked tapping gives stale reading — operators trust a wrong number',
+      'Blocked tapping gives stale reading: operators trust a wrong number',
       'Display fogging or battery / loop power failure',
       'Pulsation from reciprocating equipment causing unreadable fluctuations (fit snubber)',
       'Incorrect units or range after replacement',
@@ -114,7 +114,7 @@ export const INSTRUMENT_KNOWLEDGE: Knowledge[] = [
       'Test gauges during hydrotests and leak tests',
     ],
     parameters: [
-      p('Normal reading', '1/3 – 2/3', 'of full scale', 'never above 75 % for steady pressure, 2/3 for pulsating'),
+      p('Normal reading', '1/3 to 2/3', 'of full scale', 'never above 75 % for steady pressure, 2/3 for pulsating'),
       p('Accuracy class', '1.0 (process) / 0.25 (test)', '% of span', 'EN 837-1 / ASME B40.100 grade'),
       p('Dial size', '100–160', 'mm', 'typical offshore'),
       p('Over-range protection', '1.3×', 'full scale', 'or fit an over-pressure protector'),
@@ -122,11 +122,11 @@ export const INSTRUMENT_KNOWLEDGE: Knowledge[] = [
     ],
     instrumentation: ['Root valve plus gauge isolation / bleed (block and bleed) valve', 'Pulsation snubber or siphon where needed', 'Diaphragm seal in dirty or corrosive service'],
     issues: [
-      'Pointer stuck or bent from over-pressure — Bourdon tube permanently deformed',
-      'Fill fluid leakage or discoloured window — unreadable dial',
-      'Needle flutter from pump pulsation — wears movement, fit a snubber',
+      'Pointer stuck or bent from over-pressure: Bourdon tube permanently deformed',
+      'Fill fluid leakage or discoloured window: unreadable dial',
+      'Needle flutter from pump pulsation: wears movement, fit a snubber',
       'Zero offset after mechanical shock',
-      'Blocked tapping in waxy or sandy service — reads zero while line is live',
+      'Blocked tapping in waxy or sandy service: reads zero while line is live',
     ],
     maintenance: [
       'Check zero when isolated and calibrate / replace every 24–36 months (risk-based)',
@@ -165,11 +165,11 @@ export const INSTRUMENT_KNOWLEDGE: Knowledge[] = [
     ],
     instrumentation: ['Solid-drilled thermowell with flanged connection', 'Head-mounted or remote HART transmitter', 'Test thermowell next to custody / critical points', 'SIS input for TAHH'],
     issues: [
-      'Thermowell fatigue failure from vortex shedding — loss of containment',
-      'Poor sensor-to-well contact (no spring loading) — slow, low reading',
-      'Open-circuit or broken RTD — transmitter drives to upscale / downscale burnout',
-      'Fouling or wax build-up on the thermowell — lag in reading',
-      'Moisture in terminal head — ground faults and noise',
+      'Thermowell fatigue failure from vortex shedding: loss of containment',
+      'Poor sensor-to-well contact (no spring loading): slow, low reading',
+      'Open-circuit or broken RTD: transmitter drives to upscale / downscale burnout',
+      'Fouling or wax build-up on the thermowell: lag in reading',
+      'Moisture in terminal head: ground faults and noise',
     ],
     maintenance: [
       'Loop check / calibration every 24–36 months; sensor comparison with test thermometer',
@@ -198,7 +198,7 @@ export const INSTRUMENT_KNOWLEDGE: Knowledge[] = [
     ],
     parameters: [
       p('Accuracy', '±1', '% of full scale', 'EN 13190 class 1, typical'),
-      p('Normal reading', '1/3 – 2/3', 'of scale', ''),
+      p('Normal reading', '1/3 to 2/3', 'of scale', ''),
       p('Dial size', '100–150', 'mm', ''),
       p('Response time', '30–90', 's', 'in thermowell'),
     ],
@@ -206,7 +206,7 @@ export const INSTRUMENT_KNOWLEDGE: Knowledge[] = [
     issues: [
       'Pointer stuck or off-zero after over-temperature',
       'Fogged or cracked window from thermal shock or sun',
-      'Stem not bottomed in the thermowell — reads low and slow',
+      'Stem not bottomed in the thermowell: reads low and slow',
       'Vibration-induced wear of the pointer',
     ],
     maintenance: ['Compare with calibrated reference every 24–36 months', 'Replace damaged or unreadable gauges', 'Add heat-transfer paste in the well where specified'],
@@ -243,11 +243,11 @@ export const INSTRUMENT_KNOWLEDGE: Knowledge[] = [
       'Heat tracing on bridles in waxy service',
     ],
     issues: [
-      'Foam or emulsion layer giving false surface — level reads high / unstable',
+      'Foam or emulsion layer giving false surface: level reads high / unstable',
       'Density change (water cut, temperature) causing DP level errors',
-      'Wax, sand or scale build-up on the GWR probe or displacer — stuck or drifting reading',
-      'Plugged bridle nozzles — level in bridle no longer represents vessel',
-      'Interface lost in thick emulsion — water carryover to oil outlet or oil to water',
+      'Wax, sand or scale build-up on the GWR probe or displacer: stuck or drifting reading',
+      'Plugged bridle nozzles: level in bridle no longer represents vessel',
+      'Interface lost in thick emulsion: water carryover to oil outlet or oil to water',
     ],
     maintenance: [
       'Compare LT against magnetic level gauge each shift / on rounds',
@@ -283,9 +283,9 @@ export const INSTRUMENT_KNOWLEDGE: Knowledge[] = [
     ],
     instrumentation: ['Top and bottom isolation valves and drain / vent', 'Clamp-on level switches or GWR in the same chamber', 'Heat tracing in waxy service'],
     issues: [
-      'Float stuck from wax, sand or scale — gauge shows a frozen level',
-      'Flaps flipped by vibration or external magnet — false indication',
-      'Plugged connection nozzles — gauge does not follow vessel',
+      'Float stuck from wax, sand or scale: gauge shows a frozen level',
+      'Flaps flipped by vibration or external magnet: false indication',
+      'Plugged connection nozzles: gauge does not follow vessel',
       'Float collapsed by over-pressure or wrong density float fitted',
     ],
     maintenance: [
@@ -325,9 +325,9 @@ export const INSTRUMENT_KNOWLEDGE: Knowledge[] = [
     ],
     instrumentation: ['DP transmitter plus PT and TT for compensation', 'Flow computer and gas chromatograph (fiscal)', 'Senior orifice fitting for plate change under pressure', 'Anti-surge controller input'],
     issues: [
-      'Orifice plate edge erosion or reversed plate — under-reading',
-      'Liquid carryover into gas meter — over-reading and wet-gas error',
-      'Ultrasonic transducer fouling or path failure — reduced accuracy',
+      'Orifice plate edge erosion or reversed plate: under-reading',
+      'Liquid carryover into gas meter: over-reading and wet-gas error',
+      'Ultrasonic transducer fouling or path failure: reduced accuracy',
       'Wrong gas composition or density in flow computer',
       'Impulse line plugging or hydrates on DP cells',
     ],
@@ -368,9 +368,9 @@ export const INSTRUMENT_KNOWLEDGE: Knowledge[] = [
     ],
     instrumentation: ['Coriolis / magmeter / orifice + DP cell', 'Flow computer or DCS totaliser', 'Prover or master meter connections for fiscal oil', 'Minimum-flow control valve on pumps'],
     issues: [
-      'Gas entrainment in liquid — Coriolis density and flow errors',
-      'Wax or scale coating on tubes / electrodes — drift',
-      'Erosion of orifice edge by sand — under-reading',
+      'Gas entrainment in liquid: Coriolis density and flow errors',
+      'Wax or scale coating on tubes / electrodes: drift',
+      'Erosion of orifice edge by sand: under-reading',
       'Zero shift on Coriolis due to stress or temperature',
       'Empty-pipe or partially filled conditions on magmeters',
     ],
@@ -410,10 +410,10 @@ export const INSTRUMENT_KNOWLEDGE: Knowledge[] = [
     ],
     instrumentation: ['5-valve manifold with equalising valve', 'Paired PDTs for hydrocyclone PDR controller', 'PDV / reject valve on hydrocyclone overflow'],
     issues: [
-      'Equalising valve left open — reads zero',
-      'One impulse leg plugged — reading drifts or goes negative',
+      'Equalising valve left open: reads zero',
+      'One impulse leg plugged: reading drifts or goes negative',
       'Over-range from one-sided pressurisation damages the cell',
-      'Filter bypass or collapsed element — dP falls unexpectedly',
+      'Filter bypass or collapsed element: dP falls unexpectedly',
     ],
     maintenance: [
       'Zero check with equalising valve, every 6–12 months',
@@ -423,7 +423,7 @@ export const INSTRUMENT_KNOWLEDGE: Knowledge[] = [
     safety: [
       'Follow manifold valve sequence (equalise first) to avoid over-ranging',
       'Filter change-out requires isolation, depressurisation and gas-free check',
-      'Pyrophoric iron sulphide on sour filter elements can ignite in air — keep wet',
+      'Pyrophoric iron sulphide on sour filter elements can ignite in air: keep wet',
     ],
     standards: ['API RP 551', 'NORSOK I-001', 'IEC 60079 (Ex)'],
   },
@@ -437,7 +437,7 @@ export const INSTRUMENT_KNOWLEDGE: Knowledge[] = [
       'Fixed ambient detectors use electrochemical cells or metal-oxide-semiconductor sensors that produce a signal proportional to H₂S concentration. They are placed low to medium height near likely release points since H₂S is heavier than air. Alarms at the plant are typically 10 ppm (low, warning) and 20 ppm (high) and drive beacons and sounders and, on drilling, muster to upwind safe briefing areas. Process H₂S analysers use lead-acetate tape or UV / TDLAS spectroscopy to monitor gas quality.',
     useCases: [
       'Drill floor / rotary table monitoring during drilling into sour zones',
-      'Shale shaker and mud pit room — H₂S released from returning mud',
+      'Shale shaker and mud pit room: H₂S released from returning mud',
       'Process modules on sour fields',
       'Export / fuel gas H₂S quality monitoring',
       'Produced water degasser and tank vents',
@@ -452,10 +452,10 @@ export const INSTRUMENT_KNOWLEDGE: Knowledge[] = [
     ],
     instrumentation: ['Fire and gas panel inputs with beacons and sounders', 'Portable personal H₂S monitors (worn on drill floor)', 'Breathing air cascade / escape sets at work locations', 'Wind sock for muster direction'],
     issues: [
-      'Sensor poisoning or drying in hot / dry environments — loss of sensitivity',
-      'Cross-sensitivity to other gases (SO₂, mercaptans) — nuisance alarms',
+      'Sensor poisoning or drying in hot / dry environments: loss of sensitivity',
+      'Cross-sensitivity to other gases (SO₂, mercaptans): nuisance alarms',
       'Mud spray or water blocking the sensor head',
-      'Sensor not replaced at end of life — fails to detect',
+      'Sensor not replaced at end of life: fails to detect',
     ],
     maintenance: [
       'Bump test with known concentration monthly (or as F&G philosophy)',
@@ -488,15 +488,15 @@ export const INSTRUMENT_KNOWLEDGE: Knowledge[] = [
       p('Discharge limit', '30', 'mg/l', 'OSPAR monthly average, typical regulatory limit'),
       p('Normal reading', '10–20', 'ppm', 'plant nominal 14'),
       p('High alarm', '29', 'ppm', 'plant setting'),
-      p('High-high alarm', '40', 'ppm', 'plant setting — consider diverting to reinjection / slop'),
+      p('High-high alarm', '40', 'ppm', 'plant setting: consider diverting to reinjection / slop'),
       p('Correlation to lab', '± 10–20', '%', 'checked monthly typical'),
     ],
     instrumentation: ['Sample conditioning and auto-cleaning window', 'Hydrocyclone PDR control', 'Produced water flow meter for mass discharge', 'Lab GC-FID reference sampling'],
     issues: [
-      'Window fouling by oil, scale or biofilm — drift high or low',
-      'Gas bubbles in sample — scattering errors',
-      'Change in crude aromatic content — fluorescence correlation shifts',
-      'Sample line blockage — stale reading',
+      'Window fouling by oil, scale or biofilm: drift high or low',
+      'Gas bubbles in sample: scattering errors',
+      'Change in crude aromatic content: fluorescence correlation shifts',
+      'Sample line blockage: stale reading',
     ],
     maintenance: [
       'Weekly window clean check and validation',
@@ -504,7 +504,7 @@ export const INSTRUMENT_KNOWLEDGE: Knowledge[] = [
       'Annual vendor service and calibration',
     ],
     safety: [
-      'Produced water can contain H₂S, benzene and NORM — use PPE',
+      'Produced water can contain H₂S, benzene and NORM: use PPE',
       'Excursions must be reported to the regulator per permit',
       'UV source and electrical components are Ex rated',
     ],
@@ -516,7 +516,7 @@ export const INSTRUMENT_KNOWLEDGE: Knowledge[] = [
     summary:
       'Continuously measures the water dew point of the dried gas downstream of the TEG contactor to prove the gas meets export / pipeline specification.',
     howItWorks:
-      'A conditioned sample of dry gas flows over a sensor — typically a chilled-mirror (direct dew point), aluminium oxide or quartz crystal microbalance hygrometer, or a tunable diode laser (TDLAS) measuring water content directly. The result is reported as dew point at line pressure, or converted to a reference pressure. Hydrocarbon dew point (cricondentherm) is sometimes measured by a separate chilled-mirror analyser to confirm no liquid hydrocarbons drop out in the pipeline.',
+      'A conditioned sample of dry gas flows over a sensor: typically a chilled-mirror (direct dew point), aluminium oxide or quartz crystal microbalance hygrometer, or a tunable diode laser (TDLAS) measuring water content directly. The result is reported as dew point at line pressure, or converted to a reference pressure. Hydrocarbon dew point (cricondentherm) is sometimes measured by a separate chilled-mirror analyser to confirm no liquid hydrocarbons drop out in the pipeline.',
     useCases: [
       'Export gas water dew point compliance (pipeline specification)',
       'TEG dehydration performance monitoring (lean TEG purity, circulation)',
@@ -532,10 +532,10 @@ export const INSTRUMENT_KNOWLEDGE: Knowledge[] = [
     ],
     instrumentation: ['Heated sample line and conditioning system', 'TEG contactor and regeneration instrumentation (reboiler temperature, lean TEG flow)', 'Export gas metering / GC'],
     issues: [
-      'Glycol carryover contaminating the sensor — slow response / high reading',
-      'Sample line condensation or leak — false wet or dry reading',
-      'Sensor drift (aluminium oxide) — needs regular verification',
-      'Poor lean TEG concentration or low circulation — real dew point excursion',
+      'Glycol carryover contaminating the sensor: slow response / high reading',
+      'Sample line condensation or leak: false wet or dry reading',
+      'Sensor drift (aluminium oxide): needs regular verification',
+      'Poor lean TEG concentration or low circulation: real dew point excursion',
     ],
     maintenance: [
       'Verify against portable chilled mirror monthly',
@@ -544,7 +544,7 @@ export const INSTRUMENT_KNOWLEDGE: Knowledge[] = [
     ],
     safety: [
       'Sample system carries high-pressure gas; isolate and vent before work',
-      'Off-spec gas may form hydrates in export line — notify control room',
+      'Off-spec gas may form hydrates in export line: notify control room',
       'Analyser house requires gas detection and ventilation',
     ],
     standards: ['ISO 6327', 'ISO 18453', 'ISO 23874 (hydrocarbon dew point)', 'ISO 10715 (gas sampling)', 'NORSOK I-001'],
@@ -569,14 +569,14 @@ export const INSTRUMENT_KNOWLEDGE: Knowledge[] = [
     ],
     instrumentation: ['Desiccant dryer with tower switching valves', 'Instrument air receiver pressure transmitter', 'Oil carry-over indicator on compressor outlet'],
     issues: [
-      'Desiccant saturated or contaminated with oil — dew point rises',
-      'Tower switching valve stuck — no regeneration',
+      'Desiccant saturated or contaminated with oil: dew point rises',
+      'Tower switching valve stuck: no regeneration',
       'Sensor drift over time',
-      'Wet air reaching actuators — corrosion, ice in cold weather, sticking valves',
+      'Wet air reaching actuators: corrosion, ice in cold weather, sticking valves',
     ],
     maintenance: ['Check sensor against portable meter every 6 months', 'Replace desiccant per vendor (3–5 years)', 'Calibrate annually'],
     safety: [
-      'Instrument air is a safety-critical utility — low pressure causes fail-safe trips',
+      'Instrument air is a safety-critical utility: low pressure causes fail-safe trips',
       'Depressurise dryer towers before opening',
       'Never use instrument air for breathing',
     ],
@@ -591,21 +591,21 @@ export const INSTRUMENT_KNOWLEDGE: Knowledge[] = [
       'An agitator in the possum belly or flow line degasses a constant volume of returning mud. The released gas is drawn by vacuum line to the mud-logging unit where a flame ionisation detector or catalytic sensor reports total hydrocarbons in gas units, and a chromatograph splits C1–C5. Background gas is the steady level while drilling; connection and trip gas are spikes when pumps stop and swab occurs. A rising background is a warning of underbalance.',
     useCases: [
       'Kick and underbalance early warning while drilling',
-      'Formation evaluation — identifying hydrocarbon-bearing zones',
+      'Formation evaluation: identifying hydrocarbon-bearing zones',
       'Monitoring connection and trip gas to judge mud weight margin',
       'Correlation with H₂S monitoring at the shakers',
     ],
     parameters: [
       p('Background gas', '< 2', 'gas units', 'typical; plant nominal 0.8'),
       p('High alarm', '5', 'gas units', 'plant setting'),
-      p('High-high alarm', '15', 'gas units', 'plant setting — notify driller, consider flow check'),
+      p('High-high alarm', '15', 'gas units', 'plant setting: notify driller, consider flow check'),
       p('Lag time', 'bottoms-up time', 'min', 'gas reading lags the bit by the annular travel time'),
       p('Trap level', 'constant immersion', '', 'variable immersion gives misleading readings'),
     ],
     instrumentation: ['Mud logging unit (FID total gas, chromatograph)', 'H₂S sensors at shakers and rotary', 'Pit volume totaliser and flow-out sensor', 'Standpipe pressure'],
     issues: [
-      'Trap immersion changes with flow rate — false rise or fall',
-      'Gas line blocked or leaking — under-reading',
+      'Trap immersion changes with flow rate: false rise or fall',
+      'Gas line blocked or leaking: under-reading',
       'Oil-based mud gas solubility masking kicks',
       'Recycled gas from mud returning to the well',
     ],
@@ -616,7 +616,7 @@ export const INSTRUMENT_KNOWLEDGE: Knowledge[] = [
     ],
     safety: [
       'Rising gas plus pit gain or flow-out increase = possible kick: perform flow check and shut in if flowing',
-      'Shaker area may contain flammable gas and H₂S — gas detection and ventilation required',
+      'Shaker area may contain flammable gas and H₂S: gas detection and ventilation required',
       'Keep ignition sources away from the shaker / degasser area',
     ],
     standards: ['API RP 59 (well control operations)', 'IADC Well Control guidelines', 'NORSOK D-010', 'API RP 49 (H₂S)'],
@@ -624,7 +624,7 @@ export const INSTRUMENT_KNOWLEDGE: Knowledge[] = [
   {
     id: 'inst-at',
     title: 'Process Analyser (AT)',
-    summary: 'A generic on-line analyser measuring a fluid property or composition — gas quality, moisture, oxygen, pH, sulphur or water cut — for control, quality or environmental compliance.',
+    summary: 'A generic on-line analyser measuring a fluid property or composition, gas quality, moisture, oxygen, pH, sulphur or water cut, for control, quality or environmental compliance.',
     howItWorks:
       'Analysers take a sample through a sample conditioning system (filtering, pressure reduction, heating) to an instrument such as a gas chromatograph, infrared or laser spectrometer, oxygen cell, pH probe or water-cut meter. Results go to the DCS as 4–20 mA or Modbus. Analysers are housed in ventilated, gas-detected analyser houses or field enclosures.',
     useCases: [
@@ -642,16 +642,16 @@ export const INSTRUMENT_KNOWLEDGE: Knowledge[] = [
     ],
     instrumentation: ['Sample probe and conditioning system', 'Analyser house with HVAC and gas detection', 'Calibration gas cylinders / standards'],
     issues: [
-      'Sample system blockage or leak — stale or wrong reading',
+      'Sample system blockage or leak: stale or wrong reading',
       'Calibration drift',
       'Contamination of the sensor (glycol, oil, water)',
       'Long sample lag making control sluggish',
     ],
     maintenance: ['Routine validation with standards', 'Filter changes in sample system', 'Annual vendor service'],
     safety: [
-      'Sample lines carry process fluid at pressure — isolate before maintenance',
+      'Sample lines carry process fluid at pressure: isolate before maintenance',
       'Calibration gas cylinders must be secured and stored correctly',
-      'Analyser houses can accumulate gas — check detectors before entry',
+      'Analyser houses can accumulate gas: check detectors before entry',
     ],
     standards: ['ISO 10715 (gas sampling)', 'IEC 61285 (analyser houses)', 'API RP 555 (process analysers)', 'NORSOK I-001'],
   },
@@ -680,9 +680,9 @@ export const INSTRUMENT_KNOWLEDGE: Knowledge[] = [
     ],
     instrumentation: ['Fire and gas logic solver with cause and effect matrix', 'Deluge valves and firewater pumps', 'Beacons and PA / GA alarms', 'CCTV for confirmation'],
     issues: [
-      'Window contaminated by salt, oil mist or ice — reduced range, "dirty window" fault',
-      'Detector knocked out of alignment — area no longer covered',
-      'Obstructions added after mapping (scaffold, new equipment) — blind spots',
+      'Window contaminated by salt, oil mist or ice: reduced range, "dirty window" fault',
+      'Detector knocked out of alignment: area no longer covered',
+      'Obstructions added after mapping (scaffold, new equipment): blind spots',
       'Spurious alarm from flare radiation or hot work if poorly located',
     ],
     maintenance: [
@@ -692,7 +692,7 @@ export const INSTRUMENT_KNOWLEDGE: Knowledge[] = [
       'Inhibit via F&G panel during testing with a permit',
     ],
     safety: [
-      'Fire detection triggers ESD, blowdown and deluge — inhibits must be controlled',
+      'Fire detection triggers ESD, blowdown and deluge: inhibits must be controlled',
       'Hot work near detectors needs inhibit and fire watch rather than covering detectors',
       'Detectors are safety-critical elements with performance standards',
     ],
@@ -722,10 +722,10 @@ export const INSTRUMENT_KNOWLEDGE: Knowledge[] = [
     ],
     instrumentation: ['Fire and gas system logic (cause and effect)', 'HVAC damper closure and ignition source isolation', 'Beacons, sounders, PA', 'Calibration gas and test hood'],
     issues: [
-      'Optics contaminated by water, salt or oil — beam block fault',
+      'Optics contaminated by water, salt or oil: beam block fault',
       'Detector located where gas cannot reach it (wrong height for the gas density)',
-      'Calibration against methane while leak gas is heavier — under-reading',
-      'Weather protection missing or blocked — slow response',
+      'Calibration against methane while leak gas is heavier: under-reading',
+      'Weather protection missing or blocked: slow response',
     ],
     maintenance: [
       'Bump test with calibration gas monthly to quarterly per F&G philosophy',
@@ -734,7 +734,7 @@ export const INSTRUMENT_KNOWLEDGE: Knowledge[] = [
       'Proof test with gas per SIL interval',
     ],
     safety: [
-      'Gas detection initiates ESD, ignition source isolation and HVAC shutdown — inhibits under permit only',
+      'Gas detection initiates ESD, ignition source isolation and HVAC shutdown: inhibits under permit only',
       'On high gas alarm, follow muster instructions and avoid ignition sources',
       'Do not mask detectors with plastic during work',
     ],
@@ -763,7 +763,7 @@ export const INSTRUMENT_KNOWLEDGE: Knowledge[] = [
     ],
     instrumentation: ['Transmitter and receiver with alignment telescope', 'F&G logic', 'Beacons and sounders'],
     issues: [
-      'Beam block (people, vehicles, scaffolding, fog, heavy rain) — fault rather than alarm',
+      'Beam block (people, vehicles, scaffolding, fog, heavy rain): fault rather than alarm',
       'Misalignment from structural movement or thermal expansion',
       'Dirty optics from salt spray',
       'Sunlight into the receiver at low sun angles',
@@ -774,7 +774,7 @@ export const INSTRUMENT_KNOWLEDGE: Knowledge[] = [
       'Review beam block fault history for layout issues',
     ],
     safety: [
-      'Beam block faults remove coverage — compensating measures needed',
+      'Beam block faults remove coverage: compensating measures needed',
       'Does not locate a leak; follow up with portable detector',
       'Inhibit only via F&G panel with permit',
     ],
@@ -807,7 +807,7 @@ export const INSTRUMENT_KNOWLEDGE: Knowledge[] = [
     ],
     maintenance: ['Functional test with heat source annually or per F&G test schedule', 'Visual inspection quarterly', 'Replace after any exposure above rating'],
     safety: [
-      'Heat detectors may release gaseous suppression — evacuate room on pre-alarm',
+      'Heat detectors may release gaseous suppression: evacuate room on pre-alarm',
       'Lock out CO₂ / suppression systems before entry into protected spaces',
       'Never cover detectors during hot work; inhibit via F&G permit',
     ],
@@ -816,7 +816,7 @@ export const INSTRUMENT_KNOWLEDGE: Knowledge[] = [
   {
     id: 'inst-sd',
     title: 'Smoke Detector (Optical)',
-    summary: 'Optical scattering smoke detector used in clean enclosed rooms — LER, CCR, switchgear, accommodation — to give early warning of electrical or smouldering fires.',
+    summary: 'Optical scattering smoke detector used in clean enclosed rooms, LER, CCR, switchgear, accommodation, to give early warning of electrical or smouldering fires.',
     howItWorks:
       'An LED shines into a dark chamber; smoke particles scatter light onto a photodiode and the signal is reported as % obscuration per metre. Addressable detectors report analogue values so the panel can compensate for drift and flag dirty chambers. Aspirating systems (VESDA) draw air through pipes for very early detection in switchgear and under-floor cable spaces.',
     useCases: [
@@ -833,14 +833,14 @@ export const INSTRUMENT_KNOWLEDGE: Knowledge[] = [
     ],
     instrumentation: ['Addressable fire panel loop', 'HVAC shutdown / damper closure', 'Gaseous suppression release (inert gas)', 'Aspirating smoke detection in electrical rooms'],
     issues: [
-      'Dust or insects in chamber — false alarm or drift',
-      'Steam, cooking or welding fumes — nuisance alarms',
+      'Dust or insects in chamber: false alarm or drift',
+      'Steam, cooking or welding fumes: nuisance alarms',
       'Detector covered during work and not uncovered',
       'High air velocity near HVAC diffusers diluting smoke',
     ],
     maintenance: ['Functional test with test smoke annually', 'Clean or replace heads per drift compensation warnings', 'Panel loop and battery checks'],
     safety: [
-      'Smoke in electrical rooms can be toxic — evacuate and use BA for investigation',
+      'Smoke in electrical rooms can be toxic: evacuate and use BA for investigation',
       'Confirm suppression system lockout before entering protected rooms',
       'Detector caps must be removed after work',
     ],
@@ -866,16 +866,16 @@ export const INSTRUMENT_KNOWLEDGE: Knowledge[] = [
     ],
     instrumentation: ['F&G / ESD panel', 'General alarm and PA system', 'Firewater pump start logic'],
     issues: [
-      'Accidental operation by impact — spurious alarm / ESD',
+      'Accidental operation by impact: spurious alarm / ESD',
       'Covers missing or element damaged',
       'Location blocked by scaffolding or stored material',
-      'Corroded terminals — loop faults',
+      'Corroded terminals: loop faults',
     ],
     maintenance: ['Functional test (with test key) annually or per F&G test schedule', 'Visual inspection on rounds', 'Replace broken elements immediately'],
     safety: [
       'Any person discovering a fire must activate the nearest MAC and report',
       'Keep MAC access clear at all times',
-      'ESD push buttons shut in the facility — use only in genuine emergency',
+      'ESD push buttons shut in the facility: use only in genuine emergency',
     ],
     standards: ['EN 54-11', 'NFPA 72', 'ISO 13702', 'NORSOK S-001'],
   },
@@ -884,12 +884,12 @@ export const INSTRUMENT_KNOWLEDGE: Knowledge[] = [
     id: 'inst-standpipe',
     title: 'Standpipe Pressure (Drilling)',
     summary:
-      'Pressure in the standpipe between the mud pumps and the top drive — the driller\'s key indicator of circulating system health, bit performance and well control.',
+      'Pressure in the standpipe between the mud pumps and the top drive: the driller\'s key indicator of circulating system health, bit performance and well control.',
     howItWorks:
       'A pressure transmitter (usually a hammer-union diaphragm sensor) on the standpipe manifold measures the pressure the mud pumps must generate to circulate mud down the drill string, through the bit nozzles and up the annulus. Changes at constant pump rate show events: a gradual fall can indicate a washout in the string, a sudden fall a twist-off or lost nozzle, a rise a plugged nozzle or packing-off. During a kick, standpipe pressure is used with the choke to keep bottom-hole pressure constant (drillers method / wait-and-weight).',
     useCases: [
       'Drilling circulation monitoring at constant SPM',
-      'Kick circulation — shut-in drill pipe pressure (SIDPP) and kill sheet',
+      'Kick circulation: shut-in drill pipe pressure (SIDPP) and kill sheet',
       'Detecting washouts, plugged nozzles and pack-offs',
       'Slow circulation rate (SCR) pressures recorded each tour for well control',
     ],
@@ -902,10 +902,10 @@ export const INSTRUMENT_KNOWLEDGE: Knowledge[] = [
     ],
     instrumentation: ['Mud pump stroke counters (SPM)', 'Choke manifold and drill pipe pressure gauges', 'Drilling data acquisition / driller cabin display', 'Pop-off (relief) valves on mud pumps'],
     issues: [
-      'Gradual pressure loss — drill string washout',
-      'Sudden pressure loss — twist-off or bit nozzle lost',
-      'Pressure spike — plugged nozzles, packing off, annular bridging',
-      'Gas cutting of mud — pressure reduction and kick indicator',
+      'Gradual pressure loss: drill string washout',
+      'Sudden pressure loss: twist-off or bit nozzle lost',
+      'Pressure spike: plugged nozzles, packing off, annular bridging',
+      'Gas cutting of mud: pressure reduction and kick indicator',
       'Sensor diaphragm damage from hammering and pulsation',
     ],
     maintenance: [
@@ -941,14 +941,14 @@ export const INSTRUMENT_KNOWLEDGE: Knowledge[] = [
     instrumentation: ['Drawworks encoder / block position', 'Top drive torque and RPM', 'Driller\'s display and data recorder', 'Crown and floor saver protection'],
     issues: [
       'Calibration error after slipping / cutting drill line',
-      'Hydraulic load cell leaks — reading drifts low',
+      'Hydraulic load cell leaks: reading drifts low',
       'Wrong number of lines strung configured',
       'Sheave friction causing differences between tripping in and out',
     ],
     maintenance: ['Calibrate deadline anchor sensor annually and after line string-up', 'Inspect deadline anchor and drill line per slip-and-cut programme', 'Check hydraulic hoses and fittings'],
     safety: [
       'Do not exceed rated hook load of derrick, top drive and drill pipe',
-      'Overpull limits defined per string — know them before tripping',
+      'Overpull limits defined per string: know them before tripping',
       'Personnel clear of the drill floor during jarring and high overpull',
     ],
     standards: ['API Spec 4F (derricks)', 'API RP 9B (wire rope)', 'API Spec 8C', 'IADC Drilling Manual'],
@@ -963,7 +963,7 @@ export const INSTRUMENT_KNOWLEDGE: Knowledge[] = [
     useCases: [
       'Kick detection while drilling (pit gain)',
       'Loss detection (pit loss)',
-      'Trip monitoring — hole fill against calculated displacement using the trip tank',
+      'Trip monitoring: hole fill against calculated displacement using the trip tank',
       'Mud transfer and treatment management',
     ],
     parameters: [
@@ -975,10 +975,10 @@ export const INSTRUMENT_KNOWLEDGE: Knowledge[] = [
     ],
     instrumentation: ['Flow-out paddle and flow-in (pump strokes)', 'Mud gas and H₂S at shakers', 'Driller\'s PVT display with alarms', 'Trip sheet for displacement comparison'],
     issues: [
-      'Mud transfers or additions without telling the driller — false gain alarms',
+      'Mud transfers or additions without telling the driller: false gain alarms',
       'Rig motion (floaters) or agitators causing level noise',
       'Foam or surface solids affecting ultrasonic readings',
-      'Alarms set too wide or muted — late kick detection',
+      'Alarms set too wide or muted: late kick detection',
     ],
     maintenance: [
       'Verify pit sensors against manual dip each tour',
@@ -988,7 +988,7 @@ export const INSTRUMENT_KNOWLEDGE: Knowledge[] = [
     safety: [
       'Any unexplained pit gain: stop drilling, flow check, shut in if flowing',
       'All transfers must be communicated to the driller and mud logger',
-      'Mud pit rooms may contain gas / H₂S — gas detection and ventilation required',
+      'Mud pit rooms may contain gas / H₂S: gas detection and ventilation required',
     ],
     standards: ['API RP 59', 'API Std 53', 'IADC Well Control (WellSharp)', 'NORSOK D-010'],
   },
@@ -1006,13 +1006,13 @@ export const INSTRUMENT_KNOWLEDGE: Knowledge[] = [
     ],
     parameters: [
       p('Normal flow-out', '~ 62', '% flow', 'plant nominal at drilling rate'),
-      p('Low alarm', '40', '% flow', 'plant setting — possible losses'),
-      p('High alarm', '80', '% flow', 'plant setting — possible kick'),
+      p('Low alarm', '40', '% flow', 'plant setting: possible losses'),
+      p('High alarm', '80', '% flow', 'plant setting: possible kick'),
       p('Delta flow alert', '± 5–10', '% of flow', 'typical relative change at constant SPM'),
     ],
     instrumentation: ['Mud pump stroke counters (flow-in)', 'Pit volume totaliser', 'Standpipe pressure', 'Mud gas detector'],
     issues: [
-      'Paddle stuck with cuttings or mud gel — no change in reading',
+      'Paddle stuck with cuttings or mud gel: no change in reading',
       'Calibration varies with mud properties and flow regime',
       'Flowline blockage giving false high reading',
       'Rig heave (floaters) affecting reading',
@@ -1020,8 +1020,8 @@ export const INSTRUMENT_KNOWLEDGE: Knowledge[] = [
     maintenance: ['Check paddle free movement and clean each tour', 'Function check against pump rate changes', 'Inspect sensor seals and wiring'],
     safety: [
       'Flow with pumps off = shut the well in per standing instructions',
-      'Do not ignore small trends — combine with pit volume and gas',
-      'Flowline area can release gas and H₂S — gas detection required',
+      'Do not ignore small trends: combine with pit volume and gas',
+      'Flowline area can release gas and H₂S: gas detection required',
     ],
     standards: ['API RP 59', 'API Std 53', 'IADC Well Control guidelines', 'NORSOK D-010'],
   },

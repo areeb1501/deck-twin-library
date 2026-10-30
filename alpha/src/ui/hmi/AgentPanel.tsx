@@ -38,7 +38,7 @@ export function AgentPanel({ setSel }: { setSel: (s: Sel) => void }) {
               return (
                 <option key={id} value={id} disabled={!ready}>
                   {PROVIDER_LABEL[id]}
-                  {a?.model && id !== 'sim' ? ` — ${a.model}` : ''}
+                  {a?.model && id !== 'sim' ? `: ${a.model}` : ''}
                   {ready ? '' : ' (no key)'}
                 </option>
               )

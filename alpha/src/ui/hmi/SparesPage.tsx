@@ -68,7 +68,7 @@ function rowsOf(parts: SparePart[], stock: Record<string, { offshore: number; ba
     let label = ''
     if (shortParts.has(p.id)) [state, label] = ['short', 'short for a work order']
     else if (p.usagePerDay && s.offshore <= 0.01) [state, label] = ['out', 'stock-out offshore']
-    else if (cover !== undefined && cover < 3) [state, label] = ['low', `low — ${fmtDays(cover)} cover offshore`]
+    else if (cover !== undefined && cover < 3) [state, label] = ['low', `low: ${fmtDays(cover)} cover offshore`]
     else if (os.some((o) => o.stage === 'requisition')) [state, label] = ['approve', 'requisition to approve']
     else if (p.rop > 0 && net <= p.rop && !onOrder) [state, label] = ['rop', 'below reorder point']
     else if (p.rop > 0 && net <= p.rop) [state, label] = ['ropOrdered', 'below ROP · on order']
@@ -100,7 +100,7 @@ export function SparesPage() {
   const openN = useMemo(() => orders.filter(isOpenPo).length, [orders])
   const reqN = useMemo(() => orders.filter((o) => o.stage === 'requisition').length, [orders])
   const actionN = useMemo(() => rows.filter((r) => r.action).length, [rows])
-  if (!parts.length) return <div className="h-placeholder">Spares catalogue loading — it is built from the loaded plant.</div>
+  if (!parts.length) return <div className="h-placeholder">Spares catalogue loading: it is built from the loaded plant.</div>
   const pick = (id: string) => setSel(id)
   return (
     <div className="sp-page" data-spares>
@@ -109,7 +109,7 @@ export function SparesPage() {
           <div>
             <h2>Spares &amp; supply</h2>
             <div className="sp-sim" data-simulated>
-              Simulated data — parts, stock, vendors, prices and lead times are a demo dataset · ERP-ready (SAP MM / Maximo export shape), not connected to an ERP
+              Simulated data: parts, stock, vendors, prices and lead times are a demo dataset · ERP-ready (SAP MM / Maximo export shape), not connected to an ERP
             </div>
           </div>
           <span className="grow" />
@@ -215,7 +215,7 @@ function Logistics({ mode }: { mode: 'demo' | 'real' }) {
     <div className="sp-log" data-logistics>
       <Box
         className={hold ? 'sp-hold' : ''}
-        title={`${VESSEL_NAME} — supply vessel`}
+        title={`${VESSEL_NAME}: supply vessel`}
         right={<span className={`sp-leg ${boat.state}`}>{hold ? 'weather hold' : BOAT_STEPS.find((s) => s[0] === boat.state)?.[1] ?? boat.state}</span>}
       >
         <div className="sp-steps">
@@ -242,11 +242,11 @@ function Logistics({ mode }: { mode: 'demo' | 'real' }) {
             Hs {hs.toFixed(1)} m (offload limit {LOGISTICS.hsLimit.toFixed(1)} m)
           </span>
           <span>{boat.cargo.length ? 'On board' : 'Booked for next sailing'}</span>
-          <span className="wrap">{(boat.cargo.length ? cargoText(boat.cargo) : boatQueue.map((o) => `${o.id} ${qty(o.qty)}× ${pname.get(o.partId) ?? o.partId}`)).join(' · ') || '—'}</span>
+          <span className="wrap">{(boat.cargo.length ? cargoText(boat.cargo) : boatQueue.map((o) => `${o.id} ${qty(o.qty)}× ${pname.get(o.partId) ?? o.partId}`)).join(' · ') || '-'}</span>
         </div>
         {hold && <div className="h-msg">{boat.note ?? 'Waiting on weather'}</div>}
       </Box>
-      <Box className={grounded ? 'sp-hold' : ''} title={`Helicopter — ${HELI_NAME}`} right={<span className={`sp-leg ${heli.state}`}>{grounded ? 'grounded' : HELI_STEPS.find((s) => s[0] === heli.state)?.[1] ?? heli.state}</span>}>
+      <Box className={grounded ? 'sp-hold' : ''} title={`Helicopter: ${HELI_NAME}`} right={<span className={`sp-leg ${heli.state}`}>{grounded ? 'grounded' : HELI_STEPS.find((s) => s[0] === heli.state)?.[1] ?? heli.state}</span>}>
         <div className="sp-steps">
           {HELI_STEPS.map(([k, l]) => (
             <span key={k} className={heli.state === k ? 'on' : ''}>
@@ -267,7 +267,7 @@ function Logistics({ mode }: { mode: 'demo' | 'real' }) {
             {wind.toFixed(0)} m/s (grounded above {LOGISTICS.heliWind} m/s)
           </span>
           <span>{heli.cargo.length ? 'On board' : 'Waiting to fly'}</span>
-          <span className="wrap">{(heli.cargo.length ? cargoText(heli.cargo) : heliQueue.map((o) => `${o.id} ${qty(o.qty)}× ${pname.get(o.partId) ?? o.partId}`)).join(' · ') || '—'}</span>
+          <span className="wrap">{(heli.cargo.length ? cargoText(heli.cargo) : heliQueue.map((o) => `${o.id} ${qty(o.qty)}× ${pname.get(o.partId) ?? o.partId}`)).join(' · ') || '-'}</span>
         </div>
         {grounded && <div className="h-msg">{heli.note}</div>}
       </Box>
@@ -363,7 +363,7 @@ function Inventory({ rows, sel, pick }: { rows: Row[]; sel: string | null; pick:
               <td className="num">{qty(r.base)}</td>
               <td className="num">{r.reserved ? qty(r.reserved) : ''}</td>
               <td className="num">{r.onOrder + r.transfers ? qty(r.onOrder + r.transfers) : ''}</td>
-              <td className="num dim">{r.p.rop > 0 ? `${r.p.rop} / ${r.p.max}` : `— / ${r.p.max}`}</td>
+              <td className="num dim">{r.p.rop > 0 ? `${r.p.rop} / ${r.p.max}` : `: / ${r.p.max}`}</td>
               <td>{r.label && <span className={`sp-st ${r.state}`}>{r.label}</span>}</td>
               <td className="num">{money(r.p.unitCost)}</td>
               <td className="num dim">
@@ -403,7 +403,7 @@ function PoActions({ po, say: setMsg }: { po: PurchaseOrder; say: (m: string | n
   return (
     <>
       {po.stage === 'requisition' && (
-        <button className="warn" onClick={() => setMsg(say(sparesApi.approve(po.id), `${po.id} approved — PO placed`))} data-act="approve">
+        <button className="warn" onClick={() => setMsg(say(sparesApi.approve(po.id), `${po.id} approved: PO placed`))} data-act="approve">
           Approve
         </button>
       )}
@@ -481,7 +481,7 @@ function Orders({ orders, parts, pick, say: setMsg }: { orders: PurchaseOrder[];
                       {fmtEta(o.eta)} <small className="dim">≈ {fmtDays(left)}</small>
                     </>
                   ) : (
-                    <span className="dim">{o.stage === 'received' ? `in ${fmtEta(o.eta)}` : '—'}</span>
+                    <span className="dim">{o.stage === 'received' ? `in ${fmtEta(o.eta)}` : '-'}</span>
                   )}</td>
                   <td className="num">{money(o.material + o.premium + o.freight)}</td>
                   <td className="act" onClick={(e) => e.stopPropagation()}>
@@ -566,12 +566,12 @@ function Waiting({ mats, pick, say: setMsg }: { mats: ReturnType<typeof woMateri
                   <td className="wrap">{po ? `${STAGE_SHORT[po.stage]} ${po.id} (${po.mode}${po.heli ? ' + heli' : ''})` : <span className="sp-bad">no supply arranged</span>}</td>
                   <td className="mono">{line.eta !== undefined ? <>
                     {fmtEta(line.eta)} <small className="dim">≈ {fmtDays(Math.max(0, line.eta - t) / day)}</small>
-                  </> : '—'}</td>
+                  </> : '-'}</td>
                   <td className={`num ${down ? 'sp-abn' : 'dim'}`}>{fmt(impactBoeD(w.tag))}</td>
                   <td className="act" onClick={(e) => e.stopPropagation()}>
                     {po?.stage === 'requisition' && <button className="warn" onClick={() => setMsg(say(sparesApi.approve(po.id), `${po.id} approved`))}>Approve</button>}
                     {ph && !ph.why && (
-                      <button className="warn" onClick={() => setMsg(say(sparesApi.expedite(po!.id, { heli: true }), `${po!.id} expedited — helicopter for the last leg`))} title={`${ph.premium ? `Premium ${money(ph.premium)} · ` : ''}helicopter ${money(ph.freight)} · ETA ${fmtEta(ph.eta)} (saves ${fmtDays(ph.savedDays)})`} data-act="wam-expedite">
+                      <button className="warn" onClick={() => setMsg(say(sparesApi.expedite(po!.id, { heli: true }), `${po!.id} expedited: helicopter for the last leg`))} title={`${ph.premium ? `Premium ${money(ph.premium)} · ` : ''}helicopter ${money(ph.freight)} · ETA ${fmtEta(ph.eta)} (saves ${fmtDays(ph.savedDays)})`} data-act="wam-expedite">
                         {po!.stage === 'atBase' ? 'Fly now' : `Expedite + heli (saves ${fmtDays(ph.savedDays)})`}
                       </button>
                     )}
@@ -668,7 +668,7 @@ function PartDetail({ id, close }: { id: string | null; close: () => void }) {
   if (!part || !lvl) {
     return (
       <aside className="faceplate sp-detail">
-        <div className="h-empty">Select a material — stock by location, open orders, order options with cost and ETA, and a 12-month stock-out forecast show here.</div>
+        <div className="h-empty">Select a material: stock by location, open orders, order options with cost and ETA, and a 12-month stock-out forecast show here.</div>
       </aside>
     )
   }
@@ -758,7 +758,7 @@ function PartDetail({ id, close }: { id: string | null; close: () => void }) {
           </tr>
           <tr>
             <td>
-              MRP position <span className="dim">vs ROP {part.rop > 0 ? part.rop : '— (insurance spare)'} / max {part.max}</span>
+              MRP position <span className="dim">vs ROP {part.rop > 0 ? part.rop : ': (insurance spare)'} / max {part.max}</span>
             </td>
             <td className={`num ${part.rop > 0 && position <= part.rop ? 'sp-abn' : ''}`}>{qty(position)}</td>
           </tr>
@@ -814,10 +814,10 @@ function PartDetail({ id, close }: { id: string | null; close: () => void }) {
               key={label}
               disabled={!!pv.why}
               className={m === 'emergency' ? 'warn' : ''}
-              title={pv.why ?? `${money(pv.material)} material${pv.premium ? ` + ${money(pv.premium)} premium` : ''} + ${money(pv.freight)} ${pv.heli ? 'helicopter' : 'freight'}${pv.approval ? ' — needs approval' : ''}`}
+              title={pv.why ?? `${money(pv.material)} material${pv.premium ? ` + ${money(pv.premium)} premium` : ''} + ${money(pv.freight)} ${pv.heli ? 'helicopter' : 'freight'}${pv.approval ? ': needs approval' : ''}`}
               onClick={() => {
                 const r = sparesApi.place(part.id, n, m, { heli })
-                setMsg(r.why ?? `✓ ${r.id} — ${label.toLowerCase()}`)
+                setMsg(r.why ?? `✓ ${r.id}: ${label.toLowerCase()}`)
               }}
               data-act={`order-${m}${heli ? '-heli' : ''}`}
             >
@@ -865,7 +865,7 @@ function ForecastView({ f, uom }: { f: ForecastResult; uom: string }) {
         </span>
         <span>ROP for 95 % service</span>
         <span className={f.recommendedRop > f.rop ? 'sp-abn' : ''}>
-          {f.recommendedRop} <small className="dim">(now {f.rop > 0 ? f.rop : '—'})</small>
+          {f.recommendedRop} <small className="dim">(now {f.rop > 0 ? f.rop : '-'})</small>
         </span>
       </div>
       <svg className="sp-fan" viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none">

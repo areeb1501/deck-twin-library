@@ -10,9 +10,9 @@ const Panel = load
   : null
 
 export function FgPage() {
-  if (!Panel) return <div className="h-placeholder">The fire & gas coverage and zone panel (src/ui/FgPanel.tsx) is being built — it appears here as soon as it exists.</div>
+  if (!Panel) return <div className="h-placeholder">The fire & gas coverage and zone panel (src/ui/FgPanel.tsx) is being built: it appears here as soon as it exists.</div>
   return (
-    <ErrorBoundary label="FgPanel" fallback={<div className="h-placeholder">The F&G panel failed to render — see the console.</div>}>
+    <ErrorBoundary label="FgPanel" fallback={<div className="h-placeholder">The F&G panel failed to render: see the console.</div>}>
       <Suspense fallback={<div className="h-placeholder">Loading fire & gas…</div>}>
         <div className="hmi-fg">
           <Panel />

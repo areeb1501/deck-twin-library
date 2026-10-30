@@ -83,7 +83,7 @@ export function startStory(id: StoryId): string | null {
     if (r) return r
     // the condition-monitoring team raises the job off the trend. The repair is time-compressed for the
     // demo (3 h instead of ~9 h) like the logistics clock, so the whole story fits in a few minutes at 60×.
-    maint.raise(tag, { type: 'condition', priority: 2, title: `CM: ${DGS_MODE} — replace the dry-gas seal cartridge`, by: 'Condition monitoring (trend)', estH: 3, workH: 3, failureMode: DGS_MODE, who: 'auto' })
+    maint.raise(tag, { type: 'condition', priority: 2, title: `CM: ${DGS_MODE}: replace the dry-gas seal cartridge`, by: 'Condition monitoring (trend)', estH: 3, workH: 3, failureMode: DGS_MODE, who: 'auto' })
     s.setKnob?.('seaState', Math.min(s.knobs?.seaState ?? 1.5, 2))
   }
   if (id === 'weather') {
@@ -135,7 +135,7 @@ function step(_dt: number, t: number) {
       const st = runOf(w.tag)
       if (st === 'running' || st === 'starting') {
         r = maint.stopMachine(w.tag)
-        if (!r) note(`Auto-crew: ${w.tag} stopped for the planned repair — gas to flare until the restart`)
+        if (!r) note(`Auto-crew: ${w.tag} stopped for the planned repair: gas to flare until the restart`)
         continue
       }
       r = maint.issue(p.id)
@@ -154,7 +154,7 @@ function step(_dt: number, t: number) {
   const st0 = runOf(tag)
   if (done && !m.wos.some((w) => w.tag === tag && isOpen(w)) && (st0 === 'stopped' || st0 === 'standby') && !S().lockouts?.[tag]) {
     const r = S().start?.(tag)
-    note(r ? `Auto-crew: ${tag} not restarted — ${r}` : `Auto-crew: ${tag} restarting after the repair`)
+    note(r ? `Auto-crew: ${tag} not restarted: ${r}` : `Auto-crew: ${tag} restarting after the repair`)
   }
 }
 

@@ -36,7 +36,7 @@ export function InsightsPanel({ max = 8, compact = false }: { max?: number; comp
   return (
     <section className={`h-box ins ${compact ? 'compact' : ''}`} data-insights="panel">
       <h3>
-        <span>Insights — what the data says</span>
+        <span>Insights: what the data says</span>
         <span className="grow" />
         {(['act', 'watch', 'win'] as InsightKind[]).map((k) =>
           counts[k] ? (
@@ -93,7 +93,7 @@ export function InsightsPanel({ max = 8, compact = false }: { max?: number; comp
           ))}
         </ol>
       ) : (
-        <div className="h-empty">Nothing stands out — the field is running at potential with no concentrated risk.</div>
+        <div className="h-empty">Nothing stands out: the field is running at potential with no concentrated risk.</div>
       )}
       {!compact && shown.length > max && (
         <button className="link ins-more" onClick={() => setAll((v) => !v)}>

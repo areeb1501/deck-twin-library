@@ -69,7 +69,7 @@ function Library() {
   return (
     <div className="h-grid scn">
       <p className="h-note">
-        Training scenarios — classic offshore control-room exercises on the live plant. Each one starts a fresh session, injects its events on the sim clock and scores you on safety, production,
+        Training scenarios: classic offshore control-room exercises on the live plant. Each one starts a fresh session, injects its events on the sim clock and scores you on safety, production,
         response time and alarm handling. Pick one to read the briefing.
       </p>
       <div className="h-filters">
@@ -131,7 +131,7 @@ function Library() {
                 <span className="dim">≤ {fmtMin(s.maxDuration)}</span>
                 <span className="dim">{s.goals.filter((g) => !g.optional).length} objectives</span>
                 <span className="grow" />
-                {na ? <span className="scn-na">Unavailable — {na}</span> : b ? <span className={`scn-best ${b.pass ? 'pass' : ''}`}>best {b.best} · {b.n}×</span> : <span className="faint">not attempted</span>}
+                {na ? <span className="scn-na">Unavailable:{na}</span> : b ? <span className={`scn-best ${b.pass ? 'pass' : ''}`}>best {b.best} · {b.n}×</span> : <span className="faint">not attempted</span>}
               </div>
             </button>
           )
@@ -139,7 +139,7 @@ function Library() {
         {!list.length && <div className="h-empty">No scenario matches the filters.</div>}
       </div>
       <Box
-        title={`Attempt history — ${history.length}`}
+        title={`Attempt history: ${history.length}`}
         right={
           history.length ? (
             armClear ? (
@@ -210,7 +210,7 @@ function Briefing({ sc }: { sc: Scenario }) {
       </div>
       <p className="scn-lead">{sc.summary}</p>
       <div className="scn-brief">
-        <Box title="Shift handover — initial conditions">
+        <Box title="Shift handover: initial conditions">
           <ul className="scn-ul">
             {sc.briefing.map((b, i) => (
               <li key={i}>{b}</li>
@@ -258,7 +258,7 @@ function Briefing({ sc }: { sc: Scenario }) {
           <div className="h-msg">Not available in this plant: {na}</div>
         ) : (
           <>
-            <p className="h-note">Starting resets the simulation to normal operation (a new session — KPIs, alarms and the audit trail start from zero). You can change the clock speed in the header at any time.</p>
+            <p className="h-note">Starting resets the simulation to normal operation (a new session: KPIs, alarms and the audit trail start from zero). You can change the clock speed in the header at any time.</p>
             <div className="h-row" style={{ marginTop: 6 }}>
               <button className="on" onClick={() => go(1)} data-scn-start={sc.id}>
                 Start at 1×
@@ -337,7 +337,7 @@ function Running({ live }: { live: LiveView }) {
         <div className="h-grid">
           <Box title="CCR & field actions">
             {live.actions.length === 0 ? (
-              <div className="h-empty">Nothing to order right now — use the console pages (Process, Machines, Shutdown, Alarms …).</div>
+              <div className="h-empty">Nothing to order right now: use the console pages (Process, Machines, Shutdown, Alarms …).</div>
             ) : (
               <div className="scn-acts">
                 {live.actions.map((a) => (
@@ -366,7 +366,7 @@ function Running({ live }: { live: LiveView }) {
           </Box>
           <LivePlant />
           <Box
-            title={`Hints — ${live.hints.length}/${live.hintCount}`}
+            title={`Hints: ${live.hints.length}/${live.hintCount}`}
             right={
               live.hints.length < live.hintCount ? (
                 <button style={{ textTransform: 'none', letterSpacing: 0 }} onClick={() => useScenario.getState().showHint()} data-scn="hint">
@@ -459,7 +459,7 @@ function Debrief({ a }: { a: Attempt }) {
     <div className="h-grid scn" data-scn="debrief">
       <div className="h-row">
         <button onClick={() => setView({ kind: 'library' })}>← Library</button>
-        <h2 className="scn-title">Debrief — {a.title}</h2>
+        <h2 className="scn-title">Debrief:{a.title}</h2>
         <span className="dim mono">
           {new Date(a.date).toLocaleString()} · {fmtEl(a.duration)} sim
         </span>
@@ -498,7 +498,7 @@ function Debrief({ a }: { a: Attempt }) {
         </div>
       </div>
       <div className="scn-brief">
-        <Box title={`Failures — ${a.failures.length}`} className={a.failures.length ? 'scn-bad' : ''}>
+        <Box title={`Failures: ${a.failures.length}`} className={a.failures.length ? 'scn-bad' : ''}>
           {a.failures.length ? (
             <ul className="scn-ul" data-scn="failures">
               {a.failures.map((f, i) => (
@@ -517,7 +517,7 @@ function Debrief({ a }: { a: Attempt }) {
               ))}
             </ul>
           ) : (
-            <div className="h-empty">—</div>
+            <div className="h-empty">-</div>
           )}
         </Box>
         <Box title="To improve">
@@ -528,7 +528,7 @@ function Debrief({ a }: { a: Attempt }) {
               ))}
             </ul>
           ) : (
-            <div className="h-empty">Nothing — textbook.</div>
+            <div className="h-empty">Nothing: textbook.</div>
           )}
         </Box>
         <KpiTable a={a} />
@@ -547,7 +547,7 @@ function Debrief({ a }: { a: Attempt }) {
         </ul>
       </Box>
       <Box
-        title="Timeline — plant vs operator vs expected"
+        title="Timeline: plant vs operator vs expected"
         right={
           <label style={{ textTransform: 'none', letterSpacing: 0 }}>
             <input type="checkbox" checked={all} onChange={(e) => setAll(e.target.checked)} /> all plant events
@@ -592,7 +592,7 @@ function KpiTable({ a }: { a: Attempt }) {
   )
   const cats = Object.entries(a.window.byCategory).sort((x, y) => y[1] - x[1])
   return (
-    <Box title="KPIs — before / after">
+    <Box title="KPIs: before / after">
       <table className="h-tbl">
         <thead>
           <tr>

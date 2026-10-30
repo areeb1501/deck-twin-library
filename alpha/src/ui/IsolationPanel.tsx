@@ -46,10 +46,10 @@ export function isolationSteps(p: IsolationPlan): Step[] {
       tags: bleeds.map((b) => b.tag),
       kind: 'bleed',
     })
-  else add({ title: 'Depressurise and drain the envelope', detail: 'No drain or vent point in the model — use the P&ID / temporary drain points.', tags: [], kind: 'bleed' })
+  else add({ title: 'Depressurise and drain the envelope', detail: 'No drain or vent point in the model: use the P&ID / temporary drain points.', tags: [], kind: 'bleed' })
   for (const b of p.blinds)
     add({ title: `Insert spade at ${b.equipment} ${b.nozzle} (${b.name})`, detail: `${b.nps}" Class ${b.rating} spectacle blind / spade${b.line ? ` · ${b.line}` : ''}`, tags: [b.equipment], kind: 'spade' })
-  add({ title: 'Prove zero energy before breaking containment', detail: p.proving.length ? `Read 0 on ${p.proving.join(', ')}` : 'No gauge inside the envelope in the model — fit a temporary gauge', tags: [], kind: 'prove' })
+  add({ title: 'Prove zero energy before breaking containment', detail: p.proving.length ? `Read 0 on ${p.proving.join(', ')}` : 'No gauge inside the envelope in the model: fit a temporary gauge', tags: [], kind: 'prove' })
   return out
 }
 
@@ -96,7 +96,7 @@ export function IsolationPanel() {
         {eq && (
           <div className="seg iso-mode">
             <button className={iso.mode === 'valve' ? 'on' : ''} onClick={() => setIsolation({ ...iso, mode: 'valve' })}>Valve isolation</button>
-            <button className={iso.mode === 'positive' ? 'on' : ''} onClick={() => setIsolation({ ...iso, mode: 'positive' })} title="Spades at every connected nozzle — for confined-space / vessel entry">Vessel entry</button>
+            <button className={iso.mode === 'positive' ? 'on' : ''} onClick={() => setIsolation({ ...iso, mode: 'positive' })} title="Spades at every connected nozzle, for confined-space / vessel entry">Vessel entry</button>
           </div>
         )}
         <button onClick={() => printPlan(plan, steps, title)}>Print</button>
@@ -149,7 +149,7 @@ export function IsolationPanel() {
         </section>
         {plan.openEnds.length > 0 && (
           <section className="sec">
-            <h4>Open boundaries — isolate outside the model</h4>
+            <h4>Open boundaries: isolate outside the model</h4>
             {plan.openEnds.map((o) => (
               <div key={o.line + o.label} className="small"><span className="mono">{o.line}</span> → {o.label}</div>
             ))}
@@ -200,7 +200,7 @@ function printPlan(p: IsolationPlan, steps: Step[], title: string) {
   const h = (s: string) => s.replace(/[&<>]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' })[c]!)
   w.document.write(`<!doctype html><title>Isolation ${h(p.target)}</title>
 <style>body{font:13px system-ui;margin:24px}table{border-collapse:collapse;width:100%}td,th{border:1px solid #999;padding:6px;vertical-align:top;text-align:left}th{background:#eee}.w{color:#a40}</style>
-<h2>Isolation plan — ${h(p.target)} ${h(title)}</h2>
+<h2>Isolation plan, ${h(p.target)} ${h(title)}</h2>
 <p>${p.mode === 'positive' ? 'Positive isolation (vessel entry)' : 'Valve isolation'} · generated ${new Date().toLocaleString()}</p>
 ${p.warnings.map((x) => `<p class="w">⚠ ${h(x)}</p>`).join('')}
 <table><tr><th>#</th><th>Action</th><th>Detail</th><th>Done / initials</th></tr>

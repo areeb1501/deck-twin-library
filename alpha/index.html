@@ -9,7 +9,7 @@
     <meta name="theme-color" content="#0e0f13" />
     <title>Deck Twin: a working copy of an offshore field</title>
     <meta name="description" content="A browser 3D digital twin of a simulated offshore field. Walk it, run it and rehearse the worst day." />
-    <link rel="preload" as="image" href="/alpha/media/v1/hero-flyover.webp" fetchpriority="high" />
+    <link rel="preload" as="image" href="/alpha/media/v2/hero-flyover.webp" fetchpriority="high" />
   </head>
   <body>
     <header class="top">
@@ -46,7 +46,7 @@
 
     <main>
       <section class="hero">
-        <video class="hero-film" data-clip="hero-flyover" data-now muted loop playsinline poster="/alpha/media/v1/hero-flyover.webp" aria-hidden="true"></video>
+        <video class="hero-film" data-clip="hero-flyover" data-film data-now muted loop playsinline poster="/alpha/media/v2/hero-flyover.webp" aria-hidden="true"></video>
         <div class="hero-shade" aria-hidden="true"></div>
         <div class="grain" aria-hidden="true"></div>
         <div class="hero-copy">
@@ -66,7 +66,7 @@
         </div>
         <div class="mosaic">
           <figure class="wide">
-            <video data-clip="walk-bridge" muted loop playsinline aria-label="A person in orange coveralls walking along a bridge between platforms"></video>
+            <video data-clip="walk-bridge" data-film muted loop playsinline aria-label="A person in orange coveralls walking along a bridge between platforms"></video>
             <figcaption>Walk it. Cross the bridges, climb the stairs and step into the control room.</figcaption>
           </figure>
           <figure>
@@ -172,7 +172,6 @@
 
     <footer class="foot">
       <p>Everything here is simulated: process values, alarms, people, CCTV detections and agent answers. The engineering data is plausible and based on public standards, but it isn't from a real asset.</p>
-      <a href="/">Component library</a>
     </footer>
 
     <dialog class="search" aria-label="Search docs and components">

@@ -7,7 +7,7 @@ import { pickOf, showIn3D } from './nav'
 export function Prio({ p }: { p: AlarmPriority | undefined }) {
   const n = p ?? 3
   return (
-    <span className={`prio p${n}`} title={n === 1 ? 'Priority 1 — emergency' : n === 2 ? 'Priority 2 — high' : 'Priority 3 — low'}>
+    <span className={`prio p${n}`} title={n === 1 ? 'Priority 1: emergency' : n === 2 ? 'Priority 2: high' : 'Priority 3: low'}>
       {n}
     </span>
   )

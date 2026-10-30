@@ -31,7 +31,7 @@ export const LOGISTICS_KNOWLEDGE: Knowledge[] = [
     ],
     instrumentation: ['Inventory system (SAP MM / Maximo / IFS) with bin locations and reservations', 'Barcode / RFID goods receipt and issue', 'Smoke detection and extinguishers in the store', 'Crane load indicator (SWL / radius) for laydown lifts'],
     issues: [
-      'Stock-out of a long-lead critical spare — the machine waits for the part and production is deferred',
+      'Stock-out of a long-lead critical spare: the machine waits for the part and production is deferred',
       'Wrong, obsolete or unidentifiable parts (superseded part numbers, missing tags)',
       'Shelf-life expiry: elastomers, adhesives, chemicals, batteries',
       'Stored rotating spares damaged by vibration and corrosion (brinelled bearings, seized shafts)',
@@ -65,7 +65,7 @@ export const LOGISTICS_KNOWLEDGE: Knowledge[] = [
     id: 'meter-prover',
     title: 'Meter Prover (compact piston prover)',
     summary:
-      'The in-service reference for a fiscal oil meter: a precision barrel of known volume that the oil is diverted through, so the meter’s pulses can be compared with that volume and its meter factor updated. Custody-transfer contracts and regulators require regular proving — here of the ultrasonic meter runs on X-R150.',
+      'The in-service reference for a fiscal oil meter: a precision barrel of known volume that the oil is diverted through, so the meter’s pulses can be compared with that volume and its meter factor updated. Custody-transfer contracts and regulators require regular proving, here of the ultrasonic meter runs on X-R150.',
     howItWorks:
       'A 4-way diverter sends the metered oil through the prover barrel. A piston with a low-friction seal travels between two optical or magnetic detector switches, sweeping a volume that is known from a water-draw calibration. The flow computer counts the meter pulses in that time (with pulse interpolation, because a compact prover sweeps only tens of litres), corrects the prover and the oil to base conditions for temperature and pressure (CTS, CPS, CTL, CPL) and works out the meter factor = prover volume ÷ indicated meter volume. A proof is a set of consecutive runs that must repeat within a tight band; the new factor is applied to the meter when it is close to the previous one. Ultrasonic meters need more passes or a master-meter proof because their pulse output is delayed and noisier.',
     useCases: [
@@ -82,7 +82,7 @@ export const LOGISTICS_KNOWLEDGE: Knowledge[] = [
     ],
     instrumentation: ['Detector switches (optical)', 'Prover inlet / outlet temperature and pressure', 'Diverter-valve seal integrity (double block and bleed)', 'Flow computer with pulse interpolation'],
     issues: [
-      'Piston or diverter seal leakage — the swept volume is wrong',
+      'Piston or diverter seal leakage: the swept volume is wrong',
       'Detector switch wear or drift',
       'Temperature not stable, or gas in the oil',
       'Ultrasonic meter pulse delay needing many passes',

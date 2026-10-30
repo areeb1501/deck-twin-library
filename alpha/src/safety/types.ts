@@ -204,7 +204,7 @@ export const DETECTION_LABEL: Record<DetectionKind, string> = {
   gasCloud: 'Gas cloud',
   fire: 'Flame',
   zone0Entry: 'Zone 0 entry',
-  zonePpe: 'Hazardous area — PPE missing',
+  zonePpe: 'Hazardous area: PPE missing',
 }
 
 export interface Detection {

@@ -136,7 +136,7 @@ async function run(traceId: string, platform0: PlatformId | undefined, tag: stri
           const h = e.health as J | null
           if (h && h.stage !== 'normal') {
             evidence.push(`${tag} condition ${h.stage} (degradation ${h.degradationPct} %${h.mode ? `, ${h.mode}` : ''})`)
-            causes.push({ rank: h.stage === 'failed' ? 1 : 4, text: `${tag} machine condition ${h.stage}${h.mode ? ` — ${h.mode}` : ''}` })
+            causes.push({ rank: h.stage === 'failed' ? 1 : 4, text: `${tag} machine condition ${h.stage}${h.mode ? `: ${h.mode}` : ''}` })
           }
           const v = e.valve as J | null
           if (v?.fault) {
@@ -167,7 +167,7 @@ async function run(traceId: string, platform0: PlatformId | undefined, tag: stri
       }
     }
     evidence.push(...outOfLimits)
-    say(instruments.length ? `Sensors: ${instruments.length} read, ${outOfLimits.length} out of limits${outOfLimits.length ? ` — ${outOfLimits.join('; ')}` : ''}` : 'Sensors: no instruments on the item', { outOfLimits }, 'assess')
+    say(instruments.length ? `Sensors: ${instruments.length} read, ${outOfLimits.length} out of limits${outOfLimits.length ? `: ${outOfLimits.join('; ')}` : ''}` : 'Sensors: no instruments on the item', { outOfLimits }, 'assess')
 
     // 3. fire & gas + cameras
     await stepTo('3/7 Fire & gas: zone state and visual confirmation')
@@ -181,7 +181,7 @@ async function run(traceId: string, platform0: PlatformId | undefined, tag: stri
     }
     const dets = arr(fg.detectorsInAlarm)
     if (dets.length) evidence.push(`Detectors in alarm: ${dets.slice(0, 5).map((d) => `${d.tag} ${d.value}`).join(', ')}`)
-    for (const d of arr(fg.inhibited)) evidence.push(`${d.tag} inhibited — not voting`)
+    for (const d of arr(fg.inhibited)) evidence.push(`${d.tag} inhibited, not voting`)
     const cams = tool('get_cameras', tag ? { tag } : { platform })
     for (const c of arr(cams.cameras)) {
       cameras.push(String(c.name))
@@ -190,25 +190,25 @@ async function run(traceId: string, platform0: PlatformId | undefined, tag: stri
     say(`Fire & gas: ${arr(fg.zones).length} abnormal zone(s), ${dets.length} detector(s) in alarm; ${cameras.length ? `cameras ${cameras.join(', ')}` : cams.available ? 'no camera covers it' : 'CCTV not available yet'}`, undefined, 'assess')
 
     // 4. barriers (hard check a)
-    await stepTo('4/7 Barriers: permits, inhibits, stuck valves — Swiss-cheese check')
+    await stepTo('4/7 Barriers: permits, inhibits, stuck valves, Swiss-cheese check')
     const pm = tool('get_permits', { platform })
-    for (const c of arr(pm.conflicts)) evidence.push(`SIMOPS conflict: ${c.permit} — ${c.reason}`)
+    for (const c of arr(pm.conflicts)) evidence.push(`SIMOPS conflict: ${c.permit}: ${c.reason}`)
     const hot = arr(pm.permits).filter((x) => /hot/i.test(String(x.type)) && x.status === 'issued')
     if (hot.length) evidence.push(`Live hot-work permit(s): ${hot.map((x) => `${x.id} on ${x.tag}`).join(', ')}`)
     const er = tool('check_barrier_erosion', zone ? { zone } : { platform })
     const erF = arr(er.findings)
     for (const f of erF) {
       const layers = arr(f.layers)
-      const line = `${f.zoneName}: ${layers.length} layer(s) weakened — ${layers.map((l) => l.text).join('; ')}`
+      const line = `${f.zoneName}: ${layers.length} layer(s) weakened: ${layers.map((l) => l.text).join('; ')}`
       if (f.aligned) {
-        hidden.push(`Barrier erosion — ${line}`)
+        hidden.push(`Barrier erosion: ${line}`)
         actions.push(...((f.actions as string[]) ?? []))
       } else evidence.push(line)
     }
     if (zone && !erF.length) {
       // the zone itself is clean: look wider (the same platform) before concluding
       const wide = tool('check_barrier_erosion', { platform })
-      for (const f of arr(wide.findings)) if (f.aligned) hidden.push(`Barrier erosion nearby — ${f.zoneName}: ${arr(f.layers).map((l) => l.text).join('; ')}`)
+      for (const f of arr(wide.findings)) if (f.aligned) hidden.push(`Barrier erosion nearby: ${f.zoneName}: ${arr(f.layers).map((l) => l.text).join('; ')}`)
     }
     say(`Barriers: ${arr(pm.permits).length} permit(s), ${arr(pm.conflicts).length} SIMOPS conflict(s); ${erF.filter((f) => f.aligned).length} zone(s) with three or more layers weakened at once`, undefined, 'assess')
 
@@ -218,7 +218,7 @@ async function run(traceId: string, platform0: PlatformId | undefined, tag: stri
     let drifting = arr(dr.drifting)
     if (!drifting.length && tag) drifting = arr(tool('check_sensor_drift', { platform }).drifting)
     for (const d of drifting.slice(0, 3)) {
-      hidden.push(`Slow drift — ${d.label} ${d.value} ${d.unit} moving ${Number(d.ratePerHour) > 0 ? '+' : ''}${d.ratePerHour} ${d.unit}/h, inside its alarm limits, ~${Math.round(Number(d.minutesToTrip))} min to ${d.limitName} ${d.limit}`)
+      hidden.push(`Slow drift: ${d.label} ${d.value} ${d.unit} moving ${Number(d.ratePerHour) > 0 ? '+' : ''}${d.ratePerHour} ${d.unit}/h, inside its alarm limits, ~${Math.round(Number(d.minutesToTrip))} min to ${d.limitName} ${d.limit}`)
       causes.push({ rank: 3, text: `${d.label} drifting towards its ${d.limitName}` })
       actions.push(...((d.actions as string[]) ?? []).slice(0, 2))
     }
@@ -237,7 +237,7 @@ async function run(traceId: string, platform0: PlatformId | undefined, tag: stri
       causes.push({ rank: 0, text: `${s.level} initiated by ${s.cause}` })
       const ce = s.causeEffect as J | null
       if (ce) actions.push(...(ce.effects as string[]).slice(0, 3).map((e) => `Verify: ${e}`))
-      actions.push(s.resettable ? `${s.level}: cause cleared — reset, then restart ${platform} in sequence` : `${s.level}: do not reset until the cause clears`)
+      actions.push(s.resettable ? `${s.level}: cause cleared, reset, then restart ${platform} in sequence` : `${s.level}: do not reset until the cause clears`)
     }
     // only a strong match (the tag is in the scenario, or several words agree) — a weak one misleads
     const sc = arr(tool('find_scenarios', { query: `${alertTitle} ${tag ?? ''}`, ...(tag ? { tag } : {}) }).matches).filter((m) => Number(m.score) >= 4)
@@ -245,7 +245,7 @@ async function run(traceId: string, platform0: PlatformId | undefined, tag: stri
     if (sc.length) {
       const c = tool('get_scenario_consequence', { scenarioId: sc[0].id })
       const cq = c.consequence as J | null
-      consequence = cq ? `Worst case ${cq.worstShutdown} on ${arr(cq.platforms).join(', ')} (≈ ${((cq.deferredBoe as J) ?? {}).unmitigated ?? '—'} boe unmitigated)` : `Closest training scenario: "${c.title}"`
+      consequence = cq ? `Worst case ${cq.worstShutdown} on ${arr(cq.platforms).join(', ')} (≈ ${((cq.deferredBoe as J) ?? {}).unmitigated ?? '-'} boe unmitigated)` : `Closest training scenario: "${c.title}"`
       actions.push(...((c.expected as string[]) ?? []).slice(0, 3))
     }
     say(`Consequence: ${arr(sd.shutdowns).length} shutdown(s) on ${platform}${consequence ? `; ${consequence}` : ''}`, undefined, 'assess')
@@ -258,7 +258,7 @@ async function run(traceId: string, platform0: PlatformId | undefined, tag: stri
     const acts = uniq(actions)
     if (!acts.length) acts.push('Keep monitoring; no action needed from the evidence gathered')
     let report: InvestigationReport = {
-      summary: `${tag ?? platform}: ${likelyCause}.${hidden.length ? ` ${hidden.length} hard-to-spot finding(s): ${hidden.map((h) => h.split(' — ')[0]).join(', ')}.` : ''}${consequence ? ` ${consequence}.` : ''}`,
+      summary: `${tag ?? platform}: ${likelyCause}.${hidden.length ? ` ${hidden.length} hard-to-spot finding(s): ${hidden.map((h) => h.split(' - ')[0]).join(', ')}.` : ''}${consequence ? ` ${consequence}.` : ''}`,
       likelyCause,
       evidence: uniq(evidence).slice(0, 14),
       actions: acts.slice(0, 8),
@@ -281,14 +281,14 @@ async function run(traceId: string, platform0: PlatformId | undefined, tag: stri
           planner = r.model
         }
       } catch (e) {
-        say(`Model unavailable (${e instanceof Error ? e.message : String(e)}) — rule-based synthesis`, undefined, 'decide')
+        say(`Model unavailable (${e instanceof Error ? e.message : String(e)}): rule-based synthesis`, undefined, 'decide')
       }
     }
-    say(`Report: likely cause — ${report.likelyCause}. ${report.actions.length} advisory action(s); the operator decides.`, { report, planner }, 'answer')
+    say(`Report: likely cause, ${report.likelyCause}. ${report.actions.length} advisory action(s); the operator decides.`, { report, planner }, 'answer')
     patch(traceId, () => ({ status: 'done', pending: undefined, report }))
   } catch (e) {
     const err = e instanceof Error ? e.message : String(e)
     say(`Investigation failed: ${err}`, undefined, 'answer')
-    patch(traceId, () => ({ status: 'done', pending: undefined, report: { summary: `Failed: ${err}`, likelyCause: '—', evidence, actions, cameras, hidden } }))
+    patch(traceId, () => ({ status: 'done', pending: undefined, report: { summary: `Failed: ${err}`, likelyCause: '-', evidence, actions, cameras, hidden } }))
   }
 }

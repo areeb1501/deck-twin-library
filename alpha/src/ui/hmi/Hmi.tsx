@@ -144,11 +144,11 @@ function Header() {
   return (
     <header className="hmi-head">
       <div className="hmi-title">
-        Alpha field — DCS
+        Alpha field: DCS
         <small>Central Control Room · operator console</small>
       </div>
       <div className="hmi-clock" title="Simulation clock (session starts D1 06:00)">
-        {typeof t === 'number' ? fmtClock(t) : '—'}
+        {typeof t === 'number' ? fmtClock(t) : '-'}
       </div>
       <div className="hmi-speed" title="Simulation speed">
         {SPEEDS.map(([v, label]) => (

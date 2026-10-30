@@ -491,6 +491,7 @@
 .pop-head { font-size: 10.5px; text-transform: uppercase; letter-spacing: .07em; color: var(--ui-muted); font-weight: 600; padding: 4px 4px 2px; }
 .pop.views { left: 90px; max-height: calc(100vh - 90px); overflow: auto; }
 .pop.views .quick { padding: 0 4px 4px; }
+.pop.cranes { right: auto; }
 /* menus drop over the alarm banner */
 .toolbar { z-index: 13; }
 

@@ -135,7 +135,7 @@ function EconKpis() {
     <div className="econ-kpis" data-econ="kpis">
       <Tile
         label="Oil export"
-        value={live ? fmt(now.oil) : '—'}
+        value={live ? fmt(now.oil) : '-'}
         unit="bbl/d"
         bar={oilShare}
         tone={live && oilShare < 0.5 ? 'loss' : live && oilShare < 0.97 ? 'abn' : undefined}
@@ -145,13 +145,13 @@ function EconKpis() {
           </>
         }
       />
-      <Tile label="Gas export" value={live ? fmt(now.gas, 1) : '—'} unit="MMscfd" tone={(flare ?? 0) > 15 ? 'loss' : (flare ?? 0) > 3 ? 'abn' : undefined} sub={`flare ${fmt(flare, 1)} · fuel ${fmt(fuel, 1)} MMscfd`} />
+      <Tile label="Gas export" value={live ? fmt(now.gas, 1) : '-'} unit="MMscfd" tone={(flare ?? 0) > 15 ? 'loss' : (flare ?? 0) > 3 ? 'abn' : undefined} sub={`flare ${fmt(flare, 1)} · fuel ${fmt(fuel, 1)} MMscfd`} />
       <Tile label="Revenue" value={fmtUsd(rate.revenue)} unit="/ d" tone="acc" sub={`oil ${fmtUsd(rate.oilRevenue)} · gas ${fmtUsd(rate.gasRevenue)}`} title="Run-rate at the assumed price deck: oil export × oil price + gas export × HHV × gas price" />
-      <Tile label="Cash margin" value={fmtUsd(rate.cash)} unit="/ d" tone={rate.cash < 0 ? 'loss' : 'acc'} sub={rate.revenue > 0 ? `${Math.round(margin * 100)} % of revenue` : 'no revenue — fixed costs still run'} title="Revenue − royalty − OPEX − carbon, run-rate" />
-      <Tile label="Lifting cost" value={rate.liftingCost > 0 ? `$${rate.liftingCost.toFixed(1)}` : '—'} unit="/ boe" tone={rate.liftingCost > 20 ? 'abn' : undefined} sub={`OPEX ${fmtUsd(rate.opex)} / d`} title="OPEX ÷ boe produced (run-rate)" />
+      <Tile label="Cash margin" value={fmtUsd(rate.cash)} unit="/ d" tone={rate.cash < 0 ? 'loss' : 'acc'} sub={rate.revenue > 0 ? `${Math.round(margin * 100)} % of revenue` : 'no revenue: fixed costs still run'} title="Revenue − royalty − OPEX − carbon, run-rate" />
+      <Tile label="Lifting cost" value={rate.liftingCost > 0 ? `$${rate.liftingCost.toFixed(1)}` : '-'} unit="/ boe" tone={rate.liftingCost > 20 ? 'abn' : undefined} sub={`OPEX ${fmtUsd(rate.opex)} / d`} title="OPEX ÷ boe produced (run-rate)" />
       <Tile label="Production efficiency" value={fmt(pe, 1)} unit="% session" tone={(pe ?? 100) < 90 ? 'loss' : (pe ?? 100) < 97 ? 'abn' : undefined} sub={`now ${fmt(now.pe, 1)} % · last hour ${fmt(peHour, 1)} %`} title="Actual ÷ maximum production potential (boe), NSTA definition" />
       <Tile
-        label="Deferred — session"
+        label="Deferred: session"
         value={fmtUsd(deferred)}
         tone={deferred > 1000 ? 'loss' : undefined}
         sub={
@@ -161,9 +161,9 @@ function EconKpis() {
             {rate.deferred > 100 && <span className="neg"> · now {fmtUsd(rate.deferred)}/d</span>}
           </>
         }
-        title="Deferred production valued at the price of what was lost (PE loss categories). 'Awaiting spares' is the share of it while machines waited for parts — not added."
+        title="Deferred production valued at the price of what was lost (PE loss categories). 'Awaiting spares' is the share of it while machines waited for parts, not added."
       />
-      <Tile label="Carbon intensity" value={rate.intensity > 0 ? rate.intensity.toFixed(1) : '—'} unit="kgCO2e/boe" tone={rate.intensity > 25 ? 'loss' : rate.intensity > 12 ? 'abn' : undefined} sub={`${fmt(co2)} t/d · ${fmtUsd(rate.carbonCost)}/d carbon`} title="Flare + fuel gas + cold vent CO2e ÷ boe produced" />
+      <Tile label="Carbon intensity" value={rate.intensity > 0 ? rate.intensity.toFixed(1) : '-'} unit="kgCO2e/boe" tone={rate.intensity > 25 ? 'loss' : rate.intensity > 12 ? 'abn' : undefined} sub={`${fmt(co2)} t/d · ${fmtUsd(rate.carbonCost)}/d carbon`} title="Flare + fuel gas + cold vent CO2e ÷ boe produced" />
     </div>
   )
 }
@@ -233,7 +233,7 @@ const ProductionChart = memo(function ProductionChart() {
   const gapNow = now.mpp - now.boe
   return (
     <Box
-      title="Production — actual vs potential"
+      title="Production: actual vs potential"
       className="econ-prod"
       right={
         hp ? (
@@ -248,7 +248,7 @@ const ProductionChart = memo(function ProductionChart() {
       }
     >
       {!g ? (
-        <div className="econ-empty">Waiting for the simulation — start the clock to see production and value.</div>
+        <div className="econ-empty">Waiting for the simulation: start the clock to see production and value.</div>
       ) : (
         <svg className="econ-chart" viewBox={`0 0 ${PW} ${PH}`} onMouseMove={onMove} onMouseLeave={() => setHover(null)} role="img" aria-label={`Production ${Math.round(now.boe)} of ${Math.round(now.mpp)} boe per day potential`}>
           {g.yTicks.map((v) => (
@@ -338,9 +338,9 @@ const Waterfall = memo(function Waterfall() {
     const realised = sess ? totals.revenue : rate.revenue
     const losses = LOSS_CATS.map((k) => ({ k, v: sess ? totals.deferred[k] : dRate[k] })).filter((x) => x.v > 0.5)
     losses.sort((a, b) => b.v - a.v)
-    const lossBars: WfBar[] = losses.slice(0, 4).map((x) => ({ key: x.k, label: LOSS_SHORT[x.k], full: `Deferred — ${LOSS_LABEL[x.k]}`, v: x.v, kind: 'loss' }))
+    const lossBars: WfBar[] = losses.slice(0, 4).map((x) => ({ key: x.k, label: LOSS_SHORT[x.k], full: `Deferred: ${LOSS_LABEL[x.k]}`, v: x.v, kind: 'loss' }))
     const rest = losses.slice(4).reduce((a, x) => a + x.v, 0)
-    if (rest > 0) lossBars.push({ key: 'other', label: 'Other', full: `Deferred — other categories (${losses.slice(4).map((x) => LOSS_SHORT[x.k]).join(', ')})`, v: rest, kind: 'loss' })
+    if (rest > 0) lossBars.push({ key: 'other', label: 'Other', full: `Deferred: other categories (${losses.slice(4).map((x) => LOSS_SHORT[x.k]).join(', ')})`, v: rest, kind: 'loss' })
     if (!lossBars.length) lossBars.push({ key: 'none', label: 'Deferment', full: 'No deferred production', v: 0, kind: 'loss' })
     const lossSum = lossBars.reduce((a, b) => a + b.v, 0)
     const roy = sess ? totals.royalty : rate.revenue * royalty
@@ -384,7 +384,7 @@ const Waterfall = memo(function Waterfall() {
 
   return (
     <Box
-      title={mode === 'session' ? `Revenue waterfall — session (${fmtSimSpan(elapsed)} sim)` : 'Revenue waterfall — run-rate per day'}
+      title={mode === 'session' ? `Revenue waterfall: session (${fmtSimSpan(elapsed)} sim)` : 'Revenue waterfall: run-rate per day'}
       className="econ-wf"
       right={
         <span className="econ-seg">
@@ -425,11 +425,11 @@ const Waterfall = memo(function Waterfall() {
         {wf.materials > 0.5 ? (
           <span>
             <i className="hatch" /> of which awaiting spares: <b className="mono neg">{fmtUsd(wf.materials)}</b>
-            {mode === 'rate' ? ' / d' : ''} — inside the losses above, not added
+            {mode === 'rate' ? ' / d' : ''}: inside the losses above, not added
           </span>
         ) : (
           <span className="dim">
-            <i className="hatch" /> awaiting spares: none — machines waiting for parts would show here as a share of the losses
+            <i className="hatch" /> awaiting spares: none, machines waiting for parts would show here as a share of the losses
           </span>
         )}
       </div>
@@ -454,10 +454,10 @@ function runLever(r: AssetRiskRow): string | null {
   const api = sparesApi as SparesExt
   if (L.kind === 'expedite' && L.poId && typeof api.expedite === 'function') {
     const why = api.expedite(L.poId, { heli: L.heli, by: 'Asset & economics' })
-    return why ?? `✓ ${L.poId} expedited${L.heli ? ', helicopter for the last leg' : ''} — ${L.partName} lands in ≈ ${fmtDays(L.arriveDays)}${gain(L)}`
+    return why ?? `✓ ${L.poId} expedited${L.heli ? ', helicopter for the last leg' : ''}: ${L.partName} lands in ≈ ${fmtDays(L.arriveDays)}${gain(L)}`
   }
   const why = sparesApi.order(L.partId, L.qty ?? 1, L.mode ?? 'standard', { wo: L.wo, heli: L.heli, by: 'Asset & economics' })
-  return why ?? `✓ ${L.label}: ${L.qty ?? 1} × ${L.partName}${L.heli ? ' by helicopter' : ''} — lands in ≈ ${fmtDays(L.arriveDays)}${gain(L)}`
+  return why ?? `✓ ${L.label}: ${L.qty ?? 1} × ${L.partName}${L.heli ? ' by helicopter' : ''}: lands in ≈ ${fmtDays(L.arriveDays)}${gain(L)}`
 }
 function raiseWo(tag: string): string {
   const x = maint.raiseFor(tag, 'Asset & economics')
@@ -482,7 +482,7 @@ const RiskRegister = memo(function RiskRegister() {
 
   return (
     <Box
-      title={`Asset-risk register — $ exposure, next ${horizon} days`}
+      title={`Asset-risk register: $ exposure, next ${horizon} days`}
       className="econ-risk"
       right={
         <>
@@ -500,7 +500,7 @@ const RiskRegister = memo(function RiskRegister() {
       }
     >
       {risks.length === 0 ? (
-        <div className="econ-empty">No monitored machines yet — the register fills once the plant and the maintenance plugin are loaded.</div>
+        <div className="econ-empty">No monitored machines yet: the register fills once the plant and the maintenance plugin are loaded.</div>
       ) : (
         <div className="econ-rscroll">
           <table className="h-tbl econ-rtbl">
@@ -684,7 +684,7 @@ function PriceDeckBox() {
         </button>
       }
     >
-      <div className="econ-assume">Assumption — simulated price deck for this demo, not a market quote. Edit to see the value move.</div>
+      <div className="econ-assume">Assumption: simulated price deck for this demo, not a market quote. Edit to see the value move.</div>
       <div className="econ-fields">
         {FIELDS.map((f) => (
           <DeckField key={f.k} f={f} value={deck[f.k]} />
@@ -711,7 +711,7 @@ function EmissionsBox() {
   const rows: [string, number, number | undefined, string][] = [
     ['Flare', emis.flare, flare, 'combustion + 2 % methane slip, 65 t/MMscf'],
     ['Fuel gas', emis.fuel, fuel, 'turbines, 54.5 t/MMscf'],
-    ['Cold vent', emis.vent, vent, 'methane, GWP100 28 — 538 t/MMscf'],
+    ['Cold vent', emis.vent, vent, 'methane, GWP100 28: 538 t/MMscf'],
   ]
   return (
     <Box title="Emissions" className="econ-emis" right={<span className="mono dim">{fmt(total)} tCO2e/d</span>}>
@@ -730,7 +730,7 @@ function EmissionsBox() {
       <div className="econ-pairs">
         <div>
           <span>Intensity</span>
-          <b className="mono">{rate.intensity > 0 ? rate.intensity.toFixed(1) : '—'}</b>
+          <b className="mono">{rate.intensity > 0 ? rate.intensity.toFixed(1) : '-'}</b>
           <small>kgCO2e/boe</small>
         </div>
         <div>
@@ -767,7 +767,7 @@ function SpendBox() {
     ['Expedite & freight', totals.cost.logistics, 'vendor premiums, boat share, helicopter'],
   ]
   return (
-    <Box title="Maintenance & supply — session" className="econ-spend" right={<span className="econ-sim">simulated</span>}>
+    <Box title="Maintenance & supply: session" className="econ-spend" right={<span className="econ-sim">simulated</span>}>
       <div className="econ-pairs col">
         {rows.map(([l, v, why]) => (
           <div key={l} title={why}>

@@ -40,7 +40,7 @@ export function Process() {
             <WhpMimic plant={plant} pick={setSel} sel={sel} marks={marks} />
           </>
         ) : (
-          <div className="h-placeholder">No process mimic for {plant.name} — the mimics are drawn for the Alpha field. Use the Machines page for the equipment.</div>
+          <div className="h-placeholder">No process mimic for {plant.name}: the mimics are drawn for the Alpha field. Use the Machines page for the equipment.</div>
         )}
         <OtherValves plant={plant} pick={setSel} sel={sel} />
       </div>
@@ -68,7 +68,7 @@ function Mach({ tag, x, y, r = 15, pick, sel, marks, label = 'below' }: { tag: s
   const on = sel?.tag === tag
   return (
     <g className="click" onClick={() => pick({ kind: 'machine', tag })} data-tag={tag}>
-      <title>{`${tag} — ${st}`}</title>
+      <title>{`${tag}: ${st}`}</title>
       <circle cx={x} cy={y} r={r} className={`mach ${st}`} style={on ? { stroke: '#fff', strokeWidth: 2.5 } : undefined} />
       <text x={x} y={y + 3} className={`machtxt ${st === 'running' ? '' : st === 'tripped' ? 'trip' : 'off'}`}>
         {RS_TXT[st]}
@@ -108,7 +108,7 @@ function ValveSym({ tag, x, y, vertical, pick, sel, marks, plant, labelSide = 'b
   const anchor = labelSide === 'right' ? 'start' : labelSide === 'left' ? 'end' : 'middle'
   return (
     <g className="click" onClick={() => pick({ kind: 'valve', tag })} data-tag={tag}>
-      <title>{`${tag} — ${state}${typeof v?.pos === 'number' ? ` (${Math.round(pos * 100)} %)` : ''}`}</title>
+      <title>{`${tag}: ${state}${typeof v?.pos === 'number' ? ` (${Math.round(pos * 100)} %)` : ''}`}</title>
       <rect x={x - 12} y={y - 18} width={24} height={26} fill="transparent" />
       <g transform={`translate(${x} ${y}) rotate(${vertical ? 90 : 0})`}>
         <path d={body} className={`vbody ${state} ${offnorm ? 'offnorm' : ''}`} style={on ? { stroke: '#fff', strokeWidth: 2.4 } : undefined} />
@@ -199,7 +199,7 @@ function AlphaMimic({ plant, pick, sel, marks }: { plant: Plant; pick: Pick; sel
   return (
     <section className="h-box">
       <h3>
-        <span>Alpha — production platform</span>
+        <span>Alpha: production platform</span>
         <span className="grow" />
         {alphaSd && <span style={{ color: '#ffd7a0' }}>{alphaSd} latched</span>}
       </h3>
@@ -371,7 +371,7 @@ function AlphaMimic({ plant, pick, sel, marks }: { plant: Plant; pick: Pick; sel
 
         <rect className="box" x={276} y={466} width={290} height={124} />
         <text className="lbl" x={284} y={482}>
-          Cooling — seawater & cooling medium
+          Cooling: seawater & cooling medium
         </text>
         <Mach tag="P-6400A" x={316} y={520} {...P} />
         <Mach tag="P-6400B" x={366} y={520} {...P} />
@@ -404,7 +404,7 @@ function AlphaMimic({ plant, pick, sel, marks }: { plant: Plant; pick: Pick; sel
           {fmt(p?.busHz, 2)} Hz
         </text>
         <text x={756} y={578}>
-          emerg. gen {p?.emergencyGen ?? '—'}
+          emerg. gen {p?.emergencyGen ?? '-'}
         </text>
 
         <rect className="box" x={886} y={466} width={218} height={124} />
@@ -432,7 +432,7 @@ function Compressor({ x, y, pick, sel, marks }: { x: number; y: number; pick: Pi
   const sm = p?.surgeMargin
   return (
     <g className="click" onClick={() => pick({ kind: 'machine', tag })} data-tag={tag}>
-      <title>{`${tag} — ${st}`}</title>
+      <title>{`${tag}: ${st}`}</title>
       <path d={`M${x},${y - 30} L${x + 60},${y - 14} L${x + 60},${y + 14} L${x},${y + 30} Z`} className={`mach ${st}`} style={on ? { stroke: '#fff', strokeWidth: 2.5 } : undefined} />
       <text x={x + 28} y={y + 3} className={`machtxt ${st === 'running' ? '' : st === 'tripped' ? 'trip' : 'off'}`}>
         {RS_TXT[st]}
@@ -460,7 +460,7 @@ function WhpMimic({ plant, pick, sel, marks }: { plant: Plant; pick: Pick; sel: 
   return (
     <section className="h-box">
       <h3>
-        <span>WHP-N — wellhead platform</span>
+        <span>WHP-N: wellhead platform</span>
         <span className="grow" />
         {res?.shutdown && <span style={{ color: '#ffd7a0' }}>{res.shutdown} latched</span>}
       </h3>
@@ -479,7 +479,7 @@ function WhpMimic({ plant, pick, sel, marks }: { plant: Plant; pick: Pick; sel: 
                 {t}
               </text>
               <text x={150} y={58 + i * 20} className="val" textAnchor="end" style={{ fontSize: 10 }}>
-                {w ? fmt(w.oil) : t === 'XT-N106' ? 'inj.' : '—'}
+                {w ? fmt(w.oil) : t === 'XT-N106' ? 'inj.' : '-'}
               </text>
             </g>
           )
@@ -526,7 +526,7 @@ function WhpMimic({ plant, pick, sel, marks }: { plant: Plant; pick: Pick; sel: 
         <ValveSym tag="DV-N2851" x={760} y={150} vertical plant={plant} labelSide="right" {...P} />
         <path className="ln thin" d="M730,120 H790" strokeDasharray="2 3" />
         <text x={800} y={124} className={deluge ? 'val abn' : ''}>
-          {deluge ? 'DELUGE RELEASED — well bay' : 'Well-bay deluge'}
+          {deluge ? 'DELUGE RELEASED: well bay' : 'Well-bay deluge'}
         </text>
 
         <VesselBox tag="V-N281" x={900} y={40} w={26} h={46} rx={11} {...P}>
@@ -543,7 +543,7 @@ function WhpMimic({ plant, pick, sel, marks }: { plant: Plant; pick: Pick; sel: 
           </text>
         </VesselBox>
         <text x={900} y={160}>
-          GA: {res?.ga ?? '—'} · {res ? (res.online ? 'producing' : 'not producing') : '—'}
+          GA: {res?.ga ?? '-'} · {res ? (res.online ? 'producing' : 'not producing') : '-'}
         </text>
       </svg>
     </section>
@@ -666,7 +666,7 @@ export function MachineFace({ tag, close }: { tag: string; close?: () => void })
         <button onClick={() => act(() => stopMachine(tag), 'Stop command sent')} disabled={st !== 'running' && st !== 'starting'}>
           Stop
         </button>
-        <button className={st === 'tripped' ? 'warn' : ''} onClick={() => act(() => resetMachine(tag), 'Reset — machine available')} disabled={st !== 'tripped'}>
+        <button className={st === 'tripped' ? 'warn' : ''} onClick={() => act(() => resetMachine(tag), 'Reset: machine available')} disabled={st !== 'tripped'}>
           Reset
         </button>
         {st === 'tripped' && m?.localReset && (
@@ -692,7 +692,7 @@ function ValveFace({ tag, close }: { tag: string; close: () => void }) {
   const { pos, state } = valveLook(v, def.normally)
   const cmd = (c: 'open' | 'closed') => {
     const r = call('setValve', tag, c, 'CCR')
-    setMsg(r ?? (v?.fault === 'stuck' ? `Command ${c} sent — valve is reported STUCK, travel will not follow` : `✓ ${c === 'open' ? 'Open' : 'Close'} command sent`))
+    setMsg(r ?? (v?.fault === 'stuck' ? `Command ${c} sent: valve is reported STUCK, travel will not follow` : `✓ ${c === 'open' ? 'Open' : 'Close'} command sent`))
   }
   return (
     <aside className="faceplate" data-face={tag}>
@@ -710,9 +710,9 @@ function ValveFace({ tag, close }: { tag: string; close: () => void }) {
         <dt>Normal position</dt>
         <dd>{def.normally}</dd>
         <dt>Fail action</dt>
-        <dd>{def.failAction ?? '—'}</dd>
+        <dd>{def.failAction ?? '-'}</dd>
         <dt>Stroke time</dt>
-        <dd>{typeof v?.stroke === 'number' ? `${fmt(v.stroke, 0)} s` : '—'}</dd>
+        <dd>{typeof v?.stroke === 'number' ? `${fmt(v.stroke, 0)} s` : '-'}</dd>
         {v?.fault && (
           <>
             <dt>Fault</dt>

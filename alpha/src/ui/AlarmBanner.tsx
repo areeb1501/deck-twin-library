@@ -61,7 +61,7 @@ export function AlarmBanner() {
     const level = platforms?.[p]?.shutdown ?? own.reduce<string | null>((h, s) => h ?? s.level, null)
     if (!level) return []
     const awaiting = own.length > 0 && own.every((s) => s.resetAt !== undefined)
-    return [`${p.toUpperCase()} — ${level} ${awaiting ? 'reset · restart' : 'latched'}`]
+    return [`${p.toUpperCase()}: ${level} ${awaiting ? 'reset · restart' : 'latched'}`]
   })
 
   if (hmi) return null

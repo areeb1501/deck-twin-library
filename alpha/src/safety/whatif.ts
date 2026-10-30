@@ -108,7 +108,7 @@ const META: Record<string, Meta> = {
     lost: ALPHA_DOWN,
     share: 1,
     esc: [
-      [300, 'LAH-1101 — HP separator level high', 'warn', 'alarm'],
+      [300, 'LAH-1101: HP separator level high', 'warn', 'alarm'],
       [410, 'LAHH-1101 (3 000 mm) → PSD on Alpha', 'trip', 'trip'],
     ],
     recovery: '≈ 30 min: restore level control, reset PSD, restart, 10 min well ramp',
@@ -119,8 +119,8 @@ const META: Record<string, Meta> = {
     lost: ALPHA_DOWN,
     share: 1,
     esc: [
-      [62, 'No export pump running — export flow falls to zero', 'warn', 'alarm'],
-      [260, 'LAH-1101 — HP separator level high', 'warn', 'alarm'],
+      [62, 'No export pump running: export flow falls to zero', 'warn', 'alarm'],
+      [260, 'LAH-1101: HP separator level high', 'warn', 'alarm'],
       [360, 'LAHH-1101 → PSD on Alpha', 'trip', 'trip'],
     ],
     recovery: '≈ 30 min: reset + start P-1500B, reset PSD, restart, 10 min well ramp',
@@ -132,7 +132,7 @@ const META: Record<string, Meta> = {
     lost: ['Alpha'],
     share: 0.2,
     esc: [
-      [600, 'Surge margin below 10 % with no recycle — UIC-2201 alarm', 'warn', 'alarm'],
+      [600, 'Surge margin below 10 % with no recycle: UIC-2201 alarm', 'warn', 'alarm'],
       [780, 'K-2200 surges and trips on high vibration (USD)', 'trip', 'trip'],
     ],
     recovery: '≈ 1 h: FV-2201 positioner repaired, local reset, K-2200 restart',
@@ -143,9 +143,9 @@ const META: Record<string, Meta> = {
     lost: ['Alpha', 'WHP-N', 'LQ'],
     share: 1,
     esc: [
-      [61, 'Bus dead — standby GT-8100B left in MANUAL, no auto-start', 'warn', 'alarm'],
+      [61, 'Bus dead: standby GT-8100B left in MANUAL, no auto-start', 'warn', 'alarm'],
       [62, 'Blackout → PSD on Alpha; emergency generator starts (15 s)', 'trip', 'trip'],
-      [840, 'Instrument air receivers exhausted — PALL-4603', 'trip', 'trip'],
+      [840, 'Instrument air receivers exhausted: PALL-4603', 'trip', 'trip'],
     ],
     recovery: '≈ 45 min: start GT-8100B (3 min), reset PSD, restart, 10 min well ramp',
   },
@@ -155,7 +155,7 @@ const META: Record<string, Meta> = {
     lost: ALPHA_DOWN,
     share: 1,
     esc: [
-      [660, 'PAL-4603 — instrument air header 6.5 barg', 'warn', 'alarm'],
+      [660, 'PAL-4603: instrument air header 6.5 barg', 'warn', 'alarm'],
       [840, 'PALL-4603 (5.5 barg) → controlled PSD on Alpha', 'trip', 'trip'],
     ],
     recovery: '≈ 40 min: local reset of K-4600, header back up, reset PSD, restart',
@@ -166,8 +166,8 @@ const META: Record<string, Meta> = {
     lost: ALPHA_DOWN,
     share: 1,
     esc: [
-      [62, 'Gas high (60 % LEL) at the first detector — 1ooN alarm', 'warn', 'alarm'],
-      [65, 'Second detector — confirmed gas 2ooN → ESD2 compression zone', 'trip', 'trip'],
+      [62, 'Gas high (60 % LEL) at the first detector: 1ooN alarm', 'warn', 'alarm'],
+      [65, 'Second detector: confirmed gas 2ooN → ESD2 compression zone', 'trip', 'trip'],
     ],
     recovery: '≈ 4 h: BA team isolates the flange, gas clears, reset ESD2, restart',
   },
@@ -178,8 +178,8 @@ const META: Record<string, Meta> = {
     lost: ALPHA_DOWN,
     share: 1,
     esc: [
-      [62, 'Flame seen by one detector — 1ooN, high-priority alarm', 'warn', 'alarm'],
-      [65, 'Second flame detector — confirmed fire 2ooN → ESD1 on Alpha', 'trip', 'trip'],
+      [62, 'Flame seen by one detector: 1ooN, high-priority alarm', 'warn', 'alarm'],
+      [65, 'Second flame detector: confirmed fire 2ooN → ESD1 on Alpha', 'trip', 'trip'],
       [720, 'Fire out (inventory blown down, deluge)', 'info', 'event'],
     ],
     recovery: '≈ 8 h: fire team confirms safe, cooling, flange repair, reset ESD1, restart',
@@ -192,7 +192,7 @@ const META: Record<string, Meta> = {
     share: 1,
     cond: ['leak2', 'leak3', 'ignite'],
     esc: [
-      [90, 'One detector at the low setpoint — poorly covered corner, voting never confirms', 'warn', 'alarm'],
+      [90, 'One detector at the low setpoint: poorly covered corner, voting never confirms', 'warn', 'alarm'],
       [1265, 'Jet fire seen by two flame detectors → ESD1 on Alpha', 'trip', 'trip'],
     ],
     recovery: '≈ 8 h after an ignition (a manual ESD2 at the first alarm keeps it to ≈ 4 h)',
@@ -203,8 +203,8 @@ const META: Record<string, Meta> = {
     lost: ['Alpha'],
     share: 0.2,
     esc: [
-      [62, 'No seawater lift — cooling medium starts to heat up', 'warn', 'alarm'],
-      [390, 'TAH-6303 — cooling medium 45 °C', 'warn', 'alarm'],
+      [62, 'No seawater lift: cooling medium starts to heat up', 'warn', 'alarm'],
+      [390, 'TAH-6303: cooling medium 45 °C', 'warn', 'alarm'],
       [522, 'TAHH-6303 (55 °C) → K-2200 trips, gas to flare (USD)', 'trip', 'trip'],
     ],
     recovery: '≈ 1 h: P-6400B strainer cleaned, cooling back, K-2200 restart',
@@ -216,8 +216,8 @@ const META: Record<string, Meta> = {
     lost: ['RP', 'Alpha', 'WHP-N'],
     share: 1,
     esc: [
-      [62, 'RP gas detectors alarm — riser topsides', 'warn', 'alarm'],
-      [420, 'Alpha LAH-1101 — no export, HP separator filling', 'warn', 'alarm'],
+      [62, 'RP gas detectors alarm: riser topsides', 'warn', 'alarm'],
+      [420, 'Alpha LAH-1101: no export, HP separator filling', 'warn', 'alarm'],
       [540, 'LAHH-1101 → PSD on Alpha (export blocked)', 'trip', 'trip'],
     ],
     recovery: '≈ 4 h: gas clears on RP, reset RP ESD2, restore export, restart Alpha',
@@ -229,8 +229,8 @@ const META: Record<string, Meta> = {
     share: 0.05,
     hours: 6,
     esc: [
-      [62, 'Injection halves — reservoir pressure starts to fall', 'warn', 'alarm'],
-      [1800, 'Production efficiency declining — loss booked to "reservoir"', 'warn', 'event'],
+      [62, 'Injection halves: reservoir pressure starts to fall', 'warn', 'alarm'],
+      [1800, 'Production efficiency declining: loss booked to "reservoir"', 'warn', 'event'],
     ],
     recovery: '≈ 15 min field reset at WI; reservoir support recovers over hours',
   },
@@ -243,8 +243,8 @@ const META: Record<string, Meta> = {
     cond: ['grow'],
     esc: [
       [0, 'Crane lift under way in 16 m/s wind (limit 15 m/s)', 'warn', 'event'],
-      [150, 'Gas alarm at the export pumps — P-1500A seal leak', 'warn', 'alarm'],
-      [930, 'Gas alarm in the compression area — second, separate leak', 'warn', 'alarm'],
+      [150, 'Gas alarm at the export pumps: P-1500A seal leak', 'warn', 'alarm'],
+      [930, 'Gas alarm in the compression area: second, separate leak', 'warn', 'alarm'],
       [1390, 'Leak confirmed 2ooN → automatic ESD2 on Alpha', 'trip', 'trip'],
     ],
     recovery: '≈ 4 h: both leaks isolated, gas clears, reset ESD2, restart',
@@ -304,7 +304,7 @@ export function predictConsequence(sc: Scenario, mppNow?: number): Consequence {
 
   const outageH = m.hours ?? OUTAGE_H[m.sd]
   const tripAt = chain.find((c) => c.kind === 'trip')?.sec ?? chain[chain.length - 1]?.sec ?? 60
-  chain.push({ t: T(tripAt + outageH * 3600), sec: tripAt + outageH * 3600, text: `Production back — ${m.recovery}`, level: 'info', kind: 'recovery' })
+  chain.push({ t: T(tripAt + outageH * 3600), sec: tripAt + outageH * 3600, text: `Production back: ${m.recovery}`, level: 'info', kind: 'recovery' })
 
   const mpp = typeof mppNow === 'number' && mppNow > 1000 ? mppNow : (useSim.getState().result?.mpp ?? 0) > 1000 ? useSim.getState().result!.mpp : MPP_FALLBACK
   const unmitigated = Math.round((mpp * m.share * outageH) / 24)

@@ -112,7 +112,7 @@ export default function App() {
         ) : ops && simulated ? (
           <>
             <header className="brand">
-              <div className="brand-title">{plant.name} — operations</div>
+              <div className="brand-title">{plant.name}: operations</div>
               <div className="muted small">Live simulation · turn the knobs, start / stop / trip machines</div>
             </header>
             <OperationsPanel />

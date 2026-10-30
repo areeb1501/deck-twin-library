@@ -8,9 +8,9 @@ import { Box, Msg, RunPill, TagLink } from './common'
 import { goToMachine } from '../fieldOps'
 
 const RELIABILITY: [Knobs['reliability'], string][] = [
-  ['off', 'Off — no random failures'],
+  ['off', 'Off: no random failures'],
   ['realistic', 'Realistic MTBF'],
-  ['training', 'Training — failures × 500'],
+  ['training', 'Training: failures × 500'],
 ]
 
 export function Machines() {
@@ -33,7 +33,7 @@ export function Machines() {
         <div className="h-row" style={{ gap: 18 }}>
           <label className="h-row" style={{ gap: 6 }}>
             <input type="checkbox" checked={knobs?.autoChangeover ?? false} disabled={knobs?.autoChangeover === undefined} onChange={(e) => setTop(call('setKnob', 'autoChangeover', e.target.checked))} data-knob="autoChangeover" />
-            <span>Auto-changeover — the standby machine starts when the duty one trips</span>
+            <span>Auto-changeover: the standby machine starts when the duty one trips</span>
           </label>
           <label className="h-row" style={{ gap: 6 }}>
             <span className="dim">Equipment reliability</span>
@@ -87,7 +87,7 @@ export function Machines() {
                   </td>
                   <td className="num">{fmt(m?.runHours ?? 0, 1)}</td>
                   <td className="wrap" style={{ color: st === 'tripped' ? '#ffd7a0' : undefined }}>
-                    {notes.join(' · ') || <span className="faint">—</span>}
+                    {notes.join(' · ') || <span className="faint">-</span>}
                     {msg[e.tag] && <Msg text={msg[e.tag]} />}
                   </td>
                   <td className="dim">{m?.autoStarted ? 'auto-started' : ''}</td>

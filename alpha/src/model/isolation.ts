@@ -193,8 +193,8 @@ export function isolationGraph(plant: Plant) {
 type Graph = ReturnType<typeof isolationGraph>
 
 function classify(v: Valve): { stop: boolean; actuated: boolean; reason?: string } {
-  if (v.type === 'check') return { stop: false, actuated: false, reason: 'Check valve — not a positive isolation' }
-  if (v.type === 'control') return { stop: false, actuated: false, reason: 'Control valve — not tight shut-off' }
+  if (v.type === 'check') return { stop: false, actuated: false, reason: 'Check valve, not a positive isolation' }
+  if (v.type === 'control') return { stop: false, actuated: false, reason: 'Control valve, not tight shut-off' }
   if (v.type === 'psv') return { stop: true, actuated: false }
   if (ACTUATED_ONOFF.includes(v.type)) return { stop: true, actuated: true }
   if (BLOCK.includes(v.type)) return { stop: true, actuated: !MANUAL_OPS.has(v.actuator) }
@@ -262,11 +262,11 @@ export function planIsolation(plant: Plant, target: string, mode: IsoMode, graph
           action: '',
         }
         if (v.type === 'psv') {
-          p.action = 'Relief path — close the PSV inlet/outlet block valves (normally locked open) and lock, or remove the PSV and blind the nozzle'
+          p.action = 'Relief path: close the PSV inlet/outlet block valves (normally locked open) and lock, or remove the PSV and blind the nozzle'
           p.note = 'PSV block valves are not in the model'
         } else {
           p.action = `${p.verify ? 'Verify closed' : 'Close'}${c.actuated ? ', isolate actuator supply (air / power)' : ''} and lock`
-          if (p.bleedRoute) p.note = 'Drain / depressurisation route — open under control to drain or vent the envelope, then close and lock'
+          if (p.bleedRoute) p.note = 'Drain / depressurisation route: open under control to drain or vent the envelope, then close and lock'
           p.second = secondValve(graph, v, via, valveBy)
         }
         if (!pointBy.has(v.tag)) (pointBy.set(v.tag, p), plan.points.push(p))
@@ -315,13 +315,13 @@ export function planIsolation(plant: Plant, target: string, mode: IsoMode, graph
   }
 
   // warnings
-  if (plan.openEnds.length) plan.warnings.push(`${plan.openEnds.length} path(s) leave the model without an isolation valve — isolate them outside this plant model`)
-  if (plan.alsoIsolated.length) plan.warnings.push(`No valve between the target and ${plan.alsoIsolated.join(', ')} — they are isolated (and depressurised) too`)
+  if (plan.openEnds.length) plan.warnings.push(`${plan.openEnds.length} path(s) leave the model without an isolation valve: isolate them outside this plant model`)
+  if (plan.alsoIsolated.length) plan.warnings.push(`No valve between the target and ${plan.alsoIsolated.join(', ')}: they are isolated (and depressurised) too`)
   const single = plan.points.filter((p) => p.type !== 'psv' && !p.second && p.rating >= 600 && !p.verify)
-  if (single.length) plan.warnings.push(`Single-valve isolation on Class 600+ at ${single.map((p) => p.tag).join(', ')} — consider double block & bleed or a spade`)
-  if (!plan.drains.length && !plan.vents.length) plan.warnings.push('No drain or vent point inside the envelope in the model — confirm on the P&ID / use temporary drain points')
+  if (single.length) plan.warnings.push(`Single-valve isolation on Class 600+ at ${single.map((p) => p.tag).join(', ')}: consider double block & bleed or a spade`)
+  if (!plan.drains.length && !plan.vents.length) plan.warnings.push('No drain or vent point inside the envelope in the model: confirm on the P&ID / use temporary drain points')
   if (plan.points.some((p) => p.type === 'psv')) plan.warnings.push('Relief valves inside the envelope: their block valves are not modelled')
-  if (!plan.proving.length) plan.warnings.push('No pressure gauge or transmitter inside the envelope to prove zero pressure — use a temporary gauge')
+  if (!plan.proving.length) plan.warnings.push('No pressure gauge or transmitter inside the envelope to prove zero pressure: use a temporary gauge')
   return plan
 }
 

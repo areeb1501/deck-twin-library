@@ -124,7 +124,7 @@ function riskLine(platform: PlatformId): { text: string; data: Record<string, un
   const top = (pr.contributors ?? []).slice(0, 3)
   const delta = before !== undefined && Math.round(before) !== Math.round(pr.score) ? ` (was ${Math.round(before)})` : ''
   return {
-    text: `${platform} risk ${Math.round(pr.score)} — ${pr.band}${delta}; field ${Math.round(now?.field ?? 0)}. Top: ${top.map((c) => `${c.text} +${Math.round(c.points)}`).join('; ') || 'none'}`,
+    text: `${platform} risk ${Math.round(pr.score)}: ${pr.band}${delta}; field ${Math.round(now?.field ?? 0)}. Top: ${top.map((c) => `${c.text} +${Math.round(c.points)}`).join('; ') || 'none'}`,
     data: { platform, score: Math.round(pr.score), before: before !== undefined ? Math.round(before) : null, band: pr.band, field: Math.round(now?.field ?? 0), top: top.map((c) => ({ id: c.id, text: c.text, points: Math.round(c.points), tag: c.tag })) },
   }
 }
@@ -170,7 +170,7 @@ export function raise(a: RaiseInput): Alert | null {
     actor: 'rule',
     kind: 'decide',
     text: suppressed
-      ? `Rule ${a.rule} matched again for ${tag0} ${Math.round(t - (prev ?? t))} s after the last alert — suppressed (dedup window ${DEDUP_S / 60} min)`
+      ? `Rule ${a.rule} matched again for ${tag0} ${Math.round(t - (prev ?? t))} s after the last alert: suppressed (dedup window ${DEDUP_S / 60} min)`
       : `Rule ${a.rule} fired: ${a.title} → severity ${a.severity}`,
     data: { rule: a.rule, severity: a.severity, source: a.source, dedupKey: key, suppressed, lastRaisedAt: prev ?? null },
   })
@@ -179,7 +179,7 @@ export function raise(a: RaiseInput): Alert | null {
   const actions = [...(a.actions ?? []), ...scenarioAdvice(a.tags[0])]
   const recs = (actions.length ? actions : GENERIC[a.severity]).slice(0, 7)
   const text = [
-    `${a.title} — ${a.platform}, ${fmtClock(t)}.`,
+    `${a.title}: ${a.platform}, ${fmtClock(t)}.`,
     a.body,
     '',
     'Live values',
@@ -188,17 +188,17 @@ export function raise(a: RaiseInput): Alert | null {
     'Risk',
     `  - ${risk.text}`,
     '',
-    'Recommended actions (advisory — the operator decides)',
+    'Recommended actions (advisory: the operator decides)',
     ...recs.map((r, i) => `  ${i + 1}. ${r}`),
     '',
-    `Trace id ${traceId} · alert ${id} · rule ${a.rule} · tags ${a.tags.join(', ') || '—'}`,
-    'Alpha safety twin — prototype outbox (drafted in the browser, not sent).',
+    `Trace id ${traceId} · alert ${id} · rule ${a.rule} · tags ${a.tags.join(', ') || '-'}`,
+    'Alpha safety twin: prototype outbox (drafted in the browser, not sent).',
   ].join('\n')
   const email = { to, subject: `[ALPHA ${a.severity.toUpperCase()}] ${a.title}`, text }
   addTrace(traceId, {
     actor: 'rule',
     kind: 'notify',
-    text: suppressed ? `Email draft kept but not queued (suppressed) — ${to.join(', ')}` : `Email drafted to ${to.join(', ')} — outbox (prototype, not sent)`,
+    text: suppressed ? `Email draft kept but not queued (suppressed): ${to.join(', ')}` : `Email drafted to ${to.join(', ')}: outbox (prototype, not sent)`,
     data: { to, subject: email.subject, channel: useAlerts.getState().channel },
   })
   const alert: Alert = {
@@ -381,7 +381,7 @@ function ruleFg() {
         rule: 'fg-confirmed',
         platform,
         title: `${what} in ${name}`,
-        body: `${what} (2ooN voting) in fire zone ${z.zone} (${name}). ${ce ? `Cause & effect: ${ce.level} — ${ce.effects.slice(0, 2).join('; ')}.` : ''}`,
+        body: `${what} (2ooN voting) in fire zone ${z.zone} (${name}). ${ce ? `Cause & effect: ${ce.level}: ${ce.effects.slice(0, 2).join('; ')}.` : ''}`,
         tags: walkTarget(dets.map((d) => d.tag)),
         evidence: [`zone ${z.zone}: gas ${z.gas}, fire ${z.fire}, smoke ${z.smoke}, ${z.highCount} detector(s) at high${z.deluge ? ', deluge released' : ''}`, ...dets.slice(0, 4).map((d) => `${d.tag} ${d.value.toFixed(1)} (${d.state})`)],
         values: dets.slice(0, 6).map((d) => `${d.tag}: ${d.value.toFixed(1)} ${/OGD/.test(d.tag) ? 'LEL·m' : d.tag.startsWith('GD') ? '%LEL' : ''} (${d.state})`),
@@ -398,7 +398,7 @@ function ruleFg() {
         rule: 'fg-gas-high',
         platform,
         title: `Gas at high setpoint in ${name}`,
-        body: `One detector (1ooN) at the high gas setpoint in ${z.zone} (${name}). Not yet confirmed — a second detector at high initiates the zone ESD.`,
+        body: `One detector (1ooN) at the high gas setpoint in ${z.zone} (${name}). Not yet confirmed: a second detector at high initiates the zone ESD.`,
         tags: walkTarget(dets.map((d) => d.tag)),
         evidence: [`zone ${z.zone}: gas ${z.gas}, ${z.highCount} detector(s) at high`, ...dets.slice(0, 4).map((d) => `${d.tag} ${d.value.toFixed(1)}`)],
         values: dets.slice(0, 6).map((d) => `${d.tag}: ${d.value.toFixed(1)} (${d.state})`),
@@ -412,7 +412,7 @@ function ruleFg() {
         rule: 'fg-fire-single',
         platform,
         title: `Flame seen by one detector in ${name}`,
-        body: `A single flame detector (1ooN) is in alarm in ${z.zone}. Confirm on CCTV — a second detector confirms the fire.`,
+        body: `A single flame detector (1ooN) is in alarm in ${z.zone}. Confirm on CCTV: a second detector confirms the fire.`,
         tags: walkTarget(zoneDetectorsIn(z.zone, 'high').map((d) => d.tag)),
         evidence: [`zone ${z.zone}: fire ${z.fire}`],
         actions: CE_BY_ID['fire-single']?.effects ?? [],
@@ -468,7 +468,7 @@ function ruleRisk() {
         rule: 'risk-band-up',
         platform: p,
         title: `${p} risk up: ${prev} → ${pr.band} (${Math.round(pr.score)})`,
-        body: `The live risk score on ${p} rose to ${Math.round(pr.score)} (${pr.band}). Main contributors: ${top.map((c) => c.text).join('; ') || '—'}.`,
+        body: `The live risk score on ${p} rose to ${Math.round(pr.score)} (${pr.band}). Main contributors: ${top.map((c) => c.text).join('; ') || '-'}.`,
         tags: walkTarget(top.map((c) => c.tag ?? '').filter(Boolean)),
         observer: 'risk',
         dedupKey: `risk-band-up|${p}|${pr.band}`,
@@ -523,7 +523,7 @@ function ruleSpares() {
       source: 'machinery',
       rule: 'spares-exposure',
       platform,
-      title: `${tag} degrading — repair parts not offshore (≈ ${Math.round(cover.waitDays)} d)`,
+      title: `${tag} degrading: repair parts not offshore (≈ ${Math.round(cover.waitDays)} d)`,
       body: `${tag} entered condition-monitoring ${h.stage}${h.mode ? ` (${h.mode})` : ''}. The repair needs ${names.join(', ')}: ${cover.note}. If it fails before the parts arrive it stays down${boeD > 0 ? `, deferring about ${Math.round(boeD).toLocaleString()} boe/d` : ' (the standby covers production)'}. Simulated stock.`,
       tags: [tag],
       evidence: [`${tag} stage normal → ${h.stage}`, `spare cover: ${cover.status}, ${Math.round(cover.waitDays)} d to offshore`, ...cover.partIds.map((id) => `${id}: ${sp.stock[id]?.offshore ?? 0} offshore, ${sp.stock[id]?.base ?? 0} at base`)],
@@ -635,7 +635,7 @@ function ruleHazardArea(t: number) {
           addTrace(seen.traceId, {
             actor: 'cctv',
             kind: 'observe',
-            text: `${v.camera} (${camName(v.camera)}) confirms on video: ${who} in Zone ${v.zone} at ${v.tag}${v.kind === 'zone0Entry' ? ' — inside the shell' : missing ? ` without ${missing}` : ''}`,
+            text: `${v.camera} (${camName(v.camera)}) confirms on video: ${who} in Zone ${v.zone} at ${v.tag}${v.kind === 'zone0Entry' ? ': inside the shell' : missing ? ` without ${missing}` : ''}`,
             data: { camera: v.camera, at: v.cameraAt ?? t, worker: v.workerId, zone: v.zone, source: v.tag, kind: v.kind },
           })
       }
@@ -644,7 +644,7 @@ function ruleHazardArea(t: number) {
     const k = `${v.workerId}|${v.kind}|${v.zone}`
     const last = hazLast.get(k)
     if (!v.drill && last && t - last.t < DEDUP_S && t >= last.t) {
-      addTrace(last.traceId, { actor: 'sensor', kind: 'observe', text: `${who} back in Zone ${v.zone} at ${v.tag}${missing ? ` without ${missing}` : ''} — covered by this alert, not re-sent` })
+      addTrace(last.traceId, { actor: 'sensor', kind: 'observe', text: `${who} back in Zone ${v.zone} at ${v.tag}${missing ? ` without ${missing}` : ''}: covered by this alert, not re-sent` })
       hazAlerted.set(v.id, { traceId: last.traceId, camera: v.camera })
       continue
     }
@@ -657,8 +657,8 @@ function ruleHazardArea(t: number) {
       platform: v.platform,
       title: z0 ? `Zone 0 entry: ${who} inside ${v.tag} without a confined-space permit${v.drill ? ' (drill)' : ''}` : `Zone ${v.zone} hazardous area without ${missing}: ${who} at ${v.tag}${v.drill ? ' (drill)' : ''}`,
       body: z0
-        ? `${who}${role} is inside the Zone 0 hazardous area of ${v.tag} — ${v.reason}. Zone 0 is no-entry except under an issued confined-space entry permit with a gas test, a standby man and a rescue plan; none is issued for ${v.tag}. Tracked by the worn tag (RTLS)${v.camera ? `; seen on ${v.camera}` : ''}.`
-        : `${who}${role} is in Zone ${v.zone} (IEC 60079-10-1) — ${v.reason} — without ${missing}. Zone ${v.zone} requires ${v.zone === 1 ? 'a hard hat, hi-vis / FR coverall and a personal gas monitor; Ex devices only; hot work only under a hot-work permit' : 'a hard hat and hi-vis / FR coverall'}. Tracked by the worn tag (RTLS)${v.camera ? `; seen on ${v.camera}` : ''}.`,
+        ? `${who}${role} is inside the Zone 0 hazardous area of ${v.tag}: ${v.reason}. Zone 0 is no-entry except under an issued confined-space entry permit with a gas test, a standby man and a rescue plan; none is issued for ${v.tag}. Tracked by the worn tag (RTLS)${v.camera ? `; seen on ${v.camera}` : ''}.`
+        : `${who}${role} is in Zone ${v.zone} (IEC 60079-10-1): ${v.reason}, without ${missing}. Zone ${v.zone} requires ${v.zone === 1 ? 'a hard hat, hi-vis / FR coverall and a personal gas monitor; Ex devices only; hot work only under a hot-work permit' : 'a hard hat and hi-vis / FR coverall'}. Tracked by the worn tag (RTLS)${v.camera ? `; seen on ${v.camera}` : ''}.`,
       tags: isPlantTag(v.tag) ? [v.tag] : [],
       observer: 'sensor',
       evidence: [
@@ -676,9 +676,9 @@ function ruleHazardArea(t: number) {
           drill: !!v.drill,
         },
       ],
-      values: [`${who}: Zone ${v.zone} — ${v.reason}`, z0 ? 'Confined-space entry permit: none issued' : `Missing: ${missing}`, `Position (world): ${v.pos.map((n) => n.toFixed(1)).join(', ')}`],
+      values: [`${who}: Zone ${v.zone}: ${v.reason}`, z0 ? 'Confined-space entry permit: none issued' : `Missing: ${missing}`, `Position (world): ${v.pos.map((n) => n.toFixed(1)).join(', ')}`],
       actions: z0
-        ? ['Call the person out now (radio / area authority) — do not send anyone in after them without breathing apparatus', 'Gas test and issue a confined-space entry permit before any re-entry', 'Check the person on the muster / POB board']
+        ? ['Call the person out now (radio / area authority): do not send anyone in after them without breathing apparatus', 'Gas test and issue a confined-space entry permit before any re-entry', 'Check the person on the muster / POB board']
         : [`Area authority to stop the person and get them out of Zone ${v.zone}`, v.missing.includes('gasMonitor') ? 'Issue a bump-tested personal gas monitor before re-entry' : 'Correct the PPE before re-entry', 'Log the observation in the safety system'],
       dedupKey: v.drill ? `hazardous-area:${k}:${v.id}` : `hazardous-area:${k}`,
     })
@@ -708,7 +708,7 @@ function ruleHard() {
       rule: 'barrier-erosion',
       platform: f.platform,
       title: `Barrier erosion in ${f.zoneName}: ${f.layers.length} layers weakened at once`,
-      body: `No single alarm shows this: in ${f.zone} (${f.zoneName}) ${f.layers.map((l) => l.text).join('; ')}. Together they line up the holes in the Swiss cheese — a release here is more likely to be missed, to find ignition and to escalate.`,
+      body: `No single alarm shows this: in ${f.zone} (${f.zoneName}) ${f.layers.map((l) => l.text).join('; ')}. Together they line up the holes in the Swiss cheese: a release here is more likely to be missed, to find ignition and to escalate.`,
       tags: walkTarget(f.tags),
       observer: 'assistant',
       evidence: f.layers.map((l) => ({ layer: l.layer, text: l.text, tags: l.tags })),
@@ -730,7 +730,7 @@ function ruleHard() {
       source: 'assistant',
       rule: 'slow-drift',
       platform: f.platform,
-      title: `${f.tag} drifting towards its trip — ~${Math.round(f.minutesToTrip)} min to ${f.limitName}`,
+      title: `${f.tag} drifting towards its trip: ~${Math.round(f.minutesToTrip)} min to ${f.limitName}`,
       body: `${f.label} reads ${f.value} ${f.unit}, still inside its alarm limits, but has moved ${f.ratePerHour > 0 ? '+' : ''}${f.ratePerHour} ${f.unit}/h steadily over the last ${Math.round(f.windowMin)} min (fit R² ${f.r2}). At this rate it reaches ${f.limitName} ${f.limit} ${f.unit} in about ${Math.round(f.minutesToTrip)} min${f.minutesToAlarm !== null ? ` (alarm in ~${Math.round(f.minutesToAlarm)} min)` : ''}.`,
       tags: walkTarget([f.host ?? '', f.tag].filter(Boolean)),
       observer: 'assistant',

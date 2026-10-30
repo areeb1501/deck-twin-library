@@ -272,9 +272,9 @@ function ValveView({ v }: { v: Valve }) {
           ['Size', `${nps}"`],
           ['Face-to-face', v.type === 'psv' ? 'API 526 angle body' : mm(valveLength(v.type, nps))],
           ['End connections', `RF flanged, ${f.bolts} × ${(f.boltDia * 1000).toFixed(0)} mm studs per joint`],
-          ['Operator', v.actuator ?? '—'],
+          ['Operator', v.actuator ?? '-'],
           ['Normal position', v.normally === 'open' ? 'Open' : 'Closed'],
-          ['Fail action', v.failAction === 'FC' ? 'Fail closed' : v.failAction === 'FO' ? 'Fail open' : v.failAction === 'FL' ? 'Fail last' : '—'],
+          ['Fail action', v.failAction === 'FC' ? 'Fail closed' : v.failAction === 'FO' ? 'Fail open' : v.failAction === 'FL' ? 'Fail last' : '-'],
           [v.type === 'psv' ? 'Protects' : 'On line', v.mount ? <Link tag={v.mount.equipment} kind="equipment" /> : <Link tag={v.line} kind="line" />],
           ...(v.type === 'psv' ? ([['Discharge', <Link key="d" tag={v.line} kind="line" />]] as [string, React.ReactNode][]) : []),
           ...Object.entries(v.design).map(([k, val]) => [k[0].toUpperCase() + k.slice(1), val] as [string, React.ReactNode]),
@@ -293,7 +293,7 @@ function InstrumentView({ i }: { i: Instrument }) {
           rows={[
             ['Range', `${i.range} ${i.unit}`],
             ['Mounted on', 'line' in i.on ? <Link tag={i.on.line} kind="line" /> : <Link tag={i.on.equipment} kind="equipment" />],
-            ['Alarms', i.alarms ? Object.entries(i.alarms).map(([k, v]) => `${k.toUpperCase()} ${v}`).join(' · ') : '—'],
+            ['Alarms', i.alarms ? Object.entries(i.alarms).map(([k, v]) => `${k.toUpperCase()} ${v}`).join(' · ') : '-'],
           ]}
         />
       </Section>

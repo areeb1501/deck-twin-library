@@ -16,10 +16,10 @@ import { fmtClock } from '../sim/types'
 import { useProvider } from './provider'
 import { runAgent } from './runtime'
 
-export const PLANT_CONTEXT = `You are the safety & operations agent of the Alpha offshore oil field digital twin: five bridge-linked platforms — Alpha PDQ (process, drilling), WHP-N (wellheads), RP (risers & export), WI (water injection), LQ (accommodation & central control room).
+export const PLANT_CONTEXT = `You are the safety & operations agent of the Alpha offshore oil field digital twin: five bridge-linked platforms, Alpha PDQ (process, drilling), WHP-N (wellheads), RP (risers & export), WI (water injection), LQ (accommodation & central control room).
 Process: wells → manifold M-1000 → HP 3-phase separator V-1100 (LAHH 83 %, PSV 42 barg) → LP separator V-1300 → crude cooler E-1400 → export pumps P-1500A/B → LV-1301 → ESDV-1601 → west bridge → RP fiscal metering X-R150 → pig launcher L-R110 → export riser. Gas → scrubber V-2100 → export compressor K-2200 (anti-surge) → aftercooler E-2300 → TEG contactor T-5300 → ESDV-2301 → RP gas metering X-R250 → pig launcher L-R210 → gas riser; fuel gas taken off the dry gas → turbines GT-8100A/B.
 Shutdown hierarchy APS > ESD1 > ESD2 > PSD > USD. Confirmed gas (2ooN) → ESD2 + blowdown; confirmed fire → ESD1 + deluge.
-Rules: use the tools to get live facts — never invent values, cite tags and numbers. You are ADVISORY: recommend actions, the operator decides. Be concise and specific.`
+Rules: use the tools to get live facts, never invent values, cite tags and numbers. You are ADVISORY: recommend actions, the operator decides. Be concise and specific.`
 
 export interface Workflow {
   id: string
@@ -74,7 +74,7 @@ export const WORKFLOWS: Workflow[] = [
   },
   {
     id: 'cascade',
-    title: 'Cascade forecast — what trips next',
+    title: 'Cascade forecast: what trips next',
     kind: 'hard-to-spot',
     blurb: 'From the current state, the chain of trips and shutdowns that would follow, and how to break it.',
     tools: ['get_field_status', 'get_alarms', 'get_shutdown_cause', 'find_scenarios', 'get_scenario_consequence', 'check_sensor_drift'],
@@ -85,7 +85,7 @@ export const WORKFLOWS: Workflow[] = [
     id: 'optimiser',
     title: 'Production optimiser',
     kind: 'hard-to-spot',
-    blurb: 'Suggestions to recover deferred production within the safety limits — do A, B, C.',
+    blurb: 'Suggestions to recover deferred production within the safety limits: do A, B, C.',
     tools: ['get_field_status', 'get_equipment', 'get_sensor', 'get_risk'],
     task: 'Find the binding constraint on production now and suggest up to three concrete, safe operator actions (e.g. start the standby pump, rebalance chokes, raise compressor speed while the surge margin allows), each with the expected gain in boe/d and the limit to watch. Never suggest bypassing a safety function.',
     local: [{ tool: 'get_field_status' }, { tool: 'get_equipment', args: { tag: 'K-2200' } }, { tool: 'get_risk' }],
@@ -150,7 +150,7 @@ export async function runWorkflow(id: string): Promise<WorkflowRun | undefined> 
       patch(run.id, { status: 'done', text: r.text, model: r.model })
       return { ...run, status: 'done', text: r.text, model: r.model }
     } catch (e) {
-      addTrace(traceId, { actor: 'assistant', kind: 'decide', text: `${provider} unavailable (${e instanceof Error ? e.message : String(e)}) — falling back to the local planner` })
+      addTrace(traceId, { actor: 'assistant', kind: 'decide', text: `${provider} unavailable (${e instanceof Error ? e.message : String(e)}): falling back to the local planner` })
     }
   }
   // offline: run the workflow's tools step by step (visible in the trace), then summarise the evidence
@@ -159,7 +159,7 @@ export async function runWorkflow(id: string): Promise<WorkflowRun | undefined> 
     await sleep(450)
     lines.push(brief(s.tool, runTool(s.tool, s.args ?? {}, traceId)))
   }
-  const text = `${wf.title} — findings from the local planner (choose Nemotron as the model for a written analysis):\n${lines.join('\n')}`
+  const text = `${wf.title}: findings from the local planner (choose Nemotron as the model for a written analysis):\n${lines.join('\n')}`
   addTrace(traceId, { actor: 'assistant', kind: 'answer', text: `Local planner gathered ${lines.length} tool results`, data: { planner: 'local-rules' } })
   patch(run.id, { status: 'done', text, model: 'sim-planner' })
   return { ...run, status: 'done', text, model: 'sim-planner' }
