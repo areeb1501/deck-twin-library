@@ -27,6 +27,10 @@ const ChemSkidModel = get('ChemSkidModel')
 const ModuleModel = get('ModuleModel')
 const ManifoldModel = get('ManifoldModel')
 const XmasTreeModel = get('XmasTreeModel')
+const GasTurbineGeneratorModel = get('GasTurbineGeneratorModel')
+const CaissonPumpModel = get('CaissonPumpModel')
+const TransformerModel = get('TransformerModel')
+const ProxyModel = get('ProxyModel')
 
 function Model({ eq }: { eq: Equipment }) {
   switch (eq.kind) {
@@ -50,6 +54,14 @@ function Model({ eq }: { eq: Equipment }) {
       return <ManifoldModel eq={eq as never} />
     case 'xmasTree':
       return <XmasTreeModel eq={eq as never} />
+    case 'gasTurbineGenerator':
+      return <GasTurbineGeneratorModel eq={eq as never} />
+    case 'caissonPump':
+      return <CaissonPumpModel eq={eq as never} />
+    case 'transformer':
+      return <TransformerModel eq={eq as never} />
+    case 'proxy':
+      return <ProxyModel eq={eq as never} />
   }
 }
 

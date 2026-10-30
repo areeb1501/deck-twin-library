@@ -62,7 +62,7 @@ export const floorY = () => walkLevels(usePlantStore.getState().plant)[walkPose.
 function blockers(p: Plant, li: number): PlanRect[] {
   const levels = walkLevels(p)
   const fps = footprints(p.equipment, PAD)
-  return [...p.equipment.flatMap((e, i) => (eqLevel(levels, e) === li ? [fps[i]] : [])), ...(levels[li]?.obstacles ?? [])]
+  return [...p.equipment.flatMap((e, i) => (e.kind !== 'proxy' && eqLevel(levels, e) === li ? [fps[i]] : [])), ...(levels[li]?.obstacles ?? [])]
 }
 function walkable(p: Plant, li: number, block: PlanRect[], x: number, z: number) {
   const lv = walkLevels(p)[li]
@@ -90,14 +90,16 @@ export function placeWalker(x: number, z: number, face?: [number, number], level
   if (face) walkPose.yaw = Math.atan2(-(face[0] - walkPose.x), -(face[1] - walkPose.z))
 }
 
-/** Equipment boxes in world coordinates for gaze tests, for the equipment on one level. */
+const box = (f: PlanRect, y0: number, y1: number) => new THREE.Box3(new THREE.Vector3(f.x0, y0, f.z0), new THREE.Vector3(f.x1, Math.max(y0 + 1, y1), f.z1))
+
+/** Equipment boxes in world coordinates for gaze tests, for the equipment on one level (proxies on every level). */
 function gazeBoxes(p: Plant, li: number) {
   const levels = walkLevels(p)
   const fps = footprints(p.equipment, 0)
   const y0 = DECK_WORLD_Y + (levels[li]?.y ?? 0)
   return p.equipment.flatMap((e, i) =>
-    eqLevel(levels, e) === li
-      ? [{ tag: e.tag, box: new THREE.Box3(new THREE.Vector3(fps[i].x0, y0, fps[i].z0), new THREE.Vector3(fps[i].x1, Math.max(y0 + 1, DECK_WORLD_Y + labelHeight(e) - 0.9), fps[i].z1)) }]
+    eqLevel(levels, e) === li || e.kind === 'proxy'
+      ? [{ tag: e.tag, proxy: e.kind === 'proxy', box: box(fps[i], e.kind === 'proxy' ? DECK_WORLD_Y + e.position[1] : y0, DECK_WORLD_Y + labelHeight(e) - 0.9) }]
       : [],
   )
 }
@@ -125,10 +127,24 @@ export function WalkDriver({ controls, root }: { controls: React.RefObject<Camer
     const d = target.clone().sub(camera.position)
     walkPose.yaw = Math.atan2(-d.x, -d.z)
     walkPose.pitch = -0.05
-    placeWalker(target.x, target.z, undefined, 0)
+    // a deck-navigator start is applied by the walkStart effect below
+    if (useStore.getState().walkStart) return
     useStore.getState().setWalkLevel(0)
+    placeWalker(target.x, target.z, undefined, 0)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
+
+  // "Walk here" from the deck navigator (on entering walk mode, or while already walking)
+  const walkStart = useStore((s) => s.walkStart)
+  useEffect(() => {
+    if (!walkStart) return
+    const li = Math.max(0, levels.findIndex((l) => l.id === walkStart.level))
+    walkPose.level = li
+    useStore.getState().setWalkLevel(li)
+    placeWalker(walkStart.at[0], walkStart.at[1], walkStart.face, li)
+    walkPose.pitch = -0.05
+    useStore.setState({ walkStart: null })
+  }, [walkStart, levels])
 
   // keyboard: held-key set, ignoring form fields
   useEffect(() => {
@@ -158,7 +174,9 @@ export function WalkDriver({ controls, root }: { controls: React.RefObject<Camer
 
   // level change (keys 1–9 or the HUD): stay at the same plan position if it is walkable there
   useEffect(() => {
-    if (walkPose.level !== level) placeWalker(walkPose.x, walkPose.z, undefined, level)
+    // read the store, not the render-time value: a "Walk here" start may have changed it this frame
+    const cur = useStore.getState().walkLevel
+    if (walkPose.level !== cur) placeWalker(walkPose.x, walkPose.z, undefined, cur)
   }, [level])
 
   // drag to look around (Street View style)
@@ -247,7 +265,11 @@ export function WalkDriver({ controls, root }: { controls: React.RefObject<Camer
     let best: string | null = null
     let bestD = GAZE_RANGE
     for (const b of boxes) {
-      if (b.box.containsPoint(eye)) continue
+      if (b.box.containsPoint(eye)) {
+        // standing inside a big proxy (on the drill floor): it's what you're looking at, unless something nearer is
+        if (b.proxy && GAZE_RANGE - 1 < bestD) (bestD = GAZE_RANGE - 1), (best = b.tag)
+        continue
+      }
       if (ray.intersectBox(b.box, hit)) {
         const d = hit.distanceTo(eye)
         if (d < bestD) {

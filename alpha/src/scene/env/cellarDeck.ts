@@ -11,7 +11,7 @@ import { buildFraming } from '../structure/deckSteel'
 import { gratingRect, partition, plateRect, type GratingBatches } from '../structure/panels'
 import { perimeterDistance, railPolyline, type RailBatches } from '../structure/handrail'
 import { STAIR_TOWERS, towerGap } from '../structure/stairs'
-import { JACKET, legAt } from './jacket'
+import { JACKET } from './jacket'
 import { RIG_SLOT } from '../../model/site'
 import type { V3 } from '../structure/batch'
 
@@ -79,18 +79,9 @@ export function buildCellarDeck(cb: CellarBatches) {
   for (const x of [-20, -15]) boxMinMax(cb.equipDark, [x - 0.2, Y, -13.4], [x + 0.2, Y + 1.0, -11.6])
   // open drain tank
   cylY(cb.equip, -26, Y, Y + 3.2, -4, 1.4, 28)
-  // firewater pumps (red) + lift caissons through the east edge
-  for (const z of [11.5, 15]) {
-    boxMinMax(cb.equipDark, [17, Y, z - 1], [25, Y + 0.3, z + 1])
-    cylX(cb.red, 17.5, 21.5, Y + 1.1, z, 0.6)
-    boxMinMax(cb.red, [21.8, Y + 0.3, z - 0.6], [24.2, Y + 1.8, z + 0.6])
-    tube(cb.red, [24.2, Y + 1.0, z], [28.6, Y + 1.0, z], 0.2, 12, true)
-    tube(cb.red, [28.6, -18, z], [28.6, Y + 1.0, z], 0.36, 16, false)
-    for (const y of [JACKET.frames[0], JACKET.frames[1]]) tube(cb.equipDark, [legAt(1, 1, y)[0], y, z], [28.6, y, z], 0.15, 8, true)
-  }
-  // HPU / utility skids
-  boxMinMax(cb.equip, [-6, Y, 9], [-1, Y + 2.2, 12.5])
-  boxMinMax(cb.equipDark, [2, Y, 9.5], [6, Y + 1.6, 12])
+  // (firewater + seawater lift caisson pumps, the wellhead control panel and the hypochlorite skid are
+  //  plant equipment now — model/alphaSite.ts)
+
 }
 
 /** unit frustum (bottom radius 1, top radius 0.62), +Y, centred */

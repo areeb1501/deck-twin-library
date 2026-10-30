@@ -317,3 +317,12 @@
 .pop.views { right: auto; left: 60px; }
 .pop-item { background: none; border: 0; text-align: left; padding: 6px 8px; border-radius: 6px; cursor: pointer; white-space: nowrap; }
 .pop-item:hover { background: var(--ui-hover); }
+/* deck navigator */
+.pop.decks { left: 0; right: auto; width: 440px; max-height: 70vh; overflow: auto; gap: 2px; }
+.decks-head { display: flex; justify-content: space-between; align-items: center; padding: 2px 4px 6px; border-bottom: 1px solid var(--ui-line); margin-bottom: 4px; }
+.deck-row { display: flex; gap: 10px; align-items: center; padding: 7px 6px; border-radius: 7px; }
+.deck-row:hover { background: var(--ui-hover); }
+.deck-info { flex: 1; min-width: 0; display: grid; gap: 2px; }
+.deck-actions { display: flex; gap: 4px; }
+.deck-actions button { background: rgba(255,255,255,0.06); border: 1px solid var(--ui-line); padding: 4px 9px; border-radius: 6px; cursor: pointer; font-size: 12px; }
+.deck-actions button:hover { background: rgba(255,255,255,0.12); }

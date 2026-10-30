@@ -22,6 +22,14 @@ export function labelHeight(e: Equipment) {
       return e.size[1] + 1.2
     case 'compressorPackage':
       return 4.6
+    case 'gasTurbineGenerator':
+      return e.position[1] + e.enclosureHeight + e.stackHeight + 1.2
+    case 'caissonPump':
+      return e.position[1] + (e.driver === 'diesel' ? 3.2 : 4.2)
+    case 'transformer':
+      return e.position[1] + e.size[1] + 1.6
+    case 'proxy':
+      return e.position[1] + e.size[1] + 1
     case 'xmasTree':
       return e.position[1] + e.wellheadHeight + 2.6
     case 'shellTube':
@@ -66,14 +74,29 @@ export function LabelProjector({ equipment, worldY }: { equipment: Equipment[]; 
   const size = useThree((s) => s.size)
   const visible = useStore((s) => s.layers.labels)
   const selected = useStore((s) => s.selected?.tag)
-  const pts = useMemo(() => equipment.map((e) => ({ tag: e.tag, p: new THREE.Vector3(e.position[0], labelHeight(e) + worldY, e.position[2]) })), [equipment, worldY])
+  const ceiling = useStore((s) => s.layers.ceiling)
+  const section = useStore((s) => s.section)
+  const plant = usePlant()
+  // floor each item stands on: hide labels of things that are cut away (section box) or lifted off (weather deck hidden)
+  const pts = useMemo(() => {
+    const levels = plant.deck.walk ?? []
+    const floorOf = (y: number) => levels.reduce((f, l) => (l.y <= y + 0.5 && l.y > f ? l.y : f), -Infinity)
+    return equipment.map((e) => ({ tag: e.tag, floor: floorOf(e.position[1]), x: e.position[0], z: e.position[2], p: new THREE.Vector3(e.position[0], labelHeight(e) + worldY, e.position[2]) }))
+  }, [equipment, worldY, plant])
   const v = useMemo(() => new THREE.Vector3(), [])
   const centre = useMemo(() => new THREE.Vector3(0, worldY, 0), [worldY])
   useFrame(() => {
     const far = camera.position.distanceTo(centre) > 70
-    for (const { tag, p } of pts) {
+    for (const { tag, p, floor, x, z } of pts) {
       const el = els.get(tag)
       if (!el) continue
+      const cut =
+        (!ceiling && floor >= 9.5) ||
+        (section.enabled && (floor > section.max[1] || x < section.min[0] || x > section.max[0] || z < section.min[2] || z > section.max[2]))
+      if (cut) {
+        el.style.visibility = 'hidden'
+        continue
+      }
       v.copy(p).project(camera)
       const behind = v.z > 1
       const d = camera.position.distanceTo(p)

@@ -17,7 +17,7 @@ export function WalkHud() {
     <>
       <div className={`crosshair ${lookAt ? 'on' : ''}`} />
       <div className="walk-hint small">
-        <b>Walkthrough</b> · ↑↓ walk · ←→ turn · Q/E step sideways · drag to look · Shift run · 1/2 change level · click an item to pin it ·{' '}
+        <b>Walkthrough</b> · ↑↓ walk · ←→ turn · Q/E step sideways · drag to look · Shift run · 1–4 change level · click an item to pin it ·{' '}
         <button className="link" onClick={() => setWalk(false)}>Exit (Esc)</button>
       </div>
       <Minimap />
@@ -92,7 +92,7 @@ function Minimap() {
         ))}
         {fps.map((f, i) => {
           const e = plant.equipment[i]
-          if (levelAt(levels, e.position[1]) !== level) return null
+          if (e.kind === 'proxy' || levelAt(levels, e.position[1]) !== level) return null
           return (
             <rect
               key={e.tag}

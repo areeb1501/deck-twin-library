@@ -25,6 +25,7 @@ import { NozzleMarkers } from '../ui/builder/NozzleMarkers'
 import { WalkDriver, leaveWalk } from './Walk'
 import { IsolationOverlay } from './IsolationOverlay'
 import { FireGasOverlay } from './FireGasOverlay'
+import { FireGasMounts } from './FireGasMounts'
 import type { ComponentType } from 'react'
 
 // environment modules are resolved by name so the app runs while they are being built
@@ -278,6 +279,7 @@ function Plant() {
         <group ref={root} onPointerMove={onMove} onPointerOut={onOut} onClick={onClick}>
           {layers.equipment && <EquipmentLayer equipment={plant.equipment} />}
           <Piping built={built} />
+          {layers.instruments && <FireGasMounts built={built} />}
         </group>
         <FlowParticles key={plant.name + plant.lines.length} built={built} visible={flowVisible} />
         <NozzleMarkers />

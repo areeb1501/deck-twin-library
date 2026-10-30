@@ -73,6 +73,42 @@ export const ALPHA_WALK: WalkLevel[] = [
     ],
   },
   {
+    id: 'weather',
+    label: 'Weather deck · EL +38 (power, rig base)',
+    y: WEATHER_FLOOR,
+    areas: [ALPHA_DECK],
+    // environment-drawn blocks on the weather deck (scene/env/topsides.ts, drillingRig.ts)
+    obstacles: [
+      { x0: -29, x1: -15, z0: -12, z1: 6 }, // living quarters
+      { x0: -3.5, x1: 9.5, z0: -19.5, z1: -6.5 }, // drilling substructure
+      { x0: 12.2, x1: 22.3, z0: -19.6, z1: -6.5 }, // pipe deck
+      { x0: -12.5, x1: -4.5, z0: -19.5, z1: -6.5 }, // mud module
+      { x0: -12.2, x1: -5.1, z0: -5.1, z1: -1.7 }, // bulk silos
+      { x0: -13, x1: -3, z0: 8, z1: 17 }, // switchgear / LER building
+      { x0: 2.5, x1: 21, z0: 15, z1: 18.8 }, // laydown: containers + baskets
+      { x0: 22.4, x1: 25.6, z0: -18.6, z1: -15.4 }, // crane pedestal
+      { x0: 28, x1: 30, z0: 6.5, z1: 9.5 }, // flare boom foot
+    ],
+  },
+  {
+    id: 'drillfloor',
+    label: 'Drill floor · EL +46 (derrick)',
+    y: WEATHER_FLOOR + 8,
+    // drill floor + the driller's cabin (doghouse) on its south side
+    areas: [
+      { x0: RIG_SLOT[0] - 6.5, x1: RIG_SLOT[0] + 6.5, z0: RIG_SLOT[1] - 6.5, z1: RIG_SLOT[1] + 6.5 },
+      { x0: -1.5, x1: 2.5, z0: RIG_SLOT[1] + 6.5, z1: RIG_SLOT[1] + 9.5 },
+    ],
+    obstacles: [
+      { x0: RIG_SLOT[0] - 0.9, x1: RIG_SLOT[0] + 0.9, z0: RIG_SLOT[1] - 0.9, z1: RIG_SLOT[1] + 0.9 }, // rotary table / well centre
+      { x0: RIG_SLOT[0] - 6.4, x1: -1.75, z0: RIG_SLOT[1] - 3, z1: RIG_SLOT[1] + 3 }, // drawworks
+      { x0: RIG_SLOT[0] + 1.3, x1: RIG_SLOT[0] + 4.1, z0: RIG_SLOT[1] - 2.5, z1: RIG_SLOT[1] - 0.6 }, // setback (north)
+      { x0: RIG_SLOT[0] + 1.3, x1: RIG_SLOT[0] + 4.1, z0: RIG_SLOT[1] + 0.6, z1: RIG_SLOT[1] + 2.5 }, // setback (south)
+      { x0: RIG_SLOT[0] - 2.6, x1: RIG_SLOT[0] - 1.6, z0: RIG_SLOT[1] + 1.85, z1: RIG_SLOT[1] + 2.75 }, // iron roughneck
+      ...[[-1, -1], [1, -1], [-1, 1], [1, 1]].map(([sx, sz]) => ({ x0: RIG_SLOT[0] + sx * 4.5 - 0.5, x1: RIG_SLOT[0] + sx * 4.5 + 0.5, z0: RIG_SLOT[1] + sz * 4.5 - 0.5, z1: RIG_SLOT[1] + sz * 4.5 + 0.5 })), // derrick legs
+    ],
+  },
+  {
     id: 'cellar',
     label: 'Cellar deck · EL +20 (wellheads)',
     y: CELLAR_FLOOR,

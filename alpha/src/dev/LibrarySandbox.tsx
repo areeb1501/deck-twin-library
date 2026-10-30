@@ -32,6 +32,10 @@ const byName = (name: string) => (Object.values(mods).find((m) => m[name])?.[nam
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const MODELS: Record<EquipmentKind, React.ComponentType<{ eq: any }>> = {
   xmasTree: byName('XmasTreeModel'),
+  gasTurbineGenerator: byName('GasTurbineGeneratorModel'),
+  caissonPump: byName('CaissonPumpModel'),
+  transformer: byName('TransformerModel'),
+  proxy: () => null,
   horizontalVessel: HorizontalVesselModel,
   verticalVessel: VerticalVesselModel,
   shellTube: ShellTubeModel,

@@ -33,6 +33,8 @@ interface State {
   walk: boolean
   /** walk mode: the equipment in the centre of view (drives the inspection panel) */
   lookAt: PickData | null
+  /** where to put the walker when walk mode starts (deck navigator "Walk here") */
+  walkStart: { level: string; at: [number, number]; face?: [number, number] } | null
   /** walk mode: index into the plant's walk levels */
   walkLevel: number
   /** isolation / LOTO planner target */
@@ -53,6 +55,7 @@ interface State {
   setLookAt: (p: PickData | null) => void
   setIsolation: (i: State['isolation']) => void
   setWalkLevel: (l: number) => void
+  startWalk: (start: State['walkStart']) => void
 }
 
 let nonce = 0
@@ -82,6 +85,7 @@ export const useStore = create<State>((set) => ({
   lookAt: null,
   isolation: null,
   walkLevel: 0,
+  walkStart: null,
 
   select: (p) => set({ selected: p }),
   hover: (p) => set({ hovered: p }),
@@ -99,6 +103,7 @@ export const useStore = create<State>((set) => ({
   setLookAt: (lookAt) => set({ lookAt }),
   setIsolation: (isolation) => set({ isolation }),
   setWalkLevel: (walkLevel) => set({ walkLevel, lookAt: null }),
+  startWalk: (walkStart) => set((s) => ({ walkStart, walk: true, lookAt: null, selected: null, section: { ...s.section, enabled: false }, layers: { ...s.layers, ceiling: true } })),
 }))
 
 /** World Y of the deck-local origin (top of production deck plate). */

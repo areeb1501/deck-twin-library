@@ -180,7 +180,59 @@ export interface XmasTree extends EquipmentBase {
   wellheadHeight: number
 }
 
+/**
+ * Gas turbine generator package. Origin = skid centre at deck level, train along local +X:
+ * generator (−X end) → reduction gearbox → air-inlet plenum with the filter house above it →
+ * gas turbine (gas generator + power turbine) → exhaust collector → vertical exhaust stack at
+ * local x = skid[0]/2 − 2.0. All inside an acoustic enclosure of height `enclosureHeight`.
+ */
+export interface GasTurbineGenerator extends EquipmentBase {
+  kind: 'gasTurbineGenerator'
+  skid: [number, number] // length (X), width (Z)
+  enclosureHeight: number
+  /** stack height above the enclosure roof */
+  stackHeight: number
+  ratedMW: number
+}
+
+/**
+ * Vertical caisson pump (seawater lift / firewater). Origin = caisson top flange at deck level.
+ * The caisson (OD `caissonOD`) hangs `caissonLength` below the origin into the sea, with the pump
+ * column and bowl assembly inside; a discharge head and the driver stand on top (vertical
+ * electric motor, or a diesel engine driving through a right-angle gearbox).
+ */
+export interface CaissonPump extends EquipmentBase {
+  kind: 'caissonPump'
+  caissonOD: number
+  caissonLength: number
+  motorKw: number
+  driver: 'electric' | 'diesel'
+}
+
+/** Oil-immersed power transformer on a bunded plinth. Origin = plinth centre at deck level; tank along local X. */
+export interface Transformer extends EquipmentBase {
+  kind: 'transformer'
+  ratingMVA: number
+  /** tank length (X), height, width (Z) */
+  size: Vec3
+  voltage: string
+}
+
+/**
+ * Pick / inspection proxy for something drawn by the environment (drilling rig, BOP stack): an
+ * invisible box so it can be clicked, gazed at and given live metrics. Origin = box bottom centre.
+ */
+export interface Proxy extends EquipmentBase {
+  kind: 'proxy'
+  role: 'drillingRig' | 'bop'
+  size: Vec3
+}
+
 export type Equipment =
+  | GasTurbineGenerator
+  | CaissonPump
+  | Transformer
+  | Proxy
   | XmasTree
   | HorizontalVessel
   | VerticalVessel

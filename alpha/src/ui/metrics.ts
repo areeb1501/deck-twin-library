@@ -113,6 +113,50 @@ function equipmentSim(e: Equipment): Metric[] {
         sim(t, 'SCSSV', 'SCSSV control line', 'barg', 310, '0–400', { lo: 250, loLo: 200 }),
       ]
     }
+    case 'gasTurbineGenerator':
+      return [
+        sim(t, 'MW', 'Active power', 'MW', +(e.ratedMW * 0.72).toFixed(1), `0–${e.ratedMW}`, { hi: e.ratedMW * 0.95 }),
+        sim(t, 'EGT', 'Exhaust gas temperature', '°C', 485, '0–650', { hi: 560, hiHi: 590 }),
+        sim(t, 'N', 'Generator speed', 'rpm', 1500, '0–1800', { hi: 1575 }),
+        sim(t, 'V', 'Turbine vibration', 'mm/s', 3.1, '0–25', { hi: 12.5, hiHi: 18 }),
+        sim(t, 'FG', 'Fuel gas pressure', 'barg', 18.2, '0–30', { lo: 15, loLo: 13 }),
+        sim(t, 'LO', 'Lube oil temperature', '°C', 54, '0–100', { hi: 70 }),
+      ]
+    case 'caissonPump': {
+      const fw = e.system === 'safety'
+      return [
+        sim(t, 'PD', 'Discharge pressure', 'barg', fw ? 14.5 : 6.4, fw ? '0–25' : '0–12', { lo: fw ? 9 : 4 }),
+        sim(t, 'F', 'Flow', 'm³/h', fw ? 0.5 : 1750, fw ? '0–1500' : '0–2500'),
+        sim(t, e.driver === 'diesel' ? 'RPM' : 'I', e.driver === 'diesel' ? 'Engine speed (standby)' : 'Motor current', e.driver === 'diesel' ? 'rpm' : 'A', e.driver === 'diesel' ? 0.5 : Math.round(e.motorKw * 0.105), e.driver === 'diesel' ? '0–2100' : `0–${Math.ceil(e.motorKw * 0.14)}`),
+        sim(t, 'V', 'Motor / head vibration', 'mm/s', 2.4, '0–15', { hi: 7.1 }),
+        sim(t, 'L', 'Caisson water level', 'm', 8.2, '0–15', { lo: 3 }),
+      ]
+    }
+    case 'transformer':
+      return [
+        sim(t, 'LOAD', 'Load', '%', 62, '0–120', { hi: 95, hiHi: 110 }),
+        sim(t, 'WT', 'Winding hot-spot temperature', '°C', 78, '0–150', { hi: 110, hiHi: 130 }),
+        sim(t, 'OT', 'Top oil temperature', '°C', 61, '0–120', { hi: 90, hiHi: 100 }),
+        sim(t, 'U', 'LV voltage', 'kV', Number(e.voltage.split('/')[1]?.split(' ')[0]) || 6.6, '0–15'),
+      ]
+    case 'proxy':
+      return e.role === 'drillingRig'
+        ? [
+            sim(t, 'HL', 'Hook load', 't', 182, '0–450', { hi: 360 }),
+            sim(t, 'WOB', 'Weight on bit', 't', 12.5, '0–40', { hi: 25 }),
+            sim(t, 'ROP', 'Rate of penetration', 'm/h', 24, '0–80'),
+            sim(t, 'TQ', 'Top drive torque', 'kN·m', 18.5, '0–60', { hi: 45 }),
+            sim(t, 'RPM', 'Top drive speed', 'rpm', 120, '0–220'),
+            sim(t, 'SPP', 'Standpipe pressure', 'bar', 212, '0–350', { hi: 300 }),
+            sim(t, 'DEPTH', 'Bit depth (MD)', 'm', 2840, '0–5000'),
+            sim(t, 'PIT', 'Active pit volume', 'm³', 142, '0–250', { lo: 130, hi: 154 }),
+          ]
+        : [
+            sim(t, 'ACC', 'Accumulator pressure', 'barg', 207, '0–350', { lo: 180, loLo: 165 }),
+            sim(t, 'ANN', 'Annular closing pressure', 'barg', 103, '0–200'),
+            sim(t, 'WB', 'Wellbore pressure below BOP', 'barg', 0.6, '0–700', { hi: 20 }),
+            sim(t, 'CK', 'Choke manifold pressure', 'barg', 0.8, '0–700', { hi: 20 }),
+          ]
     case 'module':
       return [
         sim(t, 'T', 'Room temperature', '°C', 22, '0–50', { hi: 30 }),
@@ -146,11 +190,15 @@ export function metricsFor(plant: Plant, tag: string, max = 8): Metric[] {
   const eq = plant.equipment.find((e) => e.tag === tag)
   const out: Metric[] = []
   if (eq) {
-    for (const i of plant.instruments) if ('equipment' in i.on && i.on.equipment === tag) out.push(real(i))
+    const FG = new Set(['FD', 'GD', 'OGD', 'HD', 'SD', 'MAC'])
+    const fg: Metric[] = []
+    for (const i of plant.instruments) if ('equipment' in i.on && i.on.equipment === tag) (FG.has(i.type) ? fg : out).push(real(i))
     for (const l of connectedLines(plant, tag)) for (const i of plant.instruments) if ('line' in i.on && i.on.line === l.tag) out.push(real(i, l.tag))
     const have = new Set(out.map((m) => m.label.split(' · ')[0]))
     for (const m of equipmentSim(eq)) if (!have.has(m.label.replace('Operating ', '').replace(/^(Oil|Liquid) level$/, 'Level'))) out.push(m)
-    return out.slice(0, max)
+    // process first; fire & gas detectors covering the item fill what's left (at least two shown)
+    const room = Math.max(2, max - out.length)
+    return [...out.slice(0, max - Math.min(2, fg.length)), ...fg.slice(0, room)].slice(0, max + 2)
   }
   const line = plant.lines.find((l) => l.tag === tag)
   if (line) {

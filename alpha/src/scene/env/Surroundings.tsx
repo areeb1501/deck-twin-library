@@ -146,6 +146,7 @@ function buildUpper(): Part[] {
     red: get('tsRed', 'red'),
     blue: get('tsBlue', 'blue'),
     green: get('tsGreen', 'green'),
+    light: get('rigLight', 'avLight'), // crane obstruction lights share the rig's emissive batch
     rail: { rail: get('tsRail', 'yellow'), kick: get('tsKick', 'yellow') },
   })
   buildDrillingRig({

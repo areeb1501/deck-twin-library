@@ -24,10 +24,10 @@
 import type { Equipment, EquipmentKind, Instrument, InstrumentType, Nozzle, PipeLine, Service, SystemId, Valve, ValveType, Vec3 } from './types'
 import { componentDef, instantiate, resolveParams } from '../library/components'
 import type { NozzleTemplate, Params } from '../library/types'
-import { orthoRoute, placeOnLine, INSTRUMENT_DEFAULTS } from '../library/compile'
-import { elbowRadius, GASKET, valveLength } from './catalog'
+import { orthoRoute, placeOnLine, valveClear, INSTRUMENT_DEFAULTS } from '../library/compile'
+import { elbowRadius, GASKET } from './catalog'
 import { psvGeometry } from '../scene/equipment/Valve'
-import { BRIDGE_S, CELLAR_FLOOR, RIG_SLOT, WELL_SLOTS } from './site'
+import { BRIDGE_S, CELLAR_FLOOR, RIG_SLOT, WEATHER_FLOOR, WELL_SLOTS } from './site'
 
 export interface AlphaArrays {
   equipment: Equipment[]
@@ -85,7 +85,7 @@ export function extendAlpha(A: AlphaArrays, K: AlphaConsts) {
   const eqEnd = (tag: string, nozzle: string) => ({ equipment: tag, nozzle })
   function VA(tag: string, type: ValveType, line: string, at: number, o: Partial<Valve> = {}) {
     const l = lineBy.get(line)!
-    const { seg, t } = placeOnLine(l, at, valveLength(type, l.nps) / 2 + elbowRadius(l.nps) + 0.05)
+    const { seg, t } = placeOnLine(l, at, valveClear(type, l.nps, l.spec))
     A.valves.push({ tag, type, line, seg, t: r3(t), normally: 'open', design: {}, ...o })
   }
   const ALARMS: Partial<Record<InstrumentType, Instrument['alarms']>> = {
@@ -347,8 +347,21 @@ export function extendAlpha(A: AlphaArrays, K: AlphaConsts) {
   const cm5 = L('6"-CM-6105-A1A-N', 'cooling', 'utilities', 6, [co, [co[0], co[1], co[2] - 0.75], down([co[0], co[1], co[2] - 0.75])], eqEnd('E-6300', 'N2'), { offDeck: 'CM supply header → users (cellar)' })
   const cr = face('V-6100', 'N1')
   const cm6 = L('6"-CM-6106-A1A-N', 'cooling', 'utilities', 6, [down([cr[0] - 0.8, 0, cr[2]]), [cr[0] - 0.8, cr[1], cr[2]], cr], { offDeck: 'CM return header (cellar)' }, eqEnd('V-6100', 'N1'))
+  // seawater lift pumps hang in caissons from the cellar deck; they lift seawater up through the
+  // production deck into the cooler
+  for (const [s2, x] of [['A', 14.0], ['B', 17.0]] as const)
+    E('caissonPump', `P-6400${s2}`, `Seawater Lift Pump ${s2}`, 'utilities', [x, -6.5], 0, { driver: 'electric', motorKw: 900, caissonOD: 0.9, caissonLength: 30, dischargeNps: 8, rating: 150 }, {
+      y: CELLAR_FLOOR, design: { capacity: '1 800 m³/h @ 6.5 barg, 2 × 100 %', notes: 'Caisson to EL −10, hypochlorite dosed at the pump suction' },
+    })
   const si = face('E-6300', 'N3')
-  const sw1 = L('8"-SW-6301-A1A-N', 'water', 'utilities', 8, [down([si[0], 0, si[2] + 0.9]), [si[0], si[1], si[2] + 0.9], si], { offDeck: 'Seawater lift pumps (cellar caisson)' }, eqEnd('E-6300', 'N3'))
+  const fa = face('P-6400A', 'N1')
+  const fb = face('P-6400B', 'N1')
+  const sw1 = L('8"-SW-6301-A1A-N', 'water', 'utilities', 8, [fa, [si[0], fa[1], fa[2]], [si[0], -1.6, fa[2]], [si[0], -1.6, si[2] + 0.55], [si[0], si[1], si[2] + 0.55], si], eqEnd('P-6400A', 'N1'), eqEnd('E-6300', 'N3'))
+  const sw3 = L('8"-SW-6303-A1A-N', 'water', 'utilities', 8, [fb, [fb[0] + 0.5, fb[1], fb[2]], [fb[0] + 0.5, -3.2, fb[2]], [si[0], -3.2, fb[2]]], eqEnd('P-6400B', 'N1'), { line: sw1 })
+  VA('NRV-6401A', 'check', sw1, 0.32)
+  VA('NRV-6401B', 'check', sw3, 0.55)
+  VA('HV-6401B', 'butterfly', sw3, 0.85, { actuator: 'gear' })
+  IL('PT-6401', 'PT', sw1, 0.6, { range: '0–12', unit: 'barg', nominal: 6.4, alarms: { lo: 4 } })
   const so2 = face('E-6300', 'N4')
   const sw2 = L('8"-SW-6302-A1A-N', 'water', 'utilities', 8, [so2, [so2[0], 2.4, so2[2]], [18.6, 2.4, so2[2]], [18.6, K.CELLAR, so2[2]]], eqEnd('E-6300', 'N4'), { offDeck: 'Seawater overboard (dump caisson)' })
   VA('HV-6201A', 'butterfly', cm1, 0.86, { actuator: 'gear' })
@@ -357,7 +370,7 @@ export function extendAlpha(A: AlphaArrays, K: AlphaConsts) {
   VA('HV-6202A', 'butterfly', cm3, 0.16, { actuator: 'gear' })
   VA('TCV-6303', 'control', cm5, 0.2, { actuator: 'diaphragm', failAction: 'FO' })
   VA('HV-6106', 'butterfly', cm6, 0.5, { actuator: 'gear' })
-  VA('HV-6301', 'butterfly', sw1, 0.5, { actuator: 'gear' })
+  VA('HV-6301', 'butterfly', sw1, 0.48, { actuator: 'gear' })
   void cm4
   IL('TT-6303', 'TT', cm5, 0.1, { range: '0–100', unit: '°C', nominal: 32 })
   IL('PT-6202', 'PT', cm3, 0.4, { range: '0–10', unit: 'barg', nominal: 5.4 })
@@ -425,6 +438,47 @@ export function extendAlpha(A: AlphaArrays, K: AlphaConsts) {
   LTon('LT-9330', 'V-9330', 72)
   LTon('LT-9320', 'T-9320', 64)
 
+  // ================================================================ POWER GENERATION + ELECTRICAL (weather deck, EL +38)
+  const WD = WEATHER_FLOOR
+  for (const [s2, z] of [['A', 4.5], ['B', 11.5]] as const)
+    E('gasTurbineGenerator', `GT-8100${s2}`, `Gas Turbine Generator ${s2}`, 'utilities', [7.0, z], 0, { ratedMW: 25, skidL: 15, skidW: 4.6, enclosureHeight: 5.2, stackHeight: 13, fuelNps: 3 }, {
+      y: WD, design: { capacity: '25 MW ISO, 2 × 100 %', notes: 'Dual fuel (fuel gas / diesel), DLE combustor, 11 kV 50 Hz generator' },
+    })
+  for (const [s2, z] of [['A', -2.5], ['B', 1.5]] as const)
+    E('transformer', `TR-8200${s2}`, `Main Power Transformer ${s2}`, 'utilities', [19.5, z], 0, { ratingMVA: 30, voltage: '11/6.6 kV', tankL: 3.2, tankH: 2.8, tankW: 2.0 }, { y: WD, design: { notes: 'ONAN/ONAF, feeds the 6.6 kV switchboard in the LER' } })
+  E('chemSkid', 'X-8300', 'Nitrogen Generation Package (membrane)', 'utilities', [19.5, 7.0], 0, { skidL: 4.2, skidW: 2.6, tanks: 1, outlets: 0 }, { y: WD, design: { capacity: '250 Nm³/h, 98 % N₂', notes: 'Purge, blanketing, seal gas' } })
+  // fuel gas from the rack header (production deck) up through the weather deck to each turbine
+  const ga = face('GT-8100A', 'N1')
+  const gb = face('GT-8100B', 'N1')
+  const fgA = L('3"-FG-8101-D6A-N', 'gas', 'utilities', 3, [[ga[0], fgY, -1.45], [ga[0], fgY, -2.6], [ga[0], ga[1], -2.6], ga], { line: fgHdr }, eqEnd('GT-8100A', 'N1'), { design: { notes: 'Fuel gas to GT-8100A, rises through the weather deck' } })
+  const fgB = L('3"-FG-8102-D6A-N', 'gas', 'utilities', 3, [[16.5, fgY, -1.45], [16.5, fgY, -2.6], [16.5, gb[1], -2.6], [16.5, gb[1], gb[2] - 0.45], [gb[0], gb[1], gb[2] - 0.45], gb], { line: fgHdr }, eqEnd('GT-8100B', 'N1'))
+  for (const [l, s2] of [[fgA, 'A'], [fgB, 'B']] as const) {
+    VA(`ESDV-810${s2 === 'A' ? 1 : 2}`, 'esdv', l, 0.62, { actuator: 'pistonSpring', failAction: 'FC', design: { notes: 'Turbine fuel gas ESD valve' } })
+    IL(`PT-810${s2 === 'A' ? 1 : 2}`, 'PT', l, 0.85, { range: '0–30', unit: 'barg', nominal: 18.2, alarms: { lo: 15 } })
+  }
+
+  // ================================================================ DRILLING (rig on the weather deck, BOP in the cellar) — pick proxies
+  E('proxy', 'DR-100', 'Platform Drilling Rig (derrick, top drive, drill floor)', 'wells', [RIG_SLOT[0], RIG_SLOT[1]], 0, { role: 'drillingRig', sizeX: 13, sizeY: 44, sizeZ: 13 }, {
+    y: WD + 8, design: { capacity: '1 000 hp drawworks, 450 t hook load', notes: `Drilling well A-06 on slot (${RIG_SLOT.join(', ')}), 12¼" section, oil-based mud 1.35 SG` },
+  })
+  E('proxy', 'BOP-100', 'BOP Stack (annular + double ram)', 'wells', [RIG_SLOT[0], RIG_SLOT[1]], 0, { role: 'bop', sizeX: 2.8, sizeY: 5.5, sizeZ: 2.8 }, {
+    y: CELLAR_FLOOR, design: { pressure: '10 000 psi (690 barg)', notes: '13⅝" annular + double ram, choke & kill lines to the choke manifold' },
+  })
+
+  // ================================================================ CELLAR DECK UTILITIES
+  for (const [s2, z] of [['A', 11.5], ['B', 15.0]] as const)
+    E('caissonPump', `P-7101${s2}`, `Firewater Pump ${s2} (diesel)`, 'safety', [27.2, z], 0, { driver: 'diesel', motorKw: 1100, caissonOD: 1.0, caissonLength: 30, dischargeNps: 10, rating: 150 }, {
+      y: CELLAR_FLOOR, design: { capacity: '1 200 m³/h @ 16 barg, 2 × 100 %', notes: 'Diesel driver + right-angle gearbox, auto-start on F&G / ring pressure' },
+    })
+  for (const s2 of ['A', 'B'] as const) {
+    const f = face(`P-7101${s2}`, 'N1')
+    const l = L(`10"-FW-710${s2 === 'A' ? 1 : 2}-F1A-N`, 'firewater', 'safety', 10, [f, [f[0] + 0.55, f[1], f[2]], [f[0] + 0.55, 7.6, f[2]], [27.0, 7.6, f[2]], [27.0, fwY, f[2]]], eqEnd(`P-7101${s2}`, 'N1'), { line: '8"-FW-9001-F1A-N' })
+    VA(`NRV-710${s2 === 'A' ? 1 : 2}`, 'check', l, 0.25)
+    VA(`HV-710${s2 === 'A' ? 1 : 2}`, 'butterfly', l, 0.45, { actuator: 'gear' })
+  }
+  E('chemSkid', 'X-1900', 'Wellhead Hydraulic Control Panel (HPU)', 'wells', [-3.5, 10.75], 0, { skidL: 5, skidW: 3.5, tanks: 2, outlets: 0 }, { y: CELLAR_FLOOR, design: { notes: 'SSV / SCSSV hydraulics for all wells, 345 / 690 barg pumps, ESD logic' } })
+  E('chemSkid', 'X-6500', 'Sodium Hypochlorite Generator', 'utilities', [4, 10.75], 0, { skidL: 4, skidW: 2.5, tanks: 2, outlets: 0 }, { y: CELLAR_FLOOR, design: { notes: 'Electrochlorination, doses the seawater lift pump suctions' } })
+
   // ================================================================ FIRE & GAS DETECTION
   const nearest = (x: number, z: number, y = 0) => {
     let best = A.equipment[0]
@@ -469,7 +523,11 @@ export function extendAlpha(A: AlphaArrays, K: AlphaConsts) {
     else if (e.kind === 'compressorPackage') {
       GD(e.tag, [x - e.skid[0] * 0.3, 3.4, z + e.skid[1] / 2 + 0.3])
       GD(e.tag, [x + e.skid[0] * 0.3, 3.4, z - e.skid[1] / 2 - 0.3])
-    } else if (e.kind === 'horizontalVessel' && e.system !== 'accommodation') GD(e.tag, [x, e.position[1] + e.id / 2 + 0.9, z + e.id / 2 + 0.4])
+    } else if (e.kind === 'horizontalVessel' && e.system !== 'accommodation') {
+      // beside the outlet end of the vessel, at head height on its own stanchion
+      const c = Math.cos(e.rotationY), sn = Math.sin(e.rotationY)
+      GD(e.tag, [x + c * e.tt * 0.3 + sn * (e.id / 2 + 0.7), 1.7, z - sn * e.tt * 0.3 + c * (e.id / 2 + 0.7)])
+    }
     else if (e.kind === 'verticalVessel' && e.system !== 'accommodation') GD(e.tag, [x + e.id / 2 + 0.4, 2.2, z])
     else if (e.kind === 'manifold' || e.kind === 'pigTrap') GD(e.tag, [x, 2.4, z + 1.4])
   }
@@ -490,11 +548,23 @@ export function extendAlpha(A: AlphaArrays, K: AlphaConsts) {
 
   // heat detectors under the weather deck over the hot areas; smoke detectors at the modules
   let hd = 1
-  for (const [host, x, z] of [['K-2200', 1.5, 6.5], ['K-2200', 6, 6.5], ['P-1500A', 15, -12], ['E-1400', 6, -14.8], ['K-4600', -24.6, 16.6], ['B-9310', -3, 82.2]] as [string, number, number][])
-    IE(`HD-83${String(hd++).padStart(2, '0')}`, 'HD', host, [x, host === 'B-9310' ? 4.05 : 9.25, z], [1, 0, 0])
+  for (const [host, x, z] of [['K-2200', 1.5, 6.5], ['K-2200', 6, 6.5], ['P-1500A', 15, -12], ['E-1400', 6, -14.8], ['K-4600', -24.6, 16.6], ['B-9310', -3, 81.6]] as [string, number, number][])
+    IE(`HD-83${String(hd++).padStart(2, '0')}`, 'HD', host, [x, host === 'B-9310' ? 3.6 : 9.25, z], [1, 0, 0])
   let sd = 1
   for (const [host, x, y, z] of [['B-9100', 17.4, 3.9, 9.6], ['B-9100', 25.2, 3.9, 9.6], ['B-9300', -6.4, 4.05, 66], ['B-9300', 0.4, 4.05, 66], ['B-7100', 12.8, 3.65, 14.8], ['B-7200', 19.6, 3.65, 14.8]] as [string, number, number, number][])
     IE(`SD-84${String(sd++).padStart(2, '0')}`, 'SD', host, [x, y, z], [1, 0, 0])
+
+  // weather deck + drill floor
+  FD(16, WD + 3.5, -5, [3, -13])
+  FD(-1, WD + 3.5, 8, [7, 8])
+  FD(16, WD + 3.5, 14, [7, 8])
+  FD(9.2, WD + 8 + 2.8, -7, [3, -13]) // drill floor, on a post at the floor edge
+  GD('GT-8100A', [ga[0], WD + 1.6, ga[2] - 0.4])
+  GD('GT-8100B', [gb[0], WD + 1.6, gb[2] - 0.4])
+  GD('DR-100', [4.6, WD + 8.6, -11.4]) // at the bell nipple
+  GD('DR-100', [-8.5, WD + 1.6, -6.1]) // at the shale shakers (gas out of the mud)
+  GD('BOP-100', [4.8, CELLAR_FLOOR + 2.0, -11.3])
+  for (const s2 of ['A', 'B']) IE(`HD-83${String(hd++).padStart(2, '0')}`, 'HD', `P-7101${s2}`, [27.2, CELLAR_FLOOR + 3.9, s2 === 'A' ? 11.5 : 15], [1, 0, 0])
 
   // manual call points on the escape routes, stair heads and bridge ends
   let mac = 1

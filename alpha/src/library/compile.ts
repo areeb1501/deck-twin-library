@@ -9,7 +9,7 @@
  *  5. inline      valves and instruments placed by fraction of line length → (seg, t)
  */
 import type { Equipment, Instrument, InstrumentType, Nozzle, PipeLine, Plant, Valve, Vec3 } from '../model/types'
-import { elbowRadius, pipeOD, valveLength } from '../model/catalog'
+import { elbowRadius, flange, GASKET, pipeOD, valveLength } from '../model/catalog'
 import { footprints } from '../model/footprint'
 import { instantiate } from './components'
 import { classFor, type EndSpec, type EquipmentSpec, type PlantSpec } from './spec'
@@ -134,8 +134,7 @@ export function compileSpec(spec: PlantSpec): CompileResult {
     if (tags.has(v.tag)) { errors.push(`${v.tag}: duplicate tag skipped`); continue }
     const l = lineBy.get(v.line)
     if (!l) { errors.push(`${v.tag}: unknown line ${v.line}`); continue }
-    const len = valveLength(v.type, l.nps)
-    const p = placeOnLine(l, v.at ?? 0.5, len / 2 + elbowRadius(l.nps) + 0.05)
+    const p = placeOnLine(l, v.at ?? 0.5, valveClear(v.type, l.nps, l.spec))
     if (p.warning) warnings.push(`${v.tag}: ${p.warning}`)
     valves.push({
       tag: v.tag, type: v.type, line: l.tag, seg: p.seg, t: r3(p.t),
@@ -383,6 +382,15 @@ function hasReversal(r: Vec3[]) {
 }
 
 // ------------------------------------------------------------------ inline items
+/**
+ * Straight length a valve needs from the centre to each end of its segment — the same occupancy the
+ * piping engine checks (body + gasket + mating weld-neck flange) plus the elbow tangent beyond it.
+ */
+export function valveClear(type: Parameters<typeof valveLength>[0], nps: number, spec: string) {
+  const rating = spec.startsWith('E') ? 900 : spec.startsWith('D') ? 600 : 300
+  return valveLength(type, nps) / 2 + GASKET + flange(nps, rating).length + elbowRadius(nps) + 0.12
+}
+
 /**
  * Fraction of total line length → (segment, t). Keeps `clear` metres from both ends of the chosen
  * segment (elbows / flanges); if the segment is too short, moves to the nearest one that fits.

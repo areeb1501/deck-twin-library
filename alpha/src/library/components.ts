@@ -418,6 +418,98 @@ const xmasTree: ComponentDef<'xmasTree'> = {
   },
 }
 
+// ------------------------------------------------------------------ gas turbine generator
+const gasTurbineGenerator: ComponentDef<'gasTurbineGenerator'> = {
+  kind: 'gasTurbineGenerator',
+  label: 'Gas turbine generator',
+  category: 'Rotating',
+  blurb: 'Aeroderivative or industrial gas turbine driving a generator through a gearbox, in an acoustic enclosure with an inlet filter house and an exhaust stack. Main power for the platform.',
+  tagPrefix: 'GT',
+  system: 'utilities',
+  params: [
+    { key: 'ratedMW', label: 'Rated output', type: 'number', unit: 'MW', min: 3, max: 45, step: 0.5 },
+    { key: 'skidL', label: 'Package length', type: 'number', unit: 'm', min: 9, max: 22, step: 0.5 },
+    { key: 'skidW', label: 'Package width', type: 'number', unit: 'm', min: 3.2, max: 6, step: 0.1 },
+    { key: 'enclosureHeight', label: 'Enclosure height', type: 'number', unit: 'm', min: 3.5, max: 7, step: 0.1 },
+    { key: 'stackHeight', label: 'Stack above roof', type: 'number', unit: 'm', min: 4, max: 22, step: 0.5 },
+    { key: 'fuelNps', label: 'Fuel gas inlet', type: 'select', options: NPS_OPTS.filter((o) => o.value <= 6) },
+  ],
+  defaults: { ratedMW: 25, skidL: 15, skidW: 4.6, enclosureHeight: 5.2, stackHeight: 13, fuelNps: 3 },
+  body: (p) => ({ skid: [n(p, 'skidL'), n(p, 'skidW')], enclosureHeight: n(p, 'enclosureHeight'), stackHeight: n(p, 'stackHeight'), ratedMW: n(p, 'ratedMW') }),
+  originY: () => 0,
+  nozzles: (p) => {
+    const L = n(p, 'skidL'), W = n(p, 'skidW')
+    return [
+      { id: 'N1', name: 'Fuel gas inlet', base: [r3(L * 0.15), 0.9, r3(-W / 2)], dir: [0, 0, -1], nps: n(p, 'fuelNps'), neck: 0.3, rating: 600 },
+      { id: 'N2', name: 'Liquid fuel (diesel) inlet', base: [r3(L * 0.05), 0.9, r3(-W / 2)], dir: [0, 0, -1], nps: 2, neck: 0.3, rating: 150 },
+    ]
+  },
+}
+
+// ------------------------------------------------------------------ caisson pump
+const caissonPump: ComponentDef<'caissonPump'> = {
+  kind: 'caissonPump',
+  label: 'Caisson pump (seawater / firewater)',
+  category: 'Rotating',
+  blurb: 'Vertical line-shaft pump hanging in a caisson down into the sea, with a discharge head and an electric motor or a diesel engine and right-angle gearbox on top.',
+  tagPrefix: 'P',
+  system: 'utilities',
+  params: [
+    { key: 'driver', label: 'Driver', type: 'select', options: [{ value: 'electric', label: 'Electric motor' }, { value: 'diesel', label: 'Diesel + right-angle gearbox' }] },
+    { key: 'motorKw', label: 'Driver power', type: 'number', unit: 'kW', min: 75, max: 3500, step: 25 },
+    { key: 'caissonOD', label: 'Caisson OD', type: 'number', unit: 'm', min: 0.5, max: 1.6, step: 0.05 },
+    { key: 'caissonLength', label: 'Caisson length below deck', type: 'number', unit: 'm', min: 6, max: 50, step: 0.5 },
+    rating,
+    { key: 'dischargeNps', label: 'Discharge', type: 'select', options: NPS_OPTS.filter((o) => o.value >= 4 && o.value <= 16) },
+  ],
+  defaults: { driver: 'electric', motorKw: 900, caissonOD: 0.9, caissonLength: 30, rating: 150, dischargeNps: 8 },
+  body: (p) => ({ caissonOD: n(p, 'caissonOD'), caissonLength: n(p, 'caissonLength'), motorKw: n(p, 'motorKw'), driver: s(p, 'driver') as 'electric' | 'diesel' }),
+  originY: () => 0,
+  nozzles: (p) => [{ id: 'N1', name: 'Discharge', base: [r3(n(p, 'caissonOD') / 2 + 0.35), 1.1, 0], dir: [1, 0, 0], nps: n(p, 'dischargeNps'), neck: 0.3 }],
+}
+
+// ------------------------------------------------------------------ transformer
+const transformer: ComponentDef<'transformer'> = {
+  kind: 'transformer',
+  label: 'Power transformer',
+  category: 'Packages & buildings',
+  blurb: 'Oil-immersed power transformer: tank with radiator banks, conservator and Buchholz relay, HV / LV bushings in cable boxes, on a bunded plinth.',
+  tagPrefix: 'TR',
+  system: 'utilities',
+  params: [
+    { key: 'ratingMVA', label: 'Rating', type: 'number', unit: 'MVA', min: 1, max: 60, step: 0.5 },
+    { key: 'voltage', label: 'Voltage ratio', type: 'select', options: ['33/11 kV', '11/6.6 kV', '11/0.69 kV', '13.8/6.6 kV'].map((v) => ({ value: v, label: v })) },
+    { key: 'tankL', label: 'Tank length', type: 'number', unit: 'm', min: 1.2, max: 6, step: 0.1 },
+    { key: 'tankH', label: 'Tank height', type: 'number', unit: 'm', min: 1.2, max: 4.5, step: 0.1 },
+    { key: 'tankW', label: 'Tank width', type: 'number', unit: 'm', min: 0.8, max: 3.5, step: 0.1 },
+  ],
+  defaults: { ratingMVA: 30, voltage: '11/6.6 kV', tankL: 3.2, tankH: 2.8, tankW: 2.0 },
+  body: (p) => ({ ratingMVA: n(p, 'ratingMVA'), voltage: s(p, 'voltage'), size: [n(p, 'tankL'), n(p, 'tankH'), n(p, 'tankW')] }),
+  originY: () => 0,
+  nozzles: () => [],
+}
+
+// ------------------------------------------------------------------ pick proxy (environment-drawn items)
+const proxy: ComponentDef<'proxy'> = {
+  kind: 'proxy',
+  label: 'Inspection proxy',
+  category: 'Packages & buildings',
+  blurb: 'Invisible pick box for an item drawn by the environment (drilling rig, BOP stack).',
+  tagPrefix: 'X',
+  system: 'wells',
+  hidden: true,
+  params: [
+    { key: 'role', label: 'Role', type: 'select', options: [{ value: 'drillingRig', label: 'Drilling rig' }, { value: 'bop', label: 'BOP stack' }] },
+    { key: 'sizeX', label: 'Size X', type: 'number', unit: 'm', min: 0.5, max: 60 },
+    { key: 'sizeY', label: 'Size Y', type: 'number', unit: 'm', min: 0.5, max: 80 },
+    { key: 'sizeZ', label: 'Size Z', type: 'number', unit: 'm', min: 0.5, max: 60 },
+  ],
+  defaults: { role: 'drillingRig', sizeX: 4, sizeY: 4, sizeZ: 4 },
+  body: (p) => ({ role: s(p, 'role') as 'drillingRig' | 'bop', size: [n(p, 'sizeX'), n(p, 'sizeY'), n(p, 'sizeZ')] }),
+  originY: () => 0,
+  nozzles: () => [],
+}
+
 // ------------------------------------------------------------------ registry
 export const LIBRARY: { [K in EquipmentKind]: ComponentDef<K> } = {
   horizontalVessel,
@@ -430,9 +522,14 @@ export const LIBRARY: { [K in EquipmentKind]: ComponentDef<K> } = {
   chemSkid,
   module: moduleDef,
   xmasTree,
+  gasTurbineGenerator,
+  caissonPump,
+  transformer,
+  proxy,
 }
 
-export const LIBRARY_LIST: ComponentDef[] = Object.values(LIBRARY) as ComponentDef[]
+/** what the builder palette and library page offer (pick proxies excluded) */
+export const LIBRARY_LIST: ComponentDef[] = (Object.values(LIBRARY) as ComponentDef[]).filter((d) => !d.hidden)
 
 export function componentDef(kind: EquipmentKind): ComponentDef {
   const d = LIBRARY[kind] as ComponentDef | undefined

@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { SERVICE } from '../model/catalog'
 import { useStore, type CameraPreset, type LayerId } from '../state/store'
 import { findItemIn, usePlant } from '../state/plantStore'
+import { DeckNavigator } from './DeckNavigator'
 
 const PRESETS: [CameraPreset, string][] = [
   ['overview', 'Platform'],
@@ -39,7 +40,7 @@ export function Toolbar() {
   const preset = useStore((s) => s.requestPreset)
   const section = useStore((s) => s.section)
   const setSection = useStore((s) => s.setSection)
-  const [menu, setMenu] = useState<'layers' | 'section' | 'views' | null>(null)
+  const [menu, setMenu] = useState<'layers' | 'section' | 'views' | 'decks' | null>(null)
   const walk = useStore((s) => s.walk)
   const setWalk = useStore((s) => s.setWalk)
 
@@ -48,6 +49,9 @@ export function Toolbar() {
       <div className="seg">
         <button className={walk ? 'on' : ''} onClick={() => setWalk(!walk)} title="Walk through the deck with the arrow keys and inspect what you look at (G)">
           {walk ? 'Exit walk' : 'Walk'}
+        </button>
+        <button className={menu === 'decks' ? 'on' : ''} onClick={() => setMenu(menu === 'decks' ? null : 'decks')} title="Go to a deck: drill floor, weather, production, cellar, seabed, LQ">
+          Decks ▾
         </button>
       </div>
       <div className="seg">
@@ -83,6 +87,7 @@ export function Toolbar() {
           ))}
         </div>
       )}
+      {menu === 'decks' && <DeckNavigator onClose={() => setMenu(null)} />}
       {menu === 'layers' && <LayersMenu />}
       {menu === 'section' && <SectionMenu onEnable={(v) => setSection({ enabled: v })} />}
     </div>

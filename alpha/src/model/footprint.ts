@@ -30,6 +30,22 @@ export function footprints(eqs: Equipment[], pad = 0.6): Footprint[] {
       case 'chemSkid':
         b.set(new THREE.Vector3(-e.skid[0] / 2, 0, -e.skid[1] / 2), new THREE.Vector3(e.skid[0] / 2, 0, e.skid[1] / 2))
         break
+      case 'gasTurbineGenerator':
+        b.set(new THREE.Vector3(-e.skid[0] / 2 - 1.2, 0, -e.skid[1] / 2 - 0.3), new THREE.Vector3(e.skid[0] / 2 + 0.3, 0, e.skid[1] / 2 + 0.3))
+        break
+      case 'caissonPump': {
+        const r = Math.max(e.caissonOD / 2 + 0.6, 1.0)
+        // a diesel driver's engine skid, day tank and controller sit beside the head, opposite the discharge (−X)
+        if (e.driver === 'diesel') b.set(new THREE.Vector3(-5.3, 0, -2.0), new THREE.Vector3(1.2, 0, 1.5))
+        else b.set(new THREE.Vector3(-r, 0, -r), new THREE.Vector3(r, 0, r))
+        break
+      }
+      case 'transformer':
+        b.set(new THREE.Vector3(-e.size[0] / 2 - 0.6, 0, -e.size[2] / 2 - 0.7), new THREE.Vector3(e.size[0] / 2 + 0.6, 0, e.size[2] / 2 + 0.7))
+        break
+      case 'proxy':
+        b.set(new THREE.Vector3(-e.size[0] / 2, 0, -e.size[2] / 2), new THREE.Vector3(e.size[0] / 2, 0, e.size[2] / 2))
+        break
       case 'xmasTree':
         b.set(new THREE.Vector3(-1.0, 0, -0.85), new THREE.Vector3(1.45, 0, 0.85))
         break

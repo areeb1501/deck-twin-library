@@ -53,6 +53,8 @@ export interface ComponentDef<K extends EquipmentKind = EquipmentKind> {
   body: (p: Params) => Body<K>
   /** deck-frame height of the equipment origin (see each kind in model/types.ts) */
   originY: (p: Params) => number
+  /** not offered in the builder palette / library page (e.g. pick proxies) */
+  hidden?: boolean
   /** default nozzle set in the local frame */
   nozzles: (p: Params) => NozzleTemplate[]
 }

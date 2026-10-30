@@ -7,16 +7,17 @@
  */
 import * as THREE from 'three'
 import type { GeoBatch, V3 } from '../structure/batch'
-import { bar, box, boxMinMax, boxRotY, place, tube } from '../structure/batch'
+import { bar, box, boxMinMax, place, tube } from '../structure/batch'
 import { railPolyline, perimeterDistance, type RailBatches } from '../structure/handrail'
 import { ladder } from '../structure/ladder'
 import { STAIR_TOWERS, towerGap } from '../structure/stairs'
 import { DECK } from '../structure/deckConst'
+import { buildCrane, CRANE_PED } from './crane'
 
 export const UD = 38 // weather-deck plate top, world
 export const QUARTERS = { x0: -29, x1: -15, z0: -12, z1: 6, storeys: 4, storey: 3.2 }
 export const HELIDECK = { x: -31, z: -3, y: UD + 4 * 3.2 + 4.6, r: 11.5 }
-export const CRANE = { x: 24, z: -17, pedestalTop: UD + 8 }
+export const CRANE = { x: 24, z: -17, pedestalTop: UD + CRANE_PED.bearing }
 export const FLARE = {
   base: [29.6, UD + 1.5, 8] as V3,
   dir: new THREE.Vector3(0.924 * Math.SQRT1_2, Math.SQRT1_2, 0.383 * Math.SQRT1_2).normalize(),
@@ -44,6 +45,8 @@ export interface TopsideBatches {
   red: GeoBatch
   blue: GeoBatch
   green: GeoBatch
+  /** aviation obstruction lights (emissive); falls back to red */
+  light?: GeoBatch
   rail: RailBatches
 }
 
@@ -242,64 +245,25 @@ export function buildTopsides(tb: TopsideBatches) {
     ladder(tb.steel, [-16, qTop + 0.25, 5.2], H.y - qTop - 0.25, [1, 0], true)
   }
 
-  // ---------------- pedestal crane (NE corner, above the leg). Slewed so the boom is parked pointing
-  // SOUTH along the east side (rest at z = 9): the derrick over the well bay blocks the old west park.
-  {
-    const C = CRANE
-    place(tb.yellow, cylClosed, [C.x, (UD + C.pedestalTop) / 2, C.z], [0, 0, 0], [1.3, C.pedestalTop - UD, 1.3])
-    place(tb.steelDark, cylClosed, [C.x, C.pedestalTop + 0.3, C.z], [0, 0, 0], [1.7, 0.6, 1.7])
-    // slewing frame: local -x = boom direction; rotated about the pedestal axis
-    const th = Math.PI / 2
-    const cs = Math.cos(th)
-    const sn = Math.sin(th)
-    const W = (lx: number, y: number, lz: number): V3 => [C.x + lx * cs + lz * sn, y, C.z - lx * sn + lz * cs]
-    const rbox = (b: GeoBatch, lx0: number, y0: number, lz0: number, lx1: number, y1: number, lz1: number) =>
-      boxRotY(b, W((lx0 + lx1) / 2, (y0 + y1) / 2, (lz0 + lz1) / 2), [lx1 - lx0, y1 - y0, lz1 - lz0], th)
-    // machinery house (slewing platform) + cab
-    const yH = C.pedestalTop + 0.6
-    rbox(tb.white, -2.2, yH, -1.7, 3.0, yH + 3.2, 1.7)
-    rbox(tb.yellow, -2.8, yH + 0.2, 1.7, -0.6, yH + 2.7, 3.6) // cab
-    rbox(tb.glass, -2.85, yH + 1.2, 1.85, -2.79, yH + 2.5, 3.45)
-    rbox(tb.glass, -2.7, yH + 1.2, 3.6, -0.75, yH + 2.5, 3.65)
-    // A-frame
-    const apex = W(1.4, yH + 8.5, 0)
-    for (const dz of [-1.5, 1.5]) {
-      tube(tb.yellow, W(2.9, yH + 3.2, dz), apex, 0.18, 8, true)
-      tube(tb.yellow, W(-1.6, yH + 3.2, dz), apex, 0.18, 8, true)
-    }
-    // lattice boom resting on the boom rest
-    const heel = W(-2.4, yH + 1.2, 0)
-    const tipL = -36
-    const tip = W(tipL, UD + 11.6, 0)
-    const boom = lattice(tb.yellow, tb.yellow, heel, tip, 1.9, 0.9, [0, 1, 0], 0.11, 0.045, 1.7)
-    // tip sheaves + hook block hanging
-    tube(tb.steelDark, W(tipL - 0.4, tip[1] + 0.2, -0.25), W(tipL - 0.4, tip[1] + 0.2, 0.25), 0.6, 16, false)
-    const hk = W(tipL - 0.6, 0, 0)
-    tube(tb.steelDark, [hk[0], tip[1], hk[2]], [hk[0], tip[1] - 3.5, hk[2]], 0.02, 4, true)
-    rbox(tb.yellow, tipL - 0.95, tip[1] - 4.6, -0.3, tipL - 0.25, tip[1] - 3.5, 0.3)
-    // luffing ropes apex -> boom tip
-    tube(tb.steelDark, apex, boom.at(1, 2), 0.03, 4, true)
-    tube(tb.steelDark, apex, boom.at(1, 3), 0.03, 4, true)
-    // boom rest
-    const lr = -26
-    const yRest = heel[1] + ((tip[1] - heel[1]) * (-2.4 - lr)) / (-2.4 - tipL) - 1.2
-    for (const dz of [-1.4, 1.4]) bar(tb.yellow, W(lr, UD, dz), W(lr, yRest, dz), 0.3, 0.3)
-    bar(tb.yellow, W(lr, yRest, -1.6), W(lr, yRest, 1.6), 0.35, 0.3, [0, 1, 0])
-  }
+  // ---------------- pedestal crane (NE corner, on the jacket leg) — see crane.ts. Slewed so the boom is
+  // parked pointing SOUTH along the east side onto its rest at z = 9 (the derrick blocks a west park).
+  buildCrane(
+    {
+      yellow: tb.yellow,
+      white: tb.white,
+      steel: tb.steel,
+      steelDark: tb.steelDark,
+      glass: tb.glass,
+      soot: tb.soot,
+      blue: tb.blue,
+      net: tb.net,
+      light: tb.light ?? tb.red,
+      rail: tb.rail,
+    },
+    { x: CRANE.x, z: CRANE.z, deck: UD, heading: Math.PI / 2 },
+  )
 
-  // ---------------- turbine generator enclosures + exhaust stacks
-  for (const zc of [4.5, 11.5]) {
-    boxMinMax(tb.white, [2, UD, zc - 2.3], [15, UD + 5.2, zc + 2.3], 'world')
-    boxMinMax(tb.steelDark, [-1.5, UD + 3.0, zc - 2.0], [2, UD + 7.0, zc + 2.0]) // air intake filter house
-    boxMinMax(tb.steelDark, [2, UD, zc - 2.4], [15, UD + 0.25, zc + 2.4]) // skid base
-    const sx = 12.5
-    tube(tb.steel, [sx, UD + 5.2, zc], [sx, UD + 17.0, zc], 1.1, 24, false)
-    tube(tb.soot, [sx, UD + 17.0, zc], [sx, UD + 18.6, zc], 1.1, 24, true)
-    tube(tb.steelDark, [sx, UD + 9.5, zc], [sx, UD + 9.8, zc], 1.2, 24, false)
-    tube(tb.steelDark, [sx, UD + 14.5, zc], [sx, UD + 14.8, zc], 1.2, 24, false)
-    // stack support struts
-    for (const dz of [-1, 1]) tube(tb.steel, [sx - 2, UD + 5.2, zc + dz * 2], [sx, UD + 12, zc + dz * 1.1], 0.1, 6, true)
-  }
+  // (turbine generators are plant equipment now: GT-8100A/B in model/alphaSite.ts)
 
   // ---------------- switchgear / LER module, 2-storey (moved south-west: the mud module took its slot)
   boxMinMax(tb.white, [-13, UD, 8], [-3, UD + 7.0, 17], 'world')

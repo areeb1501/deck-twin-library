@@ -18,6 +18,10 @@ const KIND_LABEL: Record<string, string> = {
   module: 'Module',
   manifold: 'Manifold',
   xmasTree: 'Wellhead / christmas tree',
+  gasTurbineGenerator: 'Gas turbine generator',
+  caissonPump: 'Caisson pump',
+  transformer: 'Power transformer',
+  proxy: 'Drilling equipment',
 }
 
 export const VALVE_LABEL: Record<string, string> = {
