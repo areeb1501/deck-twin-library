@@ -61,7 +61,6 @@ Commit changes to `src/` in `../../deck-twin` first, with the same title here af
 ```
 git rm -r alpha
 rm -rf public/alpha public/_headers
-npm run deploy
 ```
 
-Then remove the two lines from `.git/info/exclude`.
+Then remove the two lines from `.git/info/exclude`, take `main`, the assets `binding` and `run_worker_first`, and `r2_buckets` out of `wrangler.jsonc`, and delete the `deck-twin-alpha-media` bucket. Then run `npm run deploy`.

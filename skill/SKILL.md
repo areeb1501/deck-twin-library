@@ -28,7 +28,7 @@ Machine-readable catalogue: `{{SITE}}/r/index.json`. Schema: `{{SITE}}/r/plant.s
 **Loop until it passes:**
 
 1. Run `deck-twin validate plant.json --json`.
-2. For each issue, change what `path` points at, as `fix` says. Nearby real names are suggested, so use one if it's right, and look anything else up with `search` or `info`.
+2. For each issue, change what `path` points at, as `fix` says. When a close real name exists it is suggested, so use it if it's right. Otherwise look it up with `search` or `info`.
 3. Run it again. Stop when `valid` is `true`.
 
 | Exit | Means |
@@ -49,7 +49,7 @@ Machine-readable catalogue: `{{SITE}}/r/index.json`. Schema: `{{SITE}}/r/plant.s
       "where": "6\"-PO-101-C3A-N",
       "path": "lines[0].from",
       "message": "\"V-100.oil\": horizontal-separator has no port \"oil\" at its default props. Ports: inlet, gas, liquid, water, psv.",
-      "fix": "Did you mean \"V-100.liquid\"?"
+      "fix": "Run deck-twin info horizontal-separator and use one of its ports."
     }
   ],
   "next": "Fix every error, then run validate again."
