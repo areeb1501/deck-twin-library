@@ -57,14 +57,11 @@ export function Home() {
               <Link href="/components" className="inline-flex h-11 items-center rounded-full bg-ink px-6 text-[15px] font-medium text-on-ink shadow-sm transition-[transform,background-color] duration-150 hover:bg-ink-2 active:scale-[0.97]">
                 Browse components
               </Link>
-              <Link href="/docs/assemble" className="glass inline-flex h-11 items-center rounded-full px-6 text-[15px] font-medium text-ink ring-1 ring-border transition-[transform,background-color] duration-150 hover:bg-hover active:scale-[0.97]">
-                Assemble a plant
-              </Link>
+              <a href="/alpha/" className="glass inline-flex h-11 items-center rounded-full px-6 text-[15px] font-medium text-ink ring-1 ring-border transition-[transform,background-color] duration-150 hover:bg-hover active:scale-[0.97]">
+                Simulate your own twin
+              </a>
             </div>
             <AgentLine className="mx-auto mt-7 max-w-[720px]" />
-            <a href="/alpha/" className="mt-6 inline-block text-[15px] font-medium text-brand underline-offset-4 hover:underline">
-              You can also simulate your own twin.
-            </a>
           </div>
           <div className="relative mx-auto mt-14 max-w-[1240px] overflow-hidden rounded-2xl border border-border bg-panel shadow-[0_40px_100px_-30px_rgb(59_70_207/0.55)] light:shadow-[0_40px_100px_-40px_rgb(59_70_207/0.35)] sm:mt-16">
             <div className="flex items-center gap-3 border-b border-border px-4 py-2.5">
