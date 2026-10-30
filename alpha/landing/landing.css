@@ -402,6 +402,30 @@ figcaption {
   color: var(--ink);
 }
 
+.open {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px 48px;
+  width: var(--page);
+  margin: 0 auto;
+  padding: 44px 0;
+  border-bottom: 1px solid var(--line);
+}
+.open p {
+  max-width: 34em;
+  color: var(--ink);
+  font-size: clamp(19px, 1.7vw, 23px);
+  line-height: 1.35;
+  letter-spacing: -0.012em;
+}
+.cta.ghost {
+  background: rgb(255 255 255 / 0.05);
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.18);
+  color: var(--ink);
+}
+
 .foot {
   display: flex;
   flex-wrap: wrap;

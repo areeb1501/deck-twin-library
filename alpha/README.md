@@ -7,7 +7,7 @@ Two pages, served unlisted on the library site:
 | `/alpha/` | Landing page (`index.html`, `landing/`): plain HTML and CSS, no WebGL |
 | `/alpha/demo/` | The twin (`demo/index.html`, `src/`, `bridge/`, `lite/`), a copy of `../../deck-twin` |
 
-- Not linked from the site, not in the sitemap, robots.txt or llms.txt.
+- Linked from the library home page since 2026-10-30, at the user's request. Still not in the sitemap, robots.txt or llms.txt.
 - `noindex, nofollow` meta tags in both pages, plus an `X-Robots-Tag` header from `../public/_headers`.
 - Tracked in git since 2026-10-30, so the repo must stay private: making it public exposes this code and the page. `../public/alpha/` (build output) and `../public/_headers` stay local, listed in `.git/info/exclude`.
 - `src/` and `public/` are a copy of `../../deck-twin`. Edit there, then run `npm run refresh`: anything edited directly in `alpha/src` is deleted by the next refresh. Files outside `src/` (`landing/`, `lite/`, `bridge/`, `worker.js`, this README, the configs) belong here.

@@ -62,6 +62,9 @@ export function Home() {
               </Link>
             </div>
             <AgentLine className="mx-auto mt-7 max-w-[720px]" />
+            <a href="/alpha/" className="mt-6 inline-block text-[15px] font-medium text-brand underline-offset-4 hover:underline">
+              You can also simulate your own twin.
+            </a>
           </div>
           <div className="relative mx-auto mt-14 max-w-[1240px] overflow-hidden rounded-2xl border border-border bg-panel shadow-[0_40px_100px_-30px_rgb(59_70_207/0.55)] light:shadow-[0_40px_100px_-40px_rgb(59_70_207/0.35)] sm:mt-16">
             <div className="flex items-center gap-3 border-b border-border px-4 py-2.5">
