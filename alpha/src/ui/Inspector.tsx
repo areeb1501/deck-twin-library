@@ -10,6 +10,7 @@ import { FG_LABEL, VALVE_LABEL, kindLabel } from './TagTree'
 import { metricsFor, type Metric } from './metrics'
 import { isIsolatable } from '../model/isolation'
 import { RunControl } from './OperationsPanel'
+import { InspectAction } from './InspectAction'
 import { useSim } from '../state/sim'
 import { WO_STATUS_LABEL, isOpen, maint, useMaint, type WoStatus } from '../sim/maintenance'
 
@@ -421,6 +422,7 @@ export function Inspector() {
             <RunControl tag={eq.tag} />
           </section>
         )}
+        <InspectAction tag={sel.tag} />
         {eq && eq.kind !== 'module' && !plant.custom && <MaintBlock tag={eq.tag} />}
         {!inst && <Metrics tag={sel.tag} />}
         {eq && <EquipmentView eq={eq} />}

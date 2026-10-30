@@ -20,6 +20,7 @@ import { FIELD_PLATFORMS, SHUTDOWN_RANK, type PlatformId, type ShutdownLevel, ty
 import { useCctv, CAMERAS } from './cctv'
 import { useHazardTrack, useWorkers } from './workers'
 import { bandOf, type PlatformRisk, type RiskContributor, type RiskHistoryPoint, type RiskSnapshot } from './types'
+import { latestFindings } from './corrosion'
 
 // ================================================================= tuning table
 
@@ -44,7 +45,7 @@ export const RULES = {
   shutdownResetShare: 0.5,
   alarms: { p1: 8, p2: 3, p3: 1, max: 25, floodRate: 10, flood: 10 },
   machinery: { alert: 4, alarm: 10, failed: 15, tripped: 6 },
-  barriers: { inhibit: 4, fault: 3, stuckValve: 10 },
+  barriers: { inhibit: 4, fault: 3, stuckValve: 10, corrSevere: 6, corrCritical: 14 },
   work: { hot: 6, hotWithGas: 20, confined: 5 },
   weather: { windHi: 15, windHiPts: 5, windVhi: 20, windVhiPts: 12, craneSuspended: 4 },
   people: { window: 120, each: 5, max: 15 },
@@ -294,6 +295,11 @@ export function computeRisk(): RiskSnapshot {
   }
   for (const [tag, v] of Object.entries(s.valves ?? {})) {
     if (v?.fault === 'stuck') add({ id: `bar:stuck:${tag}`, platform: platOf(c, tag), category: 'barriers', tag: itemOr(c, tag), text: `${tag} stuck — valve not moving (position discrepancy)`, points: B.stuckValve })
+  }
+  // what inspections have found, never the ground truth: nothing counts until a unit has been there
+  for (const f of latestFindings()) {
+    if (f.grade !== 'severe' && f.grade !== 'critical') continue
+    add({ id: `corr:${f.tag}`, platform: f.platform, category: 'barriers', tag: itemOr(c, f.tag), text: `Corrosion ${f.grade} on ${f.tag}: wall ${f.wallPct} % (simulated inspection)`, points: f.grade === 'critical' ? B.corrCritical : B.corrSevere })
   }
 
   // ---- work & permits

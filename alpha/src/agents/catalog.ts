@@ -90,6 +90,15 @@ export const WORKFLOWS: Workflow[] = [
     task: 'Find the binding constraint on production now and suggest up to three concrete, safe operator actions (e.g. start the standby pump, rebalance chokes, raise compressor speed while the surge margin allows), each with the expected gain in boe/d and the limit to watch. Never suggest bypassing a safety function.',
     local: [{ tool: 'get_field_status' }, { tool: 'get_equipment', args: { tag: 'K-2200' } }, { tool: 'get_risk' }],
   },
+  {
+    id: 'corrosion-sweep',
+    title: 'Corrosion sweep',
+    kind: 'hard-to-spot',
+    blurb: 'Where the simulated inspections found wall loss, how fast it is going, and what to inspect next.',
+    tools: ['get_corrosion', 'get_corrosion_trend', 'get_inspections', 'get_permits'],
+    task: 'From the simulated inspection findings: list the items losing wall fastest, with wall left, rate and the likely cause (exposure, coating breach, vibration). For each give the next inspection date and the permit the repair needs. Say what has not been inspected yet. Only use findings the tools return.',
+    local: [{ tool: 'get_corrosion' }, { tool: 'get_inspections', args: { limit: 3 } }],
+  },
 ]
 
 export interface WorkflowRun {
@@ -118,6 +127,8 @@ const TOOL_LABEL: Record<string, string> = {
   check_sensor_drift: 'Sensor drift',
   find_scenarios: 'Matching scenarios',
   get_equipment: 'Equipment',
+  get_corrosion: 'Corrosion',
+  get_inspections: 'Inspections',
 }
 /** one line per tool result for the offline report (the same summary the trace shows) */
 function brief(name: string, r: unknown): string {

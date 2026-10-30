@@ -86,7 +86,7 @@ export interface RiskHistoryPoint {
 
 export type AlertSeverity = 'info' | 'warning' | 'critical'
 /** `rtls`: worn personnel tags (real-time location system) — the camera-independent hazardous-area tracking (plan 14) */
-export type AlertSource = 'risk' | 'alarm' | 'shutdown' | 'fireGas' | 'cctv' | 'machinery' | 'assistant' | 'rtls'
+export type AlertSource = 'risk' | 'alarm' | 'shutdown' | 'fireGas' | 'cctv' | 'machinery' | 'assistant' | 'rtls' | 'inspection'
 
 /** an alert is delivered as an email (prototype: drafted into the outbox, not sent from the browser) */
 export interface EmailDraft {

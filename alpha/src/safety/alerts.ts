@@ -8,7 +8,8 @@
  *   - carries a trace: observe → assess → decide → notify (TraceStep[] in `useAlerts.trace`).
  *
  * Rules: p1-alarm · fg-confirmed · fg-gas-high · fg-fire-single · shutdown · risk-band-up ·
- * machine-alarm · spares-exposure · awaiting-spares · ppe-violation · cctv-flame · hazardous-area, plus two "hard to spot" agent checks that run every
+ * machine-alarm · spares-exposure · awaiting-spares · ppe-violation · cctv-flame · hazardous-area, corrosion-critical and
+ * corrosion-accelerating (raised by safety/inspection.ts when a report closes), plus two "hard to spot" agent checks that run every
  * minute of sim time: barrier-erosion (Swiss-cheese alignment in one fire zone) and slow-drift (a
  * sensor creeping towards its trip while still inside its alarm limits). Both checks live in
  * agentTools.ts so the assistant, the investigation and a future LLM call exactly the same code.

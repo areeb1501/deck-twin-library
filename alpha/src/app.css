@@ -495,3 +495,9 @@
 .toolbar { z-index: 13; }
 
 /* value strip over the 3D view (ValueStrip hud, plan 13) — under the alarm banner */
+
+/* Inspector: the Inspect action (plan 12) */
+.ins-run { margin-top: 8px; display: grid; gap: 5px; }
+.ins-hold { color: #ff8a80; }
+.insp-actions button:disabled { opacity: 0.42; cursor: default; }
+.insp-actions button.on { background: rgba(255,255,255,0.18); }

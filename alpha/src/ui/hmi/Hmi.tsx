@@ -3,13 +3,14 @@
  * ("Control room") or by sitting at a console in the CCR / WHP-N local control room. Shown while
  * `useStore.hmi` names a page. ISA-101 style: grey, quiet, colour only when something is abnormal.
  *
- *   Asset & economics · Spares & supply · Live dashboard · Risk & what-if · CCTV & PPE · Alerts & assistant ·
+ *   Asset & economics · Spares & supply · Live dashboard · Risk & what-if · CCTV & PPE · Inspections · Alerts & assistant ·
  *   Overview · Process · Alarms · Shutdown · F&G · Trends · Machines · Instructor
  *
  * Esc closes. While it is open the walker and the viewer hot-keys ignore the keyboard.
  */
 import { useEffect } from 'react'
 import { useStore } from '../../state/store'
+import { isAlphaField, usePlant } from '../../state/plantStore'
 import { fmtClock, type AlarmPriority, type PlatformId } from '../../sim/types'
 import { EMPTY_ARR, EMPTY_OBJ, PLATFORMS, call, useS } from './simApi'
 import { Overview } from './Overview'
@@ -27,6 +28,7 @@ import { CranesPanel } from './Cranes'
 import { DashboardPage } from './Dashboard'
 import { RiskPage } from './RiskPage'
 import { CctvPage } from './CctvPage'
+import { InspectionPage } from './InspectionPage'
 import { AlertsPage } from './AlertsPage'
 import { EconomicsPage } from './EconomicsPage'
 import { SparesPage } from './SparesPage'
@@ -39,6 +41,7 @@ const HMI_PAGES = [
   ['dashboard', 'Live dashboard'],
   ['risk', 'Risk & what-if'],
   ['cctv', 'CCTV & PPE'],
+  ['inspection', 'Inspections'],
   ['alerts', 'Alerts & assistant'],
   ['overview', 'Overview'],
   ['process', 'Process'],
@@ -92,12 +95,14 @@ export function Hmi() {
 
 function Console({ page }: { page: string }) {
   const setHmi = useStore((s) => s.setHmi)
-  const cur = HMI_PAGES.some(([k]) => k === page) ? page : 'economics'
+  const alpha = isAlphaField(usePlant())
+  const pages = HMI_PAGES.filter(([k]) => alpha || k !== 'inspection')
+  const cur = pages.some(([k]) => k === page) ? page : 'economics'
   return (
     <div className="hmi" role="dialog" aria-label="Control room console">
       <Header />
       <nav className="hmi-tabs">
-        {HMI_PAGES.map(([k, label]) => (
+        {pages.map(([k, label]) => (
           <button key={k} className={cur === k ? 'on' : ''} onClick={() => setHmi(k)} data-page={k}>
             {label}
             {k === 'alarms' && <AlarmBadge />}
@@ -111,6 +116,7 @@ function Console({ page }: { page: string }) {
         {cur === 'dashboard' && <DashboardPage />}
         {cur === 'risk' && <RiskPage />}
         {cur === 'cctv' && <CctvPage />}
+        {cur === 'inspection' && <InspectionPage />}
         {cur === 'alerts' && <AlertsPage />}
         {cur === 'overview' && <Overview />}
         {cur === 'process' && <Process />}

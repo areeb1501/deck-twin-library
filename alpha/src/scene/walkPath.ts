@@ -15,11 +15,11 @@ import { CELLAR_OUTFIT_FOOTPRINTS, RIG_FLOOR_FOOTPRINTS, SAT_CELLAR_FOOTPRINTS, 
 
 const CELL = 0.4
 
-/** A* across level `li` from → to; null when there is no way (the points snap to the nearest free cell). */
-export function planPath(p: Plant, li: number, from: [number, number], to: [number, number], doors?: Record<string, boolean>): AutoPt[] | null {
+/** A* across level `li` from → to; null when there is no way (the points snap to the nearest free cell). `avoid`: extra areas to route around. */
+export function planPath(p: Plant, li: number, from: [number, number], to: [number, number], doors?: Record<string, boolean>, avoid: PlanRect[] = []): AutoPt[] | null {
   const lv = walkLevels(p)[li]
   if (!lv) return null
-  const block = [...blockers(p, li, doors), ...steel(p, lv.y)]
+  const block = [...blockers(p, li, doors), ...steel(p, lv.y), ...avoid]
   // The field level is ~130 × 240 m: grid only the bounding box of start + goal plus a margin (growing if
   // that fails), and test cells only against the areas / blockers that overlap that box.
   for (const margin of [16, 48, Infinity]) {
@@ -35,6 +35,15 @@ export function planPath(p: Plant, li: number, from: [number, number], to: [numb
     if (box.whole) break
   }
   return null
+}
+
+/** the same open-deck test planPath routes with: on the level, clear of equipment and steel */
+export function routeTest(p: Plant, li: number): (x: number, z: number) => boolean {
+  const lv = walkLevels(p)[li]
+  if (!lv) return () => false
+  const block = [...blockers(p, li), ...steel(p, lv.y)]
+  const inside = (fs: PlanRect[], x: number, z: number) => fs.some((f) => x > f.x0 && x < f.x1 && z > f.z0 && z < f.z1)
+  return (x, z) => inside(lv.areas, x, z) && !inside(block, x, z)
 }
 
 /** search window: start + goal bounding box grown by `margin`, clipped to the level */

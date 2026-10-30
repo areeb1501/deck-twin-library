@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { SERVICE } from '../model/catalog'
 import { useStore, type CameraPreset, type LayerId } from '../state/store'
-import { findItemIn, usePlant } from '../state/plantStore'
+import { findItemIn, isAlphaField, usePlant } from '../state/plantStore'
 import { DeckNavigator } from './DeckNavigator'
 import { startTour, exitTour, useTour } from '../tour/engine'
 import { ALPHA_TOUR } from '../tour/alphaTour'
@@ -55,6 +55,8 @@ export function Toolbar() {
   const [menu, setMenu] = useState<'layers' | 'section' | 'views' | 'decks' | 'cranes' | null>(null)
   const workers = useStore((s) => s.workers)
   const setWorkers = useStore((s) => s.setWorkers)
+  const inspection = useStore((s) => s.inspection)
+  const setInspection = useStore((s) => s.setInspection)
   const craneCab = useStore((s) => s.craneCab)
   const setCraneCab = useStore((s) => s.setCraneCab)
   const walk = useStore((s) => s.walk)
@@ -63,7 +65,7 @@ export function Toolbar() {
   const setHmi = useStore((s) => s.setHmi)
   const touring = useTour((s) => s.on)
   // the tour's routes are laid out on the Alpha field
-  const tourable = plant.deck.site === 'offshoreAlpha' && !!plant.deck.walk?.some((l) => l.id === 'drillfloor')
+  const tourable = isAlphaField(plant)
   // another plant loaded mid-tour: the tour's routes don't apply to it
   useEffect(() => {
     if (!tourable && useTour.getState().on) exitTour()
@@ -106,6 +108,11 @@ export function Toolbar() {
         {tourable && (
           <button className={workers ? 'on' : ''} onClick={(e) => (e.currentTarget.blur(), setWorkers(!workers))} title="Simulated field workers walking the decks — the CCTV PPE detector watches them" data-workers>
             Workers
+          </button>
+        )}
+        {tourable && (
+          <button className={inspection ? 'on' : ''} onClick={(e) => (e.currentTarget.blur(), setInspection(!inspection))} title="Simulated inspection drone and robot, on their bay on the LQ. Send them from the console or the Inspector. They stop for workers." data-inspection>
+            Inspection
           </button>
         )}
         {tourable && (

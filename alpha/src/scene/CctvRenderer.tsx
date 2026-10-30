@@ -180,6 +180,23 @@ interface Blob {
   heat: number
 }
 
+/** a read-back colour frame → display RGBA: Y-flip, tone map (half-float) */
+export function toDisplay(out: Uint8ClampedArray, src: Uint16Array | Uint8Array, w: number, h: number) {
+  const half = src instanceof Uint16Array
+  const lut = halfLut()
+  const px = (i: number) => (half ? lut[src[i]] : src[i])
+  for (let y = 0; y < h; y++) {
+    const si = (h - 1 - y) * w * 4
+    const di = y * w * 4
+    for (let x = 0; x < w * 4; x += 4) {
+      out[di + x] = px(si + x)
+      out[di + x + 1] = px(si + x + 1)
+      out[di + x + 2] = px(si + x + 2)
+      out[di + x + 3] = 255
+    }
+  }
+}
+
 const imgCache = new WeakMap<HTMLCanvasElement, ImageData>()
 let heatBuf = new Float32Array(0)
 
@@ -200,16 +217,7 @@ function paint(cam: CctvCameraEx, src: Uint16Array | Uint8Array, w: number, h: n
   const lut = halfLut()
   const px = (i: number) => (half ? lut[src[i]] : src[i])
   if (cam.type === 'ptz') {
-    for (let y = 0; y < h; y++) {
-      const si = (h - 1 - y) * w * 4
-      const di = y * w * 4
-      for (let x = 0; x < w * 4; x += 4) {
-        out[di + x] = px(si + x)
-        out[di + x + 1] = px(si + x + 1)
-        out[di + x + 2] = px(si + x + 2)
-        out[di + x + 3] = 255
-      }
-    }
+    toDisplay(out, src, w, h)
   } else {
     if (heatBuf.length < w * h) heatBuf = new Float32Array(w * h)
     const heat = heatBuf

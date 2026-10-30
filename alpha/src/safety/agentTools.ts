@@ -36,6 +36,8 @@ import { coverFor, useSpares } from '../sim/spares'
 import { useFinance } from '../sim/finance'
 import { assetRisks } from '../sim/assetRisk'
 import { useInsights } from '../sim/insights'
+import { UNIT_SPEC, UNITS, useInspection } from './inspection'
+import { GRADE_RANK, useCorrosion, type CorrGrade } from './corrosion'
 
 // ---------------------------------------------------------------- small helpers
 const S = () => useSim.getState() as Partial<SimState> & { t: number }
@@ -882,6 +884,56 @@ export const AGENT_TOOLS: AgentTool[] = [
     },
   },
   {
+    name: 'get_inspections',
+    description: 'Simulated drone and robot inspections: where each unit is now, and the latest reports (items inspected, readings outside limits, corrosion, verdicts, stops for workers). Read-only: agents cannot send a unit.',
+    params: { tag: p('string', 'Only reports that visited this tag'), limit: p('number', 'Most recent reports to return (default 5)') },
+    run: (args) => {
+      const tag = str(args.tag)
+      const st = useInspection.getState()
+      const lim = Math.max(1, Math.min(20, Math.round(num(args.limit)) || 5))
+      const list = st.reports.filter((r) => !tag || r.stops.some((x) => x.tag === tag)).slice(0, lim)
+      return {
+        simulated: true,
+        units: UNITS.map((u) => ({ unit: u, label: UNIT_SPEC[u].label, phase: st.units[u].phase, battery: st.units[u].battery, mission: st.units[u].mission, target: st.units[u].tag, holdingFor: st.units[u].hold?.name ?? null })),
+        reports: list.map((r) => ({
+          id: r.id,
+          unit: r.unit,
+          label: r.label,
+          status: r.status,
+          from: fmtClock(r.t0),
+          to: fmtClock(r.t1),
+          summary: r.summary,
+          closestWorkerM: r.minGap,
+          workerStops: r.holds.length,
+          items: r.stops.map((x) => ({ tag: x.tag, status: x.status, verdict: x.verdict, notes: x.notes, wallPct: x.corrosion?.wallPct ?? null, grade: x.corrosion?.grade ?? null, outOfLimits: x.readings.filter((v) => v.state !== 'normal').map((v) => ({ tag: v.tag, value: v.value, unit: v.unit, state: v.state })) })),
+        })),
+      }
+    },
+  },
+  {
+    name: 'get_corrosion',
+    description: 'Corrosion findings from simulated inspections, newest first: wall left, grade, rate. Only what a unit has inspected is known.',
+    params: { platform: p('string', 'Alpha, WHP-N, RP, WI or LQ'), gradeMin: p('string', 'light, moderate, severe or critical') },
+    run: (args) => {
+      const pf = asPlatform(args.platform)
+      const min = GRADE_RANK[str(args.gradeMin).toLowerCase() as CorrGrade] ?? 0
+      const list = useCorrosion.getState().findings.filter((f) => (!pf || f.platform === pf) && GRADE_RANK[f.grade] >= min)
+      return { simulated: true, count: list.length, findings: list.slice(0, 20).map((f) => ({ id: f.id, time: fmtClock(f.t), tag: f.tag, platform: f.platform, grade: f.grade, wallPct: f.wallPct, rateMmPerYr: f.rateMmPerYr, method: f.method, mission: f.missionId })) }
+    },
+  },
+  {
+    name: 'get_corrosion_trend',
+    description: 'One item\'s inspected wall history (simulated), oldest first, against the survey a year before the session, and the rate.',
+    params: { tag: p('string', 'Line or equipment tag', true) },
+    run: (args) => {
+      const tag = str(args.tag)
+      const hist = useCorrosion.getState().findings.filter((f) => f.tag === tag).slice(0, 20).reverse()
+      const stop = useInspection.getState().reports.flatMap((r) => r.stops).find((x) => x.tag === tag && x.corrosion)
+      if (!hist.length && !stop) return { simulated: true, tag, inspected: false, note: 'No inspection has visited this item yet' }
+      return { simulated: true, tag, inspected: true, lastSurveyPct: stop?.corrosion?.lastSurveyPct ?? null, rateMmPerYr: stop?.corrosion?.rateMmPerYr ?? null, wallPct: hist.map((f) => f.wallPct), times: hist.map((f) => fmtClock(f.t)) }
+    },
+  },
+  {
     name: 'search_tags',
     description: 'Search equipment, instrument and valve tags and names.',
     params: { query: p('string', 'Tag or words, e.g. "K-2200" or "export pump"', true) },
@@ -943,6 +995,12 @@ export function summarise(name: string, r: unknown): string {
       return `${(o.parts as unknown[])?.length ?? 0} part(s), ${(o.short as unknown[])?.length ?? 0} short${(o.cover as { status?: string } | null)?.status ? `, cover ${(o.cover as { status: string }).status}` : ''}`
     case 'get_insights':
       return `${o.count} insight(s)`
+    case 'get_inspections':
+      return `${(o.reports as unknown[])?.length ?? 0} report(s), units ${(o.units as { phase: string }[])?.map((u) => u.phase).join(' / ')}`
+    case 'get_corrosion':
+      return `${o.count} finding(s)`
+    case 'get_corrosion_trend':
+      return o.inspected ? `${(o.wallPct as number[]).length} inspection(s), ${o.rateMmPerYr} mm/yr` : 'not inspected yet'
     case 'get_economics':
       return `revenue ${o.revenueUsdD} $/d, cash ${o.cashUsdD} $/d, ${(o.atRisk as unknown[])?.length ?? 0} asset(s) at risk`
   }

@@ -29,6 +29,7 @@ import { CraneCabHud } from './ui/CraneCabHud'
 // safety twin: risk engine and alert rules step with the simulation
 import './safety/risk'
 import './safety/alerts'
+import './safety/inspection'
 // asset & economics (plan 13): spares and supply, finance, insights, demo stories — sim plugins
 import './sim/spares'
 import './sim/finance'

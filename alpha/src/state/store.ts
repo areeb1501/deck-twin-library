@@ -66,6 +66,9 @@ interface State {
   /** simulated field workers walking the decks (off by default; CCTV / PPE detection watches them) */
   workers: boolean
   setWorkers: (on: boolean) => void
+  /** simulated inspection drone and robot on their dock (off by default; an Inspect action turns it on) */
+  inspection: boolean
+  setInspection: (on: boolean) => void
   /** sitting in this crane's cab (manual crane operation + cab camera), or null */
   craneCab: string | null
   setCraneCab: (tag: string | null) => void
@@ -129,6 +132,8 @@ export const useStore = create<State>((set) => ({
   isolation: null,
   workers: false,
   setWorkers: (workers) => set({ workers }),
+  inspection: false,
+  setInspection: (inspection) => set({ inspection }),
   craneCab: null,
   // the cab camera takes over from the walker
   setCraneCab: (craneCab) => set(craneCab ? { craneCab, walk: false, lookAt: null, hmi: null } : { craneCab }),

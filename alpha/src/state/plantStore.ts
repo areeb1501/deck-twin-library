@@ -21,6 +21,9 @@ export const usePlantStore = create<PlantState>((set) => ({
 
 export const usePlant = () => usePlantStore((s) => s.plant)
 
+/** the Alpha field: what the guided tours, Workers and inspections are laid out on */
+export const isAlphaField = (p: Plant) => !p.custom && p.deck.site === 'offshoreAlpha' && !!p.deck.walk?.some((l) => l.id === 'drillfloor')
+
 export function findItemIn(plant: Plant, tag: string) {
   return (
     plant.equipment.find((e) => e.tag === tag) ??
