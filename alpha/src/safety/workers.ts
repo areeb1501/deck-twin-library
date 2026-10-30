@@ -24,7 +24,7 @@ import type { Equipment, Plant } from '../model/types'
 import type { HazardViolation, WorkerInfo, WorkerPose } from './types'
 import { registerSimPlugin, useSim } from '../state/sim'
 import { DECK_WORLD_Y, useStore } from '../state/store'
-import { usePlantStore } from '../state/plantStore'
+import { isAlphaField, usePlantStore } from '../state/plantStore'
 import { blockers, levelAt, walkable, walkLevels } from '../scene/Walk'
 import { footprints } from '../model/footprint'
 import { platformAt } from '../sim/fg'
@@ -251,10 +251,13 @@ function rotatePpe() {
   applyPpe()
 }
 
+/** workers only exist on the Alpha field: other plants have no routes or toolbar toggle for them */
+const workersOn = () => useStore.getState().workers && isAlphaField(usePlantStore.getState().plant)
+
 registerSimPlugin({
   id: 'workers',
   step(_dt, t) {
-    if (!useStore.getState().workers) {
+    if (!workersOn()) {
       // nobody on deck: everyone back in full PPE (nothing for risk / alerts to count), overrides cleared, rotation restarts
       if (nextAt >= 0 || enabled) {
         nextAt = -1
@@ -399,7 +402,7 @@ function scriptedRound(t: number, plant: Plant) {
 }
 
 function trackStep(t: number) {
-  if (!useStore.getState().workers) {
+  if (!workersOn()) {
     if (presentKey || useHazardTrack.getState().active.length) clearTrack(t)
     roundAt = -1
     return

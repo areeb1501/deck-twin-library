@@ -403,13 +403,14 @@ function ShadowOnDemand() {
   return null
 }
 
-/** simulated field workers (off by default — Toolbar → Workers) */
+/** simulated field workers (on by default on the Alpha field — Toolbar → Workers) */
 function FieldWorkers() {
   const on = useStore((s) => s.workers)
-  return on ? <Workers /> : null
+  const alpha = usePlantStore((s) => isAlphaField(s.plant))
+  return on && alpha ? <Workers /> : null
 }
 
-/** simulated inspection units and their bay (off by default — Toolbar → Inspection, or any Inspect action) */
+/** simulated inspection units and their bay (off until an Inspect action turns them on) */
 function Inspections() {
   const on = useStore((s) => s.inspection)
   const alpha = usePlantStore((s) => isAlphaField(s.plant))

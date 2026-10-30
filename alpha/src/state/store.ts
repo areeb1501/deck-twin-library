@@ -63,7 +63,7 @@ interface State {
   setHmi: (page: string | null) => void
   /** isolation / LOTO planner target */
   isolation: { target: string; mode: 'valve' | 'positive' } | null
-  /** simulated field workers walking the decks (off by default; CCTV / PPE detection watches them) */
+  /** simulated field workers walking the decks (on by default, Alpha field only; CCTV / PPE detection watches them) */
   workers: boolean
   setWorkers: (on: boolean) => void
   /** simulated inspection drone and robot on their dock (off by default; an Inspect action turns it on) */
@@ -130,7 +130,7 @@ export const useStore = create<State>((set) => ({
   walk: false,
   lookAt: null,
   isolation: null,
-  workers: false,
+  workers: true,
   setWorkers: (workers) => set({ workers }),
   inspection: false,
   setInspection: (inspection) => set({ inspection }),
