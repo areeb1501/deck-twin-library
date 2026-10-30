@@ -224,7 +224,7 @@ export interface Detection {
   /** normalised image box [x0, y0, x1, y1] in 0 … 1 (origin top-left) */
   box: [number, number, number, number]
   confidence: number
-  /** 'sim' today; 'sam-3.1' when the Modal detector is wired (plan 09) */
+  /** which detector made this: the twin's simulated one, or real SAM 3.1 (safety/samClient.ts) */
   model: 'sim' | 'sam-3.1'
 }
 

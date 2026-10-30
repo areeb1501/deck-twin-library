@@ -426,6 +426,28 @@ export const WORKER_RANGE = 35
 const HAZARD_RANGE = 90
 
 /**
+ * Where every worker on shift falls in this frame, however far away and even behind steel: what their worn tags report.
+ * SAM 3.1 sees further than the simulated detector's WORKER_RANGE, and this names the people it finds.
+ */
+export function workerBoxes(cam3: THREE.PerspectiveCamera): { workerId: string; box: Detection['box'] }[] {
+  const aspect = cam3.aspect || FEED_W / FEED_H
+  const out: { workerId: string; box: Detection['box'] }[] = []
+  for (const w of useWorkers.getState().roster) {
+    const p = workerPose[w.id]
+    if (!p) continue
+    const head = toImage(cam3, p.x, p.footY + 1.8, p.z)
+    const feet = toImage(cam3, p.x, p.footY, p.z)
+    if (!head || !feet) continue
+    const h = feet[1] - head[1]
+    const cx = (head[0] + feet[0]) / 2
+    const halfW = (h * 0.4) / aspect / 2
+    if (h <= 0 || cx + halfW < 0 || cx - halfW > 1 || feet[1] < 0 || head[1] > 1) continue
+    out.push({ workerId: w.id, box: [cx - halfW, head[1], cx + halfW, feet[1]] })
+  }
+  return out
+}
+
+/**
  * Simulated detector for one camera frame. `cam3` must be positioned / aimed with up-to-date matrices.
  * `visible(id, chest)` is the occlusion test for people (the renderer owns the scene) and `hazardVisible(p)` the
  * one for flames / clouds (deck plates only: they are big); default: everything visible.

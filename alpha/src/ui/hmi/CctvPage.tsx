@@ -18,6 +18,7 @@ import { memo, useEffect, useMemo, useRef, useState } from 'react'
 import { Box, Kpi } from './common'
 import { EMPTY_ARR, EMPTY_OBJ, useS } from './simApi'
 import { CAMERAS, FEED_H, FEED_INTERVAL_MS, FEED_W, PTZ_HOME, SEG_BY_ID, SEG_CLASSES, aimOf, cameraById, detLabel, feedCanvases, feedStats, registerFeed, segFrames, unregisterFeed, useCctv, type CctvCameraEx, type SegInstance } from '../../safety/cctv'
+import { samCamera, samLive, startSam, useSam } from '../../safety/samClient'
 import { useWorkers } from '../../safety/workers'
 import { DETECTION_LABEL, type Detection, type DetectionKind, type WorkerInfo } from '../../safety/types'
 import { fmtClock, type DetectorSim, type ZoneStatus } from '../../sim/types'
@@ -44,6 +45,7 @@ const EMPTY_DET: Detection[] = EMPTY_ARR
 const EMPTY_ROSTER: WorkerInfo[] = EMPTY_ARR
 
 export function CctvPage() {
+  useEffect(() => startSam(), [])
   const selected = useCctv((s) => s.selected)
   const callUp = useCctv((s) => s.callUp)
   const setFeedsVisible = useCctv((s) => s.setFeedsVisible)
@@ -117,7 +119,8 @@ const Tile = memo(function Tile({ cam, big, calledUp, slot }: { cam: CctvCameraE
       {...steer}
     >
       <canvas ref={canvas} width={w} height={h} />
-      {big && <SegLayer cam={cam.id} />}
+      <SegLayer cam={cam.id} big={!!big} />
+      <ModelBadge cam={cam.id} />
       <Boxes cam={cam.id} big={!!big} />
       <Osd cam={cam} big={!!big} />
       <DetectorPanel cam={cam} big={!!big} />
@@ -546,9 +549,67 @@ function LogBox() {
 
 const EMPTY_SEG: SegInstance[] = EMPTY_ARR
 
-/** simulated SAM 3.1 masks + concept labels over the main monitor */
-function SegLayer({ cam }: { cam: string }) {
+/** is SAM 3.1 answering for this camera? Re-checked each second, because a silent model sends no update */
+function useSamLive(cam: string) {
+  const frames = useSam((s) => s.frames)
+  const [, tick] = useState(0)
+  useEffect(() => {
+    const id = window.setInterval(() => tick((n) => n + 1), 1000)
+    return () => clearInterval(id)
+  }, [])
+  return samLive(cam, frames)
+}
+
+/** says which detector this tile's boxes come from */
+function ModelBadge({ cam }: { cam: string }) {
+  const live = useSamLive(cam)
+  return (
+    <div className={`cctv-model-badge ${live ? 'live' : ''}`} data-model-badge={live ? 'sam-3.1' : 'sim'}>
+      {live ? 'SAM 3.1' : 'SIM'}
+    </div>
+  )
+}
+
+const SAM_COLOURS: Record<string, string> = { person: '#22d3ee', 'hard hat': '#facc15', 'high-visibility vest': '#4ade80', flame: '#fb7185', smoke: '#a78bfa' }
+
+/** real SAM 3.1 masks from the last answer. Hard hats and vests are small, so labels stack instead of overlapping */
+function SamLayer({ cam, big, masksOn }: { cam: string; big: boolean; masksOn: boolean }) {
+  const frame = useSam((s) => s.frames[cam])
+  const roster = useWorkers((s) => s.roster)
+  const masks = useMemo(() => frame?.masks ?? [], [frame])
+  const labels = useMemo(() => {
+    const used: [number, number][] = []
+    return masks.map((m) => {
+      const x = Math.min(0.93, Math.max(0.07, (m.box[0] + m.box[2]) / 2))
+      let y = Math.max(0.05, m.box[1] - 0.008)
+      while (used.some(([ux, uy]) => Math.abs(ux - x) < 0.15 && Math.abs(uy - y) < 0.035)) y -= 0.036
+      used.push([x, y])
+      return { m, x, y: Math.max(0.04, y), name: roster.find((w) => w.id === m.workerId)?.name.split(' ').at(-1) }
+    })
+  }, [masks, roster])
+  return (
+    <div className="cctv-seg" data-sam-layer>
+      {frame && <img className="cctv-sam-frame" src={frame.image} alt="" />}
+      {masksOn && (
+        <svg className="cctv-sam-mask" viewBox="0 0 1 1" preserveAspectRatio="none">
+          {masks.flatMap((m, i) => m.polygons.map((p, j) => <polygon key={`${i}-${j}`} points={p.map((q) => q.join(',')).join(' ')} style={{ ['--c' as string]: SAM_COLOURS[m.label] ?? '#e5e7eb' }} />))}
+        </svg>
+      )}
+      {big && masksOn && labels.map(({ m, x, y, name }, i) => (
+        <span key={i} className="cctv-seglbl" style={{ left: `${x * 100}%`, top: `${y * 100}%`, ['--c' as string]: SAM_COLOURS[m.label] ?? '#e5e7eb' }}>
+          {m.label} <b>{m.score.toFixed(2)}</b>
+          {name && <i>{name}</i>}
+        </span>
+      ))}
+      {big && <div className="cctv-segtag">SAM 3.1 · live model · {masks.length} instances</div>}
+    </div>
+  )
+}
+
+/** simulated SAM 3.1 masks + concept labels over the main monitor, or the real ones while the model is answering */
+function SegLayer({ cam, big }: { cam: string; big: boolean }) {
   const on = useCctv((s) => s.seg)
+  const live = useSamLive(cam)
   const inst = useCctv((s) => s.segLive[cam]) ?? EMPTY_SEG
   const ref = useRef<HTMLCanvasElement>(null)
   useEffect(() => {
@@ -586,7 +647,8 @@ function SegLayer({ cam }: { cam: string }) {
     }
     return placed
   }, [inst])
-  if (!on) return null
+  if (live) return <SamLayer cam={cam} big={big} masksOn={on} />
+  if (!on || !big) return null
   return (
     <div className="cctv-seg">
       <canvas ref={ref} />
@@ -605,6 +667,22 @@ function SegLayer({ cam }: { cam: string }) {
   )
 }
 
+/** what SAM 3.1 is really being asked for, with what it found in the last frame */
+function SamPrompts({ cam }: { cam: string }) {
+  const masks = useSam((s) => s.frames[cam]?.masks) ?? EMPTY_ARR
+  return (
+    <div className="cctv-prompts" data-sam-prompts>
+      {Object.entries(SAM_COLOURS).map(([prompt, colour]) => (
+        <span key={prompt} className="cctv-prompt on" style={{ ['--c' as string]: colour }}>
+          <i />
+          {prompt}
+          <b>{masks.filter((m) => m.label === prompt).length}</b>
+        </span>
+      ))}
+    </div>
+  )
+}
+
 /** concept prompts (what the segmenter is asked to find) with live instance counts */
 function PromptsBox({ cam }: { cam: string }) {
   const on = useCctv((s) => s.seg)
@@ -612,6 +690,7 @@ function PromptsBox({ cam }: { cam: string }) {
   const inst = useCctv((s) => s.segLive[cam]) ?? EMPTY_SEG
   const ms = useCctv((s) => s.segMs)
   const workers = useStore((s) => s.workers)
+  const live = useSamLive(cam)
   const counts = useMemo(() => {
     const m: Record<string, number> = {}
     for (const k of inst) m[k.cls] = (m[k.cls] ?? 0) + 1
@@ -619,13 +698,16 @@ function PromptsBox({ cam }: { cam: string }) {
   }, [inst])
   return (
     <Box
-      title="Segmentation: SAM 3.1 (simulated)"
+      title={`Segmentation: SAM 3.1 (${live ? 'live model' : 'simulated'})`}
       right={
         <button className={on ? 'on' : ''} onClick={() => useCctv.getState().setSeg(!on)} data-seg-toggle>
           {on ? 'Masks on' : 'Masks off'}
         </button>
       }
     >
+      {live ? (
+        <SamPrompts cam={cam} />
+      ) : (
       <div className="cctv-prompts">
         {SEG_CLASSES.map((c) => (
           <button key={c.id} className={`cctv-prompt ${prompts[c.id] ? 'on' : ''}`} style={{ ['--c' as string]: c.color }} onClick={() => useCctv.getState().togglePrompt(c.id)} title={`Text prompt: "${c.prompt}"`}>
@@ -635,8 +717,9 @@ function PromptsBox({ cam }: { cam: string }) {
           </button>
         ))}
       </div>
+      )}
       <div className="dim small" style={{ marginTop: 6 }}>
-        Text prompts → instance masks on the main monitor ({cam}). {on && ms ? `Last pass ${ms.toFixed(0)} ms in the browser.` : ''}{' '}
+        {live ? `Text prompts → real masks from SAM 3.1 on ${cam}.` : `Text prompts → instance masks on the main monitor (${cam}). ${on && ms ? `Last pass ${ms.toFixed(0)} ms in the browser.` : ''}`}{' '}
         {!workers && (
           <>
             People, hard hats and vests need field workers:{' '}
@@ -655,6 +738,8 @@ function ModelBox() {
   const live = useCctv((s) => s.live)
   useS((s) => s.t) // refresh the measured rates with the sim clock (2 Hz)
   const selected = useCctv((s) => s.callUp ?? s.selected)
+  const sam = useSam()
+  const samOn = useSamLive(selected)
   const now = Object.values(live).flat()
   const people = now.filter((d) => d.kind === 'person').length
   const ppe = now.filter((d) => d.kind === 'noHardHat' || d.kind === 'noVest' || d.kind === 'restrictedZone' || d.kind === 'zone0Entry' || d.kind === 'zonePpe').length
@@ -673,13 +758,32 @@ function ModelBox() {
         <tbody>
           <tr>
             <td className="dim">Active</td>
-            <td>
-              <b>Simulated SAM 3.1 (twin ground truth)</b> : instance masks from an id render pass of the camera view (true occlusion), PPE boxes from worker flags, hazards from live incidents
+            <td data-detector-active>
+              {samOn ? (
+                <>
+                  <b>SAM 3.1 on a Modal GPU</b> : real masks and scores on the 11 colour cameras, in turn. {sam.rtt.toFixed(0)} ms round trip, {sam.gpu} ms on the GPU. Each picture is the frame SAM saw. Thermal cameras stay simulated.
+                </>
+              ) : (
+                <>
+                  <b>Simulated SAM 3.1 (twin ground truth)</b> : instance masks from an id render pass of the camera view (true occlusion), PPE boxes from worker flags, hazards from live incidents
+                </>
+              )}
             </td>
           </tr>
           <tr>
-            <td className="dim">Planned</td>
-            <td>SAM 3.1 on a Modal GPU (plan 11, 9e): the same frames and text prompts in, the same masks and scores out</td>
+            <td className="dim">SAM 3.1</td>
+            <td>
+              {sam.connected ? (
+                <>
+                  <button className={sam.on ? 'on' : ''} onClick={() => sam.setOn(!sam.on)} data-sam-toggle>
+                    {sam.on ? 'On' : 'Off'}
+                  </button>{' '}
+                  {!samCamera(selected) ? 'Thermal camera: simulated detector' : sam.state === 'waking' ? 'Waking the GPU, up to a minute. Simulated until then' : sam.state === 'error' ? 'Not answering. Simulated until it does' : sam.state === 'live' ? 'Connected' : ''}
+                </>
+              ) : (
+                'Not connected on this site, so the simulated detector runs'
+              )}
+            </td>
           </tr>
           <tr>
             <td className="dim">Frame rate</td>

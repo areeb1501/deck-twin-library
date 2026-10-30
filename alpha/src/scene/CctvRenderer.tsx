@@ -17,7 +17,8 @@ import { useEffect, useMemo, useRef } from 'react'
 import { useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js'
-import { CAMERAS, FEED_INTERVAL_MS, STEER_INTERVAL_MS, aimOf, detect, feedCanvases, feedStats, lastFrames, useCctv, type CctvCameraEx } from '../safety/cctv'
+import { samLive, withSam } from '../safety/samClient'
+import { CAMERAS, FEED_INTERVAL_MS, workerBoxes, STEER_INTERVAL_MS, aimOf, detect, feedCanvases, feedStats, lastFrames, useCctv, type CctvCameraEx } from '../safety/cctv'
 import type { Detection } from '../safety/types'
 import type { Plant } from '../model/types'
 import { usePlant } from '../state/plantStore'
@@ -392,7 +393,7 @@ function feedTurn(gl: THREE.WebGLRenderer, scene: THREE.Scene, st: FeedCtx) {
   scene.overrideMaterial = prevOverride
 
   // ---- simulated SAM 3.1: instance masks for the main monitor's camera
-  if (cam.id === prio && cctv.seg) {
+  if (cam.id === prio && cctv.seg && !samLive(cam.id)) {
     const enabled = new Set((SEG_CLASSES.map((k) => k.id) as SegClassId[]).filter((id) => cctv.prompts[id]))
     const segCam = cam
     renderSeg(gl, scene, cam3, st.seg, enabled, Math.floor(useSim.getState().t / 3))?.then((r) => useCctv.getState().pushSeg(segCam.id, r.mask, r.instances, r.ms))
@@ -404,6 +405,7 @@ function feedTurn(gl: THREE.WebGLRenderer, scene: THREE.Scene, st: FeedCtx) {
   const visible = (_id: string, chest: THREE.Vector3) => clear(origin, chest, st.boxes)
   const hazardVisible = (p: THREE.Vector3) => clear(origin, p, st.slabs)
   const dets = detect(cam, cam3, t, visible, hazardVisible)
+  const tags = workerBoxes(cam3)
   const renderMs = performance.now() - tr0
   const blobs = cam.type === 'thermal' ? heatBlobs(cam3, w, h, st.hot, dets) : []
 
@@ -430,7 +432,7 @@ function feedTurn(gl: THREE.WebGLRenderer, scene: THREE.Scene, st: FeedCtx) {
     s.last = tNow
     s.frames++
     feedStats.set(camera.id, s)
-    useCctv.getState().pushFrame(camera.id, dets)
+    useCctv.getState().pushFrame(camera.id, withSam(camera.id, dets, tags))
   }
   gl.readRenderTargetPixelsAsync(target, 0, 0, w, h, buf)
     .then(() => done(px))

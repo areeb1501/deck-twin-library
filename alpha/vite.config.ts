@@ -1,6 +1,7 @@
 import react from '@vitejs/plugin-react'
-import { defineConfig, loadEnv } from 'vite'
+import { defineConfig, loadEnv, type Plugin } from 'vite'
 import { pbkdf2Sync, randomBytes } from 'node:crypto'
+import { SAM_ROUTE, samRoute } from './sam-route.js'
 
 /**
  * Private /alpha copy of the Deck Twin app (see README.md in this folder). Builds with base /alpha/ straight
@@ -20,11 +21,31 @@ function demoGate(env: Record<string, string>, serve: boolean) {
   return { salt: salt.toString('hex'), hash, iter: GATE_ITER }
 }
 
+/** the Worker's SAM route on the dev server, with the key from ../modal/.env.local (never sent to the browser) */
+function samDevRoute(): Plugin {
+  const env = loadEnv('', new URL('../modal', import.meta.url).pathname, 'DECK_TWIN_')
+  return {
+    name: 'sam-dev-route',
+    apply: 'serve',
+    configureServer(server) {
+      server.middlewares.use(SAM_ROUTE, async (req, res) => {
+        const chunks: Buffer[] = []
+        for await (const c of req) chunks.push(c as Buffer)
+        const headers = Object.fromEntries(Object.entries(req.headers).filter(([, v]) => typeof v === 'string')) as Record<string, string>
+        const body = req.method === 'POST' ? Buffer.concat(chunks) : undefined
+        const r = await samRoute(new Request(`http://${req.headers.host}${SAM_ROUTE}`, { method: req.method, headers, body }), env)
+        res.writeHead(r.status, { 'content-type': 'application/json' })
+        res.end(await r.text())
+      })
+    },
+  }
+}
+
 export default defineConfig(({ command, mode }) => {
   const env = { ...loadEnv(mode, new URL('.', import.meta.url).pathname, ''), ...process.env } as Record<string, string>
   return {
     base: '/alpha/',
-    plugins: [react()],
+    plugins: [react(), samDevRoute()],
     // bridge/ reaches into ../registry, whose imports would otherwise resolve to a second React and three.js
     resolve: { dedupe: ['react', 'react-dom', 'three', '@react-three/fiber', '@react-three/drei'] },
     // media lives in R2 behind the site's Worker, and the landing search reads the site's index and thumbnails, so dev reads the live copies
