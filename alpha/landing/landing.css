@@ -1,5 +1,5 @@
-/* /alpha landing page. Near-black ground, one signal orange sheet, Archivo for display and Inter for text. The footage runs clean, a
-   title block carries the words over it, and one thing is loud: the pinned incident screen on the orange sheet. */
+/* /alpha landing page. Near-black ground, one signal orange sheet, Archivo for display and Inter for text. The words sit on the
+   ground and the footage runs clean below them, with nothing on top. One thing is loud: the pinned incident screen on the orange sheet. */
 @font-face {
   font-family: 'Archivo Variable';
   src: url('../node_modules/@fontsource-variable/archivo/files/archivo-latin-wdth-normal.woff2') format('woff2');
@@ -92,13 +92,6 @@ img {
 }
 .cta:active {
   transform: scale(0.98);
-}
-.cta.on-sheet {
-  background: var(--sheet-ink);
-  color: #fff;
-}
-.cta.on-sheet:hover {
-  background: #2b2c34;
 }
 .cta.small {
   height: 32px;
@@ -337,54 +330,32 @@ img {
   color: var(--ink);
 }
 
-/* the film runs clean to its edges; the words sit in a title block in its corner, as on any engineering drawing */
+/* the words on the ground, then the field edge to edge with nothing laid over it, filling the rest of the first screen */
 .hero {
-  position: relative;
   display: flex;
-  align-items: flex-end;
+  flex-direction: column;
   min-height: calc(100svh - 56px);
   margin-top: 56px;
-  overflow: hidden;
-  isolation: isolate;
 }
-.hero-film,
-.close-film {
-  position: absolute;
-  inset: 0;
-  z-index: -1;
-  height: 100%;
-  object-fit: cover;
-}
-.title-block {
-  width: min(660px, 100%);
-  background: var(--signal);
-  color: var(--sheet-ink);
-}
-.title-block > * {
-  padding: 20px 28px;
-  color: inherit;
-}
-.title-block > * + * {
-  border-top: 1.5px solid var(--sheet-ink);
-}
-.title-block ::selection {
-  background: var(--sheet-ink);
-  color: var(--signal);
-}
-.title-block a:focus-visible {
-  outline-color: var(--sheet-ink);
+.hero-copy {
+  display: grid;
+  grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+  gap: 24px 56px;
+  align-items: end;
+  width: var(--page);
+  margin: 0 auto;
+  padding: clamp(36px, 5vh, 64px) 0 clamp(28px, 4vh, 44px);
 }
 h1 {
-  padding-top: 26px;
-  font-size: clamp(38px, 4.3vw, 62px);
-  line-height: 1.02;
+  text-wrap: wrap;
+  font-size: clamp(38px, 4.1vw, 60px);
+  line-height: 1.06;
 }
 .unbroken {
   white-space: nowrap;
 }
-.title-block p {
-  font-size: 17px;
-  font-weight: 450;
+.hero-side p {
+  color: var(--fg);
   line-height: 1.5;
 }
 .hero-actions {
@@ -392,12 +363,18 @@ h1 {
   flex-wrap: wrap;
   align-items: center;
   gap: 12px 20px;
+  margin-top: 20px;
 }
 .hero-actions span {
-  max-width: 34ch;
+  max-width: 28ch;
+  color: var(--muted);
   font-size: 14px;
-  font-weight: 450;
   line-height: 1.4;
+}
+.hero-film {
+  flex: 1 1 0;
+  min-height: 320px;
+  object-fit: cover;
 }
 
 /* the whole capability list, as one sentence at display size; each phrase jumps to its clip */
@@ -617,17 +594,22 @@ figcaption h3 {
 }
 
 .close {
-  position: relative;
-  display: flex;
-  align-items: flex-end;
-  min-height: 78svh;
   margin-top: clamp(96px, 14vw, 176px);
-  overflow: hidden;
-  isolation: isolate;
 }
-.close h2 {
-  padding-top: 26px;
-  font-size: clamp(36px, 4.3vw, 62px);
+.close-film {
+  aspect-ratio: 21 / 9;
+  object-fit: cover;
+}
+.close-copy {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px 48px;
+  width: var(--page);
+  margin: 0 auto;
+  padding: 44px 0;
+  border-bottom: 1px solid var(--line);
 }
 
 .open {
@@ -716,23 +698,19 @@ figcaption h3 {
     padding: 0 20px;
   }
   .hero {
-    display: block;
     min-height: 0;
   }
+  .hero-copy {
+    grid-template-columns: minmax(0, 1fr);
+    padding: 32px 0 28px;
+  }
   .hero-film {
-    position: static;
+    flex: none;
+    min-height: 0;
     aspect-ratio: 4 / 3;
-    height: auto;
   }
-  .title-block {
-    width: 100%;
-  }
-  .title-block > * {
-    padding: 16px 20px;
-  }
-  h1,
-  .close h2 {
-    padding-top: 22px;
+  .close-film {
+    aspect-ratio: 16 / 9;
   }
   .mosaic {
     grid-template-columns: 1fr;
