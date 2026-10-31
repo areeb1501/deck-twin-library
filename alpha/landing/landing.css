@@ -18,7 +18,7 @@
   --sheet-ink: #0f1015;
   --radius: 6px;
   /* the page's spacing, and the only spacing: between sections, heading to content, between rows, between columns */
-  --chapter: clamp(96px, 11vw, 160px);
+  --chapter: clamp(80px, 9vw, 128px);
   --lead: clamp(40px, 4vw, 56px);
   --row: 56px;
   --col: 32px;
@@ -415,30 +415,6 @@ h1 {
   object-fit: cover;
 }
 
-/* what you can do here, as one sentence at display size; each phrase jumps to its clip */
-.verbs {
-  width: var(--page);
-  margin: var(--chapter) auto 0;
-  color: var(--muted);
-  font-family: 'Switzer', sans-serif;
-  font-size: clamp(32px, 4.8vw, 72px);
-  font-weight: 600;
-  letter-spacing: -0.02em;
-  line-height: 1.08;
-  text-wrap: pretty;
-}
-.verbs a {
-  color: var(--ink);
-  text-decoration: none;
-  transition: color 0.15s ease-out;
-}
-.verbs a:hover {
-  color: var(--signal);
-}
-[id] {
-  scroll-margin-top: 88px;
-}
-
 /* every section is built the same way, on the hero's columns: heading left, sentence right, then the clips in two columns */
 .block {
   width: var(--page);
@@ -449,7 +425,7 @@ h1 {
   display: grid;
   grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
   gap: 16px var(--col);
-  align-items: end;
+  align-items: first baseline;
 }
 .lead p {
   font-size: 17px;
@@ -498,7 +474,7 @@ figcaption h3 {
 /* the one loud thing: a pinned screen on the orange sheet, following the incident as the steps scroll past it */
 .incident {
   margin-top: var(--chapter);
-  padding: var(--chapter) 0;
+  padding: var(--chapter) 0 var(--lead);
   background: var(--signal);
   color: var(--sheet-ink);
 }
@@ -600,17 +576,6 @@ figcaption h3 {
   aspect-ratio: 21 / 9;
   object-fit: cover;
 }
-.close-copy {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px var(--col);
-  width: var(--page);
-  margin: 0 auto;
-  padding: var(--lead) 0;
-}
-
 /* the library site's footer */
 .foot-sheet {
   background: var(--signal);
@@ -620,10 +585,10 @@ figcaption h3 {
   display: grid;
   grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
   gap: 24px var(--col);
-  align-items: end;
+  align-items: center;
   width: var(--page);
   margin: 0 auto;
-  padding: var(--chapter) 0;
+  padding: var(--lead) 0;
 }
 .foot-sheet h2 {
   color: inherit;

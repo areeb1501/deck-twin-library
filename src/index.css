@@ -496,7 +496,7 @@ body {
 }
 /* Home below the sheet: every section is built the same way, heading left and sentence right, then its content on the same columns. These four values are the page's only spacing. */
 .home {
-  --chapter: clamp(96px, 11vw, 160px);
+  --chapter: clamp(80px, 9vw, 128px);
   --lead: clamp(40px, 4vw, 56px);
   --row: 56px;
   --col: 32px;
@@ -517,7 +517,7 @@ body {
 }
 .home-lead {
   gap: 16px var(--col);
-  align-items: end;
+  align-items: first baseline;
 }
 .home-lead h2 {
   font-size: clamp(32px, 3.6vw, 52px);

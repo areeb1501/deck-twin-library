@@ -254,7 +254,7 @@ function Footer() {
   return (
     <footer className="bg-deep text-fg-2">
       <section className="sheet">
-        <div className="mx-auto grid max-w-[1440px] grid-cols-1 items-end gap-10 px-6 py-16 sm:py-20 lg:grid-cols-[minmax(0,7fr)_minmax(0,5fr)] lg:gap-16">
+        <div className="mx-auto grid max-w-[1440px] grid-cols-1 items-center gap-8 px-6 py-12 sm:py-14 lg:grid-cols-[minmax(0,7fr)_minmax(0,5fr)] lg:gap-8">
           <div>
             <h2 className="display text-[32px] leading-[1.06] sm:text-[clamp(32px,3.6vw,52px)]">Start building</h2>
             <p className="mt-4 max-w-lg text-[17px] leading-[1.5]">Install a single component, or give your agent a P&amp;ID to build a complete plant.</p>
