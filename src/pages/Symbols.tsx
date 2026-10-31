@@ -12,7 +12,7 @@ export function Symbols() {
   const [tab, setTab] = useQueryState<'legend' | 'components'>('view', LIBRARY.symbols.length ? 'legend' : 'components')
   return (
     <div className="mx-auto max-w-[1440px] px-6 py-10 lg:px-10">
-      <h1 className="display text-[34px] sm:text-[44px] text-ink">P&amp;ID symbols</h1>
+      <h1 className="display text-[32px] sm:text-[44px] text-ink">P&amp;ID symbols</h1>
       <p className="mt-2 max-w-3xl text-[15px] leading-7 text-fg-3">
         A reference for P&amp;ID symbols: how each one is drawn, what it means and which Deck Twin component it maps to. The conventions are ISO 10628-2 and PIP PIC001 for process, ISA 5.1 for instruments, IEC 60617 for electrical, and NFPA 170 / ISO 7010 for fire &amp; gas. Company legends vary, so read the drawing's own legend sheet first.
       </p>

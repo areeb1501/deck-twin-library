@@ -71,7 +71,7 @@ function Doc({ slug }: { slug: string }) {
       <div className="min-w-0 flex-1">
         <div className="mx-auto max-w-[760px]">
           <div className="mb-4 flex flex-wrap items-center justify-between gap-x-6 gap-y-3">
-            <h1 className="display text-[34px] sm:text-[40px] text-ink" dangerouslySetInnerHTML={{ __html: title }} />
+            <h1 className="display text-[32px] sm:text-[44px] text-ink" dangerouslySetInnerHTML={{ __html: title }} />
             <div className="flex shrink-0 gap-2">
               <CopyMarkdown md={md} />
               <ViewMarkdown href={`/docs/${slug}.md`} />

@@ -43,7 +43,7 @@ function Detail({ item }: { item: Item }) {
     <div className="mx-auto max-w-[1180px] px-6 py-10 lg:px-10">
       <Crumbs items={[{ label: 'Components', href: '/components' }, { label: cat.title, href: `/components?category=${cat.id}` }, { label: item.title }]} />
       <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-3">
-        <h1 className="display text-[34px] sm:text-[44px] text-ink">{item.title}</h1>
+        <h1 className="display text-[32px] sm:text-[44px] text-ink">{item.title}</h1>
         <div className="flex shrink-0 gap-2">
           <CopyMarkdown md={md} />
           <ViewMarkdown href={`/r/${item.name}.md`} />

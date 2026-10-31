@@ -16,7 +16,7 @@ export function ExamplesIndex() {
   const theme = useTheme()
   return (
     <div className="mx-auto max-w-[1280px] px-6 py-10">
-      <h1 className="display text-[34px] sm:text-[44px] text-ink">Examples</h1>
+      <h1 className="display text-[32px] sm:text-[44px] text-ink">Examples</h1>
       <p className="mt-3 max-w-2xl text-[17px] leading-7 text-fg-3">Complete plants built from the component library, each defined in a single <code className="font-mono text-[13px]">plant.json</code> file. Use them as starting points or as references for your agent.</p>
       <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
         {[...EXAMPLES].sort(byLevel).map((e) => (
@@ -55,7 +55,7 @@ export function ExamplePage({ name }: { name: string }) {
         <span className="text-faint">/</span>
         <span>{ex.name}</span>
       </nav>
-      <h1 className="display text-[30px] sm:text-[36px] text-ink">{ex.spec.name}</h1>
+      <h1 className="display text-[32px] sm:text-[44px] text-ink">{ex.spec.name}</h1>
       <p className="mt-2 max-w-3xl text-[17px] text-fg-3">
         <RichText text={ex.spec.description ?? ''} />
       </p>

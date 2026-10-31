@@ -34,7 +34,7 @@ export function ComponentsIndex() {
   const cats = CATEGORIES.filter((c) => ITEMS.some((i) => i.category === c.id))
   return (
     <div className="mx-auto max-w-[1400px] px-6 py-10 lg:px-10">
-      <h1 className="display text-[34px] sm:text-[44px] text-ink">Components</h1>
+      <h1 className="display text-[32px] sm:text-[44px] text-ink">Components</h1>
       <p className="mt-3 max-w-2xl text-[17px] leading-7 text-fg-3">
         {ITEMS.length} parametric three.js components for offshore and onshore oil and gas facilities. Each is a single file, sized to its governing standard, with ports for pipe connections.
       </p>

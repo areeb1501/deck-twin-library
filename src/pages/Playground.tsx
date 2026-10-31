@@ -21,7 +21,7 @@ export function Playground() {
   const [spec, setSpec] = useState<PlantSpec | null>(parsed.spec ?? null)
   return (
     <div className="mx-auto max-w-[1440px] px-6 py-8">
-      <h1 className="display text-[30px] sm:text-[36px] text-ink">Playground</h1>
+      <h1 className="display text-[32px] sm:text-[44px] text-ink">Playground</h1>
       <p className="mt-2 text-[17px] text-fg-3">Paste a plant.json file to render it in 3D and review the validation results. Your data stays in your browser.</p>
       <div className="mt-5 grid grid-cols-1 gap-5 lg:grid-cols-[440px_minmax(0,1fr)]">
         <div className="flex flex-col gap-3">

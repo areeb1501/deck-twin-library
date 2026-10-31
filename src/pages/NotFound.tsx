@@ -33,7 +33,7 @@ export function NotFound({ what = 'page' }: { what?: string }) {
   ] as const
   return (
     <div className="mx-auto flex max-w-[640px] flex-col px-6 py-20 sm:py-28">
-      <h1 className="display text-[34px] sm:text-[44px] text-ink">{what[0].toUpperCase() + what.slice(1)} not found</h1>
+      <h1 className="display text-[32px] sm:text-[44px] text-ink">{what[0].toUpperCase() + what.slice(1)} not found</h1>
       <p className="mt-3 text-[15px] leading-7 text-fg-3">
         We could not find <code className="rounded border border-border bg-muted px-1 py-px font-mono text-[13px] text-ink">{path}</code>. The link may be out of date or mistyped. Search below or choose a section.
       </p>
