@@ -37,7 +37,7 @@ export default {
       standard: ISO,
       drawn: 'Horizontal vessel with filter elements (dashed vertical lines) in the first section, a vane or mesh pack in the second, a smaller liquid sump barrel below joined by downcomers, and a quick-opening closure (thick bar) at the filter end.',
       tags: ['V', 'F', 'S'],
-      notes: 'The second barrel underneath and the filter elements tell it from a horizontal separator. A vertical housing with cartridges is a cartridge-filter.',
+      notes: 'The second barrel underneath and the filter elements distinguish it from a horizontal separator. A vertical housing with cartridges is a cartridge-filter.',
       datasheet: { form: 'Filter-separator datasheet (ASME VIII-1; API 12J)', fields: { 'Inside diameter': 'diameter', 'Length T/T': 'length', 'Sump diameter': 'sumpDiameter', 'Design pressure': 'pressure', 'Flange rating': 'rating', 'Inlet nozzle size': 'inletNps', 'Outlet nozzle size': 'outletNps', 'Drain size': 'drainNps', Insulation: 'insulated', ...tagF } },
     },
   },

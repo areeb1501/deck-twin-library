@@ -10,13 +10,13 @@ cat('primary-elements', 'Primary elements and field instruments')
 // ---------- bubbles ----------
 S({ id: 'isa-field', name: 'Field-mounted instrument (discrete)', cat: 'instruments', std: STD_I, physical: true, tags: [], isa: ['PI', 'PT', 'TT', 'LT', 'FT'],
   drawn: 'A plain circle with no horizontal line, containing the tag letters and usually the loop number.',
-  meaning: 'A discrete instrument mounted in the field, on or next to the pipe or vessel: transmitters, gauges, switches and local controllers. These are the bubbles that become physical instruments; read the letters to choose the component (PT → pressure-transmitter, PI → pressure-gauge, etc.).',
+  meaning: 'A discrete instrument mounted in the field, on or next to the pipe or vessel: transmitters, gauges, switches and local controllers. These are the bubbles that map to physical instruments; read the letters to choose the component (PT → pressure-transmitter, PI → pressure-gauge, etc.).',
   variants: ['Bubble size varies; ISA suggests about 11 mm (7/16")', 'Wireless field instruments may carry a small antenna mark', 'Two touching circles = one device with two functions'],
   svg: svg(100, 64, bubble(50, 32, { r: 24, top: 'PT', bot: '101' })) })
 
 S({ id: 'isa-panel-primary', name: 'Instrument in main control room (primary location)', cat: 'instruments', std: STD_I, physical: false, tags: [], isa: ['FIC', 'PIC', 'LIC', 'TIC', 'HS'],
   drawn: 'A circle with one solid horizontal line across the middle; letters above the line, loop number below.',
-  meaning: 'A discrete (hardwired) instrument or function in the main control room, normally accessible to the operator: a panel indicator, controller or push-button. It is not on the plot; don\'t model it, but it tells you which field instrument exists.',
+  meaning: 'A discrete (hardwired) instrument or function in the main control room, normally accessible to the operator: a panel indicator, controller or push-button. It is not on the plot; do not model it, but it shows which field instrument exists.',
   variants: ['On ISA 5.1-2009 drawings, solid bar = central/main control room', 'Circle-in-square with a bar = the same location but in the DCS'],
   svg: svg(100, 64, bubble(50, 32, { r: 24, loc: 'primary', top: 'FIC', bot: '101' })) })
 
@@ -101,7 +101,7 @@ S({ id: 'fe-venturi', name: 'Venturi tube', cat: 'primary-elements', std: STD_E,
 S({ id: 'fe-flow-nozzle', name: 'Flow nozzle', cat: 'primary-elements', std: STD_E, physical: true, tags: ['FE'], isa: ['FE'],
   drawn: 'A flange pair with two curved lines inside the pipe converging downstream (the nozzle profile), and an FE bubble.',
   meaning: 'Dp flow element for high-velocity steam and gas. No dedicated component.',
-  variants: ['Often just a box with "FN" or the same symbol as an orifice with "NOZZLE"'],
+  variants: ['Often only a box with "FN" or the same symbol as an orifice with "NOZZLE"'],
   svg: svg(120, 112, wall2 + p('M44 78V114M52 78V114') + p('M52 84q16 0 20 9M52 108q16 0 20-9') + tx('FE', true, 78)) })
 
 S({ id: 'fe-pitot', name: 'Pitot tube', cat: 'primary-elements', std: STD_E, physical: true, tags: ['FE'], isa: ['FE'],
@@ -118,13 +118,13 @@ S({ id: 'fe-averaging-pitot', name: 'Averaging pitot (multiport probe)', cat: 'p
 
 S({ id: 'fe-magnetic', name: 'Electromagnetic flowmeter', cat: 'primary-elements', std: STD_E, component: 'magnetic-flowmeter', physical: true, tags: ['FE', 'FT'], isa: ['FE', 'FIT'],
   drawn: 'An in-line rectangle on the pipe with "M" inside, under an FT/FIT bubble.',
-  meaning: 'Magnetic flowmeter for conductive liquids only: seawater, produced water, water injection, chemicals. Not for hydrocarbons or gas. Becomes magnetic-flowmeter.',
+  meaning: 'Magnetic flowmeter for conductive liquids only: seawater, produced water, water injection, chemicals. Not for hydrocarbons or gas. Maps to the magnetic-flowmeter component.',
   variants: ['Some legends write "MAG" or draw two coil arcs either side of the pipe'],
   svg: svg(120, 112, inlineBox(t(60, 102, 16, 'M')) + tx('FIT', true, 82)) })
 
 S({ id: 'fe-vortex', name: 'Vortex flowmeter', cat: 'primary-elements', std: STD_E, component: 'vortex-flowmeter', physical: true, tags: ['FE', 'FT'], isa: ['FE', 'FIT'],
   drawn: 'An in-line rectangle with a small triangle (the bluff body) and a wavy vortex trail behind it, under an FT bubble.',
-  meaning: 'Vortex-shedding meter for steam, gas and clean liquids: utilities, fuel gas, instrument air. Becomes vortex-flowmeter.',
+  meaning: 'Vortex-shedding meter for steam, gas and clean liquids: utilities, fuel gas, instrument air. Maps to the vortex-flowmeter component.',
   variants: ['Some legends write "VOR" or "VORTEX" in the box'],
   svg: svg(120, 112, inlineBox(p('M46 88v16l8-8z', B) + p('M58 96c4-6 8-6 10 0s6 6 10 0', thin(1.6))) + tx('FT', true, 82)) })
 
@@ -143,13 +143,13 @@ function e2(x, y) { return `<ellipse cx="${x}" cy="${y}" rx="8" ry="10" stroke-w
 
 S({ id: 'fe-ultrasonic', name: 'Ultrasonic flowmeter', cat: 'primary-elements', std: STD_E, component: 'ultrasonic-flowmeter', physical: true, tags: ['FE', 'FT'], isa: ['FE', 'FIT', 'FQ'],
   drawn: 'Two small transducers on opposite sides of the pipe, offset along it, with a dashed diagonal sound path between them, under an FT bubble.',
-  meaning: 'Transit-time ultrasonic meter: fiscal gas metering (multipath), flare gas and large liquid lines. Becomes ultrasonic-flowmeter.',
+  meaning: 'Transit-time ultrasonic meter: fiscal gas metering (multipath), flare gas and large liquid lines. Maps to the ultrasonic-flowmeter component.',
   variants: ['Some legends draw a box with "US" or "UT"', 'Clamp-on meters are drawn outside the pipe wall'],
   svg: svg(120, 120, wall2 + r(38, 76, 12, 8, W) + r(70, 108, 12, 8, W) + p('M44 84L76 108', thin(1.6) + ' ' + dash('5 3')) + p('M60 52V64H44V76', thin(1.6)) + bubble(60, 32, { r: 20, top: 'FT' })) })
 
 S({ id: 'fe-coriolis', name: 'Coriolis mass flowmeter', cat: 'primary-elements', std: STD_E, component: 'coriolis-flowmeter', physical: true, tags: ['FE', 'FT'], isa: ['FE', 'FIT', 'FQ'],
   drawn: 'An in-line box on the pipe with a looped (U-shaped) tube inside, under an FT bubble.',
-  meaning: 'Coriolis mass meter: condensate, oil allocation, chemicals and LACT/fiscal liquid service. It measures density too. Becomes coriolis-flowmeter.',
+  meaning: 'Coriolis mass meter: condensate, oil allocation, chemicals and LACT/fiscal liquid service. It measures density too. Maps to the coriolis-flowmeter component.',
   variants: ['Some legends write "C" or "CORIOLIS" or "MASS" in the box'],
   svg: svg(120, 112, p('M4 96H34M86 96H116') + r(34, 76, 52, 34) + p('M34 96H44V84H76V96H86', thin(2)) + tx('FT', true, 76)) })
 
@@ -167,31 +167,31 @@ S({ id: 'te-thermowell', name: 'Thermowell with temperature element / transmitte
 
 S({ id: 'tg-temperature-gauge', name: 'Local temperature gauge', cat: 'primary-elements', std: STD_E, component: 'temperature-gauge', physical: true, tags: ['TI', 'TG'], isa: ['TI'],
   drawn: 'A thermowell (U-shaped pocket in the line) with a TI bubble on it.',
-  meaning: 'Bimetallic dial thermometer in a thermowell, read locally. Becomes temperature-gauge.',
+  meaning: 'Bimetallic dial thermometer in a thermowell, read locally. Maps to the temperature-gauge component.',
   variants: ['Tagged TG on some legends', 'A dial (circle with a pointer) is sometimes drawn instead of a bubble'],
   svg: svg(120, 112, PIPE() + p('M54 96H66', 'stroke="#fff" stroke-width="3"') + p('M54 74V102a6 6 0 0 0 12 0V74') + tx('TI', true, 74)) })
 
 S({ id: 'pi-pressure-gauge', name: 'Local pressure gauge', cat: 'primary-elements', std: STD_E, component: 'pressure-gauge', physical: true, tags: ['PI', 'PG'], isa: ['PI'],
   drawn: 'A PI (or PG) bubble on a thin impulse line from the pipe, often with a small root or isolation valve on the impulse line.',
-  meaning: 'Bourdon-tube dial gauge read locally: pump discharges, filters and vessels. Becomes pressure-gauge.',
+  meaning: 'Bourdon-tube dial gauge read locally: pump discharges, filters and vessels. Maps to the pressure-gauge component.',
   variants: ['ISA tag is PI; many companies use PG', 'A gauge with a seal or snubber shows extra small symbols on the impulse line', 'A small box with a letter on the gauge branch (F, S, D, P) is a project-specific accessory such as a snubber, seal, filter or pulsation damper: read the drawing legend, then model the gauge only'],
   svg: svg(120, 112, PIPE() + p('M60 96V52', thin(1.6)) + p('M53 64h14l-7 9zM53 82h14l-7-9z', thin(1.6)) + bubble(60, 32, { r: 20, top: 'PI' })) })
 
 S({ id: 'pt-pressure-transmitter', name: 'Pressure transmitter', cat: 'primary-elements', std: STD_E, component: 'pressure-transmitter', physical: true, tags: ['PT', 'PIT'], isa: ['PT', 'PIT', 'PZT'],
   drawn: 'A PT (or PIT) bubble on a thin impulse line from the pipe or vessel, with an electric (dashed) signal leaving to the DCS.',
-  meaning: 'Electronic pressure transmitter feeding the DCS or SIS. Becomes pressure-transmitter.',
+  meaning: 'Electronic pressure transmitter feeding the DCS or SIS. Maps to the pressure-transmitter component.',
   variants: ['SIS transmitters are often PZT or carry an "S" suffix', 'Multivariable transmitters on flow loops may be tagged FT with P and T inputs'],
   svg: svg(120, 112, PIPE() + p('M60 96V52', thin(1.6)) + bubble(60, 32, { r: 20, top: 'PT' }) + p('M80 32H116', thin(1.6) + ' ' + dash('7 4'))) })
 
 S({ id: 'pdt-dp-transmitter', name: 'Differential pressure transmitter', cat: 'primary-elements', std: STD_E, component: 'dp-transmitter', physical: true, tags: ['PDT', 'PDIT'], isa: ['PDT', 'PDIT', 'PDI'],
   drawn: 'A PDT bubble with two impulse lines: one to each side of a filter, strainer, exchanger or column section.',
-  meaning: 'Differential pressure across equipment: filter or strainer fouling, scrubber dp, column flooding. Becomes dp-transmitter.',
+  meaning: 'Differential pressure across equipment: filter or strainer fouling, scrubber dp, column flooding. Maps to the dp-transmitter component.',
   variants: ['A local dp gauge is PDI or PDG', 'Dp level transmitters are tagged LT (see the dp level entry)'],
   svg: svg(120, 112, p('M4 96H44M76 96H116') + r(44, 84, 32, 24) + p('M50 108L70 84', dash('4 3') + ' ' + thin(1.6)) + p('M30 96V32H38M90 96V32H82', thin(1.6)) + bubble(60, 32, { r: 22, top: 'PDT', fs: 12 })) })
 
 S({ id: 'ps-pressure-switch', name: 'Pressure switch', cat: 'primary-elements', std: STD_E, component: 'pressure-switch', physical: true, tags: ['PS', 'PSH', 'PSL', 'PSHH', 'PSLL'], isa: ['PSH', 'PSL', 'PSHH', 'PSLL'],
   drawn: 'A bubble with PSH, PSL, PSHH or PSLL on an impulse line from the process.',
-  meaning: 'Pressure switch giving a discrete alarm or trip. Old-style or package protection. Becomes pressure-switch.',
+  meaning: 'Pressure switch giving a discrete alarm or trip. Old-style or package protection. Maps to the pressure-switch component.',
   variants: ['On modern plants the same letters often mean a trip point inside the DCS/SIS from a transmitter; then the bubble has a bar or a square', 'Packaged machines (lube oil, seal gas) still use real switches'],
   svg: svg(120, 112, PIPE() + p('M60 96V52', thin(1.6)) + bubble(60, 32, { r: 20, top: 'PSH', fs: 12 })) })
 
@@ -205,19 +205,19 @@ S({ id: 'lg-gauge-glass', name: 'Level gauge glass', cat: 'primary-elements', st
 
 S({ id: 'lg-magnetic', name: 'Magnetic level gauge', cat: 'primary-elements', std: STD_E, component: 'magnetic-level-gauge', physical: true, tags: ['LG', 'LI'], isa: ['LG', 'LI'],
   drawn: 'A chamber beside the vessel on two nozzles, with a float inside and a column of indicator flaps (half-filled marks) on its face, and an LG bubble.',
-  meaning: 'Float-and-magnet level indicator on a bypass chamber, readable from a distance. Often carries a level transmitter too. Becomes magnetic-level-gauge.',
-  variants: ['Often drawn exactly like a gauge glass and tagged LG; the datasheet tells them apart', 'A clamp-on magnetostrictive LT on the chamber is drawn as a separate LT bubble'],
+  meaning: 'Float-and-magnet level indicator on a bypass chamber, readable from a distance. Often carries a level transmitter too. Maps to the magnetic-level-gauge component.',
+  variants: ['Often drawn exactly like a gauge glass and tagged LG; the datasheet distinguishes them', 'A clamp-on magnetostrictive LT on the chamber is drawn as a separate LT bubble'],
   svg: svg(140, 120, VW + p('M34 24H56M34 96H56') + r(56, 12, 16, 96) + r(58, 64, 12, 12, B) + p('M76 24h6M76 34h6M76 44h6M76 54h6', thin(1.4)) + p('M76 66h6M76 76h6M76 86h6M76 96h6', thin(5)) + c(112, 60, 16, W) + t(112, 65, 12, 'LG')) })
 
 S({ id: 'lt-displacer', name: 'Displacer level transmitter', cat: 'primary-elements', std: STD_E, physical: true, tags: ['LT'], isa: ['LT', 'LIT', 'LDT'],
   drawn: 'An external cage beside the vessel on two nozzles, with a long slender displacer hanging inside from a torque tube at the top, and an LT bubble.',
-  meaning: 'Buoyancy (displacer) level or interface transmitter. Classic on separators for oil/water interface. No dedicated component; model it as a level transmitter note on the vessel.',
+  meaning: 'Buoyancy (displacer) level or interface transmitter. Typical on separators for oil/water interface. No dedicated component; model it as a level transmitter note on the vessel.',
   variants: ['Internal displacers (inside the vessel) are drawn as the displacer inside the vessel outline', 'Interface service may be tagged LDT or LT with "INTERFACE"'],
   svg: svg(140, 120, VW + p('M34 22H56M34 98H56') + r(56, 14, 26, 92) + p('M69 18V30') + r(64, 30, 10, 60, 'rx="5"') + p('M82 18H96', thin(1.6)) + c(112, 18, 15, W) + t(112, 23, 12, 'LT')) })
 
 S({ id: 'lt-dp-level', name: 'Differential pressure level transmitter', cat: 'primary-elements', std: STD_E, component: 'dp-transmitter', physical: true, tags: ['LT'], isa: ['LT', 'LIT'],
   drawn: 'An LT bubble with two impulse lines to the vessel: one from a low nozzle (high side) and one from a high nozzle (low side). Remote seals are drawn as capillaries (line with × marks).',
-  meaning: 'Level from hydrostatic head: the most common level transmitter on separators and drums. Becomes dp-transmitter; the bubble letters (LT) give the service.',
+  meaning: 'Level from hydrostatic head: the most common level transmitter on separators and drums. Maps to the dp-transmitter component; the bubble letters (LT) give the service.',
   variants: ['With diaphragm seals the lines carry × marks (capillaries)', 'Bubble-tube (purge) level measurement looks similar with a purge supply'],
   svg: svg(140, 120, VW + p('M34 100H80V76M34 20H80V44', thin(1.6)) + c(80, 60, 16, W) + t(80, 65, 12, 'LT') + t(96, 98, 10, 'H', { w: 'normal' }) + t(96, 26, 10, 'L', { w: 'normal' })) })
 
@@ -225,7 +225,7 @@ S({ id: 'lt-dp-level', name: 'Differential pressure level transmitter', cat: 'pr
 const VT = p('M6 54H134M6 54V116M134 54V116', thin(3)) + p('M10 92H130', dash('5 3') + ' ' + thin(1.4)) + p('M62 54V42H78V54')
 S({ id: 'lt-gwr', name: 'Guided wave radar level transmitter', cat: 'primary-elements', std: STD_E, component: 'guided-wave-radar', physical: true, tags: ['LT'], isa: ['LT', 'LIT'],
   drawn: 'An LT bubble on a vessel-top (or chamber-top) nozzle, with a straight rod or cable probe running down into the liquid.',
-  meaning: 'Guided wave radar: a pulse travels down the probe and reflects at the surface or interface. Separators, drums and bridles. Becomes guided-wave-radar.',
+  meaning: 'Guided wave radar: a pulse travels down the probe and reflects at the surface or interface. Separators, drums and bridles. Maps to the guided-wave-radar component.',
   variants: ['Often mounted in an external chamber (bridle), drawn like a displacer cage with a probe', 'Some legends mark it "GWR" beside the bubble'],
   svg: svg(140, 120, VT + p('M70 54V110', thin(2)) + p('M66 110h8', thin(3)) + p('M70 42V36', thin(1.6)) + c(70, 20, 16, W) + t(70, 25, 12, 'LT')) })
 
@@ -243,8 +243,8 @@ S({ id: 'lt-nuclear', name: 'Nuclear (gamma) level transmitter', cat: 'primary-e
 
 S({ id: 'ls-vibrating-fork', name: 'Vibrating fork level switch', cat: 'primary-elements', std: STD_E, component: 'level-switch', physical: true, tags: ['LS', 'LSH', 'LSL', 'LSHH', 'LSLL'], isa: ['LSH', 'LSL', 'LSHH', 'LSLL'],
   drawn: 'A short side nozzle into the vessel with two small prongs (the fork) inside, and an LS bubble (LSH, LSHH…) outside.',
-  meaning: 'Point level switch for high or low alarms and trips, independent of the transmitter. Becomes level-switch.',
-  variants: ['Many legends draw just the LSHH bubble on the vessel without the fork', 'Capacitance and float switches use the same bubble letters'],
+  meaning: 'Point level switch for high or low alarms and trips, independent of the transmitter. Maps to the level-switch component.',
+  variants: ['Many legends draw only the LSHH bubble on the vessel without the fork', 'Capacitance and float switches use the same bubble letters'],
   svg: svg(140, 120, VW + p('M34 40H60') + p('M34 40H22M22 35V45M22 35H10M22 45H10', thin(2)) + c(80, 40, 20, W) + t(80, 44.5, 12, 'LSHH')) })
 
 S({ id: 'ls-float', name: 'Float level switch', cat: 'primary-elements', std: STD_E, physical: true, tags: ['LS', 'LSH', 'LSL'], isa: ['LSH', 'LSL'],
@@ -267,13 +267,13 @@ S({ id: 'diaphragm-seal', name: 'Diaphragm (remote) seal with capillary', cat: '
 
 S({ id: 've-vibration-element', name: 'Vibration element / transmitter on a machine', cat: 'primary-elements', std: STD_E + ' / API 670', component: 'vibration-probe', physical: true, tags: ['VE', 'VT'], isa: ['VE', 'VT', 'VXE', 'VYE', 'VI', 'VSHH'],
   drawn: 'A VE (or VT) bubble joined by a short line to a small square or dot on the outline of a motor, pump, compressor or bearing. Often in pairs (A / B or X / Y), one per bearing or per axis, with VI / VA / VSHH functions downstream.',
-  meaning: 'Machinery vibration sensor: proximity probes (shaft) or accelerometers (casing) on the bearings, wired to a proximitor junction box and a protection rack. V as the first letter is vibration in ISA 5.1. Becomes vibration-probe on each monitored bearing; set pair for X-Y probes.',
-  variants: ['Some legends draw only the bubble beside the machine with a note such as NOTE / TYP. for every bearing', 'VXE / VYE mark the X and Y probes of a pair; ZE on a machine is an axial position (thrust) probe and also becomes vibration-probe', 'Look-alike: V on a valve tag (XV, HV) is a valve, not vibration; check the first letter'],
+  meaning: 'Machinery vibration sensor: proximity probes (shaft) or accelerometers (casing) on the bearings, wired to a proximitor junction box and a protection rack. V as the first letter is vibration in ISA 5.1. Maps to the vibration-probe component on each monitored bearing; set pair for X-Y probes.',
+  variants: ['Some legends draw only the bubble beside the machine with a note such as NOTE / TYP. for every bearing', 'VXE / VYE mark the X and Y probes of a pair; ZE on a machine is an axial position (thrust) probe and also maps to the vibration-probe component', 'Look-alike: V on a valve tag (XV, HV) is a valve, not vibration; check the first letter'],
   svg: svg(150, 100, c(40, 54, 26) + t(40, 63, 24, 'M') + r(66, 49, 7, 10, W) + p('M73 54H94', thin(1.6)) + bubble(116, 54, { r: 20, top: 'VE' })) })
 
 S({ id: 'voting-annotation', name: 'Voting (MooN) annotation', cat: 'instruments', std: STD_I + ' / IEC 61511', physical: false, tags: [],
   drawn: 'Text such as 1oo2, 2oo2 or 2oo3 written beside the signal lines where two or more measurements join into one alarm, trip or SIS function.',
-  meaning: 'M-out-of-N voting: 1oo2 trips when either of two sensors trips (safe, more spurious trips); 2oo2 needs both; 2oo3 needs any two of three. It tells you how many field sensors exist: model N of them. Logic only, nothing physical beyond the sensors.',
+  meaning: 'M-out-of-N voting: 1oo2 trips when either of two sensors trips (safe, more spurious trips); 2oo2 needs both; 2oo3 needs any two of three. It shows how many field sensors exist: model N of them. Logic only, nothing physical beyond the sensors.',
   variants: ['Some legends put the voting inside the logic box (e.g. UZ 2oo3)', 'F&G uses the same notation for detector voting (2ooN confirmed gas or fire)'],
   svg: svg(150, 90, p('M10 20H70V50M10 80H70V50', dash('6 4')) + p('M70 50H126', dash('6 4')) + p('M118 44l8 6-8 6', thin(1.6)) + t(98, 38, 14, '1oo2')) })
 

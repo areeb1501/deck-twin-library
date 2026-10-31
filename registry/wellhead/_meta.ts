@@ -14,7 +14,7 @@ export default defineMeta([
     file: 'christmas-tree.tsx',
     export: 'ChristmasTree',
     description:
-      'Surface wellhead and christmas tree on a conductor: casing head, tubing head spool with annulus valves and SCSSV control-line exit, tubing-head adapter, manual lower master, hydraulic SSV upper master with a heat-sensitive lock-open (fusible) device, studded cross, swab valve and tree cap with EUE lift thread, needle valve and gauge. Spools carry secondary-seal test ports and lockdown screws. The production wing carries a hydraulic wing valve, flow tee with THP gauge and an angle choke whose outlet turns into a B16.5 flowline flange; the kill wing has a manual valve and crossover. API 6B/6BX flanges and gate lengths scale with pressure rating and bore.',
+      'Surface wellhead and christmas tree on a conductor. The wellhead has a casing head, a tubing head spool with annulus valves and SCSSV control-line exit, and a tubing-head adapter. The tree has a manual lower master, a hydraulic SSV upper master with a heat-sensitive lock-open (fusible) device, a studded cross, a swab valve and a tree cap with EUE lift thread, needle valve and gauge. Spools carry secondary-seal test ports and lockdown screws. The production wing carries a hydraulic wing valve, a flow tee with THP gauge and an angle choke whose outlet turns into a B16.5 flowline flange, and the kill wing has a manual valve and crossover. API 6B/6BX flanges and gate lengths scale with pressure rating and bore.',
     standards: ['API 6A', 'API 6B / 6BX', 'API 14D (SSV)', 'ASME B16.5'],
     vendors: ['SLB (Cameron)', 'Weatherford', 'Baker Hughes (Vetco Gray)', 'Sentry Wellhead Systems'],
     tags: ['wellhead', 'xmas tree', 'SSV', 'choke', 'producer', 'injector'],
@@ -35,7 +35,7 @@ export default defineMeta([
     file: 'choke-valve.tsx',
     export: 'ChokeValve',
     description:
-      'Angle-body wellhead choke: forged block body with side inlet and bottom outlet, hammer-nut bonnet with three lugs, stem position indicator and handwheel, an electro-hydraulic stepping actuator, or a positive (fixed bean) blanking cap. API 6B/6BX end flanges sized from bore and working pressure; the 5,000 psi 6B bolt pattern matches ASME Class 1500, which is the class the ports report (10,000 psi reports Class 2500, the closest).',
+      'Angle-body wellhead choke with a forged block body, side inlet and bottom outlet, and a hammer-nut bonnet with three lugs. `operator` selects a stem position indicator and handwheel, an electro-hydraulic stepping actuator, or a positive (fixed bean) blanking cap. API 6B/6BX end flanges are sized from bore and working pressure. The 5,000 psi 6B bolt pattern matches ASME Class 1500, which is the class the ports report; 10,000 psi reports Class 2500, the closest.',
     standards: ['API 6A', 'API 6B / 6BX'],
     vendors: ['SLB (Cameron)', 'WOM (Worldwide Oilfield Machine)', 'Weatherford'],
     tags: ['choke', 'flow control', 'wellhead', 'adjustable', 'positive'],
@@ -54,7 +54,7 @@ export default defineMeta([
     file: 'production-manifold.tsx',
     export: 'ProductionManifold',
     description:
-      'Skid-mounted production and test manifold. Each well slot has a flanged inlet with a dual-plate check valve that rises, crosses over both headers and drops into each through a gear-operated full-bore ball valve, so the well can be diverted to production or test; the slot lined up to test shows the valve indicators swapped. Headers are weld-capped at one end and flanged at the other, on saddle supports, with riser and header gauges and transmitters, guides and a run support portal. (A multiport selector valve is the compact alternative to this valve-per-header layout.)',
+      'Skid-mounted production and test manifold. Each well slot has a flanged inlet with a dual-plate check valve that rises, crosses over both headers and drops into each through a gear-operated full-bore ball valve, so the well can be diverted to production or test. The slot lined up to test shows the valve indicators swapped. Headers are weld-capped at one end and flanged at the other, on saddle supports, with riser and header gauges and transmitters, guides and a run support portal. A multiport selector valve is the compact alternative to this valve-per-header layout.',
     standards: ['ASME B31.3', 'ASME B16.5', 'ASME B16.9', 'API 6D'],
     vendors: ['Emerson (Bettis)', 'Metalfab'],
     tags: ['manifold', 'header', 'test', 'diverter', 'well slots'],
@@ -75,7 +75,7 @@ export default defineMeta([
     file: 'pig-launcher.tsx',
     export: 'PigLauncher',
     description:
-      'Pig trap for launching or receiving pigs: oversized major barrel, reducer (eccentric flat-bottom on launchers, concentric on receivers), minor barrel with pig signaller and a full-bore trap valve, clamp-ring quick-opening closure with pressure-warning screw and key interlock, kicker (launcher) or bypass (receiver) nozzle with valve, vent, drain, thermal-relief PSV and a balance line with valve to pressurise both sides of the pig, adjustable saddle supports. The barrel is one to two sizes over the line; `closureOpen` swings the door on its hinge. The `service` prop picks launcher or receiver (named so to avoid the reserved `type`).',
+      'Pig trap for launching or receiving pigs, with an oversized major barrel, a reducer (eccentric flat-bottom on launchers, concentric on receivers) and a minor barrel with pig signaller and full-bore trap valve. A clamp-ring quick-opening closure has a pressure-warning screw and key interlock. It also has a kicker (launcher) or bypass (receiver) nozzle with valve, vent, drain, thermal-relief PSV, a balance line with valve to pressurise both sides of the pig, and adjustable saddle supports. The barrel is one to two sizes over the line. `closureOpen` swings the door on its hinge, and the `service` prop selects launcher or receiver.',
     standards: ['API 6D', 'ASME VIII-1', 'ASME B31.4 / B31.8', 'ASME B16.5', 'API 526'],
     vendors: ['GD Engineering (Celeros FT)', 'T.D. Williamson', 'EMT', 'Sweco Fab'],
     tags: ['pigging', 'launcher', 'receiver', 'pig trap', 'pipeline'],
@@ -136,7 +136,7 @@ export default defineMeta([
     file: 'wellhead-control-panel.tsx',
     export: 'WellheadControlPanel',
     description:
-      'Skid-mounted hydraulic wellhead control panel. A stainless cabinet with louvres and a canopy holds one control module per well (SCSSV and SSV gauges, pilot relay block, selector valves, trip / reset buttons), supply / HP / LP header gauges, the hydraulic reservoir with sight glass, two air-driven pumps, an electric pump and filters, all tubed to a bulkhead plate. The side carries an ESD push-button, fusible-loop and hi/lo pilot connections and an air filter-regulator. An open rack beside it carries nitrogen-precharged bladder accumulators. The double doors swing open with `doorsOpen`. No ports: the outputs are 1/4"–1/2" control tubing.',
+      'Skid-mounted hydraulic wellhead control panel. A stainless cabinet with louvres and a canopy holds one control module per well (SCSSV and SSV gauges, pilot relay block, selector valves, trip / reset buttons), supply / HP / LP header gauges, the hydraulic reservoir with sight glass, two air-driven pumps, an electric pump and filters, all tubed to a bulkhead plate. The side carries an ESD push-button, fusible-loop and hi/lo pilot connections and an air filter-regulator. An open rack beside it carries nitrogen-precharged bladder accumulators. The double doors swing open with `doorsOpen`. The component has no ports, because the outputs are 1/4" to 1/2" control tubing.',
     standards: ['API 6A', 'API 14D', 'API RP 14C', 'ISO 10418', 'IEC 60079'],
     vendors: ['SLB', 'NOV (Texas Oil Tools)', 'Sysargus'],
     tags: ['WHCP', 'hydraulic', 'SSV', 'SCSSV', 'control panel', 'accumulator'],

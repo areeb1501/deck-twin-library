@@ -15,7 +15,7 @@ export default {
     svg: svg('0 0 110 110', P('M4 90h46a40 40 0 0 0 40-40V4')),
     e: {
       standard: ISOM,
-      drawn: 'On P&IDs a change of direction is just a corner in the line; elbows are only drawn on isometrics and GA drawings, as a bend or a corner with a short tick at each weld.',
+      drawn: 'On P&IDs a change of direction is a corner in the line; elbows are only drawn on isometrics and GA drawings, as a bend or a corner with a short tick at each weld.',
       notes: 'Take the angle and radius (LR / SR) from the isometric or the piping class, not the P&ID. Treat a P&ID corner as an elbow only when building a 3D route.',
       datasheet: { form: 'Piping class / isometric bill of materials (ASME B16.9)', fields: { 'Nominal size': 'nps', 'Wall schedule': 'schedule', 'Angle': 'angle', 'Radius (LR / SR)': 'radius', 'End connection': 'ends', 'Flange rating': 'rating', 'Service code': 'service' } },
     },

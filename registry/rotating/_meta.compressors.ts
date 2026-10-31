@@ -7,7 +7,7 @@ export default defineMeta([
     file: 'gas-turbine-generator.tsx',
     export: 'GasTurbineGenerator',
     description:
-      'Packaged industrial / aeroderivative gas turbine generator on a base frame with drip pan: acoustic enclosure with opening doors, louvres, roof ventilation fans, flame / heat / gas detectors, call points and an internal maintenance monorail. Roof inlet duct with a multi-stage filter house: weather hoods over a bird screen, vane separator, coalescer / pre-filter cells and final cartridges, anti-icing manifold, access platform. Exhaust collector, expansion joint, silencer and stack with sampling platform. Inside: exciter, generator with CACW cooler and terminal box, reduction gearbox, guarded couplings, inlet plenum with bell-mouth and the GT core with VSV rings and dual-fuel manifolds. Fuel gas skid, diesel duplex filter, lube console with fin-fan cooler and roof vent separator with flame trap, CO₂ cabinet and neutral earthing resistor. Size scales with `mw`.',
+      'Packaged industrial / aeroderivative gas turbine generator on a base frame with drip pan. The acoustic enclosure has opening doors, louvres, roof ventilation fans, flame / heat / gas detectors, call points and an internal maintenance monorail. The roof inlet duct leads to a multi-stage filter house with weather hoods over a bird screen, vane separator, coalescer / pre-filter cells and final cartridges, an anti-icing manifold and an access platform. The exhaust has a collector, expansion joint, silencer and stack with sampling platform. Inside are the exciter, generator with CACW cooler and terminal box, reduction gearbox, guarded couplings, inlet plenum with bell-mouth and the GT core with VSV rings and dual-fuel manifolds. Auxiliaries are a fuel gas skid, diesel duplex filter, lube console with fin-fan cooler and roof vent separator with flame trap, CO₂ cabinet and neutral earthing resistor. Size scales with `mw`.',
     standards: ['API 616', 'ISO 3977', 'ISO 21789', 'IEC 60034-3', 'API 614', 'ASME B16.5'],
     vendors: ['Solar Turbines', 'Siemens Energy', 'MAN Energy Solutions', 'Centrax'],
     tags: ['gas turbine', 'GTG', 'power generation', 'turbine', 'generator', 'package'],
@@ -31,7 +31,7 @@ export default defineMeta([
     file: 'centrifugal-compressor.tsx',
     export: 'CentrifugalCompressor',
     description:
-      'Gas compressor train on a common skid with walkways: barrel or horizontally split casing with dry gas seals, bearing housings and probes, suction / discharge nozzles up or down (down nozzles drop through deck openings), an anti-surge valve on a reducing tee off the discharge, a temporary suction strainer with dP gauge, dry gas seal panel and API 614 overhead rundown tank. Driver is a large induction motor (CACA cooler) with a speed-increasing gearbox and API 614 lube console, or a two-shaft gas turbine in its own acoustic enclosure with filter house, exhaust stack and fuel gas skid. Casing, motor and turbine size from `mw`.',
+      'Centrifugal gas compressor train on a common skid with walkways, with a barrel or horizontally split casing, dry gas seals, and bearing housings and probes. Suction and discharge nozzles point up or down, and down nozzles drop through deck openings. It has an anti-surge valve on a reducing tee off the discharge, a temporary suction strainer with dP gauge, a dry gas seal panel and an API 614 overhead rundown tank. The driver is a large induction motor (CACA cooler) with a speed-increasing gearbox and API 614 lube console, or a two-shaft gas turbine in its own acoustic enclosure with filter house, exhaust stack and fuel gas skid. Casing, motor and turbine size from `mw`.',
     standards: ['API 617', 'API 614', 'API 692', 'API 671', 'API 613', 'API 616', 'IEC 60034', 'ASME B16.5'],
     vendors: ['Baker Hughes', 'Elliott Group', 'Solar Turbines'],
     tags: ['compressor', 'gas compression', 'export compressor', 'rotating', 'package'],
@@ -55,7 +55,7 @@ export default defineMeta([
     file: 'reciprocating-compressor.tsx',
     export: 'ReciprocatingCompressor',
     description:
-      'Balanced-opposed process gas compressor on a skid with walkways: crankcase frame with 2, 4 or 6 throws, crosshead guides, two-compartment distance pieces, jacketed cylinders with suction and discharge valve covers and a clearance pocket, suction and discharge pulsation bottles with headers, discharge PSV, orifice plates at the bottle flanges, a temporary suction strainer, distance-piece vent and drain headers with an atmospheric vent and flame arrester, jacket cooling-water headers, crankcase breather, frame-mounted lube system and cylinder lubricator. Driven through a guarded flywheel and coupling by a TEFC motor (up to 1 MW) or a large box-frame motor. Cylinder, bottle and frame sizes follow `bore`.',
+      'Balanced-opposed process gas compressor on a skid with walkways, with a crankcase frame of 2, 4 or 6 throws, crosshead guides, two-compartment distance pieces and jacketed cylinders with suction and discharge valve covers and a clearance pocket. It has suction and discharge pulsation bottles with headers, a discharge PSV, orifice plates at the bottle flanges and a temporary suction strainer. It also has distance-piece vent and drain headers with an atmospheric vent and flame arrester, jacket cooling-water headers, a crankcase breather, a frame-mounted lube system and a cylinder lubricator. It is driven through a guarded flywheel and coupling by a TEFC motor (up to 1 MW) or a large box-frame motor. Cylinder, bottle and frame sizes follow `bore`.',
     standards: ['API 618', 'API 11P', 'IEC 60034', 'ASME VIII (bottles)', 'ASME B16.5'],
     vendors: ['Ariel', 'Burckhardt Compression'],
     tags: ['compressor', 'reciprocating', 'gas lift', 'booster', 'rotating', 'package'],
@@ -77,7 +77,7 @@ export default defineMeta([
     file: 'screw-compressor.tsx',
     export: 'ScrewCompressor',
     description:
-      'Packaged rotary screw compressor for instrument air or gas boost: twin-rotor block with inlet (unloader) valve, TEFC two-pole motor and guarded coupling, horizontal oil separator on saddles with safety valve and minimum-pressure valve, combined oil cooler / aftercooler with fan, duplex oil filters, thermostatic valve and (air service) an intake filter housing. With `enclosure` it sits in an acoustic canopy with intake louvres, a cooling-air discharge grille, HMI and front doors that can be opened; without it, a free-standing control panel. Block, separator and cooler scale with `kw`.',
+      'Packaged rotary screw compressor for instrument air or gas boost, with a twin-rotor block with inlet (unloader) valve, a TEFC two-pole motor and a guarded coupling. A horizontal oil separator on saddles has a safety valve and minimum-pressure valve, and the package includes a combined oil cooler / aftercooler with fan, duplex oil filters, a thermostatic valve and (air service) an intake filter housing. With `enclosure` it sits in an acoustic canopy with intake louvres, a cooling-air discharge grille, HMI and front doors that can be opened; without it, a free-standing control panel is fitted. Block, separator and cooler scale with `kw`.',
     standards: ['API 619', 'ISO 1217', 'ISO 8573-1', 'IEC 60034', 'ASME VIII (separator)', 'ASME B16.5'],
     vendors: ['Howden', 'Kirloskar Pneumatic', 'Atlas Copco'],
     tags: ['compressor', 'screw', 'instrument air', 'gas boost', 'package', 'rotating'],
@@ -101,7 +101,7 @@ export default defineMeta([
     file: 'diesel-generator.tsx',
     export: 'DieselGenerator',
     description:
-      'Turbocharged diesel generator set on a double-wall sub-base day tank: inline-6 or V12/V16/V20 engine with rocker covers, insulated exhaust manifolds, turbochargers and air cleaners, flywheel housing with starters, alternator with terminal box, front radiator with pusher fan, anti-vibration isolators, closed crankcase ventilation filter, batteries and controller. Exhaust rises through bellows to a silencer with a flanged outlet. `enclosure` puts it in an ISO 20 ft / 40 ft high-cube container with corrugated walls, sand-trap intake louvres with damper actuators, radiator discharge louvre, opening side doors, clean-agent fire suppression and the silencer on the roof. Engine, alternator and radiator size with `kw`.',
+      'Turbocharged diesel generator set on a double-wall sub-base day tank, with an inline-6 or V12/V16/V20 engine with rocker covers, insulated exhaust manifolds, turbochargers and air cleaners. It has a flywheel housing with starters, an alternator with terminal box, a front radiator with pusher fan, anti-vibration isolators, a closed crankcase ventilation filter, batteries and a controller. The exhaust rises through bellows to a silencer with a flanged outlet. `enclosure` puts it in an ISO 20 ft / 40 ft high-cube container with corrugated walls, sand-trap intake louvres with damper actuators, a radiator discharge louvre, opening side doors, clean-agent fire suppression and the silencer on the roof. Engine, alternator and radiator size with `kw`.',
     standards: ['ISO 8528', 'IEC 60034-1', 'ISO 3046', 'ISO 668 (container)', 'NFPA 110', 'ASME B16.5'],
     vendors: ['Caterpillar', 'Cummins', 'mtu (Rolls-Royce Power Systems)', 'Perkins'],
     tags: ['generator', 'diesel', 'emergency generator', 'genset', 'power', 'rotating'],
@@ -121,7 +121,7 @@ export default defineMeta([
     file: 'gas-turbine-compressor.tsx',
     export: 'GasTurbineCompressor',
     description:
-      'Mechanical-drive train: a two-shaft gas turbine in an acoustic enclosure (filter house with weather hoods and filter stages, exhaust silencer and stack, fuel gas skid, lube console with fin-fan cooler, internal monorail) driving an API 617 barrel or horizontally split centrifugal compressor through a guarded coupling, with anti-surge valve, suction strainer and dry gas seal panel. A preset of `centrifugal-compressor` with the gas-turbine driver.',
+      'Mechanical-drive train with a two-shaft gas turbine in an acoustic enclosure driving an API 617 barrel or horizontally split centrifugal compressor through a guarded coupling. The turbine has a filter house with weather hoods and filter stages, an exhaust silencer and stack, a fuel gas skid, a lube console with fin-fan cooler and an internal monorail. The compressor has an anti-surge valve, suction strainer and dry gas seal panel. This is a preset of `centrifugal-compressor` with the gas-turbine driver.',
     standards: ['API 616', 'API 617', 'API 614', 'API 692', 'API 671', 'ASME B16.5'],
     vendors: ['Solar Turbines', 'Siemens Energy', 'Baker Hughes'],
     tags: ['compressor', 'gas turbine', 'mechanical drive', 'gas compression', 'package', 'rotating'],

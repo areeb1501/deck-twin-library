@@ -6,7 +6,7 @@ export interface PageMeta {
   description: string
 }
 
-const SITE_TITLE = 'Deck Twin: 3D components for oil & gas digital twins'
+const SITE_TITLE = 'Deck Twin: 3D components for oil and gas digital twins'
 const MAX_DESCRIPTION = 155
 
 const plain = (text: string) => text.replace(/`|\*\*/g, '').replace(/\[([^\]]+)\]\([^)]*\)/g, '$1').replace(/\s+/g, ' ').trim()

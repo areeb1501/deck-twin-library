@@ -4,7 +4,6 @@
  * stay still and no video is fetched. The two long films (data-film) come in three cuts: a small one for phones, AV1 where the
  * browser plays it, and H.264 for the rest.
  */
-import '@fontsource-variable/inter'
 import './landing.css'
 import { initSearch } from './search'
 
@@ -75,10 +74,6 @@ menuBtn.addEventListener('click', () => setMenu(!!menu.hidden))
 addEventListener('keydown', (e) => {
   if (e.key === 'Escape') setMenu(false)
 })
-
-const top = document.querySelector('.top')
-const hero = document.querySelector('.hero')
-if (top && hero) new IntersectionObserver(([e]) => top.classList.toggle('solid', !e.isIntersecting), { rootMargin: '-64px 0px 0px 0px' }).observe(hero)
 
 const beats = [...document.querySelectorAll<HTMLLIElement>('.beats li')]
 const screens = [...document.querySelectorAll<HTMLVideoElement>('.screen video')]

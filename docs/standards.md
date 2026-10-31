@@ -1,6 +1,6 @@
 # Standards & data
 
-`lib/standards/` holds the dimensional tables that drive every component. All values are returned in metres.
+The `lib/standards/` folder holds the dimensional tables that drive every component. All values are returned in metres.
 
 > **Reference values.** These tables were transcribed from the standards listed below for visualisation. Check them against the current edition before using them for design, procurement or fabrication. Values marked `approx` or `typical` in the source are interpolations or typical industry practice, not standard values.
 
@@ -16,9 +16,9 @@
 | `access.ts` | ISO 14122-2/3/4, OSHA 1910: handrails, stairs, ladders, cages | `ACCESS`, `stairFlight` |
 | `colors.ts` | ISO 14726 / BS 1710 line identification, ISO 3864 safety colours, common RAL colours | `SERVICE`, `SAFETY`, `RAL` |
 
-## How snapping works
+## Size snapping
 
-Every accessor accepts any number and snaps it to the nearest tabulated size. Where a class doesn't define a size, it falls back to the nearest class that does, with ties going to the higher class: a Class 2500 NPS 16 flange uses Class 1500. Nothing throws, so a component never crashes on an unusual prop.
+Every accessor accepts any number and snaps it to the nearest tabulated size. Where a class does not define a size, the accessor falls back to the nearest class that does, and ties go to the higher class. For example, a Class 2500 NPS 16 flange uses Class 1500. No accessor throws, so a component never crashes on an unusual prop.
 
 ## Examples
 
@@ -34,4 +34,4 @@ iecMotor(110, 4)              // { frame: '315S', shaftHeight: 0.315, … }
 
 ## Flange convention
 
-`thickness` and `hubLength` **exclude** the raised face, for every class. B16.5 includes the 1.6 mm face in the Class 150/300 values, and it is subtracted here so all classes behave the same way. The distance from the weld end to the face is `hubLength + raisedFaceHeight`.
+`thickness` and `hubLength` **exclude** the raised face for every class. B16.5 includes the 1.6 mm face in the Class 150/300 values. It is subtracted here so that all classes behave the same way. The distance from the weld end to the face is `hubLength + raisedFaceHeight`.

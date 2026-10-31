@@ -67,7 +67,7 @@ function DocsLayout({ drawer, closeDrawer, children }: { drawer: boolean; closeD
   return (
     <div className="flex min-h-0 flex-1">
       {!collapsed && (
-        <aside className="sticky top-14 hidden h-[calc(100vh-3.5rem)] w-[280px] shrink-0 flex-col border-r border-border bg-deep lg:flex">
+        <aside className="sticky top-14 hidden h-[calc(100vh-3.5rem)] w-[300px] shrink-0 flex-col border-r border-border bg-deep lg:flex">
           <div className="absolute top-3 right-3 z-10">
             <IconButton label="Collapse sidebar" onClick={() => setCollapsed(true)} icon={<PanelIcon />} />
           </div>
@@ -102,9 +102,7 @@ function DocsLayout({ drawer, closeDrawer, children }: { drawer: boolean; closeD
 function Brand() {
   return (
     <Link href="/" className="flex min-w-0 items-center gap-2 rounded-md">
-      <span className="logo-gloss shrink-0">
-        <Logo className="h-[22px] w-[22px]" />
-      </span>
+      <Logo className="block h-[22px] w-[22px] shrink-0" />
       <span className="nav-wordmark truncate">Deck Twin</span>
     </Link>
   )
@@ -135,13 +133,24 @@ function Header({ onDocsMenu }: { onDocsMenu?: () => void }) {
   const [loc] = useLocation()
   const [menu, setMenu] = useState(false)
   useEffect(() => setMenu(false), [loc])
+  const [past, setPast] = useState(false)
+  useEffect(() => {
+    if (loc !== '/') return setPast(false)
+    const check = () => {
+      const sheet = document.querySelector('.home .sheet')
+      setPast(!!sheet && sheet.getBoundingClientRect().bottom <= 56)
+    }
+    check()
+    addEventListener('scroll', check, { passive: true })
+    return () => removeEventListener('scroll', check)
+  }, [loc])
   return (
-    <header className="site-header sticky top-0 z-40">
-      <div className="flex h-14 items-center px-5 lg:px-6">
-        <div className="shrink-0 pr-2">
+    <header className="site-header sticky top-0 z-40" data-on-sheet={loc === '/' && !past && !menu ? '' : undefined}>
+      <div className="flex h-14 items-stretch px-5 lg:px-6">
+        <div className="flex shrink-0 items-center pr-2">
           <Brand />
         </div>
-        <nav aria-label="Main" className="ml-4 hidden items-center gap-1 md:flex lg:ml-7">
+        <nav aria-label="Main" className="ml-4 hidden items-stretch gap-1 md:flex lg:ml-7">
           {NAV.map(([href, label]) => {
             const on = loc.startsWith(href)
             return (
@@ -154,8 +163,11 @@ function Header({ onDocsMenu }: { onDocsMenu?: () => void }) {
         <div className="ml-auto flex items-center gap-2">
           <SearchButton />
           <ThemeToggle />
-          <span className="mx-1.5 hidden h-5 w-px bg-border xl:block" />
-          <Link href="/docs/installation" className="nav-cta hidden h-8 shrink-0 items-center rounded-full px-3.5 text-[13px] font-semibold whitespace-nowrap xl:flex">
+          <span className="mx-1.5 hidden h-5 w-px bg-border lg:block" />
+          <a href="/alpha/" className="nav-cta line hidden h-8 shrink-0 items-center rounded-md px-3.5 text-[15px] font-medium whitespace-nowrap lg:flex">
+            View demo
+          </a>
+          <Link href="/docs/installation" className="nav-cta hidden h-8 shrink-0 items-center rounded-md px-3.5 text-[15px] font-medium whitespace-nowrap xl:flex">
             Get started
           </Link>
           <button onClick={() => (onDocsMenu ? onDocsMenu() : setMenu((m) => !m))} aria-label="Menu" aria-expanded={menu} className={`flex h-8 w-8 items-center justify-center rounded-md text-ink transition-colors hover:bg-muted ${onDocsMenu ? 'lg:hidden' : 'md:hidden'}`}>
@@ -173,10 +185,13 @@ function Header({ onDocsMenu }: { onDocsMenu?: () => void }) {
             </Link>
           ))}
           <div className="mt-1 flex items-center justify-between border-t border-border px-3 pt-3 pb-1">
-            <span className="text-[14px] font-medium text-fg-3">Theme</span>
+            <span className="text-[15px] font-medium text-fg-3">Theme</span>
             <ThemeSwitch />
           </div>
-          <Link href="/docs/installation" className="mt-2 mb-1 flex h-10 items-center justify-center rounded-full bg-ink text-[14px] font-medium text-on-ink">
+          <a href="/alpha/" className="nav-cta line mt-2 flex h-10 items-center justify-center rounded-md text-[15px] font-medium">
+            View demo
+          </a>
+          <Link href="/docs/installation" className="mt-2 mb-1 flex h-10 items-center justify-center rounded-md bg-ink text-[15px] font-medium text-on-ink">
             Get started
           </Link>
         </nav>
@@ -222,7 +237,7 @@ function ThemeSwitch() {
 export function Logo({ className = 'h-6 w-6' }: { className?: string }) {
   return (
     <svg viewBox="0 0 32 32" className={className} aria-hidden>
-      <rect width="32" height="32" rx="7" fill="#fe5510" />
+      <rect className="logo-mark" width="32" height="32" rx="7" fill="#fe5510" />
       <path d="M7 22h18M9.5 22v-6h13v6M12.5 16v-4h7v4M16 12V8.5" stroke="#ffffff" strokeWidth="2.2" fill="none" strokeLinecap="round" strokeLinejoin="round" />
       <circle cx="16" cy="6.5" r="2" fill="#ffffff" />
     </svg>
@@ -235,74 +250,64 @@ function Footer() {
     ['Docs', [['/docs/installation', 'Installation'], ['/docs/cli', 'CLI'], ['/docs/assemble', 'Assembling plants'], ['/docs/standards', 'Standards & data']]],
     ['For agents', [['/docs/agents', 'Agent skill'], ['/llms.txt', 'llms.txt'], ['/r/index.json', 'Registry index'], ['/prompt.md', 'Setup prompt']]],
   ]
-  const link = 'group inline-flex items-center gap-1.5 text-fg-3 transition-colors hover:text-white light:hover:text-ink'
-  const arrow = <span aria-hidden className="text-brand-soft opacity-0 transition-[opacity,transform] -translate-x-1 group-hover:translate-x-0 group-hover:opacity-100">→</span>
+  const link = 'text-fg-3 transition-colors hover:text-ink'
   return (
-    <footer className="relative isolate overflow-hidden bg-deep text-fg-2 [container-type:inline-size]">
-      <div aria-hidden className="pointer-events-none absolute inset-0 -z-10">
-        <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-brand-soft/60 to-transparent" />
-        <div className="footer-light absolute inset-0" />
-        <div className="grain absolute inset-0" />
-      </div>
-      <div className="mx-auto max-w-[1440px] px-6">
-        <div className="grid grid-cols-[minmax(0,1fr)] items-center gap-8 border-b border-border py-14 lg:grid-cols-[minmax(0,1fr)_minmax(0,460px)] lg:gap-16">
+    <footer className="bg-deep text-fg-2">
+      <section className="sheet">
+        <div className="mx-auto grid max-w-[1440px] grid-cols-1 items-center gap-8 px-6 py-12 sm:py-14 lg:grid-cols-[minmax(0,7fr)_minmax(0,5fr)] lg:gap-8">
           <div>
-            <div className="text-[13px] font-medium text-brand-soft">Open source, MIT licence</div>
-            <h2 className="mt-2 text-[28px] leading-tight font-semibold text-balance head-grad tracking-[-0.03em] sm:text-[36px]">From one valve to a whole platform.</h2>
-            <p className="mt-3 max-w-lg text-[15px] leading-7 text-fg-3">Copy a component into your project, or hand your agent a P&amp;ID and let it assemble the plant.</p>
+            <h2 className="display text-[32px] leading-[1.06] sm:text-[clamp(32px,3.6vw,52px)]">Start building</h2>
+            <p className="mt-4 max-w-lg text-[17px] leading-[1.5]">Install a single component, or give your agent a P&amp;ID to build a complete plant.</p>
           </div>
           <div className="min-w-0 space-y-3">
-            <Command cmd={`${CLI} add horizontal-separator`} />
-            <div className="flex flex-wrap gap-2.5">
-              <Link href="/docs/installation" className="inline-flex h-10 items-center rounded-full bg-ink px-5 text-[14px] font-medium text-on-ink transition-colors hover:bg-ink-2">
+            <div className="dark-zone">
+              <Command cmd={`${CLI} add horizontal-separator`} />
+            </div>
+            <div className="flex flex-wrap gap-3">
+              <Link href="/docs/installation" className="sheet-btn solid">
                 Get started
               </Link>
-              <Link href="/components" className="inline-flex h-10 items-center rounded-full border border-white/15 bg-white/[0.04] px-5 text-[14px] font-medium text-white transition-colors hover:border-white/30 hover:bg-hover light:border-line-strong light:bg-surface light:text-ink light:hover:border-ink/35 light:hover:bg-surface">
+              <Link href="/components" className="sheet-btn line">
                 Browse {ITEMS.length} components
               </Link>
             </div>
           </div>
         </div>
-        <div className="grid gap-10 py-12 sm:grid-cols-2 md:grid-cols-[1.4fr_repeat(3,1fr)]">
-          <div className="max-w-sm">
-            <div className="flex items-center gap-2.5">
-              <Logo className="h-8 w-8 rounded-lg ring-1 ring-white/15 light:ring-border" />
-              <span className="text-[15px] font-semibold text-white light:text-ink">Deck Twin</span>
-              <span className="rounded border border-border px-1.5 py-px font-mono text-[10.5px] text-fg-3">v{VERSION}</span>
-            </div>
-            <p className="mt-4 text-[14px] leading-6 text-fg-3">3D components for oil &amp; gas digital twins, sized from public engineering standards.</p>
+      </section>
+      <div className="mx-auto grid max-w-[1440px] grid-cols-2 gap-x-6 gap-y-10 px-6 py-14 md:grid-cols-[1.4fr_repeat(3,1fr)]">
+        <div className="col-span-2 max-w-sm md:col-span-1">
+          <div className="flex items-center gap-2.5">
+            <Logo className="block h-[22px] w-[22px]" />
+            <span className="nav-wordmark">Deck Twin</span>
+            <span className="text-[13px] text-muted-fg tabular-nums">v{VERSION}</span>
           </div>
-          {cols.map(([title, links]) => (
-            <div key={title}>
-              <div className="text-[12px] font-semibold tracking-[0.08em] text-fg-3 uppercase">{title}</div>
-              <ul className="mt-4 space-y-2.5 text-[14px]">
-                {links.map(([href, label]) => (
-                  <li key={href}>
-                    {href.includes('.') ? (
-                      <a href={href} className={link}>
-                        {label}
-                        {arrow}
-                      </a>
-                    ) : (
-                      <Link href={href} className={link}>
-                        {label}
-                        {arrow}
-                      </Link>
-                    )}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ))}
+          <p className="mt-4 text-[15px] leading-6 text-fg-3">3D components for oil and gas digital twins, sized to public engineering standards.</p>
         </div>
+        {cols.map(([title, links]) => (
+          <div key={title}>
+            <div className="text-[15px] font-semibold text-ink">{title}</div>
+            <ul className="mt-4 space-y-2.5 text-[15px]">
+              {links.map(([href, label]) => (
+                <li key={href}>
+                  {href.includes('.') ? (
+                    <a href={href} className={link}>
+                      {label}
+                    </a>
+                  ) : (
+                    <Link href={href} className={link}>
+                      {label}
+                    </Link>
+                  )}
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))}
       </div>
-      <div aria-hidden className="pointer-events-none -mt-2 overflow-hidden px-6 select-none">
-        <div className="mx-auto max-w-[1440px] translate-y-[22%] bg-gradient-to-b from-white/[0.09] to-transparent light:from-ink/[0.07] bg-clip-text text-center text-[16cqw] leading-[0.8] font-semibold tracking-[-0.05em] whitespace-nowrap text-transparent">Deck Twin</div>
-      </div>
-      <div className="relative border-t border-border bg-deep">
-        <div className="mx-auto flex max-w-[1440px] flex-wrap justify-between gap-2 px-6 py-5 text-[12.5px] text-fg-3">
+      <div className="border-t border-border">
+        <div className="mx-auto flex max-w-[1440px] flex-wrap justify-between gap-2 px-6 py-5 text-[13px] text-muted-fg">
           <span>MIT licence</span>
-          <span>Reference geometry from public standards, not vendor CAD. Check dimensions against the current edition.</span>
+          <span>Reference geometry based on public standards, not vendor CAD. Verify dimensions against the current edition.</span>
         </div>
       </div>
     </footer>
@@ -335,7 +340,7 @@ function SidebarPanel({ drawer = false }: { drawer?: boolean }) {
       key={href}
       href={href}
       aria-current={loc === href ? 'page' : undefined}
-      className={`block truncate rounded-lg py-1.5 text-[14px] transition-colors ${indent ? 'pr-3 pl-6' : 'px-3'} ${loc === href ? 'bg-brand-tint font-medium text-brand' : 'text-fg-3 hover:bg-hover hover:text-ink'}`}
+      className={`block truncate rounded-lg py-1.5 text-[15px] font-medium transition-colors ${indent ? 'pr-3 pl-6' : 'px-3'} ${loc === href ? 'bg-brand-tint font-medium text-brand' : 'text-fg-3 hover:bg-hover hover:text-ink'}`}
     >
       {label}
     </Link>
@@ -343,7 +348,16 @@ function SidebarPanel({ drawer = false }: { drawer?: boolean }) {
   return (
     <>
       <nav ref={ref} aria-label="Docs" className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 pt-4 pb-8">
-        {drawer && <div className="md:hidden"><Section title="Site">{NAV.map(([href, label]) => item(href, label))}</Section></div>}
+        {drawer && (
+          <div className="md:hidden">
+            <Section title="Site">
+              {NAV.map(([href, label]) => item(href, label))}
+              <a href="/alpha/" className="block truncate rounded-lg px-3 py-1.5 text-[15px] font-medium text-fg-3 transition-colors hover:bg-hover hover:text-ink">
+                View demo
+              </a>
+            </Section>
+          </div>
+        )}
         <Section title="Getting started">{DOCS.map((d) => item(`/docs/${d.slug}`, d.title))}</Section>
         <Section title="Components">
           {item('/components', `All components (${ITEMS.length})`)}
@@ -356,7 +370,7 @@ function SidebarPanel({ drawer = false }: { drawer?: boolean }) {
                 <button
                   onClick={() => toggle(c.id)}
                   aria-expanded={expanded}
-                  className={`flex w-full items-center gap-2 rounded-lg px-3 py-1.5 text-left text-[14px] transition-colors hover:bg-hover hover:text-ink ${current === c.id ? 'text-ink' : 'text-fg-3'}`}
+                  className={`flex w-full items-center gap-2 rounded-lg px-3 py-1.5 text-left text-[15px] font-medium transition-colors hover:bg-hover hover:text-ink ${current === c.id ? 'text-ink' : 'text-fg-3'}`}
                 >
                   <span className="flex-1 truncate">{c.title}</span>
                   <svg viewBox="0 0 16 16" className={`h-3.5 w-3.5 shrink-0 text-muted-fg transition-transform ${expanded ? 'rotate-90' : ''}`} fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
@@ -371,7 +385,7 @@ function SidebarPanel({ drawer = false }: { drawer?: boolean }) {
       </nav>
       {drawer && (
         <div className="flex items-center justify-between border-t border-border px-4 py-3 md:hidden">
-          <span className="font-mono text-[11.5px] text-muted-fg">v{VERSION}</span>
+          <span className="text-[13px] text-muted-fg">v{VERSION}</span>
           <ThemePicker />
         </div>
       )}
@@ -382,7 +396,7 @@ function SidebarPanel({ drawer = false }: { drawer?: boolean }) {
 function ThemePicker() {
   const theme = useTheme()
   const opt = (t: Theme, label: string, icon: ReactNode) => (
-    <button onClick={() => setTheme(t)} aria-label={label} aria-pressed={theme === t} title={label} className={`flex h-7 w-7 items-center justify-center rounded-md transition-colors ${theme === t ? 'bg-surface text-ink shadow-[0_1px_2px_rgb(0_0_0/0.12)] ring-1 ring-border' : 'text-muted-fg hover:text-ink'}`}>
+    <button onClick={() => setTheme(t)} aria-label={label} aria-pressed={theme === t} title={label} className={`flex h-7 w-7 items-center justify-center rounded-md transition-colors ${theme === t ? 'bg-surface text-ink ring-1 ring-border' : 'text-muted-fg hover:text-ink'}`}>
       {icon}
     </button>
   )
@@ -410,7 +424,7 @@ function ThemePicker() {
 function Section({ title, children }: { title: string; children: ReactNode }) {
   return (
     <div className="mb-6">
-      <div className="mb-1 px-3 py-1 text-[13px] font-semibold text-ink">{title}</div>
+      <div className="mb-1 px-3 py-1 text-[15px] font-semibold text-ink">{title}</div>
       {children}
     </div>
   )
@@ -420,8 +434,8 @@ function Section({ title, children }: { title: string; children: ReactNode }) {
 function SlimFooter() {
   return (
     <footer className="border-t border-border">
-      <div className="mx-auto flex max-w-[1180px] flex-wrap items-center justify-between gap-x-6 gap-y-2 px-6 py-6 text-[12.5px] text-muted-fg lg:px-12">
-        <span>Deck Twin v{VERSION}, MIT licence. Reference geometry from public standards, not vendor CAD.</span>
+      <div className="mx-auto flex max-w-[1180px] flex-wrap items-center justify-between gap-x-6 gap-y-2 px-6 py-6 text-[13px] text-muted-fg lg:px-12">
+        <span>Deck Twin v{VERSION}, MIT licence. Reference geometry based on public standards, not vendor CAD.</span>
         <span className="flex gap-4">
           <a href="/llms.txt" className="hover:text-ink">llms.txt</a>
           <a href="/r/index.json" className="hover:text-ink">Registry</a>
@@ -459,7 +473,7 @@ function Keycaps() {
   return (
     <span className="ml-auto flex gap-1">
       {[mac ? '⌘' : 'Ctrl', 'K'].map((k) => (
-        <kbd key={k} className="flex h-5 min-w-5 items-center justify-center rounded border border-border bg-surface px-1 font-sans text-[11px] font-medium text-muted-fg">
+        <kbd key={k} className="flex h-5 min-w-5 items-center justify-center rounded border border-border bg-surface px-1 font-sans text-[13px] font-medium text-muted-fg">
           {k}
         </kbd>
       ))}
@@ -471,9 +485,9 @@ function Keycaps() {
 function SearchButton() {
   const mac = useMac()
   return (
-    <button onClick={openSearch} aria-label="Search docs and components" aria-keyshortcuts={mac ? 'Meta+K' : 'Control+K'} className="flex h-8 w-8 items-center justify-center gap-2 rounded-md text-muted-fg transition-colors hover:bg-muted hover:text-ink lg:w-44 lg:justify-start lg:rounded-full lg:border lg:border-border lg:bg-muted/60 lg:px-3 lg:hover:border-line-strong lg:hover:bg-hover xl:w-56">
+    <button onClick={openSearch} aria-label="Search docs and components" aria-keyshortcuts={mac ? 'Meta+K' : 'Control+K'} className="flex h-8 w-8 items-center justify-center gap-2 rounded-md text-muted-fg transition-colors hover:bg-muted hover:text-ink lg:w-44 lg:justify-start lg:rounded-md lg:border lg:border-border lg:bg-muted/60 lg:px-3 lg:hover:border-line-strong lg:hover:bg-hover xl:w-56">
       {searchIcon}
-      <span className="hidden text-left text-[13px] lg:inline">Search</span>
+      <span className="hidden text-left text-[15px] font-medium lg:inline">Search</span>
       <span className="hidden lg:contents">
         <Keycaps />
       </span>
@@ -521,8 +535,8 @@ function SearchDialog() {
     <>
       {open &&
         createPortal(
-          <div className="fixed inset-0 z-[2147483000] flex items-start justify-center bg-black/60 p-4 pt-[18vh] backdrop-blur-sm light:bg-[rgb(16_18_27/0.28)]" onClick={() => setOpen(false)}>
-            <div className="w-full max-w-xl overflow-hidden rounded-xl border border-border bg-panel shadow-[0_24px_64px_-16px_rgb(0_0_0/0.7)] light:shadow-[0_24px_64px_-16px_rgb(16_18_27/0.3)]" onClick={(e) => e.stopPropagation()}>
+          <div className="fixed inset-0 z-[2147483000] flex items-start justify-center bg-black/60 p-4 pt-[18vh] light:bg-[rgb(16_18_27/0.28)]" onClick={() => setOpen(false)}>
+            <div className="w-full max-w-xl overflow-hidden rounded-lg border border-border bg-panel shadow-[0_24px_64px_-16px_rgb(0_0_0/0.7)] light:shadow-[0_24px_64px_-16px_rgb(16_18_27/0.3)]" onClick={(e) => e.stopPropagation()}>
               <input
                 autoFocus
                 value={q}
@@ -546,20 +560,20 @@ function SearchDialog() {
                     id={`search-hit-${i}`}
                     onMouseMove={() => setActive(i)}
                     onClick={() => pick(h.href)}
-                    className={`flex w-full items-center gap-3 rounded-md px-3 py-2 text-left text-sm ${i === active ? 'bg-muted text-ink' : 'text-ink'}`}
+                    className={`flex w-full items-center gap-3 rounded-md px-3 py-2 text-left text-[15px] ${i === active ? 'bg-muted text-ink' : 'text-ink'}`}
                   >
                     {h.thumb ? (
                       <img src={themedThumb(h.thumb, theme)} alt="" className="h-8 w-10 shrink-0 rounded border border-border bg-stage object-cover" onError={(e) => (e.currentTarget.style.visibility = 'hidden')} />
                     ) : (
-                      <span className="flex h-8 w-10 shrink-0 items-center justify-center rounded border border-border text-[10px] text-muted-fg">doc</span>
+                      <span className="flex h-8 w-10 shrink-0 items-center justify-center rounded border border-border text-[13px] text-muted-fg">doc</span>
                     )}
                     <span className="flex-1 truncate">{markHits(h.label, q)}</span>
-                    <span className="shrink-0 text-xs text-muted-fg">{h.hint}</span>
+                    <span className="shrink-0 text-[13px] text-muted-fg">{h.hint}</span>
                   </button>
                 ))}
-                {!hits.length && <div className="px-3 py-6 text-center text-sm text-muted-fg">No results.</div>}
+                {!hits.length && <div className="px-3 py-6 text-center text-[15px] text-muted-fg">No results.</div>}
               </div>
-              <div className="flex gap-4 border-t border-border bg-muted px-4 py-2 text-[11.5px] text-muted-fg">
+              <div className="flex gap-4 border-t border-border bg-muted px-4 py-2 text-[13px] text-muted-fg">
                 <span>↑↓ to move</span>
                 <span>↵ to open</span>
                 <span>esc to close</span>

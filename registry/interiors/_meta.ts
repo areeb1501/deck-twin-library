@@ -7,7 +7,7 @@ export default defineMeta([
     file: 'control-console.tsx',
     export: 'ControlConsole',
     description:
-      'CCR operator console run of 1–5 segments laid out straight, angled with wedge fillers, or curved about the operator. Each segment has a compact-laminate worksurface with a rubber-nosed front edge, a lower rear monitor level on a technical base with louvred rear access doors and a recessed kick plinth, a cable basket, one or two monitor rails with arm-mounted narrow-bezel monitors, keyboard and mouse and a 24/7 chair; phone, desk radio and LED task lights at the ends. `sitStand` puts the worksurface on electric lifting columns. Monitors show procedural sample HMI pages (alarm list, mimic, trends, F&G, ESD, CCTV); pass `screens` (CanvasTexture, VideoTexture or render-target texture per monitor) for live content.',
+      'CCR operator console run of 1 to 5 segments, laid out straight, angled with wedge fillers, or curved about the operator. Each segment has a compact-laminate worksurface with a rubber-nosed front edge, a lower rear monitor level on a technical base with louvred rear access doors and a recessed kick plinth, a cable basket, one or two monitor rails with arm-mounted narrow-bezel monitors, a keyboard and mouse and a 24/7 chair. A phone, desk radio and LED task lights sit at the ends. `sitStand` puts the worksurface on electric lifting columns. Monitors show procedural sample HMI pages (alarm list, mimic, trends, F&G, ESD, CCTV); pass `screens` (CanvasTexture, VideoTexture or render-target texture per monitor) for live content.',
     standards: ['ISO 11064', 'EN 527-1', 'ISA-101 (screen style)'],
     vendors: ['Winsted', 'Vertiv Knürr', 'GESAB', 'Thinking Space'],
     tags: ['control room', 'ccr', 'console', 'operator', 'workstation', 'hmi', 'monitors'],
@@ -34,7 +34,7 @@ export default defineMeta([
     file: 'video-wall.tsx',
     export: 'VideoWall',
     description:
-      'Rows × columns of narrow-bezel LCD tiles (0.88 mm bezel-to-bezel by default) or seamless fine-pitch LED tiles. Floor-standing frame with uprights, rails, pop-out mounts and a base cabinet with perforated doors, or wall-mounted on rails. The optional controller is a stack of 19" units behind a glazed door in the base, or a rack beside a wall-mounted wall. Tiles show procedural sample pages (CCTV, overview, mimic, helideck camera, metocean, trends, F&G); pass `screens` per tile, or set `span` to stretch screens[0] across the whole wall.',
+      'Video wall of narrow-bezel LCD tiles (0.88 mm bezel-to-bezel by default) or seamless fine-pitch LED tiles, arranged in rows × columns. It uses a floor-standing frame with uprights, rails, pop-out mounts and a base cabinet with perforated doors, or wall-mounted rails. The optional controller is a stack of 19" units behind a glazed door in the base, or a rack beside a wall-mounted wall. Tiles show procedural sample pages (CCTV, overview, mimic, helideck camera, metocean, trends, F&G); pass `screens` per tile, or set `span` to stretch screens[0] across the whole wall.',
     standards: ['ISO 11064', 'ISA-101 (screen style)'],
     vendors: ['Barco', 'Planar'],
     tags: ['control room', 'ccr', 'video wall', 'display', 'lcd', 'led', 'cctv'],
@@ -58,7 +58,7 @@ export default defineMeta([
     file: 'door.tsx',
     export: 'Door',
     description:
-      'Offshore door set in a short lined wall stub with a real hole, so you can see through it when open. `kind` picks a single or double hinged steel door (pressed-steel rebated frame with seals, 3–4 hinges, stainless threshold and kick plates, overhead closer, lever or panic bar, vision panel, astragal and flush bolts on pairs), a top-hung sliding door, a blast door (100 mm leaf, heavy hinges, multi-point locking with dog lever, bolted laminated vision panel) or a roller shutter (slat curtain in side guides, coil box with drive, push-button station). `fireRating` sets leaf thickness and the A60 / H120 rating plates. `open` (0–1) swings, slides or rolls the leaf; leaves swing towards +Z. ISO 7010 exit sign over the door and a room-name sign beside it. Set `wall: none` to drop it into a room wall; `doorOpening()` gives the hole size.',
+      'Offshore door set in a short lined wall stub with a through opening, visible when the door is open. `kind` selects a single or double hinged steel door, a top-hung sliding door, a blast door or a roller shutter. Hinged doors have a pressed-steel rebated frame with seals, 3 to 4 hinges, stainless threshold and kick plates, an overhead closer, a lever or panic bar and a vision panel, with an astragal and flush bolts on pairs. The blast door has a 100 mm leaf, heavy hinges, multi-point locking with a dog lever and a bolted laminated vision panel. The roller shutter has a slat curtain in side guides, a coil box with drive and a push-button station. `fireRating` sets leaf thickness and the A60 / H120 rating plates. `open` (0 to 1) swings, slides or rolls the leaf, and leaves swing towards +Z. An ISO 7010 exit sign sits over the door and a room-name sign beside it. Set `wall: none` to drop the door into a room wall; `doorOpening()` gives the hole size.',
     standards: ['IMO FTP Code (A60 / H120)', 'ISO 7010 E001', 'EN 1125 (panic exit)', 'EN 1154 (closers)'],
     vendors: ['MML Marine', 'Baggerod', 'Bimar', 'NORAC'],
     tags: ['door', 'fire door', 'a60', 'h120', 'blast door', 'roller shutter', 'sliding door', 'building'],
@@ -85,7 +85,7 @@ export default defineMeta([
     file: 'window.tsx',
     export: 'Window',
     description:
-      'Fixed offshore window in a short lined wall stub with a real hole. Square outer frame filling the hole, rounded-corner lights, exterior bolting flange, double glazing (laminated panes for the blast type) with a spacer, EPDM gaskets both faces, bolted inside clamping ring, interior window board and exterior drip sill, rating plate and tag. Mullions split it into `panes` lights; `sunshade` adds an external louvred eyebrow. +Z is the outside face. Set `wall: none` to drop it into a room wall; `windowOpening()` gives the hole.',
+      'Fixed offshore window in a short lined wall stub with a through opening. A square outer frame fills the opening and holds rounded-corner lights, with an exterior bolting flange, double glazing with a spacer (laminated panes for the blast type), EPDM gaskets on both faces and a bolted inside clamping ring. An interior window board, an exterior drip sill, a rating plate and a tag are included. Mullions split it into `panes` lights, and `sunshade` adds an external louvred eyebrow. +Z is the outside face. Set `wall: none` to drop the window into a room wall; `windowOpening()` gives the hole size.',
     standards: ['IMO FTP Code (A60 / H120)', 'ISO 3903 (ship windows)', 'EN 1363-2 (hydrocarbon curve)'],
     vendors: ['Bohamet', 'TeamTec'],
     tags: ['window', 'glazing', 'a60', 'h120', 'blast', 'building'],
@@ -109,7 +109,7 @@ export default defineMeta([
     file: 'room.tsx',
     export: 'Room',
     description:
-      'Walk-through room: lined walls with real openings from a `doors` array (wall side, offset, kind, open…) and a `windows` array, each filled with the door and window components. Raised access floor (slab at y = 0, finished floor at `floorHeight`, 600 mm tiles, pedestals and cables visible at the cut, perforated supply tiles) or carpet tiles; suspended 600 mm ceiling with LED panels, slot diffusers, smoke detectors, PA speakers and gas-suppression nozzles; ladder tray in the ceiling void; cove skirting; exit sign, call point, switch and CO2 extinguisher inside each door. `cutaway` leaves out the ceiling and the +Z wall so the twin can look in. Place consoles, video walls and cabinets inside on the finished floor.',
+      'Walk-through room shell with lined walls, a raised access floor or carpet tiles, and a suspended ceiling. Openings come from a `doors` array (wall side, offset, kind, open…) and a `windows` array, each filled with the door and window components. The raised access floor has the slab at y = 0, the finished floor at `floorHeight`, 600 mm tiles, pedestals and cables visible at the cut, and perforated supply tiles. The suspended 600 mm ceiling has LED panels, slot diffusers, smoke detectors, PA speakers and gas-suppression nozzles, with a ladder tray in the ceiling void. The room has cove skirting, and an exit sign, call point, switch and CO2 extinguisher inside each door. `cutaway` leaves out the ceiling and the +Z wall so that the interior can be viewed. Place consoles, video walls and cabinets inside on the finished floor.',
     standards: ['ISO 11064-3 (control room layout)', 'EN 12825 (raised access floors)', 'ISO 7010 E001', 'IMO FTP Code'],
     vendors: ['Kingspan (Tate)'],
     tags: ['room', 'control room', 'ccr', 'building', 'interior', 'raised floor', 'ceiling', 'walls'],
@@ -135,7 +135,7 @@ export default defineMeta([
     file: 'system-cabinet.tsx',
     export: 'SystemCabinet',
     description:
-      'Row of `count` baying cabinets (800 × 800 × 2000 mm on a 100 mm plinth by default, RAL 7035) for DCS, SIS or F&G controllers, field marshalling or servers. Glazed, perforated or solid front doors hinged on the right with swing-handle locks and label strips, SIS / F&G status lamps, rear doors with vents, side panels and roof cable-entry brushes, cabinet lights. Behind the door: zinc mounting plate with trunking, I/O carriers with status LEDs, terminal rows and power supplies, or 19" rails full of servers and switches. Cables rise through bottom gland plates from a raised floor. `open` swings the front doors.',
+      'Row of baying cabinets for DCS, SIS or F&G controllers, field marshalling or servers. The default cabinet is 800 × 800 × 2000 mm on a 100 mm plinth in RAL 7035. Front doors are glazed, perforated or solid, hinged on the right, with swing-handle locks and label strips. SIS / F&G status lamps, rear doors with vents, side panels, roof cable-entry brushes and cabinet lights are included. Behind the door is a zinc mounting plate with trunking, I/O carriers with status LEDs, terminal rows and power supplies, or 19" rails full of servers and switches. Cables rise through bottom gland plates from a raised floor. `count` sets the number of cabinets and `open` swings the front doors.',
     standards: ['IEC 61439', 'IEC 60297 (19" racks)', 'IEC 60529 (IP54)'],
     vendors: ['Rittal', 'Emerson'],
     tags: ['cabinet', 'dcs', 'sis', 'fire and gas', 'marshalling', 'server', 'rack', 'equipment room'],
@@ -160,7 +160,7 @@ export default defineMeta([
     file: 'operator-chair.tsx',
     export: 'OperatorChair',
     description:
-      'Intensive-use control-room chair: five-star polished aluminium base (about 700 mm) with twin-wheel castors, gas lift with shroud, synchro mechanism, upholstered seat with waterfall edge, tall back with lumbar shaping, headrest and height-adjustable arms. `swivel` turns the upper part on the gas lift; `seatHeight` follows the gas-lift range.',
+      'Intensive-use control-room chair on a five-star polished aluminium base (about 700 mm) with twin-wheel castors. It has a gas lift with shroud, a synchro mechanism, an upholstered seat with waterfall edge, a tall back with lumbar shaping, a headrest and height-adjustable arms. `swivel` turns the upper part on the gas lift, and `seatHeight` follows the gas-lift range.',
     standards: ['EN 1335', 'BS 5459-2 (24-hour use)'],
     vendors: ['Neutral Posture'],
     tags: ['chair', 'control room', 'ccr', 'furniture', 'operator'],
@@ -179,7 +179,7 @@ export default defineMeta([
     file: 'desk.tsx',
     export: 'Desk',
     description:
-      'Shift supervisor desk (compact-laminate top, side and modesty panels, drawer pedestal, up to three monitors on stands, keyboard, phone, document tray, chair on the +Z side) or a pedestal meeting table with chairs round it. Monitors show procedural sample pages (ESD status, alarm list, KPIs); pass `screens` for live content.',
+      'Shift supervisor desk or pedestal meeting table. The desk has a compact-laminate top, side and modesty panels, a drawer pedestal, up to three monitors on stands, a keyboard, phone and document tray, and a chair on the +Z side. The meeting table has chairs round it. Monitors show procedural sample pages (ESD status, alarm list, KPIs); pass `screens` for live content.',
     standards: ['EN 527-1'],
     vendors: ['Winsted', 'Vertiv Knürr'],
     tags: ['desk', 'table', 'supervisor', 'meeting', 'control room', 'furniture'],
@@ -200,7 +200,7 @@ export default defineMeta([
     file: 'wall-display.tsx',
     export: 'WallDisplay',
     description:
-      'Single large-format display on a tilting wall bracket (wall plane at z = 0), a ceiling drop pole with yoke, or a mobile stand on castors; or an industrial panel PC with a stainless IP66 bezel, function keys and status LEDs. Shows a procedural sample page (`content`: CCTV, overview, mimic, trend, alarm, F&G, ESD, metocean, helideck, KPIs) or a live `screen` texture (CanvasTexture, VideoTexture, render target).',
+      'Single large-format display or industrial panel PC. The display mounts on a tilting wall bracket (wall plane at z = 0), a ceiling drop pole with yoke, or a mobile stand on castors. The panel PC has a stainless IP66 bezel, function keys and status LEDs. It shows a procedural sample page (`content`: CCTV, overview, mimic, trend, alarm, F&G, ESD, metocean, helideck, KPIs) or a live `screen` texture (CanvasTexture, VideoTexture, render target).',
     standards: ['VESA MIS-F', 'ISA-101 (screen style)', 'IEC 60529 (panel PC IP66)'],
     vendors: ['Barco', 'Planar'],
     tags: ['display', 'screen', 'monitor', 'hmi', 'panel pc', 'control room', 'tv'],
@@ -222,7 +222,7 @@ export default defineMeta([
     file: 'cctv-camera.tsx',
     export: 'CctvCamera',
     description:
-      'Hazardous-area CCTV camera in electropolished 316L: flameproof barrel with bolted window and rear flanges, glazed window, sunshield on standoffs, wiper, rear gland and armoured cable, Ex marking plate and tag. `kind: ptz` adds the pan drive, U-yoke and tilt drive; `pan` and `tilt` (degrees) turn the head, and also aim the fixed camera on its knuckle bracket. Mounted on a galvanised pole with a gusseted base plate and anchor bolts, cable cleats and an Ex e junction box, or on a wall bracket (wall plane z = 0).',
+      'Hazardous-area CCTV camera in electropolished 316L with a flameproof barrel. The barrel has bolted window and rear flanges, a glazed window, a sunshield on standoffs, a wiper, a rear gland with armoured cable, an Ex marking plate and a tag. `kind: ptz` adds the pan drive, U-yoke and tilt drive. `pan` and `tilt` (degrees) turn the head, and also aim the fixed camera on its knuckle bracket. It mounts on a galvanised pole with a gusseted base plate, anchor bolts, cable cleats and an Ex e junction box, or on a wall bracket (wall plane z = 0).',
     standards: ['IEC 60079-0 / -1 (Ex d)', 'ATEX 2014/34/EU', 'IECEx', 'IEC 60529 (IP66/67)'],
     vendors: ['Videotec (Pelco)', 'Axis', 'Eaton Hernis'],
     tags: ['cctv', 'camera', 'ptz', 'ex', 'atex', 'security', 'hazardous area'],
@@ -244,7 +244,7 @@ export default defineMeta([
     file: 'fire-alarm-panel.tsx',
     export: 'FireAlarmPanel',
     description:
-      'Fire & gas alarm control panel (red header, backlit LCD showing sample status, FIRE / GAS / FAULT / DISABLED / TEST / POWER LEDs, a zone LED column per `zones`, SILENCE / MUTE / RESET / EVACUATE buttons, access keyswitch, cable glands, sounder-beacon above) or an ESD mimic panel (process mimic with status LEDs per area, APS / ESD1 / ESD2 / PSD red mushroom buttons under hinged clear flaps, override keyswitches, lamp test). Wall cabinet (wall plane z = 0) or floor-standing desk with a 30° raked button shelf. Fascia text is sample content.',
+      'Fire & gas alarm control panel or ESD mimic panel, as a wall cabinet or a floor-standing desk. The alarm panel has a red header, a backlit LCD showing sample status, FIRE / GAS / FAULT / DISABLED / TEST / POWER LEDs, a zone LED column per `zones`, SILENCE / MUTE / RESET / EVACUATE buttons, an access keyswitch, cable glands and a sounder-beacon above. The ESD mimic panel has a process mimic with status LEDs per area, APS / ESD1 / ESD2 / PSD red mushroom buttons under hinged clear flaps, override keyswitches and a lamp test. The wall cabinet has its wall plane at z = 0, and the floor-standing desk has a 30° raked button shelf. Fascia text is sample content.',
     standards: ['EN 54-2 (control and indicating equipment)', 'IEC 61511 (SIS)', 'ISO 13850 (emergency stop)'],
     vendors: ['Autronica'],
     tags: ['fire alarm', 'fire and gas', 'esd', 'mimic', 'panel', 'control room', 'safety'],
