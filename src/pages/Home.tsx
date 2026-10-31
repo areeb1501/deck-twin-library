@@ -27,7 +27,7 @@ const BODIES = ['ASME', 'API', 'IEC', 'ISO', 'EN', 'NFPA', 'DNV', 'NORSOK', 'ISA
 declare const __SYMBOL_COUNT__: number
 
 export function Home() {
-  usePageMeta(null, 'Open-source three.js components for oil and gas digital twins, sized to published engineering standards.')
+  usePageMeta(null, 'Three.js components for oil and gas digital twins, free for personal use and sized to published engineering standards.')
   const cats = CATEGORIES.filter((c) => byCategory(c.id).length)
   return (
     <div className="home">
