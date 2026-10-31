@@ -34,7 +34,7 @@ export function ComponentsIndex() {
   const cats = CATEGORIES.filter((c) => ITEMS.some((i) => i.category === c.id))
   return (
     <div className="mx-auto max-w-[1400px] px-6 py-10 lg:px-10">
-      <h1 className="text-[34px] leading-tight font-semibold head-grad tracking-[-0.035em]">Components</h1>
+      <h1 className="display text-[34px] sm:text-[44px] text-ink">Components</h1>
       <p className="mt-3 max-w-2xl text-[16px] leading-7 text-fg-3">
         {ITEMS.length} parametric three.js components for offshore and onshore oil &amp; gas plants. Each one is a single file sized from the standard it follows, with ports for wiring pipe.
       </p>
@@ -88,7 +88,7 @@ export function ComponentsIndex() {
 export function Card({ item }: { item: Item }) {
   const theme = useTheme()
   return (
-    <Link href={`/components/${item.name}`} className="group overflow-hidden rounded-xl border border-border bg-surface transition-[border-color,box-shadow] hover:border-line-strong hover:shadow-[0_8px_24px_-12px_rgb(0_0_0/0.18)]">
+    <Link href={`/components/${item.name}`} className="group overflow-hidden rounded-lg border border-border bg-surface transition-colors hover:border-line-strong">
       <div className="aspect-[4/3] bg-stage">
         <img src={thumb(item.name, theme)} alt="" loading="lazy" className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.03]" onError={(e) => (e.currentTarget.style.visibility = 'hidden')} />
       </div>

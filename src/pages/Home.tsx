@@ -103,8 +103,8 @@ function Sheet() {
         <PlanDrawing className="sheet-plan" />
         {hero && <ClientRisingPlant spec={hero.spec} className="sheet-canvas" onReady={() => setState('ready')} onStood={() => setState('stood')} onLost={() => setState('plan')} />}
       </div>
-      <div className="pointer-events-none flex flex-1 flex-col justify-between gap-10 px-6 pt-10 pb-6 sm:pt-14 lg:pb-8 2xl:px-[max(1.5rem,calc((100vw-1440px)/2+1.5rem))]">
-        <div className="max-w-[780px]">
+      <div className="pointer-events-none flex flex-1 flex-col gap-10 px-6 pt-10 pb-6 sm:pt-14 lg:pb-8 2xl:px-[max(1.5rem,calc((100vw-1440px)/2+1.5rem))]">
+        <div className="my-auto max-w-[780px]">
           <h1 className="display text-[38px] sm:text-[60px] min-[1240px]:max-w-[8.8em] min-[1240px]:text-[clamp(56px,4.5vw,68px)]">3D components for oil &amp; gas digital twins</h1>
           <p className="mt-6 max-w-[33rem] text-[18px] leading-[1.5] font-[450] sm:text-[20px] min-[1240px]:max-w-[27rem]">
             Turn the data you already have into a 3D model of your plant, then link the model back to that data. Every part is open-source code you can customise.
@@ -117,20 +117,18 @@ function Sheet() {
               Explore demo
             </a>
           </div>
-        </div>
-        <div className="flex flex-wrap items-end justify-between gap-4">
-          <div className="dark-zone pointer-events-auto w-full max-w-[560px]">
+          <div className="dark-zone pointer-events-auto mt-5 w-full max-w-[560px]">
             <AgentLine />
           </div>
-          {hero && (
-            <div className="title-block pointer-events-auto bg-signal">
-              <span>
-                <strong className="font-semibold">{hero.spec.name}</strong>, {hero.spec.items.length} items and {hero.spec.lines?.length ?? 0} lines from one plant.json
-              </span>
-              <Link href={`/examples/${hero.name}`}>Open example</Link>
-            </div>
-          )}
         </div>
+        {hero && (
+          <div className="title-block pointer-events-auto self-start bg-signal min-[1240px]:self-end">
+            <span>
+              <strong className="font-semibold">{hero.spec.name}</strong>, {hero.spec.items.length} items and {hero.spec.lines?.length ?? 0} lines from one plant.json
+            </span>
+            <Link href={`/examples/${hero.name}`}>Open example</Link>
+          </div>
+        )}
       </div>
     </section>
   )

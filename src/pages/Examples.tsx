@@ -16,11 +16,11 @@ export function ExamplesIndex() {
   const theme = useTheme()
   return (
     <div className="mx-auto max-w-[1280px] px-6 py-10">
-      <h1 className="text-[34px] leading-tight font-semibold head-grad tracking-[-0.035em]">Examples</h1>
+      <h1 className="display text-[34px] sm:text-[44px] text-ink">Examples</h1>
       <p className="mt-3 max-w-2xl text-[16px] leading-7 text-fg-3">Plants assembled from the registry with a single <code className="font-mono text-sm">plant.json</code>. Each one is wired port to port. Use them as starting points or as references for your agent.</p>
       <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
         {[...EXAMPLES].sort(byLevel).map((e) => (
-          <Link key={e.name} href={`/examples/${e.name}`} className="group flex flex-col overflow-hidden rounded-xl border border-border bg-surface transition-[border-color,box-shadow] hover:border-line-strong hover:shadow-[0_8px_24px_-12px_rgb(0_0_0/0.18)]">
+          <Link key={e.name} href={`/examples/${e.name}`} className="group flex flex-col overflow-hidden rounded-lg border border-border bg-surface transition-colors hover:border-line-strong">
             <div className="relative aspect-[16/10] bg-stage">
               <img src={thumb(`plant-${e.name}`, theme)} alt="" className="h-full w-full object-cover" onError={(ev) => (ev.currentTarget.style.visibility = 'hidden')} />
               <LevelBadge level={level(e.spec, e.name)} />
@@ -55,16 +55,16 @@ export function ExamplePage({ name }: { name: string }) {
         <span className="text-faint">/</span>
         <span>{ex.name}</span>
       </nav>
-      <h1 className="text-[28px] leading-tight font-semibold head-grad tracking-[-0.035em]">{ex.spec.name}</h1>
+      <h1 className="display text-[30px] sm:text-[36px] text-ink">{ex.spec.name}</h1>
       <p className="mt-2 max-w-3xl text-[16px] text-fg-3">
         <RichText text={ex.spec.description ?? ''} />
       </p>
       <div className="mt-5 grid grid-cols-1 gap-5 lg:grid-cols-[minmax(0,1fr)_420px]">
-        <div className="relative h-[420px] overflow-hidden sm:h-[620px] rounded-xl border border-border shadow-sm">
+        <div className="relative h-[420px] overflow-hidden sm:h-[620px] rounded-lg border border-border">
           <ClientPlant spec={ex.spec} labels={labels} env={env} onIssues={setIssues} className="absolute inset-0" />
           <div className="absolute top-3 right-3 flex items-center gap-2">
             {ex.spec.sea && (
-              <div className="rounded-md bg-surface shadow-sm">
+              <div className="rounded-md bg-surface">
                 <Segmented
                   label="Lighting"
                   value={env}
@@ -77,7 +77,7 @@ export function ExamplePage({ name }: { name: string }) {
                 />
               </div>
             )}
-            <button onClick={() => setLabels((l) => !l)} className="h-9 rounded-md border border-border bg-surface px-2.5 text-xs font-medium text-ink shadow-sm hover:bg-muted">
+            <button onClick={() => setLabels((l) => !l)} className="h-9 rounded-md border border-border bg-surface px-2.5 text-xs font-medium text-ink hover:bg-muted">
               {labels ? 'Hide tags' : 'Show tags'}
             </button>
           </div>
@@ -102,15 +102,15 @@ export function ExamplePage({ name }: { name: string }) {
 }
 
 const LEVEL_STYLE: Record<Level, string> = {
-  Basic: 'bg-black/55 text-white ring-white/15 backdrop-blur-md',
-  Intermediate: 'bg-black/55 text-white ring-white/15 backdrop-blur-md',
+  Basic: 'bg-[#0f1015] text-white ring-white/15',
+  Intermediate: 'bg-[#0f1015] text-white ring-white/15',
   Advanced: 'bg-ink text-on-ink ring-ink',
 }
 
 function LevelBadge({ level }: { level: Level }) {
   const bars = level === 'Basic' ? 1 : level === 'Intermediate' ? 2 : 3
   return (
-    <span className={`absolute top-3 left-3 inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-[12px] font-semibold shadow-sm ring-1 ${LEVEL_STYLE[level]}`}>
+    <span className={`absolute top-3 left-3 inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-[12px] font-semibold ring-1 ${LEVEL_STYLE[level]}`}>
       <span className="flex items-end gap-[2px]" aria-hidden>
         {[0, 1, 2].map((i) => (
           <span key={i} className={`w-[3px] rounded-sm ${i < bars ? 'bg-current' : 'bg-current opacity-25'}`} style={{ height: 5 + i * 3 }} />

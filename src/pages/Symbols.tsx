@@ -12,12 +12,12 @@ export function Symbols() {
   const [tab, setTab] = useQueryState<'legend' | 'components'>('view', LIBRARY.symbols.length ? 'legend' : 'components')
   return (
     <div className="mx-auto max-w-[1440px] px-6 py-10 lg:px-10">
-      <h1 className="text-[34px] leading-tight font-semibold head-grad tracking-[-0.035em]">P&amp;ID symbols</h1>
+      <h1 className="display text-[34px] sm:text-[44px] text-ink">P&amp;ID symbols</h1>
       <p className="mt-2 max-w-3xl text-[15px] leading-7 text-fg-3">
         What each symbol on a P&amp;ID looks like, what it means, and which Deck Twin component it becomes. The conventions are ISO 10628-2 and PIP PIC001 for process, ISA 5.1 for instruments, IEC 60617 for electrical, and NFPA 170 / ISO 7010 for fire &amp; gas. Company legends vary, so read the drawing's own legend sheet first.
       </p>
       <p className="mt-3 text-[13px] text-muted-fg">
-        For agents: <a className="font-medium text-brand hover:underline hover:underline-offset-4" href="/skill/references/pid-legend.md">pid-legend.md</a> · <a className="font-medium text-brand hover:underline hover:underline-offset-4" href="/skill/references/pid-symbols.md">pid-symbols.md</a> · <a className="font-medium text-brand hover:underline hover:underline-offset-4" href="/r/pid-library.json">pid-library.json</a> · <a className="font-medium text-brand hover:underline hover:underline-offset-4" href="/symbols/legend.svg">legend.svg</a>
+        For agents: <a className="font-medium text-brand hover:underline hover:underline-offset-4" href="/skill/references/pid-legend.md">pid-legend.md</a>, <a className="font-medium text-brand hover:underline hover:underline-offset-4" href="/skill/references/pid-symbols.md">pid-symbols.md</a>, <a className="font-medium text-brand hover:underline hover:underline-offset-4" href="/r/pid-library.json">pid-library.json</a>, <a className="font-medium text-brand hover:underline hover:underline-offset-4" href="/symbols/legend.svg">legend.svg</a>
       </p>
       <div className="mt-6 flex gap-1 border-b border-border">
         {LIBRARY.symbols.length > 0 && (
@@ -78,14 +78,14 @@ function Legend() {
         <div>
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5">
             {shown.map((x) => (
-              <button key={x.id} onClick={() => open(x)} className={`rounded-xl border p-3 text-left light:bg-surface transition-[border-color,box-shadow] hover:border-line-strong hover:shadow-[0_8px_24px_-12px_rgb(0_0_0/0.18)] ${sel?.id === x.id ? 'border-ink ring-1 ring-ink' : 'border-border'}`}>
+              <button key={x.id} onClick={() => open(x)} className={`rounded-lg border p-3 text-left light:bg-surface transition-colors hover:border-line-strong ${sel?.id === x.id ? 'border-ink ring-1 ring-ink' : 'border-border'}`}>
                 <div className="flex aspect-[4/3] items-center justify-center p-2">
                   <img src={librarySymbolUrl(x.svg)} alt="" className="sym max-h-full max-w-full" />
                 </div>
                 <div className="mt-2 text-[13px] leading-5 font-medium">{x.name}</div>
                 <div className="mt-0.5 flex items-center gap-1.5 text-[11px] text-muted-fg">
                   {has3d(x) ? <span className="rounded bg-ink px-1 font-semibold text-on-ink">3D</span> : !x.physical ? <span className="rounded bg-hover px-1">logical</span> : null}
-                  <span className="truncate">{[...(x.tags ?? []), ...(x.isa ?? [])].join(' · ')}</span>
+                  <span className="truncate">{[...(x.tags ?? []), ...(x.isa ?? [])].join(', ')}</span>
                 </div>
               </button>
             ))}
@@ -97,7 +97,7 @@ function Legend() {
             </div>
           )}
         </div>
-        <aside className="hidden flex-col overflow-hidden rounded-xl border border-border bg-surface lg:sticky lg:flex lg:top-[8.5rem] lg:h-[calc(100vh-10rem)]">
+        <aside className="hidden flex-col overflow-hidden rounded-lg border border-border bg-surface lg:sticky lg:flex lg:top-[8.5rem] lg:h-[calc(100vh-10rem)]">
           {sel ? (
             <SymbolDetail sel={sel} />
           ) : (
@@ -133,11 +133,11 @@ function SymbolDetail({ sel, page }: { sel: LibrarySymbol; page?: boolean }) {
             </ul>
           </Field>
         ) : null}
-        {sel.tags?.length || sel.isa?.length ? <Field label="Tags">{[...(sel.tags ?? []), ...(sel.isa ?? [])].join(' · ')}</Field> : null}
+        {sel.tags?.length || sel.isa?.length ? <Field label="Tags">{[...(sel.tags ?? []), ...(sel.isa ?? [])].join(', ')}</Field> : null}
       </div>
       <div className="shrink-0 border-t border-border p-4">
         {sel.component && BY_NAME.get(sel.component) ? (
-          <Link href={`/components/${sel.component}`} className="block truncate rounded-full bg-ink px-3 py-2 text-center text-[13px] font-semibold text-on-ink transition-colors hover:bg-ink-2">
+          <Link href={`/components/${sel.component}`} className="block truncate rounded-md bg-ink px-3 py-2 text-center text-[13px] font-semibold text-on-ink transition-colors hover:bg-ink-2">
             Open the 3D component: {BY_NAME.get(sel.component)!.title}
           </Link>
         ) : (
@@ -157,7 +157,7 @@ export function SymbolPage({ id }: { id: string }) {
     <div className="mx-auto max-w-[720px] px-6 py-6 lg:py-10">
       <Crumbs items={[{ label: 'P&ID symbols', href: '/symbols' }, ...(cat ? [{ label: cat.title, href: `/symbols?category=${cat.id}` }] : []), { label: sel?.name ?? 'Not found' }]} />
       {sel ? (
-        <div className="flex flex-col overflow-hidden rounded-xl border border-border bg-surface">
+        <div className="flex flex-col overflow-hidden rounded-lg border border-border bg-surface">
           <SymbolDetail sel={sel} page />
         </div>
       ) : (
@@ -183,12 +183,12 @@ function ByComponent() {
               {items.map((i) => {
                 const e = PID[i.name]
                 return (
-                  <Link key={i.name} href={`/components/${i.name}`} className="group rounded-xl border border-border p-3 light:bg-surface transition-[border-color,box-shadow] hover:border-line-strong hover:shadow-[0_8px_24px_-12px_rgb(0_0_0/0.18)]">
+                  <Link key={i.name} href={`/components/${i.name}`} className="group rounded-lg border border-border p-3 light:bg-surface transition-colors hover:border-line-strong">
                     <div className="flex aspect-[4/3] items-center justify-center p-2">
                       <img src={symbolUrl(e)} alt="" className="sym max-h-full max-w-full" />
                     </div>
                     <div className="mt-2 text-[13px] font-medium">{i.title}</div>
-                    <div className="mt-0.5 truncate font-mono text-[11px] text-muted-fg">{[...(e.tags ?? []), ...(e.isa ?? [])].join(' · ')}</div>
+                    <div className="mt-0.5 truncate font-mono text-[11px] text-muted-fg">{[...(e.tags ?? []), ...(e.isa ?? [])].join(', ')}</div>
                   </Link>
                 )
               })}

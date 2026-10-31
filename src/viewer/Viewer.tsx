@@ -98,7 +98,7 @@ function Unavailable({ className, error, retry }: { className?: string; error: E
         <code className="max-w-md truncate rounded bg-white/10 px-2 py-0.5 font-mono text-[11px] text-white/60" title={probe?.reason || error.message}>
           {probe?.reason || error.message}
         </code>
-        <button onClick={retry} className="mt-2 inline-flex h-8 items-center rounded-full bg-white px-4 text-[13px] font-medium text-[#0e0f13] hover:bg-white/90">
+        <button onClick={retry} className="mt-2 inline-flex h-8 items-center rounded-md bg-white px-4 text-[13px] font-medium text-[#0e0f13] hover:bg-white/90">
           Try again
         </button>
       </div>

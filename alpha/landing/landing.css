@@ -384,7 +384,7 @@ h1 {
 /* the whole capability list, as one sentence at display size; each phrase jumps to its clip */
 .verbs {
   width: var(--page);
-  margin: clamp(72px, 10vw, 136px) auto 0;
+  margin: clamp(88px, 11vw, 152px) auto 0;
   color: var(--muted);
   font-family: 'Archivo Variable', 'Inter Variable', sans-serif;
   font-size: clamp(38px, 6.4vw, 96px);
@@ -409,7 +409,7 @@ h1 {
 .block {
   width: var(--page);
   margin: 0 auto;
-  padding-top: clamp(88px, 13vw, 168px);
+  padding-top: clamp(112px, 15vw, 208px);
 }
 .lead {
   max-width: 44rem;
@@ -433,32 +433,26 @@ figure img {
 }
 figcaption {
   max-width: 44ch;
-  margin-top: 16px;
+  margin-top: 24px;
   color: var(--muted);
   font-size: 16px;
   line-height: 1.45;
 }
 figcaption h3 {
-  margin-bottom: 6px;
+  margin-bottom: 10px;
   font-size: clamp(23px, 2.2vw, 30px);
   line-height: 1.1;
 }
 
-/* one clip edge to edge, then three stepping down the page */
+/* one clip edge to edge, then three in a row */
 .mosaic {
   display: grid;
   grid-template-columns: repeat(6, 1fr);
-  gap: 56px 20px;
-  margin-top: 56px;
+  gap: clamp(64px, 8vw, 112px) 32px;
+  margin-top: clamp(56px, 7vw, 96px);
 }
 .mosaic figure {
   grid-column: span 2;
-}
-.mosaic figure:nth-child(3) {
-  margin-top: 56px;
-}
-.mosaic figure:nth-child(4) {
-  margin-top: 112px;
 }
 .mosaic .wide,
 .full {
@@ -475,22 +469,22 @@ figcaption h3 {
   margin-inline: calc((100vw - var(--page)) / 2);
 }
 .full {
-  margin-top: 56px;
+  margin-top: clamp(56px, 7vw, 96px);
 }
 .pair {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 32px 20px;
-  margin-top: 32px;
+  gap: 56px 32px;
+  margin-top: clamp(64px, 8vw, 112px);
 }
 .pair.offset {
-  margin-top: 56px;
+  margin-top: clamp(56px, 7vw, 96px);
 }
 
 /* the one loud thing: a pinned screen on the orange sheet, following the upset as the steps scroll past it */
 .incident {
-  margin-top: clamp(96px, 14vw, 176px);
-  padding: clamp(72px, 9vw, 120px) 0 clamp(40px, 6vw, 80px);
+  margin-top: clamp(112px, 15vw, 208px);
+  padding: clamp(88px, 10vw, 144px) 0 clamp(56px, 7vw, 96px);
   background: var(--signal);
   color: var(--sheet-ink);
 }
@@ -601,7 +595,7 @@ figcaption h3 {
 }
 
 .close {
-  margin-top: clamp(96px, 14vw, 176px);
+  margin-top: clamp(112px, 15vw, 208px);
 }
 .close-film {
   aspect-ratio: 21 / 9;
@@ -721,14 +715,11 @@ figcaption h3 {
   }
   .mosaic {
     grid-template-columns: 1fr;
-    gap: 36px;
-    margin-top: 36px;
+    gap: 56px;
+    margin-top: 44px;
   }
-  .mosaic figure,
-  .mosaic figure:nth-child(3),
-  .mosaic figure:nth-child(4) {
+  .mosaic figure {
     grid-column: auto;
-    margin-top: 0;
   }
   .mosaic .wide video,
   .full img {
@@ -736,7 +727,8 @@ figcaption h3 {
   }
   .pair {
     grid-template-columns: 1fr;
-    gap: 24px;
+    gap: 48px;
+    margin-top: 48px;
   }
   .story {
     display: block;

@@ -43,7 +43,7 @@ function Detail({ item }: { item: Item }) {
     <div className="mx-auto max-w-[1180px] px-6 py-10 lg:px-10">
       <Crumbs items={[{ label: 'Components', href: '/components' }, { label: cat.title, href: `/components?category=${cat.id}` }, { label: item.title }]} />
       <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-3">
-        <h1 className="text-[34px] leading-tight font-semibold head-grad tracking-[-0.035em]">{item.title}</h1>
+        <h1 className="display text-[34px] sm:text-[44px] text-ink">{item.title}</h1>
         <div className="flex shrink-0 gap-2">
           <CopyMarkdown md={md} />
           <ViewMarkdown href={`/r/${item.name}.md`} />
@@ -80,7 +80,7 @@ function Detail({ item }: { item: Item }) {
           }
         />
         {tab === 'preview' ? (
-          <div className="mt-5 grid overflow-hidden rounded-xl border border-border shadow-[0_1px_2px_rgb(0_0_0/0.04)] lg:grid-cols-[1fr_288px]">
+          <div className="mt-5 grid overflow-hidden rounded-lg border border-border lg:grid-cols-[1fr_288px]">
             <div className="relative h-[460px] lg:h-[600px]">
               {Comp && (
                 <Viewer className="absolute inset-0" ports={ports} showPorts={showPorts} fitKey={`${item.name}-${fit}`} onBounds={setBounds} env={item.viewer?.env} view={item.viewer?.view} frame={item.viewer?.frame}>
@@ -88,7 +88,7 @@ function Detail({ item }: { item: Item }) {
                 </Viewer>
               )}
               {bounds && (
-                <div className="dark-zone pointer-events-none absolute bottom-3 left-3 rounded-md bg-black/75 px-2.5 py-1.5 font-mono text-[11.5px] text-white shadow-sm">
+                <div className="dark-zone pointer-events-none absolute bottom-3 left-3 rounded-md bg-black/75 px-2.5 py-1.5 font-mono text-[11.5px] text-white">
                   {bounds.size[0].toFixed(2)} × {bounds.size[2].toFixed(2)} × {bounds.size[1].toFixed(2)} m <span className="text-fg-3">L × W × H</span>
                 </div>
               )}
@@ -149,7 +149,7 @@ function Detail({ item }: { item: Item }) {
         <>
           <H2>Typical suppliers</H2>
           <p className="text-[13px] text-muted-fg">
-            {item.vendors.join(' · ')}. The geometry is generic and sized from public standards. It is not vendor CAD.
+            {item.vendors.join(', ')}. The geometry is generic and sized from public standards. It is not vendor CAD.
           </p>
         </>
       ) : null}
@@ -212,7 +212,7 @@ function PidSection({ name }: { name: string }) {
   return (
     <>
       <H2>P&amp;ID</H2>
-      <div className="grid gap-5 rounded-xl border border-border bg-surface p-5 sm:grid-cols-[180px_1fr]">
+      <div className="grid gap-5 rounded-lg border border-border bg-surface p-5 sm:grid-cols-[180px_1fr]">
         <div className="flex aspect-square items-center justify-center rounded-lg border border-border bg-surface p-4">{url && <img src={url} alt={`P&ID symbol for ${name}`} className="sym max-h-full max-w-full" />}</div>
         <div className="space-y-3 text-[14px]">
           <p className="leading-6 text-fg-2">{e.drawn}</p>

@@ -370,7 +370,7 @@ function SidebarPanel({ drawer = false }: { drawer?: boolean }) {
 function ThemePicker() {
   const theme = useTheme()
   const opt = (t: Theme, label: string, icon: ReactNode) => (
-    <button onClick={() => setTheme(t)} aria-label={label} aria-pressed={theme === t} title={label} className={`flex h-7 w-7 items-center justify-center rounded-md transition-colors ${theme === t ? 'bg-surface text-ink shadow-[0_1px_2px_rgb(0_0_0/0.12)] ring-1 ring-border' : 'text-muted-fg hover:text-ink'}`}>
+    <button onClick={() => setTheme(t)} aria-label={label} aria-pressed={theme === t} title={label} className={`flex h-7 w-7 items-center justify-center rounded-md transition-colors ${theme === t ? 'bg-surface text-ink ring-1 ring-border' : 'text-muted-fg hover:text-ink'}`}>
       {icon}
     </button>
   )
@@ -509,8 +509,8 @@ function SearchDialog() {
     <>
       {open &&
         createPortal(
-          <div className="fixed inset-0 z-[2147483000] flex items-start justify-center bg-black/60 p-4 pt-[18vh] backdrop-blur-sm light:bg-[rgb(16_18_27/0.28)]" onClick={() => setOpen(false)}>
-            <div className="w-full max-w-xl overflow-hidden rounded-xl border border-border bg-panel shadow-[0_24px_64px_-16px_rgb(0_0_0/0.7)] light:shadow-[0_24px_64px_-16px_rgb(16_18_27/0.3)]" onClick={(e) => e.stopPropagation()}>
+          <div className="fixed inset-0 z-[2147483000] flex items-start justify-center bg-black/60 p-4 pt-[18vh] light:bg-[rgb(16_18_27/0.28)]" onClick={() => setOpen(false)}>
+            <div className="w-full max-w-xl overflow-hidden rounded-lg border border-border bg-panel shadow-[0_24px_64px_-16px_rgb(0_0_0/0.7)] light:shadow-[0_24px_64px_-16px_rgb(16_18_27/0.3)]" onClick={(e) => e.stopPropagation()}>
               <input
                 autoFocus
                 value={q}

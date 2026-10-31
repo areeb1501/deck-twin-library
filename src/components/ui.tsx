@@ -14,7 +14,7 @@ export function CopyButton({ text, className = '' }: { text: string; className?:
         setDone(true)
         setTimeout(() => setDone(false), 1400)
       }}
-      className={`rounded-md border border-border bg-surface px-2 py-1 text-xs font-medium text-muted-fg shadow-sm transition-colors hover:text-ink ${className}`}
+      className={`rounded-md border border-border bg-surface px-2 py-1 text-xs font-medium text-muted-fg transition-colors hover:text-ink ${className}`}
     >
       {done ? 'Copied' : 'Copy'}
     </button>
@@ -35,7 +35,7 @@ export function Code({ code, lang = 'tsx', className = '', maxHeight, dark }: { 
 
 export function Command({ cmd }: { cmd: string }) {
   return (
-    <div className="flex items-center gap-3 rounded-lg bg-code py-2.5 pr-2.5 pl-4 font-mono text-[13px] text-fg shadow-sm ring-1 ring-border">
+    <div className="flex items-center gap-3 rounded-lg bg-code py-2.5 pr-2.5 pl-4 font-mono text-[13px] text-fg ring-1 ring-border">
       <span className="text-signal">$</span>
       <span className="min-w-0 flex-1 overflow-x-auto whitespace-nowrap [mask-image:linear-gradient(to_right,#000_calc(100%-28px),transparent)] pr-6">{cmd}</span>
       <CopyButton text={cmd} className="border-border bg-hover text-fg-2 shadow-none hover:bg-track hover:text-ink" />
@@ -166,7 +166,7 @@ export function Segmented<T extends string>({ value, onChange, label, options }:
             role="radio"
             aria-checked={on}
             onClick={() => onChange(o.value)}
-            className={`flex h-full items-center gap-1.5 rounded-[5px] px-2.5 text-[13px] font-medium whitespace-nowrap transition-colors ${on ? 'bg-hover text-ink shadow-[inset_0_1px_0_rgb(255_255_255/0.06)] light:bg-surface light:shadow-[0_1px_2px_rgb(16_18_27/0.1),0_0_0_1px_rgb(16_18_27/0.06)]' : 'text-muted-fg hover:text-ink'}`}
+            className={`flex h-full items-center gap-1.5 rounded-[5px] px-2.5 text-[13px] font-medium whitespace-nowrap transition-colors ${on ? 'bg-hover text-ink light:bg-surface light:ring-1 light:ring-border' : 'text-muted-fg hover:text-ink'}`}
           >
             {o.label}
             {o.count !== undefined && <span className={`text-[12px] tabular-nums ${on ? 'text-muted-fg' : 'text-fg-3'}`}>{o.count}</span>}
