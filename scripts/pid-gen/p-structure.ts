@@ -27,7 +27,7 @@ export default {
     svg: svg('0 0 100 150', R(20, 6, 60, 138) + [24, 40, 56, 72, 88, 104, 120].map((y) => P(`M20 ${y}h60`, THIN)).join('') + P('M50 132V22') + P('M42 32l8-12 8 12') + T(70, 24, 'UP', 11)),
     e: {
       standard: LAY + '; ISO 14122-3',
-      drawn: 'Plan view: a rectangle filled with parallel tread lines and an arrow along it labelled UP (or DN), often with a break line half-way.',
+      drawn: 'Plan view: a rectangle filled with parallel tread lines and an arrow along it labelled UP (or DN), often with a break line halfway.',
       tags: ['ST'],
       notes: 'Rungs at close spacing with a circle around them is a caged ladder seen in plan. Not on P&IDs.',
     },

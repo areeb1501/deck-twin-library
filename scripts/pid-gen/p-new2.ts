@@ -9,7 +9,7 @@ export default {
     svg: svg('0 0 160 120', pipe(50) + P('M50 44l36-14V8h16v104H86V90L50 76') + P('M48 40v8M48 72v8', THIN)),
     e: {
       standard: FLG,
-      drawn: 'In section: a flange disc with a long tapered hub narrowing to the pipe wall and a butt weld at the hub end. On P&IDs just a short bar across the line; on isometrics a bar with a weld dot.',
+      drawn: 'In section: a flange disc with a long tapered hub narrowing to the pipe wall and a butt weld at the hub end. On P&IDs only a short bar across the line; on isometrics a bar with a weld dot.',
       tags: ['WN'],
       notes: 'The flange type comes from the piping class, not the P&ID. The long taper identifies weld-neck; slip-on and socket-weld have short hubs; lap-joint has a loose ring on a stub end.',
       datasheet: { form: 'Piping class / flange bill of materials (ASME B16.5 / B16.47)', fields: flgFields({ Facing: 'facing', 'Bore (schedule)': 'schedule' }) },
@@ -69,7 +69,7 @@ export default {
     svg: svg('0 0 160 110', P('M4 80h152M4 104h152') + P('M58 80l10-20h24l10 20') + P('M70 60V8M90 60V8') + P('M66 8h28', THIN)),
     e: {
       standard: 'ISO 10628-2 branch connection / MSS SP-97 (isometric detail)',
-      drawn: 'On P&IDs a branch is just a line meeting another line with a dot (like a tee); on isometrics a branch outlet is a small saddle-shaped boss on the run pipe with the branch rising from it, noted WOL, SOL, TOL, NOL, EOL or LOL.',
+      drawn: 'On P&IDs a branch is a line meeting another line with a dot (like a tee); on isometrics a branch outlet is a small saddle-shaped boss on the run pipe with the branch rising from it, noted WOL, SOL, TOL, NOL, EOL or LOL.',
       tags: ['WOL', 'SOL', 'TOL', 'NOL', 'EOL', 'LOL'],
       notes: 'P&IDs do not distinguish an olet from a tee: the piping class branch table decides (small branches off large runs are olets). Instrument connections and vents and drains are usually olets.',
       datasheet: { form: 'Piping class branch table / bill of materials (MSS SP-97)', fields: { 'Olet type': 'kind', 'Run size': 'runNps', 'Branch size': 'nps', 'Run schedule': 'runSchedule', 'Branch schedule': 'schedule', 'Pressure class': 'pressureClass', 'Branch end': 'end' } },

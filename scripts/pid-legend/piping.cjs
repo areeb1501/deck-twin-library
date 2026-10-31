@@ -32,7 +32,7 @@ S({ id: 'reducer-eccentric-fob', name: 'Eccentric reducer, flat on bottom (FOB)'
 const flanges = (x1, x2, y = 70, h = 20) => p(`M${x1} ${y - h}V${y + h}M${x2} ${y - h}V${y + h}`)
 S({ id: 'spectacle-blind-open', name: 'Spectacle blind, open (spacer in line)', cat: 'fittings', std: STD_F + ' / ASME B16.48', component: 'spectacle-blind', physical: true, tags: ['SB'],
   drawn: 'A figure-8 between two flange bars: the open ring sits on the pipe, and the solid (filled) blank sits off the line.',
-  meaning: 'Spectacle blind in the open position: flow passes through the ring. It is turned to the closed position for positive isolation during maintenance. Becomes spectacle-blind.',
+  meaning: 'Spectacle blind in the open position: flow passes through the ring. It is turned to the closed position for positive isolation during maintenance. Maps to the spectacle-blind component.',
   variants: ['Some legends write "NO" (normally open) beside it', 'Spectacle blinds in plant isolations are often marked NO / NC', 'The offset form (figure-8 beside the flange pair on a short stem) means the same thing: see spectacle-blind-offset'],
   svg: svg(140, 100, p('M4 70H136') + flanges(60, 80) + c(70, 70, 11, W) + p('M4 70H59M81 70H136') + p('M70 59V38') + c(70, 26, 12, B)) })
 
@@ -44,7 +44,7 @@ S({ id: 'spectacle-blind-closed', name: 'Spectacle blind, closed (blank in line)
 
 S({ id: 'spectacle-blind-offset', name: 'Spectacle blind, offset figure-8 (drawn beside the flanges)', cat: 'fittings', std: STD_F + ' / ASME B16.48', component: 'spectacle-blind', physical: true, tags: ['SB'],
   drawn: 'A flange pair (two short bars) on the line, with a figure-8 drawn off to one side and joined to the flanges by a short stem. The circle next to the stem is the half installed in the line; the far circle is the spare half. The blank half may be filled, hatched or drawn as concentric circles; the ring half is a plain open circle.',
-  meaning: 'Spectacle blind between the flanges, drawn beside the line so the pipe stays unbroken. Open ring next to the stem = open (NO); blank next to the stem = closed (NC). The line size (e.g. 4") is usually written beside it. Becomes spectacle-blind with state set from the half next to the stem.',
+  meaning: 'Spectacle blind between the flanges, drawn beside the line so the pipe stays unbroken. Open ring next to the stem = open (NO); blank next to the stem = closed (NC). The line size (e.g. 4") is usually written beside it. Maps to the spectacle-blind component with state set from the half next to the stem.',
   variants: ['Some legends draw both halves as plain circles and write NO / NC beside it', 'Look-alike: a plain flange pair has no figure-8; do not drop the blind', 'Look-alike: a single open circle on a stem at a flange pair is a spacer ring; a single solid paddle is a spade'],
   svg: svg(150, 120, p('M110 4V116') + p('M92 52H128M92 68H128') + c(68, 60, 9) + p('M77 60H92') + c(38, 60, 13) + c(38, 60, 8) + c(38, 60, 3)) })
 
@@ -62,13 +62,13 @@ S({ id: 'spacer', name: 'Spacer (ring spacer)', cat: 'fittings', std: STD_F + ' 
 
 S({ id: 'blind-flange', name: 'Blind flange', cat: 'fittings', std: STD_F + ' / ASME B16.5', component: 'blind-flange', physical: true, tags: [],
   drawn: 'The pipe ends at a flange bar followed by a thicker solid bar.',
-  meaning: 'Bolted blind on the end of a line or a spare nozzle. Becomes blind-flange.',
+  meaning: 'Bolted blind on the end of a line or a spare nozzle. Maps to the blind-flange component.',
   variants: ['Some legends draw two parallel bars with the outer one thicker', 'Look-alike: pipe cap (a small half-round at the end, welded)'],
   svg: svg(100, 60, p('M4 30H70') + p('M70 12V48') + r(75, 12, 7, 36, B)) })
 
 S({ id: 'flange-pair', name: 'Flanged joint', cat: 'fittings', std: STD_F + ' / ASME B16.5', component: 'flanged-joint', physical: true, tags: [],
   drawn: 'Two short parallel bars across the pipe, close together.',
-  meaning: 'Bolted flange connection, usually shown only where it matters: equipment nozzles, spool breaks, spec breaks and maintenance breaks. Becomes flanged-joint.',
+  meaning: 'Bolted flange connection, usually shown only where it matters: equipment nozzles, spool breaks, spec breaks and maintenance breaks. Maps to the flanged-joint component.',
   variants: ['A single bar is a flange face at an equipment nozzle', 'Look-alike: union has a shorter third bar in the middle', 'Look-alike: a flange pair with a figure-8 drawn beside it on a short stem is a spectacle blind (spectacle-blind-offset), not a plain joint'],
   svg: svg(120, 60, p('M4 30H56M64 30H116') + p('M56 14V46M64 14V46')) })
 
@@ -81,30 +81,30 @@ S({ id: 'pipe-cap', name: 'Pipe cap', cat: 'fittings', std: STD_F + ' / ASME B16
 S({ id: 'union', name: 'Union', cat: 'fittings', std: STD_F, physical: true, tags: [],
   drawn: 'Two short bars across the pipe with a shorter third bar between them.',
   meaning: 'Threaded union, used on small-bore lines (instrument air, chemical injection, tubing) to allow disconnection. No dedicated component.',
-  variants: ['Legends differ: some show "||" with a small gap, others write "U"', 'Hammer (wing) unions on well-test and temporary lines become hammer-union; threaded small-bore unions are part of small-bore-fitting work'],
+  variants: ['Legends differ: some show "||" with a small gap, others write "U"', 'Hammer (wing) unions on well-test and temporary lines map to the hammer-union component; threaded small-bore unions are part of small-bore-fitting work'],
   svg: svg(120, 60, p('M4 30H52M68 30H116') + p('M52 16V44M68 16V44') + p('M60 22V38')) })
 
 S({ id: 'flexible-hose', component: 'flexible-hose', name: 'Flexible hose', cat: 'fittings', std: STD_F, physical: true, tags: ['FH'],
   drawn: 'A wavy line between two short end bars.',
-  meaning: 'Flexible hose or hose assembly: loading hoses, temporary connections, vibrating equipment hook-ups, and HPU or chemical hoses. Becomes flexible-hose.',
+  meaning: 'Flexible hose or hose assembly: loading hoses, temporary connections, vibrating equipment hook-ups, and HPU or chemical hoses. Maps to the flexible-hose component.',
   variants: ['Some legends draw a loop or a zig-zag', 'Bunkering and loading hoses may carry a breakaway coupling mark'],
   svg: svg(120, 60, p('M4 30H28M100 30H116') + p('M28 18V42M100 18V42') + p('M28 30c6-12 18-12 24 0s18 12 24 0 18-12 24 0')) })
 
 S({ id: 'expansion-joint', component: 'expansion-joint', name: 'Expansion joint (bellows)', cat: 'fittings', std: STD_F, physical: true, tags: ['EJ'],
   drawn: 'A zig-zag bellows drawn above and below the pipe between two flange bars.',
-  meaning: 'Metallic or rubber bellows that absorbs thermal movement or vibration: exhaust ducts, seawater pump discharges and flare headers. Becomes expansion-joint.',
+  meaning: 'Metallic or rubber bellows that absorbs thermal movement or vibration: exhaust ducts, seawater pump discharges and flare headers. Maps to the expansion-joint component.',
   variants: ['Rubber expansion joints may be drawn as a bulged section'],
   svg: svg(120, 60, p('M4 30H36M84 30H116') + p('M36 12V48M84 12V48') + p('M36 20l6-6 6 6 6-6 6 6 6-6 6 6 6-6 6 6M36 40l6 6 6-6 6 6 6-6 6 6 6-6 6 6 6-6')) })
 
 S({ id: 'strainer-y', name: 'Y-strainer', cat: 'fittings', std: STD_F, component: 'y-strainer', physical: true, tags: ['S', 'STR'],
   drawn: 'A leg slanting down from the pipe at about 45°, with a dashed screen line inside and a cap at its end.',
-  meaning: 'Permanent in-line strainer protecting pumps, control valves and meters. Often has a DP gauge across it. Becomes y-strainer.',
+  meaning: 'Permanent in-line strainer protecting pumps, control valves and meters. Often has a DP gauge across it. Maps to the y-strainer component.',
   variants: ['Some legends draw a plain diagonal line with a dashed screen', 'A blow-off valve may be drawn on the cap'],
   svg: svg(120, 80, p('M4 30H116') + p('M50 30L72 64M64 30L86 64') + p('M68 68H90') + p('M57 32L79 64', dash('4 3') + ' ' + thin(1.6))) })
 
 S({ id: 'strainer-basket', name: 'Basket (T-type) strainer', cat: 'fittings', std: STD_F, component: 'basket-strainer', physical: true, tags: ['S', 'STR'],
   drawn: 'A rectangle hanging below the line with a cover bar on top and a dashed U (the basket) inside.',
-  meaning: 'Large-capacity strainer for pump suctions and seawater systems. Duplex units have two baskets and a changeover. T-type strainers are drawn the same way. Becomes basket-strainer.',
+  meaning: 'Large-capacity strainer for pump suctions and seawater systems. Duplex units have two baskets and a changeover. T-type strainers are drawn the same way. Maps to the basket-strainer component.',
   variants: ['Duplex: two baskets side by side with a 3-way changeover valve', 'Some legends draw a circle with a dashed screen'],
   svg: svg(120, 80, p('M4 22H40M80 22H116') + p('M36 14H84') + p('M40 14V68H80V14') + p('M48 22V58H72V22', dash('4 3') + ' ' + thin(1.6))) })
 
@@ -116,37 +116,37 @@ S({ id: 'strainer-temporary', name: 'Temporary (cone) strainer', cat: 'fittings'
 
 S({ id: 'steam-trap', component: 'steam-trap', name: 'Steam trap', cat: 'fittings', std: STD_F, physical: true, tags: ['ST', 'TR'],
   drawn: 'A small circle on the line with "T" inside.',
-  meaning: 'Lets condensate out of a steam line or tracer while holding steam back. Seen at the end of steam tracers and on steam-line drip legs. Becomes steam-trap.',
+  meaning: 'Lets condensate out of a steam line or tracer while holding steam back. Seen at the end of steam tracers and on steam-line drip legs. Maps to the steam-trap component.',
   variants: ['ISO-style legends draw a square on its corner with a filled dot', 'Some write "ST" next to a small square'],
   svg: svg(120, 60, p('M4 30H46M74 30H116') + c(60, 30, 14) + t(60, 35, 14, 'T')) })
 
 S({ id: 'sight-glass', component: 'sight-glass', name: 'Sight glass (sight flow indicator)', cat: 'fittings', std: STD_F, physical: true, tags: ['SG', 'FG'], isa: ['FG'],
   drawn: 'Two concentric circles on the line (a viewing window).',
-  meaning: 'In-line window to see that liquid is flowing: pump seal flush, lube oil, chemical injection. ISA calls it FG (flow glass). Becomes sight-glass.',
+  meaning: 'In-line window to see that liquid is flowing: pump seal flush, lube oil, chemical injection. ISA calls it FG (flow glass). Maps to the sight-glass component.',
   variants: ['Some legends draw a circle with two short vertical bars', 'ISA style: a bubble with FG', 'A level gauge glass on a vessel is LG, not this'],
   svg: svg(120, 60, p('M4 30H44M76 30H116') + c(60, 30, 16) + c(60, 30, 8)) })
 
 S({ id: 'restriction-orifice', component: 'restriction-orifice', name: 'Restriction orifice', cat: 'fittings', std: STD_F + ' / ISA 5.1 (FO)', physical: true, tags: ['RO', 'FO'], isa: ['FO', 'RO'],
   drawn: 'An orifice plate between two flange bars (a bar across the pipe with a gap in the middle), labelled "RO" or with an FO bubble.',
-  meaning: 'Fixed plate that limits flow: after blowdown valves, on minimum-flow lines and on purge connections. It is not a meter, so there are no dp taps. Becomes restriction-orifice.',
+  meaning: 'Fixed plate that limits flow: after blowdown valves, on minimum-flow lines and on purge connections. It is not a meter, so there are no dp taps. Maps to the restriction-orifice component.',
   variants: ['Multi-stage ROs are drawn as several plates in series', 'Look-alike: orifice flow element (FE) has dp tap lines to a transmitter'],
   svg: svg(120, 72, p('M4 30H116') + p('M52 12V48M68 12V48') + p('M60 14V26M60 34V46', thin(3)) + t(60, 66, 12, 'RO')) })
 
 S({ id: 'insulating-joint', component: 'insulating-joint', name: 'Insulating joint (monolithic)', cat: 'fittings', std: STD_F + ' / ISO 15589-1 (cathodic protection)', physical: true, tags: ['IJ'],
   drawn: 'A short rectangle on the line with diagonal hatching inside, sometimes labelled "IJ".',
-  meaning: 'Electrically isolates a pipeline (cathodic protection) from the plant. Seen on risers, export lines and at battery limits. Becomes insulating-joint.',
+  meaning: 'Electrically isolates a pipeline (cathodic protection) from the plant. Seen on risers, export lines and at battery limits. Maps to the insulating-joint component.',
   variants: ['Insulating flange kits: a flange pair with a thick bar between them', 'Some legends draw two flange bars with a small gap'],
   svg: svg(120, 60, p('M4 30H44M76 30H116') + r(44, 18, 32, 24) + p('M48 42l16-24M60 42l16-24M44 30l8-12', thin(1.6))) })
 
 S({ id: 'drain-funnel', component: 'drain-hub', name: 'Drain funnel (tundish)', cat: 'fittings', std: STD_F, physical: true, tags: ['OD', 'TD'],
   drawn: 'A drain line ending in the open, just above a V-shaped funnel that leads down to the open drain.',
-  meaning: 'Open drain hub with a visible air break. It collects hydrocarbon-free or open drains into the open-drain system. Becomes drain-hub.',
+  meaning: 'Open drain hub with a visible air break. It collects hydrocarbon-free or open drains into the open-drain system. Maps to the drain-hub component.',
   variants: ['Some legends draw a cup or a small triangle', 'Hazardous open drains must be sealed; look for a seal loop or a P-trap under it'],
   svg: svg(100, 90, p('M50 4V28') + p('M30 38L46 56H54L70 38') + p('M50 56V86')) })
 
 S({ id: 'hose-connection', component: 'utility-station', name: 'Hose connection', cat: 'fittings', std: STD_F, physical: true, tags: ['HC', 'UC'],
   drawn: 'A small isolation valve on a branch that ends in a coupling (a short block with ridges), often marked "HC".',
-  meaning: 'Utility hose connection (utility station: air, nitrogen, water or steam) or a flushing / steam-out connection. A utility station (several hose drops on one post) becomes utility-station; a lone hose connection is listed, not modelled.',
+  meaning: 'Utility hose connection (utility station: air, nitrogen, water or steam) or a flushing / steam-out connection. A utility station (several hose drops on one post) maps to the utility-station component; a lone hose connection is listed, not modelled.',
   variants: ['Quick-connect couplings may be drawn as a small triangle', 'Utility stations are often one symbol with a list of services'],
   svg: svg(120, 60, p('M4 30H30') + bow(44, 30, { w: 14, h: 9 }) + p('M58 30H72') + p('M72 22v16l14-3V25z') + p('M92 24v12M98 24v12', thin(1.6)) + t(98, 54, 11, 'HC')) })
 
@@ -170,7 +170,7 @@ S({ id: 'sample-point', name: 'Sample connection', cat: 'fittings', std: STD_F +
 
 S({ id: 'spec-break', name: 'Piping specification break', cat: 'fittings', std: STD_P, physical: false, tags: [],
   drawn: 'A short bar across the line with the two piping class codes written on either side of it (e.g. A1A | D6A).',
-  meaning: 'Where the piping class (material and pressure rating) changes, usually at a valve or a flange. Not a physical item, but it tells you the rating on each side. Use it for each line\'s spec.',
+  meaning: 'Where the piping class (material and pressure rating) changes, usually at a valve or a flange. Not a physical item, but it gives the rating on each side. Use it for each line\'s spec.',
   variants: ['Some legends use a small diamond or a "Z" across the line', 'Often sits right next to the last valve rated for the higher class'],
   svg: svg(120, 56, p('M4 36H116') + p('M60 22V50', thin(3)) + t(34, 22, 11, 'A1A') + t(86, 22, 11, 'D6A')) })
 
@@ -206,20 +206,20 @@ S({ id: 'flow-arrow', name: 'Flow direction arrow', cat: 'fittings', std: STD_P,
 
 S({ id: 'line-crossing', name: 'Line crossing (no connection)', cat: 'fittings', std: STD_P, physical: false, tags: [],
   drawn: 'Two lines crossing, with one broken (a small gap either side of the other line), or with a small hop (semicircle) over it.',
-  meaning: 'The lines cross on paper only and are not connected. Don\'t make a tee here.',
+  meaning: 'The lines cross on paper only and are not connected. Do not make a tee here.',
   variants: ['Convention: the vertical line is usually the one broken', 'Older drawings use a hop (semicircle)', 'A plain cross with no dot is ambiguous: treat it as no connection unless there is a dot'],
   svg: svg(80, 80, p('M4 40H76') + p('M40 4V30M40 50V76')) })
 
 S({ id: 'line-junction', name: 'Line junction (tee)', cat: 'fittings', std: STD_P, component: 'tee', physical: true, tags: [],
   drawn: 'A branch line meeting a run line in a T, with a solid dot at the junction.',
-  meaning: 'Branch connection: a tee, or a welded branch fitting (olet). A welded branch outlet (weldolet, sockolet) becomes olet. In plant.json, model a tee with the tee component and connect the run ends and the branch port.',
+  meaning: 'Branch connection: a tee, or a welded branch fitting (olet). A welded branch outlet (weldolet, sockolet) maps to the olet component. In plant.json, model a tee with the tee component and connect the run ends and the branch port.',
   variants: ['The dot is often omitted on T junctions (a T cannot be a crossing)', 'Branch size may differ: reducing tee or olet'],
   svg: svg(80, 70, p('M4 50H76') + p('M40 50V6') + c(40, 50, 5, B)) })
 
 S({ id: 'injection-quill', name: 'Injection quill / point', cat: 'fittings', std: STD_F + ' / company legend practice', physical: true, tags: ['IP', 'CI'],
   drawn: 'A small branch entering the pipe (often after a check valve), with its end bent inside the pipe and pointing downstream.',
   meaning: 'Chemical injection point: corrosion inhibitor, scale inhibitor, methanol, demulsifier, biocide. The supply comes from the chemical injection package. Listed, not modelled; the package is chemical-injection-skid.',
-  variants: ['Often drawn just as a small line ending in a dot or an arrow on the main line, with the chemical name', 'A check valve and a double block on the branch are typical'],
+  variants: ['Often drawn only as a small line ending in a dot or an arrow on the main line, with the chemical name', 'A check valve and a double block on the branch are typical'],
   svg: svg(120, 70, p('M4 30H116M4 54H116') + p('M60 4V42H80', thin(2)) + p('M76 38l4 4-4 4', thin(2))) })
 
 S({ id: 'corrosion-probe', name: 'Corrosion probe / coupon', cat: 'fittings', std: 'Company legend practice (ISA-style bubble)', physical: true, tags: ['CP', 'CC', 'CE'], isa: [],
@@ -256,7 +256,7 @@ S({ id: 'line-future', name: 'Future line', cat: 'lines', std: STD_P, physical: 
   svg: lineSample(ln(thin(4) + ' ' + dash('16 8'))) })
 
 S({ id: 'line-existing', name: 'Existing line', cat: 'lines', std: STD_P, physical: true, tags: [],
-  drawn: 'A screened (grey or lighter) line, sometimes labelled "EXISTING" or with a note, on brownfield drawings.',
+  drawn: 'A screened (gray or lighter) line, sometimes labelled "EXISTING" or with a note, on brownfield drawings.',
   meaning: 'Existing pipe that this project does not change. Model it only if the existing plant is in scope.',
   variants: ['Monochrome prints may show existing lines as thin, or hatched, or with an "E" in the line number', 'Check the legend: some brownfield sets reverse this and screen the new work'],
   svg: lineSample(p('M8 20H192', 'stroke="#999" stroke-width="4"')) })
@@ -384,7 +384,7 @@ S({ id: 'interlock', name: 'Interlock / logic diamond', cat: 'connectors', std: 
 
 S({ id: 'note-marker', name: 'Note reference', cat: 'connectors', std: STD_K, physical: false, tags: [],
   drawn: 'A number inside a small hexagon (or a flag or box) with a leader to the item; the note itself is in the notes block.',
-  meaning: 'Points to a drawing note: slopes, no pockets, vendor scope, minimum distances or hold items. Read the note; it often explains things the symbols cannot.',
+  meaning: 'Points to a drawing note: slopes, no pockets, vendor scope, minimum distances or hold items. Read the note; it often explains what the symbols cannot.',
   variants: ['Some companies use a flag or a circle; a hexagon with a number only is a note, while an ISA computer-function hexagon has tag letters'],
   svg: svg(120, 60, p('M14 30L24 14H52L62 30L52 46H24z') + t(38, 36, 16, '3') + p('M62 30H112', thin(1.4))) })
 

@@ -1,9 +1,11 @@
 # Conventions
 
+Deck Twin components use the conventions on this page for units, axes, origins, ports, props, materials, performance and code style.
+
 ## Units and axes
 
-- **Lengths** are in metres. **Pipe sizes** are NPS in inches (`nps: 6`). **Pressure class** is the ASME class (`rating: 600`). **Power** is in kW, apart from `mw` on large drivers. **Angles** are in degrees.
-- **Axes:** +Y is up. The main axis of horizontal equipment runs along +X. Fronts face +Z: control panels, cab doors, ladders.
+- **Lengths** are in metres. **Pipe sizes** are NPS in inches (`nps: 6`). **Pressure class** is the ASME class (`rating: 600`). **Power** is in kW, except `mw` on large drivers. **Angles** are in degrees.
+- **Axes:** +Y is up. The main axis of horizontal equipment runs along +X. Fronts (control panels, cab doors, ladders) face +Z.
 
 ## Origin (anchor)
 
@@ -13,7 +15,7 @@
 | `inline` | Pipe centreline. Port `A` is at -X and `B` at +X. | valves, strainers, spools, inline meters |
 | `fitting` | Body centre, with ports where the geometry needs them | elbows, tees, PSVs, gauges |
 
-Some `base` items legitimately reach below y = 0: caisson pumps, risers and jackets. Their pages say so.
+Some `base` items reach below y = 0 by design: caisson pumps, risers and jackets. Their pages state this.
 
 ## Ports
 
@@ -30,7 +32,7 @@ Some `base` items legitimately reach below y = 0: caisson pumps, risers and jack
 
 ## Materials
 
-Components share one set of PBR materials (`lib/materials.ts`), so a plant with a thousand items still compiles only a few shaders. The materials carry subtle procedural weathering, keyed to world position.
+Components share one set of PBR materials (`lib/materials.ts`), so a plant with a thousand items still compiles only a few shaders. The materials include subtle procedural weathering, keyed to world position.
 
 Paint follows offshore practice:
 
@@ -50,6 +52,6 @@ Use `paint('#hex')` for a custom colour.
 
 ## Code style
 
-- One header line per file says what the item is and which standards it follows.
-- Other comments only where the maths isn't obvious.
+- Each file has one header line that states what the item is and which standards it follows.
+- Other comments appear only where the maths is not obvious.
 - No hidden imports: a component file uses only `react`, `three`, `@react-three/fiber`, `@react-three/drei` and the relative `lib/`.

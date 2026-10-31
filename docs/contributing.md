@@ -1,6 +1,8 @@
 # Adding a component
 
-Each component is one `.tsx` file in a category folder of `registry/`. It also has an entry in that folder's `_meta*.ts`. The file must still compile after someone copies it into their own project, so it imports only these:
+This is the authoring contract for Deck Twin registry components. It covers imports, file structure, origins, ports, geometry, metadata and verification.
+
+Each component is one `.tsx` file in a category folder of `registry/`, with an entry in that folder's `_meta*.ts`. The file must still compile after it is copied into another project, so it imports only these:
 
 - `react`
 - `three` and `three/examples/jsm/*`
@@ -11,9 +13,9 @@ Each component is one `.tsx` file in a category folder of `registry/`. It also h
 
 `npx tsx scripts/build-registry.ts --check` rejects any other import.
 
-## File shape
+## File structure
 
-Start with the gate valve (`registry/valves/gate-valve.tsx`), the pump (`registry/rotating/centrifugal-pump.tsx`) and the separator (`registry/vessels/horizontal-separator.tsx`).
+Use the gate valve (`registry/valves/gate-valve.tsx`), the pump (`registry/rotating/centrifugal-pump.tsx`) and the separator (`registry/vessels/horizontal-separator.tsx`) as starting points.
 
 ```tsx
 // Gate valve: one line saying what it is and the standards it follows.
@@ -111,18 +113,18 @@ Axes: +Y is up, and the main axis of a horizontal item runs along +X. When an it
   When a value comes from a typical design rather than a standard, put `// typical` next to it.
 - Keep the geometry efficient. Use 24–48 radial segments for large cylinders and 8–12 for small rods and bolts. Use no per-frame allocations.
 
-## Realism checklist
+## Component checklist
 
 - Dimensions come from the standard, and they change with the props.
 - Every port has a flanged nozzle with studs and nuts.
 - The item has nameplates or tag plates, lifting lugs, earth bosses, drains, vents and instrument tappings where a real one would.
 - Access (ladders, platforms, handrails) follows ISO 14122 wherever an operator needs to reach a valve, nozzle or instrument above 2 m.
 - Bases have base plates and anchor bolts or skid steel. Nothing floats, everything touches what holds it, and there is no z-fighting.
-- The paint follows practice: equipment light grey (RAL 7035), machinery green or blue, safety yellow for guards and handrails, and red for firewater.
+- The paint follows offshore practice: equipment light grey (RAL 7035), machinery green or blue, safety yellow for guards and handrails, and red for firewater.
 
 ## Comments
 
-Write one header line per file saying what the item is and which standards it follows. Add short comments only where the maths isn't obvious. A short `/** unit */` on a prop is fine. Don't write long JSDoc.
+Write one header line per file that states what the item is and which standards it follows. Add short comments only where the maths is not obvious. A short `/** unit */` on a prop is allowed. Do not write long JSDoc.
 
 ## Metadata
 
@@ -152,4 +154,4 @@ npx tsx scripts/build-registry.ts --check <category>
 node scripts/shoot.mjs <name> [--ports] [--props '{"nps":12}'] [--view 1,0.4,0.2]
 ```
 
-`shoot.mjs` writes `.snaps/<name>.jpg`. Look at it at default props and at least one other setting, and check the ports with `--ports`.
+`shoot.mjs` writes `.snaps/<name>.jpg`. Inspect it at default props and at least one other setting, and check the ports with `--ports`.

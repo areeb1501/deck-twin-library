@@ -41,7 +41,7 @@ export default {
     svg: inline(R(34, 72, 52, 28) + P('M34 86h6c0 0 0 8 6 8h28c6 0 6-8 6-8h6')),
     e: {
       standard: ISAF + '; no agreed ISA element shape for Coriolis',
-      drawn: 'Inline box on the line, often with a U or double-U loop drawn inside, joined to an FT / FIT bubble (integral transmitter). Frequently just a generic FE box with "CORIOLIS" or "MASS" written beside it.',
+      drawn: 'Inline box on the line, often with a U or double-U loop drawn inside, joined to an FT / FIT bubble (integral transmitter). Frequently only a generic FE box with "CORIOLIS" or "MASS" written beside it.',
       tags: ['FE'],
       isa: ['FE', 'FT', 'FIT', 'FQT (totaliser)'],
       notes: 'ISA 5.1 has no dedicated Coriolis element, so legends differ; read the text beside the box, the instrument index or the datasheet for the technology. Common on chemical injection, condensate, fiscal liquid and test separator outlets.',
@@ -52,7 +52,7 @@ export default {
     svg: inline(R(34, 72, 52, 28) + R(40, 66, 8, 6, FILL) + R(72, 100, 8, 6, FILL) + P('M44 72l32 28', DASH + ' ' + THIN)),
     e: {
       standard: ISAF + '; ultrasonic element varies by legend',
-      drawn: 'Inline spool box with transducer marks on opposite sides and a diagonal acoustic path between them, joined to an FT bubble. Many legends just write "USM" or "UFM" beside a generic FE box.',
+      drawn: 'Inline spool box with transducer marks on opposite sides and a diagonal acoustic path between them, joined to an FT bubble. Many legends only write "USM" or "UFM" beside a generic FE box.',
       tags: ['FE'],
       isa: ['FE', 'FT', 'FIT', 'FQ'],
       notes: 'Fiscal gas metering runs (AGA 9) are usually multipath ultrasonic; a clamp-on meter is drawn on the outside of the pipe with no break in the line. Check the technology in the instrument index.',
@@ -161,7 +161,7 @@ export default {
       drawn: 'A VE or VT bubble joined to a small square or dot on a motor, pump, compressor or bearing outline, often in A / B or X / Y pairs, feeding VI / VA / VSHH functions in the DCS, SIS or CMS.',
       tags: ['VE', 'VT'],
       isa: ['VE', 'VT', 'VXE', 'VYE', 'VI', 'VSHH'],
-      notes: 'V as the first letter is vibration (ISA 5.1). One vibration-probe per monitored bearing; pair for X-Y proximity probes, kind accelerometer for casing sensors. ZE on a machine is an axial position probe and maps here too. Voting such as 1oo2 between A and B means two sensors exist.',
+      notes: 'V as the first letter is vibration (ISA 5.1). Use one vibration-probe per monitored bearing; set pair for X-Y proximity probes and kind accelerometer for casing sensors. ZE on a machine is an axial position probe and maps to this component too. Voting such as 1oo2 between A and B means two sensors exist.',
       datasheet: { form: 'Machinery protection system datasheet (API 670)', fields: { 'Transducer type': 'kind', 'X-Y pair': 'pair', 'Shaft centreline height': 'shaftHeight', ...tagF } },
     },
   },

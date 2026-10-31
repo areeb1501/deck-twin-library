@@ -1,6 +1,8 @@
 # Assembling plants
 
-A plant is a `plant.json`: a list of **items** (components placed in space) and **lines** (pipe joining one item's port to another's). `<Plant>` renders it, and `deck-twin validate` validates it.
+A plant is a `plant.json` file: a list of **items** (components placed in space) and **lines** (pipe joining one item's port to another's).
+
+`<Plant>` renders the file, and `deck-twin validate` validates it.
 
 ```json
 {
@@ -22,7 +24,7 @@ A plant is a `plant.json`: a list of **items** (components placed in space) and 
 }
 ```
 
-This is the only plant format the registry and the CLI use. It is built from registry components, so an agent should take names, props and port ids from the CLI, never from memory. The JSON Schema at [/r/plant.schema.json](/r/plant.schema.json) carries the full list of component names, and `deck-twin validate` is the final gate.
+This is the only plant format the registry and the CLI use. It is built from registry components, so an agent should take names, props and port ids from the CLI, never from memory. The JSON Schema at [/r/plant.schema.json](/r/plant.schema.json) contains the full list of component names, and `deck-twin validate` is the final check.
 
 ## Coordinates
 
@@ -60,9 +62,9 @@ This is the only plant format the registry and the CLI use. It is built from reg
 | `supports` | Stanchions under horizontal runs, on by default. Set `false` for lines carried by a rack. |
 | `inline` | `[{ component, at, tag?, props? }]`. `at` is the fraction along the line, from 0 to 1. Inline items take the line's size and class. |
 
-### Line numbers are data
+### Line number format
 
-When a line's `tag` follows `SIZE"-SERVICE-SEQ-CLASS-INSULATION`, the assembler reads it. For `8"-PG-2101-D6A-N`:
+When a line's `tag` follows `SIZE"-SERVICE-SEQ-CLASS-INSULATION`, the assembler parses it. For `8"-PG-2101-D6A-N`:
 
 | Part | Value | Sets |
 |---|---|---|
@@ -72,9 +74,9 @@ When a line's `tag` follows `SIZE"-SERVICE-SEQ-CLASS-INSULATION`, the assembler 
 | `D6A` | Piping class; the digit gives Class 600 | Pressure class of the pipe-side flanges |
 | `N` | Not insulated | `insulated` (anything other than `N`, e.g. H or P, means insulated) |
 
-Explicit fields on the line override the tag. Sizes also work as `1-1/2"` or `DN200`. Mismatches between the tag and the nozzle are reported. Service codes and the class-digit convention are in `assembly/linetag.ts`; edit them to match your project's line-numbering procedure.
+Explicit fields on the line override the tag. Sizes can also be written as `1-1/2"` or `DN200`. Mismatches between the tag and the nozzle are reported. Service codes and the class-digit convention are defined in `assembly/linetag.ts`. Edit them to match your project's line-numbering procedure.
 
-The router leaves each flange straight along the port's axis for 0.6 m. It then climbs or drops to the run elevation, runs along X then Z (or Z then X), and drops into the other flange. Each corner gets a B16.9 long-radius elbow. Each end gets a gasket, a mating weld-neck flange and studs, sized to that end's nozzle. When the two ends differ in size, a B16.9 concentric reducer goes in before the far end. Inline items cut the pipe, with a flange pair on each side; wafer bodies (butterfly, dual-plate check) are clamped by through-bolts.
+The router runs straight out of each flange along the port's axis for 0.6 m. It then rises or drops to the run elevation, runs along X then Z (or Z then X), and drops into the other flange. Each corner has a B16.9 long-radius elbow. Each end has a gasket, a mating weld-neck flange and studs, sized to that end's nozzle. When the two ends differ in size, a B16.9 concentric reducer is fitted before the far end. Inline items cut the pipe, with a flange pair on each side. Wafer bodies (butterfly, dual-plate check) are clamped by through-bolts.
 
 ## Rendering
 
@@ -94,11 +96,11 @@ const components: ComponentMap = {
 <Plant spec={spec} components={components} labels onReport={(issues) => console.table(issues)} />
 ```
 
-`npx deck-twin assemble plant.json` writes this file for you, as `src/PlantScene.tsx`, with every import in place.
+`npx deck-twin assemble plant.json` generates this file as `src/PlantScene.tsx`, with all imports included.
 
-### Offshore: show the sea
+### Sea surface for offshore plants
 
-Add `"sea": { "level": -14, "depth": 50 }` to the plant. `<Plant>` draws the animated `ocean` component at mean sea level, with foam rings where the jacket legs cross the surface, and a seabed `depth` metres below it. The water is slightly transparent, so the jacket shows through it. For a jacket at y = 0, `level` is minus its `airGap`.
+Add `"sea": { "level": -14, "depth": 50 }` to the plant. `<Plant>` draws the animated `ocean` component at mean sea level, with foam rings where the jacket legs cross the surface, and a seabed `depth` metres below it. The water is slightly transparent, so the jacket is visible through it. For a jacket at y = 0, `level` is minus its `airGap`.
 
 | Field | What |
 |---|---|
@@ -106,7 +108,7 @@ Add `"sea": { "level": -14, "depth": 50 }` to the plant. `<Plant>` draws the ani
 | `depth` | Water depth to the seabed, m. Leave it out for no seabed. |
 | `waves` | Significant wave height Hs, m (default 1.5) |
 
-Pass `night` to `<Plant>` for darker water. Add the `sky` component for a matching day or night sky, lights and haze. The sea is visual only: it is not part of the checks. See the [offshore water injection example](/examples/offshore-water-injection), which has a Studio / Day / Night switch.
+Pass `night` to `<Plant>` for darker water. Add the `sky` component for a matching day or night sky, lights and haze. The sea is visual only and is not part of the checks. See the [offshore water injection example](/examples/offshore-water-injection), which has a Studio / Day / Night switch.
 
 ## Checks
 
@@ -125,13 +127,13 @@ Pass `night` to `<Plant>` for darker water. Add the `sky` component for a matchi
 
 The [playground](/playground) shows the same report for any pasted `plant.json`.
 
-## Layout rules of thumb
+## Layout guidelines
 
 - **Clearance.** Leave at least 1 m between equipment for access, and 1.5–3 m in front of pumps and exchangers for maintenance (tube-bundle pulls need the bundle length clear).
-- **Flow direction.** Wells and inlet sit upstream (west), then separation, then treatment and export (east). Put utilities and power at one end, and accommodation away from hydrocarbons.
-- **Pumps.** Put them close to and below their suction vessel, so the suction line is short and drains towards the pump.
+- **Flow direction.** Place wells and inlet upstream (west), then separation, then treatment and export (east). Put utilities and power at one end, and accommodation away from hydrocarbons.
+- **Pumps.** Place them close to and below their suction vessel, so that the suction line is short and drains towards the pump.
 - **Pipe racks.** Run them along the module's long axis at 4–6 m. Route long lines over the rack with `via`, and set `supports: false`.
 - **Decks.** A typical deck stack is a cellar deck at y = 0, the production deck at y = 8–10, and the weather deck 8–10 m above that. Put `deck-module` items at those heights, and put the equipment on each deck at the same y.
-- **Cranes.** Pedestal cranes go at deck edges and corners, with the laydown area within the boom radius.
+- **Cranes.** Place pedestal cranes at deck edges and corners, with the laydown area within the boom radius.
 
 See [Examples](/examples) for complete plants.

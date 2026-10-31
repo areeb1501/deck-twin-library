@@ -69,7 +69,7 @@ export default {
       standard: 'Safety equipment layout convention; ISO 7010 sign',
       drawn: 'Safety equipment layouts: a square with a cross (the first-aid sign) at the station, with a stretcher noted where provided.',
       tags: ['FA'],
-      notes: 'Only on safety equipment plans. The cross outline tells it from other cabinets.',
+      notes: 'Only on safety equipment plans. The cross outline distinguishes it from other cabinets.',
       datasheet: { form: 'Safety equipment schedule (ISO 7010, EN 13976 stretchers)', fields: { Stretcher: 'stretcher', Mounting: 'mount', 'ISO 7010 sign': 'sign', ...tagF } },
     },
   },

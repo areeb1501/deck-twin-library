@@ -112,9 +112,9 @@ function Detail({ item }: { item: Item }) {
       <H2>Installation</H2>
       <Command cmd={add(item.name)} />
       <p className="mt-3 text-[13px] text-muted-fg">
-        Copies <code className="font-mono text-fg">{item.category}/{item.file}</code> and the shared <code className="font-mono text-fg">lib/</code> into{' '}
-        <code className="font-mono text-fg">src/components/deck-twin/</code>. Needs <code className="font-mono text-fg">three</code>, <code className="font-mono text-fg">@react-three/fiber</code> and{' '}
-        <code className="font-mono text-fg">@react-three/drei</code>. See <Link href="/docs/installation" className="font-medium text-brand hover:underline hover:underline-offset-4">installation</Link> for the manual route.
+        This command copies <code className="font-mono text-fg">{item.category}/{item.file}</code> and the shared <code className="font-mono text-fg">lib/</code> into{' '}
+        <code className="font-mono text-fg">src/components/deck-twin/</code>. It requires <code className="font-mono text-fg">three</code>, <code className="font-mono text-fg">@react-three/fiber</code> and{' '}
+        <code className="font-mono text-fg">@react-three/drei</code>. See <Link href="/docs/installation" className="font-medium text-brand hover:underline hover:underline-offset-4">installation</Link> for manual setup.
       </p>
 
       <H2>Usage</H2>
@@ -127,7 +127,7 @@ function Detail({ item }: { item: Item }) {
         <>
           <H2>Ports</H2>
           <p className="mb-3 text-[13px] text-muted-fg">
-            Flange faces in the component's local frame, metres. Origin: {portOrigin(item)}. The assembler routes pipes between these.
+            Flange faces in the component's local coordinate frame, in metres. Origin: {portOrigin(item)}. The plant assembler routes pipework between these ports.
           </p>
           <Table
             head={['Id', 'Label', 'Position', 'Direction', 'Size', 'Class']}
@@ -149,16 +149,16 @@ function Detail({ item }: { item: Item }) {
         <>
           <H2>Typical suppliers</H2>
           <p className="text-[13px] text-muted-fg">
-            {item.vendors.join(', ')}. The geometry is generic and sized from public standards. It is not vendor CAD.
+            {item.vendors.join(', ')}. The geometry is generic and sized to public standards. It is not vendor CAD.
           </p>
         </>
       ) : null}
 
       <H2>For agents</H2>
-      <p className="mb-3 text-[13px] text-muted-fg">Machine-readable entry with props, ranges, defaults and ports:</p>
+      <p className="mb-3 text-[13px] text-muted-fg">The machine-readable entry lists props, ranges, defaults and ports:</p>
       <Command cmd={`${CLI} info ${item.name}`} />
       <p className="mt-2 text-[13px] text-muted-fg">
-        Or fetch <a className="font-mono text-brand hover:underline hover:underline-offset-4" href={`/r/${item.name}.json`}>/r/{item.name}.json</a>, or copy a ready-made instruction:
+        You can also fetch <a className="font-mono text-brand hover:underline hover:underline-offset-4" href={`/r/${item.name}.json`}>/r/{item.name}.json</a>, or copy this instruction:
       </p>
       <Code
         lang="text"

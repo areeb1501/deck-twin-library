@@ -7,7 +7,7 @@ export default defineMeta([
     file: 'shell-and-tube-exchanger.tsx',
     export: 'ShellAndTubeExchanger',
     description:
-      'TEMA shell-and-tube exchanger on fixed and sliding saddles: AES (removable channel, floating head with shell cover), AEU (U-tube), BEM (fixed tubesheet bonnets with expansion bellows) or AKT (kettle reboiler with eccentric cone). Bolted girth flanges with full studding, channel cover davit, shell and channel nozzles, vents, drains and nameplate. Shells can be stacked two high in series with bolted stacking saddles and nozzle-to-nozzle interconnects.',
+      'TEMA shell-and-tube exchanger on fixed and sliding saddles, available as AES (removable channel, floating head with shell cover), AEU (U-tube), BEM (fixed tubesheet bonnets with expansion bellows) or AKT (kettle reboiler with eccentric cone). It has bolted girth flanges with full studding, a channel cover davit, shell and channel nozzles, vents, drains and nameplate. Shells can be stacked two high in series with bolted stacking saddles and nozzle-to-nozzle interconnects.',
     standards: ['TEMA 10th ed.', 'ASME BPVC VIII-1', 'ASME B16.5', 'API 660'],
     vendors: ['API Heat Transfer (Basco)', 'Shuangliang Eco-Energy'],
     tags: ['exchanger', 'cooler', 'heater', 'reboiler', 'kettle', 'TEMA'],
@@ -33,7 +33,7 @@ export default defineMeta([
     file: 'air-cooled-exchanger.tsx',
     export: 'AirCooledExchanger',
     description:
-      'API 661 air-cooled heat exchanger: finned-tube bundles with plug-type or bolted cover-plate box headers, galvanised plenums and fan rings, forced- or induced-draft fans with V-belt drives, vertical TEFC motors, belt guards and vibration switches, optional top louvres. Column structure with bracing, header walkways with handrails and caged ladders, inlet and outlet manifolds across the bays. Fans spin while running.',
+      'API 661 air-cooled heat exchanger with finned-tube bundles, plug-type or bolted cover-plate box headers, galvanised plenums and fan rings, forced- or induced-draft fans with V-belt drives, vertical TEFC motors, belt guards and vibration switches, and optional top louvres. The column structure has bracing, header walkways with handrails and caged ladders, and inlet and outlet manifolds run across the bays. The fans turn when `running`.',
     standards: ['API 661 / ISO 13706', 'ASME B16.5', 'ISO 14122', 'IEC 60072'],
     vendors: ['Chart Industries (Hudson Products, Smithco, Air-X-Changers)'],
     tags: ['air cooler', 'fin-fan', 'ACHE', 'cooler', 'condenser'],
@@ -63,7 +63,7 @@ export default defineMeta([
     file: 'plate-heat-exchanger.tsx',
     export: 'PlateHeatExchanger',
     description:
-      'Gasketed plate-and-frame exchanger: fixed frame plate on feet carrying all four flanged connections, a pack of pressed stainless plates with gaskets, movable pressure plate rolling on the top carrying bar, bottom guide bar, end support column, side tightening bolts with bearing boxes at the heads, long nuts and protective thread sleeves. The plate count sets the pack and frame length; the connection size sets the plate size.',
+      'Gasketed plate-and-frame exchanger with a fixed frame plate on feet carrying all four flanged connections, a pack of pressed stainless plates with gaskets, and a movable pressure plate rolling on the top carrying bar. It also has a bottom guide bar, an end support column, and side tightening bolts with bearing boxes at the heads, long nuts and protective thread sleeves. The plate count sets the pack and frame length, and the connection size sets the plate size.',
     standards: ['ASME BPVC VIII-1', 'EN 13445', 'ASME B16.5', 'API 662 / ISO 15547-1'],
     vendors: ['Alfa Laval', 'Danfoss', 'API Heat Transfer (Schmidt)'],
     tags: ['exchanger', 'PHE', 'plate', 'gasketed', 'cooler'],
@@ -82,7 +82,7 @@ export default defineMeta([
     file: 'flare-boom.tsx',
     export: 'FlareBoom',
     description:
-      'Offshore inclined flare boom: tapered tubular box truss pinned at the root with rear legs, the flare header running up the boom axis to a vertical flare tip with windshield, retention ring and pilots, pilot gas lines along the chord, an inclined access way with treads and rails, a grated tip platform with obstruction lights. Origin at the boom root on the deck; the boom rises along +X. Optional animated flame.',
+      'Offshore inclined flare boom with a tapered tubular box truss pinned at the root with rear legs, and the flare header running up the boom axis to a vertical flare tip with windshield, retention ring and pilots. Pilot gas lines run along the chord, and it has an inclined access way with treads and rails and a grated tip platform with obstruction lights. The origin is at the boom root on the deck, and the boom rises along +X. `lit` adds an optional animated flame.',
     standards: ['API 521', 'API 537', 'ASME B16.5', 'ISO 14122'],
     vendors: ['Zeeco', 'Himech Equipments'],
     tags: ['flare', 'boom', 'relief', 'offshore', 'flare tip'],
@@ -104,7 +104,7 @@ export default defineMeta([
     file: 'flare-stack.tsx',
     export: 'FlareStack',
     description:
-      'Onshore elevated flare: riser on a concrete plinth, self-supported (flared base shell with anchor chairs), derrick-supported (three-leg lattice tower with riser guides) or guyed. Molecular (or internal velocity) purge seal, flare tip with windshield and pilots, pilot and ignition lines from a grade-level ignition panel, caged ladders in ISO 14122 flights with rest platforms, top platform, aviation lights and day-marking bands. Optional animated flame.',
+      'Onshore elevated flare with a riser on a concrete plinth, self-supported (flared base shell with anchor chairs), derrick-supported (three-leg lattice tower with riser guides) or guyed. It has a molecular (or internal velocity) purge seal, a flare tip with windshield and pilots, pilot and ignition lines from a grade-level ignition panel, caged ladders in ISO 14122 flights with rest platforms, a top platform, aviation lights and day-marking bands. `lit` adds an optional animated flame.',
     standards: ['API 521', 'API 537', 'ASME B16.5', 'ISO 14122', 'ICAO Annex 14'],
     vendors: ['Zeeco', 'Argo Flare'],
     tags: ['flare', 'stack', 'relief', 'onshore', 'flare tip'],
@@ -127,7 +127,7 @@ export default defineMeta([
     file: 'fired-heater.tsx',
     export: 'FiredHeater',
     description:
-      'API 560 vertical-cylindrical process heater: radiant casing on legs with buckstays, stiffener rings, sight and access doors; upward-firing floor burners with windboxes, air registers, a fuel gas ring and a grade-level burner management panel; snuffing-steam ring, explosion doors, draft-gauge tappings; breeching, convection section with bolted header-box covers and rotary sootblowers, external crossovers into the radiant section, transition hood, damper and open lined stack. Platforms at the sight doors, roof and damper with caged ladders.',
+      'API 560 vertical-cylindrical process heater with a radiant casing on legs, buckstays, stiffener rings, and sight and access doors. Upward-firing floor burners have windboxes, air registers, a fuel gas ring and a grade-level burner management panel. It also has a snuffing-steam ring, explosion doors and draft-gauge tappings. Above the radiant section are the breeching, a convection section with bolted header-box covers and rotary sootblowers, external crossovers into the radiant section, a transition hood, a damper and an open lined stack. Platforms with caged ladders serve the sight doors, roof and damper.',
     standards: ['API 560 / ISO 13705', 'API 535', 'ASME B16.5', 'ISO 14122'],
     vendors: ['Thermax', 'Struthers Wells'],
     tags: ['heater', 'furnace', 'fired', 'reboiler', 'hot oil'],
@@ -149,7 +149,7 @@ export default defineMeta([
     file: 'vent-stack.tsx',
     export: 'VentStack',
     description:
-      'Atmospheric cold vent: flanged inlet turning up through a long-radius elbow with a low-point drain, riser with flanged spools, end-of-line deflagration arrester (element housing, insect screen and weather hood) or a plain open tip, day-marking bands and an obstruction light. Self-supported, three-leg braced tower or guyed; an access platform and caged ladder serve the arrestor on taller stacks.',
+      'Atmospheric cold vent with a flanged inlet turning up through a long-radius elbow with a low-point drain, and a riser with flanged spools. The top carries an end-of-line deflagration arrester (element housing, insect screen and weather hood) or a plain open tip, with day-marking bands and an obstruction light. The stack is self-supported, in a three-leg braced tower or guyed, and an access platform and caged ladder serve the arrestor on taller stacks.',
     standards: ['API 521', 'ISO 16852', 'API 2000', 'ICAO Annex 14', 'ISO 14122'],
     vendors: ['Protego', 'Storagetech'],
     tags: ['vent', 'cold vent', 'stack', 'flame arrestor', 'relief'],
@@ -169,7 +169,7 @@ export default defineMeta([
     file: 'electric-heater.tsx',
     export: 'ElectricHeater',
     description:
-      'Flanged immersion electric heater in a horizontal pressure shell on fixed and sliding saddles: body flange with the element tubesheet flange and full studding, finned standoff, Ex d terminal enclosure with bolted cover, cable glands, element thermocouples and an auxiliary over-temperature sensor box, process inlet and outlet, vent, drain, PSV, thermowells and a local junction box. Rated power sets the shell size and length.',
+      'Flanged immersion electric heater in a horizontal pressure shell on fixed and sliding saddles. It has a body flange with the element tubesheet flange and full studding, a finned standoff, an Ex d terminal enclosure with bolted cover, cable glands, element thermocouples and an auxiliary over-temperature sensor box. It also has a process inlet and outlet, vent, drain, PSV, thermowells and a local junction box. Rated power sets the shell size and length.',
     standards: ['ASME BPVC VIII-1', 'IEC 60079-1', 'IEC 60079-7', 'ASME B16.5'],
     vendors: ['Chromalox', 'Exheat'],
     tags: ['heater', 'electric', 'immersion', 'gas heater', 'Ex d'],
@@ -190,7 +190,7 @@ export default defineMeta([
     file: 'hairpin-exchanger.tsx',
     export: 'HairpinExchanger',
     description:
-      'Double-pipe hairpin exchanger: two shell legs stacked one above the other, bolted return-bend housing enclosing the inner U-bend, front nozzle heads carrying the shell-side nozzles, closure blinds with packed glands where the inner pipe leaves, tube-side flanged ends, shell inlet and outlet nozzles, vent and drain, and clamp stands with U-bolts.',
+      'Double-pipe hairpin exchanger with two shell legs stacked one above the other and a bolted return-bend housing enclosing the inner U-bend. It has front nozzle heads carrying the shell-side nozzles, closure blinds with packed glands where the inner pipe leaves, tube-side flanged ends, shell inlet and outlet nozzles, vent and drain, and clamp stands with U-bolts.',
     standards: ['ASME BPVC VIII-1', 'TEMA', 'ASME B16.5'],
     vendors: ['Koch Heat Transfer (Brown Fintube)'],
     tags: ['exchanger', 'hairpin', 'double pipe', 'cooler'],
@@ -210,7 +210,7 @@ export default defineMeta([
     file: 'printed-circuit-heat-exchanger.tsx',
     export: 'PrintedCircuitHeatExchanger',
     description:
-      'Compact diffusion-bonded heat exchanger: stacked chemically etched plates bonded into solid stainless core blocks (bond lines visible), blocks welded side by side, half-pipe headers welded over the channel openings with flanged nozzles (hot side on the ends, cold side on the face), blinded maintenance nozzles, lifting lugs and a bolted support frame. Typical for high-pressure gas cooling, dew-pointing and compression offshore.',
+      'Compact diffusion-bonded heat exchanger with stacked chemically etched plates bonded into solid stainless core blocks, welded side by side. Half-pipe headers are welded over the channel openings with flanged nozzles (hot side on the ends, cold side on the face). It also has blinded maintenance nozzles, lifting lugs and a bolted support frame. Typical uses are high-pressure gas cooling, dew-pointing and compression offshore.',
     standards: ['ASME BPVC VIII-1', 'ASME B16.5'],
     vendors: ['Heatric (Parker)', 'Alfa Laval'],
     tags: ['exchanger', 'PCHE', 'compact', 'diffusion bonded', 'high pressure'],
@@ -232,7 +232,7 @@ export default defineMeta([
     file: 'cooling-tower.tsx',
     export: 'CoolingTower',
     description:
-      'Onshore mechanical-draft counterflow cooling tower in a row of cells: concrete cold-water basin with outlet sump, FRP-clad casing on a column frame, louvred air inlets on the long sides, fan deck with handrails, velocity-recovery fan stacks, axial fans on right-angle gearboxes driven through a drive shaft by motors outside the stacks, vibration switches and oil-level lines, hot-water riser and distribution header with a valve per cell, make-up and overflow, and caged ladders with a rest platform. Fans spin while running.',
+      'Onshore mechanical-draft counterflow cooling tower in a row of cells, with a concrete cold-water basin and outlet sump, an FRP-clad casing on a column frame, and louvred air inlets on the long sides. The fan deck has handrails and velocity-recovery fan stacks, with axial fans on right-angle gearboxes driven through a drive shaft by motors outside the stacks, vibration switches and oil-level lines. It also has a hot-water riser and distribution header with a valve per cell, make-up and overflow, and caged ladders with a rest platform. The fans turn when `running`.',
     standards: ['CTI STD-201', 'CTI ATC-105', 'ASME B16.5', 'ISO 14122'],
     vendors: ['SPX Cooling Tech (Marley)', 'Hamon', 'Enexio', 'EVAPCO', 'Baltimore Aircoil'],
     tags: ['cooling tower', 'cooling water', 'evaporative', 'utilities'],

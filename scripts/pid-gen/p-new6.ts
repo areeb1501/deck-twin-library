@@ -64,7 +64,7 @@ export default {
       standard: LAY + ' (site plan)',
       drawn: 'Site plan: a line with crosses at intervals (-x-x-) along the boundary, gates shown as a swing (leaf and arc) or a sliding leaf, with fence height and type noted.',
       tags: ['FNC'],
-      notes: 'Only on site plans. The crosses tell it from a wall (solid double line) or a kerb.',
+      notes: 'Only on site plans. The crosses distinguish it from a wall (solid double line) or a curb.',
       datasheet: { form: 'Fencing specification (BS 1722-10 / -12, ASTM F567)', fields: { 'Run length': 'length', Style: 'style', Height: 'height', Topping: 'topping', Gate: 'gate', 'Gate width': 'gateWidth', Finish: 'finish', ...tagF } },
     },
   },
@@ -132,7 +132,7 @@ export default {
     svg: svg('0 0 200 120', R(20, 40, 40, 40) + P('M14 34h52v52H14z', THIN) + C(70, 60, 5) + P('M75 60h110', 'stroke-width="4"') + P('M100 18h70M100 102h70', DASH + ' ' + THIN) + P('M150 24h20M162 18l8 6-8 6M120 96h-20M108 90l-8 6 8 6', THIN)),
     e: {
       standard: LAY + ' (site plan)',
-      drawn: 'Site plan: a small hut rectangle on a kerbed island beside the lane, a boom barrier drawn as a thick line from a pivot across the lane, and lane direction arrows.',
+      drawn: 'Site plan: a small hut rectangle on a curbed island beside the lane, a boom barrier drawn as a thick line from a pivot across the lane, and lane direction arrows.',
       tags: ['GH'],
       notes: 'Only on site and security plans.',
       datasheet: { form: 'Barrier / gate specification (EN 12453, EN 13241)', fields: { 'Lane width': 'laneWidth', ...tagF } },

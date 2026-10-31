@@ -7,7 +7,7 @@ export default defineMeta([
     file: 'chemical-injection-skid.tsx',
     export: 'ChemicalInjectionSkid',
     description:
-      'Bunded chemical injection package: stainless storage tank on legs with magnetic level gauge, radar transmitter, breather with flame arrestor and fill line, a row of motor-driven diaphragm metering pumps with suction header, calibration pot, Y-strainers, pulsation dampeners, PSVs returning to the tank, back-pressure and non-return valves, gauges, an Ex junction box, a local control panel with HMI and cable tray, drip trays and shackled padeyes. One battery-limit outlet per pump; `pumps` sets the count and the skid length.',
+      'Bunded chemical injection package with a stainless storage tank and a row of motor-driven diaphragm metering pumps. The tank stands on legs with a magnetic level gauge, radar transmitter, breather with flame arrestor and fill line. The pumps have a suction header, calibration pot, Y-strainers, pulsation dampeners, PSVs returning to the tank, back-pressure and non-return valves, and gauges. An Ex junction box, a local control panel with HMI and cable tray, drip trays and shackled padeyes are included. There is one battery-limit outlet per pump, and `pumps` sets the count and the skid length.',
     standards: ['API 675', 'ASME B31.3', 'ASME B16.5', 'IEC 60072'],
     vendors: ['LEWA', 'Pulsafeeder', 'Blue-White'],
     tags: ['chemical injection', 'metering pump', 'corrosion inhibitor', 'scale inhibitor', 'skid'],
@@ -32,7 +32,7 @@ export default defineMeta([
     file: 'metering-skid.tsx',
     export: 'MeteringSkid',
     description:
-      'Liquid or gas fiscal metering skid: inlet and outlet headers with blind-flanged ends, parallel meter runs (ultrasonic or turbine) each with an inlet block valve, basket strainer with DP gauge, plate flow conditioner, 10D / 5D straight lengths, P transmitter, duplicate TTs plus a test thermowell, thermal relief valve and a motor-operated DBB outlet valve with body bleed, plus a prover header with MOV diverters, prover return with check valve, sampler, densitometer loop, local JB and overhead cable tray. `runs` sets the run count and skid width.',
+      'Liquid or gas fiscal metering skid with parallel ultrasonic or turbine meter runs between inlet and outlet headers with blind-flanged ends. Each run has an inlet block valve, a basket strainer with DP gauge, a plate flow conditioner, 10D / 5D straight lengths, a P transmitter, duplicate TTs plus a test thermowell, a thermal relief valve and a motor-operated DBB outlet valve with body bleed. The skid also has a prover header with MOV diverters, a prover return with check valve, a sampler, a densitometer loop, a local JB and an overhead cable tray. `runs` sets the run count and skid width.',
     standards: ['API MPMS Ch. 4 / 5', 'ISO 17089-1', 'AGA 9', 'ASME B16.5', 'ASME B16.10'],
     vendors: ['Emerson (Daniel)', 'KROHNE', 'Sensia / SLB (Caldon)'],
     tags: ['metering', 'fiscal', 'custody transfer', 'ultrasonic', 'turbine', 'prover'],
@@ -52,7 +52,7 @@ export default defineMeta([
     file: 'instrument-air-package.tsx',
     export: 'InstrumentAirPackage',
     description:
-      'Oil-free screw compressor in an acoustic enclosure (louvres, roof fan, controller), pre-filter and coalescer with auto drains, a twin-tower heatless desiccant dryer with switching valves, purge silencers and controller, an after-filter with dew-point transmitter and a vertical dry-air receiver with PSV, gauge, transmitter, inspection opening and auto drain. Enclosure scales with `kw`; the receiver wall comes from UG-27 for `pressure`.',
+      'Instrument air package with an oil-free screw compressor in an acoustic enclosure, a twin-tower heatless desiccant dryer and a vertical dry-air receiver. The enclosure has louvres, a roof fan and a controller. The air treatment train has a pre-filter and coalescer with auto drains, the dryer with switching valves, purge silencers and controller, and an after-filter with dew-point transmitter. The receiver has a PSV, gauge, transmitter, inspection opening and auto drain. The enclosure scales with `kw`, and the receiver wall comes from UG-27 for `pressure`.',
     standards: ['ISO 8573-1', 'ISO 1217', 'ASME BPVC VIII-1', 'ASME B16.5'],
     vendors: ['Atlas Copco', 'FIRSCOMP', 'BLUTEK', 'Roeslein'],
     tags: ['instrument air', 'compressor', 'dryer', 'receiver', 'utility'],
@@ -73,7 +73,7 @@ export default defineMeta([
     file: 'teg-regeneration.tsx',
     export: 'TegRegeneration',
     description:
-      'Glycol regeneration skid: fire-tube reboiler with bolted bundle flange, natural-draft burner, flame arrestor, fuel train, stripping-gas rotameter and guided exhaust stack, mounted on a portal frame over the surge drum; still column with finned reflux condenser and vent; flash drum with PSV and level control valve; sock and carbon filters; lean/rich exchanger; vertical in-line glycol pumps with check valves; top platform with caged ladder and a BMS panel. Pumps, vessel sizes and stack height are props.',
+      'TEG glycol regeneration skid with a fire-tube reboiler, still column, flash drum, filters and glycol pumps. The fire-tube reboiler has a bolted bundle flange, natural-draft burner, flame arrestor, fuel train, stripping-gas rotameter and guided exhaust stack, and is mounted on a portal frame over the surge drum. The still column has a finned reflux condenser and vent, and the flash drum has a PSV and level control valve. The skid also has sock and carbon filters, a lean/rich exchanger, vertical in-line glycol pumps with check valves, a top platform with caged ladder and a BMS panel. Pumps, vessel sizes and stack height are props.',
     standards: ['API 12GDU', 'ASME BPVC VIII-1', 'ASME B16.5', 'ISO 14122'],
     vendors: ['Croft Systems', 'Kimray', 'Cimarron'],
     tags: ['TEG', 'glycol', 'dehydration', 'reboiler', 'still column', 'gas treatment'],
@@ -96,7 +96,7 @@ export default defineMeta([
     file: 'hydraulic-power-unit.tsx',
     export: 'HydraulicPowerUnit',
     description:
-      'Wellhead-control hydraulic power unit on a bunded skid: stainless reservoir with level / temperature gauge, low-level switch, desiccant breather, inspection covers and tank-top return filter; duty / standby motor-pump sets on the reservoir with bellhousings, HP filters with clogging indicators, check and needle valves, header PSV back to tank and pressure transmitter; a framed bank of nitrogen-precharged bladder accumulators with isolation and bleed valves; a stainless gauge panel; LCP with cable tray. `pumps`, `accumulators` and `reservoir` size the skid.',
+      'Wellhead-control hydraulic power unit on a bunded skid. The stainless reservoir has a level / temperature gauge, low-level switch, desiccant breather, inspection covers and tank-top return filter. Duty / standby motor-pump sets on the reservoir have bellhousings, HP filters with clogging indicators, check and needle valves, a header PSV back to tank and a pressure transmitter. A framed bank of nitrogen-precharged bladder accumulators has isolation and bleed valves. A stainless gauge panel and an LCP with cable tray are included. `pumps`, `accumulators` and `reservoir` size the skid.',
     standards: ['ISO 4413', 'API 6A', 'ISO 10945', 'ASME B16.5'],
     vendors: ['Semco Maritime', 'Johnson Controls', 'HYDAC'],
     tags: ['HPU', 'hydraulic', 'wellhead control', 'accumulator', 'utility'],
@@ -119,7 +119,7 @@ export default defineMeta([
     file: 'nitrogen-generator.tsx',
     export: 'NitrogenGenerator',
     description:
-      'Hollow-fibre membrane nitrogen package: inlet block valve, coalescing, fine-coalescing and activated-carbon filters with auto drains to a drip tray, flanged electric air heater with TT, a framed rack of membrane modules with feed, product and permeate headers, a permeate / off-spec vent riser, O2 analyser cabinet with sample rotameter, product pressure-control valve and 3-way off-spec valve, and a buffer receiver with PSV, gauge, transmitter and drain. `modules` sets the rack size.',
+      'Hollow-fibre membrane nitrogen package with air filtration, an electric air heater, a membrane rack and a buffer receiver. It has an inlet block valve, coalescing, fine-coalescing and activated-carbon filters with auto drains to a drip tray, and a flanged electric air heater with TT. A framed rack of membrane modules has feed, product and permeate headers and a permeate / off-spec vent riser. An O2 analyser cabinet with sample rotameter, a product pressure-control valve and a 3-way off-spec valve are included. The buffer receiver has a PSV, gauge, transmitter and drain. `modules` sets the rack size.',
     standards: ['ISO 8573-1', 'ASME BPVC VIII-1', 'ASME B16.5'],
     vendors: ['Semco Maritime', 'Air Products (PRISM)', 'BERG Kompressoren', 'Atlas Copco'],
     tags: ['nitrogen', 'membrane', 'N2', 'inert gas', 'utility'],
@@ -140,7 +140,7 @@ export default defineMeta([
     file: 'hydrocyclone-package.tsx',
     export: 'HydrocyclonePackage',
     description:
-      'Produced-water de-oiling hydrocyclone skid: horizontal multi-liner vessels on saddles with a bolted reject-end cover showing the liner end caps and a cover lifting eye, inlet header with gate-valved top branches, underflow gate valves into an outlet header with level control valve, reject ball valves into a reject header with a PDR (pressure-differential-ratio) control valve, DP transmitters, OIW monitor with sample line, gauges, drains, vents and a JB with cable tray. `vessels` sets the count; the reject end is kept clear for liner withdrawal.',
+      'Produced-water de-oiling hydrocyclone skid with horizontal multi-liner vessels on saddles. Each vessel has a bolted reject-end cover showing the liner end caps and a cover lifting eye. The inlet header has gate-valved top branches, underflow gate valves lead into an outlet header with a level control valve, and reject ball valves lead into a reject header with a PDR (pressure-differential-ratio) control valve. DP transmitters, an OIW monitor with sample line, gauges, drains, vents and a JB with cable tray are included. `vessels` sets the count, and the reject end is kept clear for liner withdrawal.',
     standards: ['ASME BPVC VIII-1', 'ASME B16.5', 'ASME B16.10'],
     vendors: ['SLB (Vortoil)', 'CECO Environmental (Peerless)', 'FLSmidth (Krebs)'],
     tags: ['produced water', 'hydrocyclone', 'de-oiling', 'water treatment'],
@@ -163,7 +163,7 @@ export default defineMeta([
     file: 'compact-prover.tsx',
     export: 'CompactProver',
     description:
-      'Small-volume (compact) piston prover on a skid: honed flow tube between bolted inlet and outlet housings, nitrogen spring plenum with charge panel, optical switch housing with detector blocks, duplicate flow-tube TTs and housing PTs, a hydraulic piston-return pack, and a motor-operated 4-way diverter valve with seal-check bleed that sends meter flow through the prover in either direction. Prover controller, cable tray, supports and shackled padeyes.',
+      'Small-volume (compact) piston prover on a skid, with a honed flow tube between bolted inlet and outlet housings. It has a nitrogen spring plenum with charge panel, an optical switch housing with detector blocks, duplicate flow-tube TTs and housing PTs, and a hydraulic piston-return pack. A motor-operated 4-way diverter valve with seal-check bleed sends meter flow through the prover in either direction. A prover controller, cable tray, supports and shackled padeyes are included.',
     standards: ['API MPMS Ch. 4.2', 'ASME B16.5', 'ASME B31.3'],
     vendors: ['Emerson (Brooks / Daniel)', 'Welker', 'Ergil'],
     tags: ['prover', 'metering', 'calibration', 'custody transfer'],
@@ -181,7 +181,7 @@ export default defineMeta([
     file: 'water-filter-package.tsx',
     export: 'WaterFilterPackage',
     description:
-      'Seawater / produced-water multimedia pressure filter skid: 2–4 vertical filter vessels on legs with top media-loading and side media-removal manways, air-release valves and drains; front face piping with four pneumatically actuated wafer butterfly valves per vessel (service in, service out, backwash in, backwash out) on inlet, outlet, backwash-in and backwash-out headers; gear-operated backwash supply valve, bed DP gauges, sample points, header transmitters and flow meters, and a filter control panel with solenoid air tubing and cable tray.',
+      'Seawater / produced-water multimedia pressure filter skid with 2 to 4 vertical filter vessels on legs. Each vessel has top media-loading and side media-removal manways, air-release valves and drains. Front face piping has four pneumatically actuated wafer butterfly valves per vessel (service in, service out, backwash in, backwash out) on inlet, outlet, backwash-in and backwash-out headers. The skid also has a gear-operated backwash supply valve, bed DP gauges, sample points, header transmitters and flow meters, and a filter control panel with solenoid air tubing and cable tray.',
     standards: ['ASME BPVC VIII-1', 'AWWA B100', 'ASME B16.5', 'API 609'],
     vendors: ['Evoqua', 'Pure Aqua', 'ISI Water', 'Ecologix'],
     tags: ['filter', 'multimedia', 'seawater', 'water injection', 'backwash'],
@@ -203,7 +203,7 @@ export default defineMeta([
     file: 'hypochlorite-generator.tsx',
     export: 'HypochloriteGenerator',
     description:
-      'Seawater electrochlorination skid: inlet ball valve, motorised auto-backwash strainer with DP gauges and flush valve, electromagnetic flowmeter (low-flow trip), a rack of tubular electrolyser cells in series with U-bends, DC terminals and busbars fed from a louvred transformer-rectifier cabinet, a GRP degassing tank with level instruments, manway and H2 / air vent stack, duty / standby hydrogen-dilution blowers with ducts, and duty / standby dosing pumps to the hypochlorite outlet. LCP and cable tray. `cells` sets the stack height.',
+      'Seawater electrochlorination skid with tubular electrolyser cells, a degassing tank, hydrogen-dilution blowers and dosing pumps. It has an inlet ball valve, a motorised auto-backwash strainer with DP gauges and flush valve, and an electromagnetic flowmeter (low-flow trip). A rack of tubular electrolyser cells runs in series with U-bends, DC terminals and busbars, fed from a louvred transformer-rectifier cabinet. A GRP degassing tank has level instruments, a manway and an H2 / air vent stack. Duty / standby hydrogen-dilution blowers have ducts, and duty / standby dosing pumps deliver to the hypochlorite outlet. An LCP and cable tray are included. `cells` sets the stack height.',
     standards: ['NORSOK M-001 (materials)', 'ASME B16.5', 'IEC 60146 (rectifiers)'],
     vendors: ['De Nora (SEACLOR)', 'Evoqua (OSEC / Chloropac)', 'Chlory Technology', 'OCEANCHLOR'],
     tags: ['electrochlorination', 'hypochlorite', 'seawater', 'biofouling', 'utility'],

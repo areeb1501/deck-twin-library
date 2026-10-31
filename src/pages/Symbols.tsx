@@ -56,7 +56,7 @@ function Legend() {
   return (
     <div className="mt-6">
       <Toolbar shown={shown.length} total={LIBRARY.symbols.length} onReset={dirty ? () => { setQ(''); setCat('all'); setModel('all') } : undefined}>
-        <FilterInput value={q} onChange={setQ} placeholder="Filter: gate, PSV, FC, off-page" className="w-full sm:w-auto sm:max-w-xs sm:flex-1" />
+        <FilterInput value={q} onChange={setQ} placeholder="Filter by name or tag, such as PSV" className="w-full sm:w-auto sm:max-w-xs sm:flex-1" />
         <Select
           value={cat}
           onChange={setCat}
@@ -138,10 +138,10 @@ function SymbolDetail({ sel, page }: { sel: LibrarySymbol; page?: boolean }) {
       <div className="shrink-0 border-t border-border p-4">
         {sel.component && BY_NAME.get(sel.component) ? (
           <Link href={`/components/${sel.component}`} className="block truncate rounded-md bg-ink px-3 py-2 text-center text-[13px] font-semibold text-on-ink transition-colors hover:bg-ink-2">
-            Open the 3D component: {BY_NAME.get(sel.component)!.title}
+            View 3D component: {BY_NAME.get(sel.component)!.title}
           </Link>
         ) : (
-          <div className="text-[13px] text-muted-fg">{sel.physical ? 'No 3D component yet.' : 'Not physical hardware. Read it, then skip it in the 3D model.'}</div>
+          <div className="text-[13px] text-muted-fg">{sel.physical ? 'No 3D component is available yet.' : 'This symbol does not represent physical equipment, so it is not modelled in 3D.'}</div>
         )}
       </div>
     </>
@@ -163,7 +163,7 @@ export function SymbolPage({ id }: { id: string }) {
       ) : (
         <div className="py-16 text-center">
           <div className="text-[15px] font-medium text-ink">Symbol not found</div>
-          <p className="mt-1 text-[13.5px] text-muted-fg">It may have been renamed. Go back to the full legend.</p>
+          <p className="mt-1 text-[13.5px] text-muted-fg">It may have been renamed. Return to the full legend.</p>
         </div>
       )}
     </div>

@@ -12,7 +12,7 @@ export default {
       standard: IEC,
       drawn: 'Two overlapping circles (one per winding) on the single-line diagram, with the HV feeder above and the LV feeder below. Winding symbols (Δ, Y, Yn) and the MVA / kV rating are written beside it; a diagonal arrow through both circles marks an on-load tap changer.',
       tags: ['TR', 'T', 'TX'],
-      notes: 'Two circles = two-winding transformer; three circles = three-winding. ANSI drawings show two facing coils instead. Two circles in a P&ID instrument context are not used, so this symbol is almost always electrical.',
+      notes: 'Two circles = two-winding transformer; three circles = three-winding. ANSI drawings show two facing coils instead. Two circles are not used in a P&ID instrument context, so this symbol is almost always electrical.',
       datasheet: { form: 'Transformer datasheet / rating plate (IEC 60076-1)', fields: { 'Rated power': 'mva', 'HV rated voltage': 'hvKv', 'LV rated voltage': 'lvKv', 'Cooling (ONAN / ONAF)': 'cooling', 'Terminations': 'terminations', 'On-load tap changer': 'oltc', ...tagF } },
     },
   },

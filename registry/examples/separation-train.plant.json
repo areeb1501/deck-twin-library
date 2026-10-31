@@ -1,6 +1,6 @@
 {
   "name": "Separation & compression train",
-  "description": "Onshore pad: pipeline arrival through an ESDV into a 3-phase separator. Gas goes through the suction scrubber to a motor-driven centrifugal compressor and air-cooled aftercooler to export, with the anti-surge recycle run back along the pipe rack. Oil is pumped through the crude cooler to export, produced water leaves on level control, and the separator PSV discharges to the flare header.",
+  "description": "Onshore separation and compression train on a pad. The pipeline arrives through an ESDV into a 3-phase separator. Gas goes through the suction scrubber to a motor-driven centrifugal compressor and air-cooled aftercooler to export, with the anti-surge recycle run back along the pipe rack. Oil is pumped through the crude cooler to export, produced water leaves on level control, and the separator PSV discharges to the flare header.",
   "source": "Deck Twin example (illustrative layout, not a real asset)",
   "camera": {
     "target": [

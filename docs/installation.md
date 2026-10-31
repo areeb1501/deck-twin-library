@@ -1,8 +1,10 @@
 # Installation
 
-Deck Twin components are React Three Fiber components. Any React project with a bundler works, including Vite, Next.js and Remix.
+This page explains how to install Deck Twin components in a React project, with the CLI or by hand, and how to render them.
 
-> **The CLI runs straight from this site.** The `deck-twin` package isn't published to npm yet, so run it as `npx -y https://<this site>/cli/deck-twin-0.2.2.tgz <command>`. It needs no install and no dependencies. Wherever these docs say `npx deck-twin`, use that command instead. The landing page's **Copy prompt** already uses the full command.
+Deck Twin components are React Three Fiber components. They work in any React project with a bundler, including Vite, Next.js and Remix.
+
+> **Run the CLI from this site.** The `deck-twin` package is not yet published to npm, so run it as `npx -y https://<this site>/cli/deck-twin-0.2.2.tgz <command>`. This requires no installation and no dependencies. Where these docs show `npx deck-twin`, use this command instead. The **Copy prompt** button on the landing page already uses the full command.
 
 ## 1. Peer dependencies
 
@@ -17,7 +19,7 @@ npm install -D @types/three
 npx deck-twin add horizontal-separator centrifugal-pump gate-valve
 ```
 
-The CLI writes to `src/components/deck-twin/`, or to `components/deck-twin/` if there is no `src/`:
+The CLI writes to `src/components/deck-twin/`, or to `components/deck-twin/` if the project has no `src/`:
 
 ```
 src/components/deck-twin/
@@ -27,7 +29,7 @@ src/components/deck-twin/
   valves/gate-valve.tsx
 ```
 
-Imports between these files are relative, so you don't need path aliases. If you've edited a file locally, running `add` again keeps your version unless you pass `--overwrite`.
+Imports between these files are relative, so path aliases are not required. If you have edited a file locally, running `add` again keeps your version unless you pass `--overwrite`.
 
 ## 3. Render
 
@@ -53,7 +55,7 @@ export default function App() {
 }
 ```
 
-`<Stage>` provides a sun with soft shadows, sky fill and a reflection environment built from local light formers, so it needs no network. You can replace it with your own lighting.
+`<Stage>` provides a sun with soft shadows, sky fill and a reflection environment built from local light formers, so it requires no network access. You can replace it with your own lighting.
 
 ## Configuration
 
@@ -63,19 +65,19 @@ export default function App() {
 { "dir": "src/components/deck-twin", "registry": "https://deck-twin-library.demoareeb.workers.dev" }
 ```
 
-- `dir` is where components go.
-- `registry` is where the CLI fetches them from. To use a self-hosted copy, point it at your deployment of this site, or at a local folder that contains `r/`.
+- `dir` is the directory that components are installed into.
+- `registry` is the location the CLI fetches components from. To use a self-hosted copy, set it to your deployment of this site, or to a local folder that contains `r/`.
 
 ## Manual installation
 
-Every component page has a **Code** tab, and every item is plain JSON at `/r/<name>.json`, with the file contents included. To install by hand:
+Every component page has a **Code** tab. Every item is also available as plain JSON at `/r/<name>.json`, with the file contents included. To install by hand:
 
 1. Copy `/r/core.json` → `files[].content` into `deck-twin/lib/…`.
 2. Copy the component file into `deck-twin/<category>/`.
 
 ## Requirements
 
-Built and tested with:
+Deck Twin is built and tested with:
 
 - React 19
 - three r186
@@ -83,6 +85,6 @@ Built and tested with:
 - @react-three/drei 10
 - TypeScript 6
 
-The components are strict TypeScript. They compile with the default Vite `react-ts` template.
+The components are written in strict TypeScript and compile with the default Vite `react-ts` template.
 
-Older versions may work but haven't been tested.
+Older versions may work but have not been tested.

@@ -9,7 +9,7 @@ export default defineMeta([
     file: 'deck-module.tsx',
     export: 'DeckModule',
     description:
-      'Offshore topsides deck section: primary girders (HEB or welded plate girders) on the leg lines with fin-plate connections and web stiffeners, IPE secondaries, 12 mm deck plate with grated drain gutters and 3" drain outlets through liquid-seal pots (ports drain-1…n, flange faces pointing down) or bar grating, coaming, ISO 14122 guard rail with self-closing gated openings, escape-route markings, CHS legs with node cans and chevron bracing below, and stub columns up to a stacked module. Walking surface: top of the floor at y = 0, so equipment placed at y = 0 sits on it. Girders and legs go below (leg foot at y = -legHeight, to sit on a jacket at y = 0); stack another module at y = upperDeckAt with legHeight: 0 (otherwise its legs run down through this floor).',
+      'Offshore topsides deck section with primary girders, secondary beams, a plate or grating floor, guard rails and braced legs. Primary girders (HEB or welded plate girders) sit on the leg lines with fin-plate connections and web stiffeners, and IPE secondaries span between them. The floor is 12 mm deck plate with grated drain gutters and 3" drain outlets through liquid-seal pots (ports drain-1…n, flange faces pointing down), or bar grating. It has a coaming, an ISO 14122 guard rail with self-closing gated openings and escape-route markings. CHS legs with node cans and chevron bracing run below, and stub columns rise to a stacked module. The walking surface is the top of the floor at y = 0, so equipment placed at y = 0 sits on it. Girders and legs go below the floor, with the leg foot at y = -`legHeight` to sit on a jacket at y = 0. To stack another module, place it at y = `upperDeckAt` with `legHeight: 0`, as otherwise its legs run down through this floor.',
     standards: ['ISO 19902', 'ISO 14122-3', 'EN 10365', 'NORSOK N-004', 'NORSOK C-001'],
     vendors: ['Fabricated to project specification'],
     tags: ['deck', 'topsides', 'module', 'platform', 'offshore', 'floor'],
@@ -43,7 +43,7 @@ export default defineMeta([
     file: 'pipe-rack.tsx',
     export: 'PipeRack',
     description:
-      'Multi-tier steel pipe rack: HEB portal bents (posts with base plates, anchor bolts and cap plates, tier beams on bolted end plates, knee braces), IPE longitudinal struts on fin plates, X-braced bays, an optional top tier with two ladder cable trays and an optional cantilevered grating walkway with handrails, self-closing gate and caged ladder. Base plates sit on y = 0; the rack runs along X. Pipes rest on the tier beams: bottom of pipe = tier top of steel (firstTier + i × tierSpacing, or tierElevations); the walkway grating is 30 mm above the top pipe tier.',
+      'Multi-tier steel pipe rack with HEB portal bents, IPE longitudinal struts and X-braced bays. The portal bents have posts with base plates, anchor bolts and cap plates, tier beams on bolted end plates and knee braces, and the struts connect on fin plates. An optional top tier carries two ladder cable trays, and an optional cantilevered grating walkway has handrails, a self-closing gate and a caged ladder. Base plates sit on y = 0 and the rack runs along X. Pipes rest on the tier beams, so bottom of pipe equals tier top of steel (`firstTier` + i × `tierSpacing`, or `tierElevations`). The walkway grating is 30 mm above the top pipe tier.',
     standards: ['EN 10365', 'ISO 14122-2/3/4', 'PIP STC01015', 'IEC 61537'],
     vendors: ['Fabricated to project specification'],
     tags: ['pipe rack', 'pipe bridge', 'rack', 'steel', 'cable tray', 'walkway'],
@@ -69,7 +69,7 @@ export default defineMeta([
     file: 'stair.tsx',
     export: 'Stair',
     description:
-      'Straight steel stair after ISO 14122-3: UPN channel stringers with level-cut feet on anchored cleats, bar-grating treads with yellow chequer nosings and bolted end plates, even risers near 180 mm with the going set by the pitch, an intermediate landing on posts for every 3 m of rise, and handrails with knee rails on both sides. Foot (first riser) at the origin on y = 0, climbing along +X; the upper floor edge is at x = run = (round(rise/0.18) − 1) × going per flight, plus landingLength per intermediate landing. Optional free-standing top landing.',
+      'Straight steel stair following ISO 14122-3, with UPN channel stringers, bar-grating treads and handrails. The stringers have level-cut feet on anchored cleats, and the treads have yellow chequer nosings and bolted end plates. Risers are even at near 180 mm, with the going set by the pitch. An intermediate landing on posts is added for every 3 m of rise, and handrails with knee rails run along both sides. The foot (first riser) is at the origin on y = 0 and the stair climbs along +X. The upper floor edge is at x = run = (round(rise/0.18) − 1) × going per flight, plus `landingLength` per intermediate landing. A free-standing top landing is optional.',
     standards: ['ISO 14122-3', 'EN ISO 14122-1', 'NORSOK C-001', 'OSHA 1910.25'],
     vendors: ['Fabricated to project specification'],
     tags: ['stair', 'stairs', 'access', 'escape route', 'treads'],
@@ -91,7 +91,7 @@ export default defineMeta([
     file: 'ladder.tsx',
     export: 'Ladder',
     description:
-      'Fixed steel ladder after ISO 14122-4: 65 × 12 flat-bar stiles at 450 mm, Ø25 rungs at 300 mm, stiles extended 1.1 m above the landing, a safety cage (hoops from 2.3 m, five vertical bars) and stand-off brackets. A single flight is used up to 10 m of climb; above that the climb is split into staggered flights of at most 6 m with bracketed rest platforms. Optional top landing on posts with handrails and a self-closing gate. Foot at the origin on y = 0; rungs in the plane z = 0 with the climber and cage on +Z; the structure face and the landing are at z ≤ −0.2, the landing walking surface at y = height.',
+      'Fixed steel ladder following ISO 14122-4, with flat-bar stiles, rungs, a safety cage and stand-off brackets. The stiles are 65 × 12 flat bar at 450 mm and extend 1.1 m above the landing, and the rungs are Ø25 at 300 mm. The safety cage has hoops from 2.3 m and five vertical bars. A single flight is used up to 10 m of climb. Above that, the climb is split into staggered flights of at most 6 m with bracketed rest platforms. An optional top landing on posts has handrails and a self-closing gate. The foot is at the origin on y = 0, with the rungs in the plane z = 0 and the climber and cage on +Z. The structure face and the landing are at z ≤ −0.2, and the landing walking surface is at y = `height`.',
     standards: ['ISO 14122-4', 'EN ISO 14122-1', 'NORSOK C-001', 'OSHA 1910.23'],
     vendors: ['Fabricated to project specification'],
     tags: ['ladder', 'caged ladder', 'access', 'rest platform'],
@@ -110,7 +110,7 @@ export default defineMeta([
     file: 'access-platform.tsx',
     export: 'AccessPlatform',
     description:
-      'Free-standing elevated access platform for valves and instruments: SHS legs on anchored base plates with gussets, X-braced faces, a channel-framed bar-grating deck with ISO 14122 guard rail and toe plates, and access by a caged ladder on the +Z face (self-closing gate, staggered flights with rest platforms above 10 m) or by a straight ISO 14122-3 stair arriving at the −X edge. Base plates on y = 0; walking surface (top of grating) at y = height; the stair, when chosen, extends beyond x = −length/2.',
+      'Free-standing elevated access platform for valves and instruments. SHS legs stand on anchored base plates with gussets, with X-braced faces and a channel-framed bar-grating deck with an ISO 14122 guard rail and toe plates. Access is by a caged ladder on the +Z face (self-closing gate, staggered flights with rest platforms above 10 m) or by a straight ISO 14122-3 stair arriving at the −X edge. Base plates sit on y = 0 and the walking surface (top of grating) is at y = `height`. When chosen, the stair extends beyond x = −length/2.',
     standards: ['ISO 14122-2', 'ISO 14122-3', 'ISO 14122-4', 'EN 10210'],
     vendors: ['Fabricated to project specification'],
     tags: ['platform', 'access', 'valve platform', 'walkway', 'ladder', 'stair'],
@@ -131,7 +131,7 @@ export default defineMeta([
     file: 'jacket.tsx',
     export: 'Jacket',
     description:
-      'Fixed steel jacket substructure (4, 6 or 8 legs): hollow battered tubular legs with node cans, horizontal frames, X or K braced faces with oversized brace stubs and crossing cans, conductor guide framing with funnelled sleeves, risers clamped to the +X face with a splash-zone sheath, a seabed bend and top flanges (ports riser-1…n), a boat landing with bumpers, grating and ladder on +Z, barge bumpers on the corner legs through the splash zone, stand-off anodes, mudmats and yellow sea-level marker rings. Origin is the top of the jacket legs at y = 0 and the structure extends below it: mean sea level at y = −airGap, seabed at y = −(airGap + waterDepth). A deck-module with legHeight h placed at y = h sits on it when its leg spacing matches spanX / spanZ.',
+      'Fixed steel jacket substructure with 4, 6 or 8 legs. Battered tubular legs with node cans are tied by horizontal frames and X or K braced faces with oversized brace stubs and crossing cans. Conductor guide framing has funnelled sleeves. Risers are clamped to the +X face with a splash-zone sheath, a seabed bend and top flanges (ports riser-1…n). A boat landing with bumpers, grating and ladder is on +Z, and barge bumpers run on the corner legs through the splash zone. Stand-off anodes, mudmats and yellow sea-level marker rings are included. The origin is the top of the jacket legs at y = 0 and the structure extends below it, with mean sea level at y = −airGap and the seabed at y = −(airGap + waterDepth). A deck-module with `legHeight` h placed at y = h sits on the jacket when its leg spacing matches `spanX` / `spanZ`.',
     standards: ['ISO 19902', 'API RP 2A-WSD', 'DNV-RP-B401', 'NORSOK N-004'],
     vendors: ['Fabricated to project specification'],
     tags: ['jacket', 'substructure', 'offshore', 'platform', 'conductors', 'risers', 'boat landing'],
@@ -160,7 +160,7 @@ export default defineMeta([
     file: 'bridge.tsx',
     export: 'Bridge',
     description:
-      'Bridge-linked platform walkway: two Warren through-trusses (hollow CHS or HEB with bolted node gussets), IPE cross beams and channel stringers carrying bar grating, top cross struts with X laterals and walkway lights, bottom plan bracing, ISO 14122 handrails on both edges, outriggers with a ladder cable tray on +Z and a pipe shelf on −Z, a pinned bearing at −X and a guided PTFE / stainless sliding bearing at +X with a hinged transition flap over the expansion gap (it extends past x = +length/2 and rests 2 mm above y = 0 on the next deck). Walkway top at y = 0, spanning x = −length/2 … +length/2 along X; the bearing masonry plates sit about 0.5 m below the walkway at x = ±(length/2 − 0.25) and must rest on the platform steel.',
+      'Bridge-linked platform walkway with two Warren through-trusses and a bar-grating deck. The trusses use CHS or HEB members with bolted node gussets, and IPE cross beams and channel stringers carry the bar grating. Top cross struts with X laterals and walkway lights, bottom plan bracing and ISO 14122 handrails on both edges are included. Outriggers carry a ladder cable tray on +Z and a pipe shelf on −Z. A pinned bearing sits at −X and a guided PTFE / stainless sliding bearing at +X, with a hinged transition flap over the expansion gap. The flap extends past x = +length/2 and rests 2 mm above y = 0 on the next deck. The walkway top is at y = 0, spanning x = −length/2 to +length/2 along X. The bearing masonry plates sit about 0.5 m below the walkway at x = ±(length/2 − 0.25) and must rest on the platform steel.',
     standards: ['EN 1993-2', 'ISO 14122-2', 'EN 1337 (bearings)', 'NORSOK N-004'],
     vendors: ['Fabricated to project specification', 'Fluorocarbon (bearings)', 'mageba (bearings)'],
     tags: ['bridge', 'link bridge', 'truss', 'walkway', 'bridge-linked platform'],
@@ -181,7 +181,7 @@ export default defineMeta([
     file: 'helideck.tsx',
     export: 'Helideck',
     description:
-      'Octagonal 1D offshore helideck after CAP 437: extruded aluminium plank deck with perimeter gutter, white perimeter line, yellow TD/PM circle (0.5D inner, 1 m wide), white H (4 × 3 m, crossbar on the obstacle-free sector bisector at +X), black/white OFS chevron, D-value, maximum-mass box and installation name, green perimeter lights at ≤ 3 m, yellow TD/PM circle lights, 1.5 m perimeter safety netting (≈ 9 cm mesh) rising outboard to, but not above, deck level, and a tie-down grid, two access routes (grating link through the net, landing and stair to y = 0 on ±Z), and a steel grillage on four braced CHS legs with knee struts to the cantilevers, base plates and anchor bolts. Leg base plates on y = 0; landing surface at y = height.',
+      'Octagonal 1D offshore helideck following CAP 437, with an extruded aluminium plank deck on a steel grillage. The deck has a perimeter gutter, white perimeter line, yellow TD/PM circle (0.5D inner, 1 m wide), white H (4 × 3 m, crossbar on the obstacle-free sector bisector at +X), black/white OFS chevron, D-value, maximum-mass box and installation name. Lighting comprises green perimeter lights at ≤ 3 m and yellow TD/PM circle lights. The 1.5 m perimeter safety netting (≈ 9 cm mesh) rises outboard to, but not above, deck level, and a tie-down grid is included. There are two access routes, one on each of ±Z, each with a grating link through the net and a landing and stair to y = 0. The steel grillage stands on four braced CHS legs with knee struts to the cantilevers, base plates and anchor bolts. Leg base plates sit on y = 0 and the landing surface is at y = `height`.',
     standards: ['CAP 437 (8th ed.)', 'NORSOK C-004', 'ISO 19901-3', 'ICAO Annex 14 Vol II'],
     vendors: ['Fabricated to project specification'],
     tags: ['helideck', 'helipad', 'heliport', 'offshore', 'aviation'],
@@ -203,7 +203,7 @@ export default defineMeta([
     file: 'steel-column.tsx',
     export: 'SteelColumn',
     description:
-      'Structural column of any EN / AISC section (H, I, SHS or CHS): base plate with anchor bolts, washers and nuts on a non-shrink grout bed and optional concrete pedestal, base stiffeners and a welded cap plate. Footprint centre at the origin; the pedestal (or base plate) bottom is on y = 0 and the cap plate top is at y = height, so a steel-beam with topOfSteel = height + its depth rests on it.',
+      'Structural column of any EN / AISC section (H, I, SHS or CHS) with a base plate and a welded cap plate. The base plate has anchor bolts, washers and nuts on a non-shrink grout bed and an optional concrete pedestal, with base stiffeners. The footprint centre is at the origin, the pedestal (or base plate) bottom is on y = 0 and the cap plate top is at y = `height`, so a steel-beam with `topOfSteel` = height + its depth rests on it.',
     standards: ['EN 10365', 'EN 10210', 'AISC 360', 'EN 1993-1-8', 'AISC Design Guide 1'],
     vendors: ['Fabricated to project specification'],
     tags: ['column', 'post', 'steel', 'base plate', 'anchor bolts'],
@@ -223,7 +223,7 @@ export default defineMeta([
     file: 'steel-beam.tsx',
     export: 'SteelBeam',
     description:
-      'Structural beam of any EN / AISC section or welded plate girder (PG <depth>) along X from −length/2 to +length/2 with bolted extended end plates or fin plates, bearing stiffeners at the ends and a stiffener pair at mid-span. The top flange (top of steel) is at y = topOfSteel; the default sits the beam on the ground.',
+      'Structural beam of any EN / AISC section or welded plate girder (PG <depth>), running along X from −length/2 to +length/2. The ends have bolted extended end plates or fin plates with bearing stiffeners, and a stiffener pair sits at mid-span. The top flange (top of steel) is at y = `topOfSteel`, and the default sits the beam on the ground.',
     standards: ['EN 10365', 'AISC 360', 'EN 1993-1-8'],
     vendors: ['Fabricated to project specification'],
     tags: ['beam', 'girder', 'steel', 'end plate', 'fin plate'],
@@ -243,7 +243,7 @@ export default defineMeta([
     file: 'grating-panel.tsx',
     export: 'GratingPanel',
     description:
-      'Welded / pressure-locked steel bar grating panel modelled bar by bar: bearing bars along X at the set pitch (30 × 3 mm at 30 mm by default), cross bars at 100 mm, edge banding, optional 100 mm kick plates on the long edges and saddle clips at the corners. Bottom on y = 0, walking surface at y = depth, centred on the origin; the bearing bars span along X.',
+      'Welded or pressure-locked steel bar grating panel modelled bar by bar. Bearing bars run along X at the set pitch (30 × 3 mm at 30 mm by default), with cross bars at 100 mm and edge banding. Optional 100 mm kick plates sit on the long edges, with saddle clips at the corners. The bottom is on y = 0, the walking surface is at y = `depth`, and the panel is centred on the origin with the bearing bars spanning along X.',
     standards: ['EN ISO 14122-2', 'BS 4592-1', 'ANSI/NAAMM MBG 531'],
     vendors: ['Lionweld Kennedy'],
     tags: ['grating', 'floor', 'walkway', 'kick plate', 'open mesh'],
@@ -264,7 +264,7 @@ export default defineMeta([
     file: 'handrail.tsx',
     export: 'Handrail',
     description:
-      'Straight guard-rail run after ISO 14122-3: Ø48.3 mm posts at ≤ 1.5 m on base plates with four anchors, Ø42.4 top rail at 1.1 m, knee rail, 100 mm toe plate, optional end returns towards −Z and a self-closing spring-hinged gate at the +X end. Origin at the centre of the run on the walking surface (y = 0); the run lies along X at z = 0 with the walkway on the −Z side.',
+      'Straight guard-rail run following ISO 14122-3, with posts, a top rail, a knee rail and a toe plate. The Ø48.3 mm posts stand at ≤ 1.5 m on base plates with four anchors, the Ø42.4 top rail is at 1.1 m, and the toe plate is 100 mm. End returns towards −Z and a self-closing spring-hinged gate at the +X end are optional. The origin is at the centre of the run on the walking surface (y = 0), and the run lies along X at z = 0 with the walkway on the −Z side.',
     standards: ['ISO 14122-3', 'EN ISO 14122-1', 'NORSOK C-001', 'OSHA 1910.29'],
     vendors: ['Fabricated to project specification'],
     tags: ['handrail', 'guard rail', 'railing', 'gate', 'toe plate'],
@@ -285,7 +285,7 @@ export default defineMeta([
     file: 'cable-tray.tsx',
     export: 'CableTray',
     description:
-      'Ladder-type cable tray run after IEC 61537: 1 to 6 stacked trays (C-section side rails, rungs at 300 mm, splice plates at 3 m, copper earth bonding jumpers, laid cables at a set fill) on floor-standing 41 × 41 strut posts with gusseted cantilever arms, base plates and anchors, floor braces and an optional top cover. Run along X centred on the origin; posts on y = 0 on the −Z side; the lowest rungs at y = elevation, tiers every tierSpacing.',
+      'Ladder-type cable tray run following IEC 61537, with 1 to 6 stacked trays on floor-standing 41 × 41 strut posts. The trays have C-section side rails, rungs at 300 mm, splice plates at 3 m, copper earth bonding jumpers and laid cables at a set fill. The posts have gusseted cantilever arms, base plates, anchors and floor braces, and a top cover is optional. The run lies along X centred on the origin, with posts on y = 0 on the −Z side, the lowest rungs at y = `elevation` and tiers every `tierSpacing`.',
     standards: ['IEC 61537', 'NEMA VE 1', 'NEMA VE 2'],
     vendors: ['Niedax'],
     tags: ['cable tray', 'cable ladder', 'electrical', 'support', 'strut'],
@@ -308,7 +308,7 @@ export default defineMeta([
     file: 'caisson.tsx',
     export: 'Caisson',
     description:
-      'Deck-hung caisson for seawater lift, produced-water disposal or open-drain sump service: large-bore hollow pipe hung off a gusseted collar on the deck, blind top cover with lifting lug, padded side inlet (port inlet) and a vent nozzle (port vent), guide clamps with stand-off brackets back to jacket steel at −Z, stand-off anodes and a slotted open bottom. Origin on the caisson axis at deck level (y = 0); it rises stickUp above the deck and hangs `length` below it (intended, like a jacket).',
+      'Deck-hung caisson for seawater lift, produced-water disposal or open-drain sump service. The large-bore pipe hangs off a gusseted collar on the deck, with a blind top cover with lifting lug, a padded side inlet (port inlet) and a vent nozzle (port vent). Guide clamps with stand-off brackets run back to jacket steel at −Z, and the caisson has stand-off anodes and a slotted open bottom. The origin is on the caisson axis at deck level (y = 0). It rises `stickUp` above the deck and hangs `length` below it by design, in the same way as a jacket.',
     standards: ['ISO 19902', 'NORSOK P-001', 'ASME B16.5', 'DNV-RP-B401'],
     vendors: ['Fabricated to project specification'],
     tags: ['caisson', 'seawater lift', 'disposal caisson', 'drain caisson', 'offshore'],
@@ -330,7 +330,7 @@ export default defineMeta([
     file: 'module-frame.tsx',
     export: 'ModuleFrame',
     description:
-      'Lift-installed topsides equipment module frame: HEB base frame with IPE secondaries on fin plates, 12 mm deck plate and 150 mm drip coaming, set-down stools, HEB columns with stiffeners, roof frame with optional plated roof and guard rail, CHS X-bracing on the end faces and end bays, and four lift padeyes with cheek plates on the corner columns. Stools stand on y = 0; the floor (walking surface) is at y = 0.15 + base depth + 0.012 (0.662 m with HEB 500) and the roof top of steel is `height` above the floor.',
+      'Lift-installed topsides equipment module frame with an HEB base frame, HEB columns, a roof frame and four lift padeyes. The base frame has IPE secondaries on fin plates, a 12 mm deck plate, a 150 mm drip coaming and set-down stools. HEB columns with stiffeners carry a roof frame with an optional plated roof and guard rail. CHS X-bracing is fitted on the end faces and end bays, and the four lift padeyes have cheek plates on the corner columns. The stools stand on y = 0, the floor (walking surface) is at y = 0.15 + base depth + 0.012 (0.662 m with HEB 500), and the roof top of steel is `height` above the floor.',
     standards: ['ISO 19901-6 (lifting)', 'DNV-ST-N001', 'NORSOK N-004', 'EN 10365'],
     vendors: ['Fabricated to project specification'],
     tags: ['module', 'skid', 'frame', 'topsides', 'lift', 'padeye'],

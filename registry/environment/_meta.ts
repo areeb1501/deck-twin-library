@@ -7,7 +7,7 @@ export default defineMeta([
     file: 'ocean.tsx',
     export: 'Ocean',
     description:
-      'Animated open sea for offshore scenes: six Gerstner swell components scaled by the significant wave height, wind chop and whitecaps in the per-pixel normals, a physical water material (IOR 1.333) with Fresnel, sun glints and environment reflections, and foam rings around legs, risers and piles (`foam`: [x, z, radius]). Slightly transparent looking down, so an underwater jacket reads through. Origin at mean sea level (y = 0); the polar LOD grid follows the camera and respects scene fog.',
+      'Animated open sea for offshore scenes, with six Gerstner swell components scaled by the significant wave height. Wind chop and whitecaps are carried in the per-pixel normals, and a physical water material (IOR 1.333) provides Fresnel, sun glints and environment reflections. Foam rings form around legs, risers and piles (`foam`: [x, z, radius]). The surface is slightly transparent looking down, so an underwater jacket remains visible. The origin is at mean sea level (y = 0), and the polar LOD grid follows the camera and respects scene fog.',
     standards: ['Gerstner (trochoidal) waves'],
     tags: ['sea', 'water', 'waves', 'ocean', 'offshore', 'environment'],
     anchor: 'base',
@@ -29,7 +29,7 @@ export default defineMeta([
     file: 'sky.tsx',
     export: 'Sky',
     description:
-      'Drop-in sky and lighting rig. Day: a physical (Preetham) sky, a warm sun with soft shadows, a hemisphere fill, an offline environment map baked from the sky and Lightformers (no network), exponential haze and a horizon band that hides the sea and sky seam. Night: a star dome with a moon in the sun direction, cool moonlight, a warm fill standing in for deck floodlights (`deckLights`) and a dark environment map. Set `lights: false` to keep your own lights; `preview` adds a reference pile with chrome and matte spheres standing in the sea.',
+      'Drop-in sky and lighting rig with day and night modes. Day mode has a physical (Preetham) sky, a warm sun with soft shadows, a hemisphere fill, an offline environment map baked from the sky and Lightformers (no network), exponential haze and a horizon band that hides the sea and sky seam. Night mode has a star dome with a moon in the sun direction, cool moonlight, a warm fill standing in for deck floodlights (`deckLights`) and a dark environment map. Set `lights: false` to keep your own lights; `preview` adds a reference pile with chrome and matte spheres standing in the sea.',
     standards: ['Preetham sky model (three.js Sky)'],
     tags: ['sky', 'sun', 'moon', 'stars', 'night', 'lighting', 'environment', 'fog'],
     anchor: 'base',
