@@ -145,7 +145,7 @@ function useActiveHeading(article: RefObject<HTMLElement | null>, html: string) 
 function Pager({ href, hint, title, right }: { href: string; hint: string; title: string; right?: boolean }) {
   return (
     <Link href={href} className={`group rounded-lg border border-border px-4 py-3 transition-colors hover:border-line-strong ${right ? 'text-right' : ''}`}>
-      <div className="text-[12.5px] text-muted-fg">{hint}</div>
+      <div className="text-[13px] text-muted-fg">{hint}</div>
       <div className="mt-0.5 text-[15px] font-semibold text-ink">{title}</div>
     </Link>
   )

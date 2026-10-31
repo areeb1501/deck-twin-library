@@ -146,6 +146,7 @@ body,
 }
 body {
   @apply bg-bg text-fg font-sans antialiased;
+  font-size: 15px;
 }
 ::selection {
   background: rgb(254 85 16 / 0.35);
@@ -163,14 +164,16 @@ body {
     outline-offset: 2px;
   }
 }
-/* One typeface. Every heading, at every level on every page, is the same wide cut; only the size changes. Monospace is for code. */
+/* One type system. Archivo in one width everywhere. Weights: 400 for text, 500 for interface, 600 for headings and titles. Sizes: 13, 15, 17, 20, 24, then headings. Monospace is for code, at 13. */
 @layer base {
+  html {
+    font-stretch: 108%;
+  }
   h1,
   h2,
   h3 {
-    font-stretch: 112%;
-    font-weight: 560;
-    letter-spacing: -0.025em;
+    font-weight: 600;
+    letter-spacing: -0.02em;
   }
 }
 
@@ -207,8 +210,7 @@ body {
 }
 .nav-wordmark {
   color: var(--ink);
-  font-size: 16px;
-  font-stretch: 112%;
+  font-size: 17px;
   font-weight: 600;
   letter-spacing: -0.02em;
   line-height: 1.3;
@@ -258,16 +260,15 @@ body {
 }
 
 .prose-docs {
-  @apply text-[16.5px] leading-[1.75] text-fg-2;
+  @apply text-[17px] leading-[1.7] text-fg-2;
 }
 .prose-docs h1,
 .prose-docs h2 {
-  font-stretch: 112%;
-  font-weight: 560;
+  font-weight: 600;
   letter-spacing: -0.03em;
 }
 .prose-docs h1 {
-  @apply text-[38px] leading-tight text-ink mb-4;
+  @apply text-[40px] leading-tight text-ink mb-4;
 }
 .prose-docs h2 {
   @apply text-[24px] text-ink mt-14 mb-3;
@@ -330,8 +331,7 @@ body {
 
 /* The orange drawing sheet: it opens the home page and closes every marketing page, the same in both themes. */
 .display {
-  font-stretch: 112%;
-  font-weight: 560;
+  font-weight: 600;
   letter-spacing: -0.03em;
   line-height: 1;
   text-wrap: balance;
@@ -388,10 +388,10 @@ body {
   fill: currentColor;
   font-family: var(--font-sans);
   font-size: 1px;
-  font-weight: 560;
+  font-weight: 600;
 }
 .plan-end {
-  font-weight: 450;
+  font-weight: 400;
 }
 .sheet-btn {
   display: inline-flex;
@@ -400,7 +400,7 @@ body {
   padding: 0 20px;
   border-radius: 6px;
   font-size: 15px;
-  font-weight: 560;
+  font-weight: 500;
   transition: background-color 0.15s ease-out, color 0.15s ease-out, transform 0.12s ease-out;
 }
 .sheet-btn:active {
@@ -423,7 +423,8 @@ body {
 /* The drawing's title block: every sheet carries one, in its lower corner. */
 .title-block {
   display: grid;
-  grid-template-columns: auto auto;
+  grid-template-columns: minmax(0, auto) auto;
+  max-width: 100%;
   font-size: 13px;
   line-height: 1.3;
   box-shadow: inset 0 0 0 1.5px var(--ink-on);
@@ -517,7 +518,7 @@ body {
 }
 .home-lead p {
   color: var(--fg-2);
-  font-size: 18px;
+  font-size: 17px;
   line-height: 1.5;
 }
 .home-body {
@@ -534,6 +535,11 @@ body {
 }
 .index-row {
   transition: color 0.15s ease-out;
+}
+@media (max-width: 1023px) {
+  .nav-link {
+    padding: 0 7px;
+  }
 }
 @media (max-width: 1239px) {
   .sheet-stage {

@@ -67,7 +67,7 @@ function DocsLayout({ drawer, closeDrawer, children }: { drawer: boolean; closeD
   return (
     <div className="flex min-h-0 flex-1">
       {!collapsed && (
-        <aside className="sticky top-14 hidden h-[calc(100vh-3.5rem)] w-[280px] shrink-0 flex-col border-r border-border bg-deep lg:flex">
+        <aside className="sticky top-14 hidden h-[calc(100vh-3.5rem)] w-[300px] shrink-0 flex-col border-r border-border bg-deep lg:flex">
           <div className="absolute top-3 right-3 z-10">
             <IconButton label="Collapse sidebar" onClick={() => setCollapsed(true)} icon={<PanelIcon />} />
           </div>
@@ -164,7 +164,7 @@ function Header({ onDocsMenu }: { onDocsMenu?: () => void }) {
           <SearchButton />
           <ThemeToggle />
           <span className="mx-1.5 hidden h-5 w-px bg-border xl:block" />
-          <Link href="/docs/installation" className="nav-cta hidden h-8 shrink-0 items-center rounded-md px-3.5 text-[13px] font-semibold whitespace-nowrap xl:flex">
+          <Link href="/docs/installation" className="nav-cta hidden h-8 shrink-0 items-center rounded-md px-3.5 text-[15px] font-medium whitespace-nowrap xl:flex">
             Get started
           </Link>
           <button onClick={() => (onDocsMenu ? onDocsMenu() : setMenu((m) => !m))} aria-label="Menu" aria-expanded={menu} className={`flex h-8 w-8 items-center justify-center rounded-md text-ink transition-colors hover:bg-muted ${onDocsMenu ? 'lg:hidden' : 'md:hidden'}`}>
@@ -182,10 +182,10 @@ function Header({ onDocsMenu }: { onDocsMenu?: () => void }) {
             </Link>
           ))}
           <div className="mt-1 flex items-center justify-between border-t border-border px-3 pt-3 pb-1">
-            <span className="text-[14px] font-medium text-fg-3">Theme</span>
+            <span className="text-[15px] font-medium text-fg-3">Theme</span>
             <ThemeSwitch />
           </div>
-          <Link href="/docs/installation" className="mt-2 mb-1 flex h-10 items-center justify-center rounded-md bg-ink text-[14px] font-medium text-on-ink">
+          <Link href="/docs/installation" className="mt-2 mb-1 flex h-10 items-center justify-center rounded-md bg-ink text-[15px] font-medium text-on-ink">
             Get started
           </Link>
         </nav>
@@ -251,7 +251,7 @@ function Footer() {
         <div className="mx-auto grid max-w-[1440px] grid-cols-1 items-end gap-10 px-6 py-16 sm:py-20 lg:grid-cols-[minmax(0,7fr)_minmax(0,5fr)] lg:gap-16">
           <div>
             <h2 className="display text-[38px] sm:text-[clamp(52px,5.4vw,84px)]">Start building</h2>
-            <p className="mt-5 max-w-lg text-[18px] leading-[1.5] font-[450]">Install a single component, or give your agent a P&amp;ID to build a complete plant.</p>
+            <p className="mt-5 max-w-lg text-[17px] leading-[1.5] font-normal">Install a single component, or give your agent a P&amp;ID to build a complete plant.</p>
           </div>
           <div className="min-w-0 space-y-3">
             <div className="dark-zone">
@@ -334,7 +334,7 @@ function SidebarPanel({ drawer = false }: { drawer?: boolean }) {
       key={href}
       href={href}
       aria-current={loc === href ? 'page' : undefined}
-      className={`block truncate rounded-lg py-1.5 text-[14px] transition-colors ${indent ? 'pr-3 pl-6' : 'px-3'} ${loc === href ? 'bg-brand-tint font-medium text-brand' : 'text-fg-3 hover:bg-hover hover:text-ink'}`}
+      className={`block truncate rounded-lg py-1.5 text-[15px] font-medium transition-colors ${indent ? 'pr-3 pl-6' : 'px-3'} ${loc === href ? 'bg-brand-tint font-medium text-brand' : 'text-fg-3 hover:bg-hover hover:text-ink'}`}
     >
       {label}
     </Link>
@@ -355,7 +355,7 @@ function SidebarPanel({ drawer = false }: { drawer?: boolean }) {
                 <button
                   onClick={() => toggle(c.id)}
                   aria-expanded={expanded}
-                  className={`flex w-full items-center gap-2 rounded-lg px-3 py-1.5 text-left text-[14px] transition-colors hover:bg-hover hover:text-ink ${current === c.id ? 'text-ink' : 'text-fg-3'}`}
+                  className={`flex w-full items-center gap-2 rounded-lg px-3 py-1.5 text-left text-[15px] font-medium transition-colors hover:bg-hover hover:text-ink ${current === c.id ? 'text-ink' : 'text-fg-3'}`}
                 >
                   <span className="flex-1 truncate">{c.title}</span>
                   <svg viewBox="0 0 16 16" className={`h-3.5 w-3.5 shrink-0 text-muted-fg transition-transform ${expanded ? 'rotate-90' : ''}`} fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
@@ -370,7 +370,7 @@ function SidebarPanel({ drawer = false }: { drawer?: boolean }) {
       </nav>
       {drawer && (
         <div className="flex items-center justify-between border-t border-border px-4 py-3 md:hidden">
-          <span className="font-mono text-[11.5px] text-muted-fg">v{VERSION}</span>
+          <span className="text-[13px] text-muted-fg">v{VERSION}</span>
           <ThemePicker />
         </div>
       )}
@@ -409,7 +409,7 @@ function ThemePicker() {
 function Section({ title, children }: { title: string; children: ReactNode }) {
   return (
     <div className="mb-6">
-      <div className="mb-1 px-3 py-1 text-[13px] font-semibold text-ink">{title}</div>
+      <div className="mb-1 px-3 py-1 text-[15px] font-semibold text-ink">{title}</div>
       {children}
     </div>
   )
@@ -419,7 +419,7 @@ function Section({ title, children }: { title: string; children: ReactNode }) {
 function SlimFooter() {
   return (
     <footer className="border-t border-border">
-      <div className="mx-auto flex max-w-[1180px] flex-wrap items-center justify-between gap-x-6 gap-y-2 px-6 py-6 text-[12.5px] text-muted-fg lg:px-12">
+      <div className="mx-auto flex max-w-[1180px] flex-wrap items-center justify-between gap-x-6 gap-y-2 px-6 py-6 text-[13px] text-muted-fg lg:px-12">
         <span>Deck Twin v{VERSION}, MIT licence. Reference geometry based on public standards, not vendor CAD.</span>
         <span className="flex gap-4">
           <a href="/llms.txt" className="hover:text-ink">llms.txt</a>
@@ -458,7 +458,7 @@ function Keycaps() {
   return (
     <span className="ml-auto flex gap-1">
       {[mac ? '⌘' : 'Ctrl', 'K'].map((k) => (
-        <kbd key={k} className="flex h-5 min-w-5 items-center justify-center rounded border border-border bg-surface px-1 font-sans text-[11px] font-medium text-muted-fg">
+        <kbd key={k} className="flex h-5 min-w-5 items-center justify-center rounded border border-border bg-surface px-1 font-sans text-[13px] font-medium text-muted-fg">
           {k}
         </kbd>
       ))}
@@ -472,7 +472,7 @@ function SearchButton() {
   return (
     <button onClick={openSearch} aria-label="Search docs and components" aria-keyshortcuts={mac ? 'Meta+K' : 'Control+K'} className="flex h-8 w-8 items-center justify-center gap-2 rounded-md text-muted-fg transition-colors hover:bg-muted hover:text-ink lg:w-44 lg:justify-start lg:rounded-md lg:border lg:border-border lg:bg-muted/60 lg:px-3 lg:hover:border-line-strong lg:hover:bg-hover xl:w-56">
       {searchIcon}
-      <span className="hidden text-left text-[13px] lg:inline">Search</span>
+      <span className="hidden text-left text-[15px] font-medium lg:inline">Search</span>
       <span className="hidden lg:contents">
         <Keycaps />
       </span>
@@ -545,20 +545,20 @@ function SearchDialog() {
                     id={`search-hit-${i}`}
                     onMouseMove={() => setActive(i)}
                     onClick={() => pick(h.href)}
-                    className={`flex w-full items-center gap-3 rounded-md px-3 py-2 text-left text-sm ${i === active ? 'bg-muted text-ink' : 'text-ink'}`}
+                    className={`flex w-full items-center gap-3 rounded-md px-3 py-2 text-left text-[15px] ${i === active ? 'bg-muted text-ink' : 'text-ink'}`}
                   >
                     {h.thumb ? (
                       <img src={themedThumb(h.thumb, theme)} alt="" className="h-8 w-10 shrink-0 rounded border border-border bg-stage object-cover" onError={(e) => (e.currentTarget.style.visibility = 'hidden')} />
                     ) : (
-                      <span className="flex h-8 w-10 shrink-0 items-center justify-center rounded border border-border text-[10px] text-muted-fg">doc</span>
+                      <span className="flex h-8 w-10 shrink-0 items-center justify-center rounded border border-border text-[13px] text-muted-fg">doc</span>
                     )}
                     <span className="flex-1 truncate">{markHits(h.label, q)}</span>
-                    <span className="shrink-0 text-xs text-muted-fg">{h.hint}</span>
+                    <span className="shrink-0 text-[13px] text-muted-fg">{h.hint}</span>
                   </button>
                 ))}
-                {!hits.length && <div className="px-3 py-6 text-center text-sm text-muted-fg">No results.</div>}
+                {!hits.length && <div className="px-3 py-6 text-center text-[15px] text-muted-fg">No results.</div>}
               </div>
-              <div className="flex gap-4 border-t border-border bg-muted px-4 py-2 text-[11.5px] text-muted-fg">
+              <div className="flex gap-4 border-t border-border bg-muted px-4 py-2 text-[13px] text-muted-fg">
                 <span>↑↓ to move</span>
                 <span>↵ to open</span>
                 <span>esc to close</span>

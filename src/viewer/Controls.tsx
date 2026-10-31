@@ -9,7 +9,7 @@ export function Controls({ params, values, onChange }: { params: Param[]; values
     <div className="space-y-3.5">
       {params.map((p) => (
         <div key={p.key}>
-          <div className="mb-1 flex items-baseline justify-between text-xs">
+          <div className="mb-1 flex items-baseline justify-between text-[13px]">
             <label className="font-medium text-fg">{p.label}</label>
             {p.type === 'number' && (
               <span className="font-mono text-muted-fg">

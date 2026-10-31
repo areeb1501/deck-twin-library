@@ -83,7 +83,7 @@ function Legend() {
                   <img src={librarySymbolUrl(x.svg)} alt="" className="sym max-h-full max-w-full" />
                 </div>
                 <div className="mt-2 text-[13px] leading-5 font-medium">{x.name}</div>
-                <div className="mt-0.5 flex items-center gap-1.5 text-[11px] text-muted-fg">
+                <div className="mt-0.5 flex items-center gap-1.5 text-[13px] text-muted-fg">
                   {has3d(x) ? <span className="rounded bg-ink px-1 font-semibold text-on-ink">3D</span> : !x.physical ? <span className="rounded bg-hover px-1">logical</span> : null}
                   <span className="truncate">{[...(x.tags ?? []), ...(x.isa ?? [])].join(', ')}</span>
                 </div>
@@ -93,7 +93,7 @@ function Legend() {
           {!shown.length && (
             <div className="py-16 text-center">
               <div className="text-[15px] font-medium text-ink">No symbols match these filters</div>
-              <p className="mt-1 text-[13.5px] text-muted-fg">Change the category or the 3D model filter, or clear the search.</p>
+              <p className="mt-1 text-[13px] text-muted-fg">Change the category or the 3D model filter, or clear the search.</p>
             </div>
           )}
         </div>
@@ -101,7 +101,7 @@ function Legend() {
           {sel ? (
             <SymbolDetail sel={sel} />
           ) : (
-            <div className="p-5 text-[14px] text-muted-fg">Select a symbol to see how it is drawn, what it means, its variants and the component it maps to.</div>
+            <div className="p-5 text-[15px] text-muted-fg">Select a symbol to see how it is drawn, what it means, its variants and the component it maps to.</div>
           )}
         </aside>
       </div>
@@ -118,10 +118,10 @@ function SymbolDetail({ sel, page }: { sel: LibrarySymbol; page?: boolean }) {
         <div className="flex h-36 items-center justify-center rounded-lg border border-border p-4">
           <img src={librarySymbolUrl(sel.svg)} alt={`${sel.name} P&ID symbol`} className="sym max-h-full max-w-full" />
         </div>
-        <Name className="mt-3 text-lg leading-6 font-semibold tracking-tight">{sel.name}</Name>
-        <div className="mt-0.5 text-xs text-muted-fg">{sel.standard}</div>
+        <Name className="mt-3 text-[17px] leading-6 font-semibold">{sel.name}</Name>
+        <div className="mt-0.5 text-[13px] text-muted-fg">{sel.standard}</div>
       </div>
-      <div className="min-h-0 flex-1 space-y-3 overflow-y-auto px-5 py-4 text-[14px]">
+      <div className="min-h-0 flex-1 space-y-3 overflow-y-auto px-5 py-4 text-[15px]">
         <Field label="Drawn as">{sel.drawn}</Field>
         <Field label="Meaning">{sel.meaning}</Field>
         {sel.variants?.length ? (
@@ -163,7 +163,7 @@ export function SymbolPage({ id }: { id: string }) {
       ) : (
         <div className="py-16 text-center">
           <div className="text-[15px] font-medium text-ink">Symbol not found</div>
-          <p className="mt-1 text-[13.5px] text-muted-fg">It may have been renamed. Return to the full legend.</p>
+          <p className="mt-1 text-[13px] text-muted-fg">It may have been renamed. Return to the full legend.</p>
         </div>
       )}
     </div>
@@ -178,7 +178,7 @@ function ByComponent() {
         if (!items.length) return null
         return (
           <section key={c.id} className="mt-8">
-            <h2 className="mb-4 text-[19px] font-semibold text-ink">{c.title}</h2>
+            <h2 className="mb-4 text-[20px] font-semibold text-ink">{c.title}</h2>
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5 xl:grid-cols-6">
               {items.map((i) => {
                 const e = PID[i.name]
@@ -188,7 +188,7 @@ function ByComponent() {
                       <img src={symbolUrl(e)} alt="" className="sym max-h-full max-w-full" />
                     </div>
                     <div className="mt-2 text-[13px] font-medium">{i.title}</div>
-                    <div className="mt-0.5 truncate font-mono text-[11px] text-muted-fg">{[...(e.tags ?? []), ...(e.isa ?? [])].join(', ')}</div>
+                    <div className="mt-0.5 truncate font-mono text-[13px] text-muted-fg">{[...(e.tags ?? []), ...(e.isa ?? [])].join(', ')}</div>
                   </Link>
                 )
               })}
@@ -203,7 +203,7 @@ function ByComponent() {
 function Field({ label, children }: { label: string; children: ReactNode }) {
   return (
     <div>
-      <div className="mb-0.5 text-[12.5px] font-semibold text-ink">{label}</div>
+      <div className="mb-0.5 text-[13px] font-semibold text-ink">{label}</div>
       <div className="leading-6 text-fg-2">{children}</div>
     </div>
   )
@@ -211,7 +211,7 @@ function Field({ label, children }: { label: string; children: ReactNode }) {
 
 function TabButton({ on, onClick, children }: { on: boolean; onClick: () => void; children: ReactNode }) {
   return (
-    <button onClick={onClick} className={`-mb-px border-b-2 px-3.5 py-2.5 text-[14px] font-medium transition-colors ${on ? 'border-ink text-ink' : 'border-transparent text-muted-fg hover:text-ink'}`}>
+    <button onClick={onClick} className={`-mb-px border-b-2 px-3.5 py-2.5 text-[15px] font-medium transition-colors ${on ? 'border-ink text-ink' : 'border-transparent text-muted-fg hover:text-ink'}`}>
       {children}
     </button>
   )

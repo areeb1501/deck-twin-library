@@ -17,7 +17,7 @@ export function ExamplesIndex() {
   return (
     <div className="mx-auto max-w-[1280px] px-6 py-10">
       <h1 className="display text-[34px] sm:text-[44px] text-ink">Examples</h1>
-      <p className="mt-3 max-w-2xl text-[16px] leading-7 text-fg-3">Complete plants built from the component library, each defined in a single <code className="font-mono text-sm">plant.json</code> file. Use them as starting points or as references for your agent.</p>
+      <p className="mt-3 max-w-2xl text-[17px] leading-7 text-fg-3">Complete plants built from the component library, each defined in a single <code className="font-mono text-[13px]">plant.json</code> file. Use them as starting points or as references for your agent.</p>
       <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
         {[...EXAMPLES].sort(byLevel).map((e) => (
           <Link key={e.name} href={`/examples/${e.name}`} className="group flex flex-col overflow-hidden rounded-lg border border-border bg-surface transition-colors hover:border-line-strong">
@@ -30,7 +30,7 @@ export function ExamplesIndex() {
               <p className="mt-1 line-clamp-3 text-[13px] leading-5 text-muted-fg">
                 <RichText text={e.spec.description ?? ''} />
               </p>
-              <div className="mt-auto pt-3 text-[12.5px] font-medium text-fg-3">
+              <div className="mt-auto pt-3 text-[13px] font-medium text-fg-3">
                 {e.spec.items.length} items, {e.spec.lines?.length ?? 0} lines
               </div>
             </div>
@@ -56,7 +56,7 @@ export function ExamplePage({ name }: { name: string }) {
         <span>{ex.name}</span>
       </nav>
       <h1 className="display text-[30px] sm:text-[36px] text-ink">{ex.spec.name}</h1>
-      <p className="mt-2 max-w-3xl text-[16px] text-fg-3">
+      <p className="mt-2 max-w-3xl text-[17px] text-fg-3">
         <RichText text={ex.spec.description ?? ''} />
       </p>
       <div className="mt-5 grid grid-cols-1 gap-5 lg:grid-cols-[minmax(0,1fr)_420px]">
@@ -77,7 +77,7 @@ export function ExamplePage({ name }: { name: string }) {
                 />
               </div>
             )}
-            <button onClick={() => setLabels((l) => !l)} className="h-9 rounded-md border border-border bg-surface px-2.5 text-xs font-medium text-ink hover:bg-muted">
+            <button onClick={() => setLabels((l) => !l)} className="h-9 rounded-md border border-border bg-surface px-2.5 text-[13px] font-medium text-ink hover:bg-muted">
               {labels ? 'Hide tags' : 'Show tags'}
             </button>
           </div>
@@ -110,7 +110,7 @@ const LEVEL_STYLE: Record<Level, string> = {
 function LevelBadge({ level }: { level: Level }) {
   const bars = level === 'Basic' ? 1 : level === 'Intermediate' ? 2 : 3
   return (
-    <span className={`absolute top-3 left-3 inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-[12px] font-semibold ring-1 ${LEVEL_STYLE[level]}`}>
+    <span className={`absolute top-3 left-3 inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-[13px] font-semibold ring-1 ${LEVEL_STYLE[level]}`}>
       <span className="flex items-end gap-[2px]" aria-hidden>
         {[0, 1, 2].map((i) => (
           <span key={i} className={`w-[3px] rounded-sm ${i < bars ? 'bg-current' : 'bg-current opacity-25'}`} style={{ height: 5 + i * 3 }} />

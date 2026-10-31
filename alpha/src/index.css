@@ -5,6 +5,10 @@
   unicode-range: U+26;
 }
 
+html {
+  font-stretch: 108%;
+}
+
 :root {
   --ui-bg: rgba(18, 20, 22, 0.78);
   --ui-bg-solid: #141618;

@@ -41,6 +41,7 @@ body {
   background: var(--bg);
   color: var(--fg);
   font: 400 17px/1.6 'Plain Ampersand', 'Archivo Variable', system-ui, sans-serif;
+  font-stretch: 108%;
   -webkit-font-smoothing: antialiased;
 }
 h1,
@@ -48,8 +49,7 @@ h2,
 h3 {
   margin: 0;
   font-family: 'Plain Ampersand', 'Archivo Variable', sans-serif;
-  font-stretch: 112%;
-  font-weight: 560;
+  font-weight: 600;
   letter-spacing: -0.03em;
   color: var(--ink);
   text-wrap: balance;
@@ -86,7 +86,8 @@ img {
   border-radius: var(--radius);
   background: var(--ink);
   color: var(--bg);
-  font: 600 15px/1 'Plain Ampersand', 'Archivo Variable', sans-serif;
+  font: 500 15px/1 'Plain Ampersand', 'Archivo Variable', sans-serif;
+  font-stretch: inherit;
   text-decoration: none;
   white-space: nowrap;
   transition: background-color 0.15s ease-out, color 0.15s ease-out, transform 0.12s ease-out;
@@ -116,7 +117,7 @@ img {
 .cta.small {
   height: 32px;
   padding: 0 14px;
-  font-size: 13px;
+  font-size: 15px;
 }
 
 .top {
@@ -136,8 +137,7 @@ img {
   gap: 10px;
   color: var(--ink);
   font-family: 'Plain Ampersand', 'Archivo Variable', sans-serif;
-  font-size: 16px;
-  font-stretch: 112%;
+  font-size: 17px;
   font-weight: 600;
   line-height: 1;
   letter-spacing: -0.02em;
@@ -161,6 +161,7 @@ img {
   padding: 0 11px;
   color: #b4b4bd;
   font: 500 15px/1.3 'Plain Ampersand', 'Archivo Variable', sans-serif;
+  font-stretch: inherit;
   text-decoration: none;
   white-space: nowrap;
   transition: color 0.15s ease-out;
@@ -186,7 +187,7 @@ img {
   border-radius: var(--radius);
   background: rgb(255 255 255 / 0.05);
   color: var(--muted);
-  font-size: 13px;
+  font-size: 15px;
   text-decoration: none;
   transition: background-color 0.15s, border-color 0.15s, color 0.15s;
 }
@@ -216,7 +217,7 @@ img {
   border: 1px solid var(--line);
   border-radius: 4px;
   background: rgb(255 255 255 / 0.04);
-  font: 500 11px/1 'Plain Ampersand', 'Archivo Variable', sans-serif;
+  font: 500 13px/1 'Plain Ampersand', 'Archivo Variable', sans-serif;
 }
 /* the same dialog as the library site's search */
 .search {
@@ -247,6 +248,7 @@ img {
   background: none;
   color: var(--ink);
   font: 400 15px/1 'Plain Ampersand', 'Archivo Variable', sans-serif;
+  font-stretch: inherit;
 }
 .search input::placeholder {
   color: var(--muted);
@@ -263,7 +265,7 @@ img {
   gap: 12px;
   padding: 8px 12px;
   border-radius: 6px;
-  font-size: 14px;
+  font-size: 15px;
   line-height: 1.4;
   text-decoration: none;
 }
@@ -302,7 +304,7 @@ img {
 .search-note {
   padding: 24px 12px;
   color: var(--muted);
-  font-size: 14px;
+  font-size: 15px;
   text-align: center;
 }
 .search-foot {
@@ -312,7 +314,7 @@ img {
   border-top: 1px solid rgb(255 255 255 / 0.08);
   background: rgb(255 255 255 / 0.045);
   color: var(--muted);
-  font-size: 11.5px;
+  font-size: 13px;
 }
 .top-menu-btn {
   display: none;
@@ -392,7 +394,7 @@ h1 {
 .hero-actions span {
   max-width: 28ch;
   color: var(--muted);
-  font-size: 14px;
+  font-size: 15px;
   line-height: 1.4;
 }
 .hero-film {
@@ -408,8 +410,7 @@ h1 {
   color: var(--muted);
   font-family: 'Plain Ampersand', 'Archivo Variable', sans-serif;
   font-size: clamp(32px, 4.8vw, 72px);
-  font-stretch: 112%;
-  font-weight: 560;
+  font-weight: 600;
   letter-spacing: -0.03em;
   line-height: 1.08;
   text-wrap: pretty;
@@ -439,13 +440,13 @@ h1 {
   align-items: end;
 }
 .lead p {
-  font-size: 18px;
+  font-size: 17px;
   line-height: 1.5;
 }
 .lead p.quiet {
   margin-top: 12px;
   color: var(--muted);
-  font-size: 16px;
+  font-size: 15px;
 }
 .clips {
   display: grid;
@@ -473,7 +474,7 @@ figcaption {
   max-width: 46ch;
   margin-top: 16px;
   color: var(--muted);
-  font-size: 16px;
+  font-size: 15px;
   line-height: 1.5;
 }
 figcaption h3 {
@@ -501,7 +502,7 @@ figcaption h3 {
   margin: 0 auto;
 }
 .incident .lead p {
-  font-weight: 450;
+  font-weight: 400;
 }
 .story {
   display: grid;
@@ -571,13 +572,13 @@ figcaption h3 {
   display: none;
 }
 .beats h3 {
-  font-size: clamp(23px, 2.1vw, 30px);
+  font-size: 24px;
   line-height: 1.14;
   color: inherit;
 }
 .beats p {
   margin-top: 10px;
-  font-weight: 450;
+  font-weight: 400;
 }
 
 .close {
@@ -618,8 +619,8 @@ figcaption h3 {
 .foot-sheet p {
   max-width: 44ch;
   margin-top: 16px;
-  font-size: 18px;
-  font-weight: 450;
+  font-size: 17px;
+  font-weight: 400;
   line-height: 1.5;
 }
 .foot-sheet a:focus-visible {
@@ -655,6 +656,7 @@ figcaption h3 {
 .foot-cols h3 {
   margin-bottom: 6px;
   font: 600 15px/1.4 'Plain Ampersand', 'Archivo Variable', sans-serif;
+  font-stretch: inherit;
   letter-spacing: 0;
 }
 .foot-cols nav a {
@@ -712,7 +714,7 @@ figcaption h3 {
     --page: calc(100vw - 40px);
   }
   body {
-    font-size: 16px;
+    font-size: 15px;
   }
   .top {
     padding: 0 20px;

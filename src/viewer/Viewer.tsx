@@ -89,13 +89,13 @@ function Unavailable({ className, error, retry }: { className?: string; error: E
   return (
     <div className={className}>
       <div className="flex h-full w-full flex-col items-center justify-center gap-2 bg-stage px-6 text-center">
-        <div className="text-[14px] font-semibold text-white">{blocked ? '3D is switched off in this browser right now' : 'The 3D view stopped'}</div>
+        <div className="text-[15px] font-semibold text-white">{blocked ? '3D is switched off in this browser right now' : 'The 3D view stopped'}</div>
         <p className="max-w-md text-[13px] leading-5 text-white/65">
           {blocked
             ? 'The browser refused to create a WebGL context. Chrome and Edge do this after the graphics driver resets: 3D stays off until the browser restarts. Quit the browser completely, reopen it, and this view will load.'
             : 'The browser reported an error while drawing it. The rest of the page still works.'}
         </p>
-        <code className="max-w-md truncate rounded bg-white/10 px-2 py-0.5 font-mono text-[11px] text-white/60" title={probe?.reason || error.message}>
+        <code className="max-w-md truncate rounded bg-white/10 px-2 py-0.5 font-mono text-[13px] text-white/60" title={probe?.reason || error.message}>
           {probe?.reason || error.message}
         </code>
         <button onClick={retry} className="mt-2 inline-flex h-8 items-center rounded-md bg-white px-4 text-[13px] font-medium text-[#0e0f13] hover:bg-white/90">
@@ -257,7 +257,7 @@ function PortMarker({ port, scale }: { port: Port; scale: number }) {
         <meshBasicMaterial color="#3b46cf" />
       </mesh>
       <Html center zIndexRange={[20, 0]} position={new THREE.Vector3(...port.direction).multiplyScalar(r * 6).toArray()} style={{ pointerEvents: 'none' }}>
-        <div className="rounded bg-indigo px-1.5 py-0.5 font-mono text-[10px] whitespace-nowrap text-white shadow">{port.id}</div>
+        <div className="rounded bg-indigo px-1.5 py-0.5 font-mono text-[13px] whitespace-nowrap text-white shadow">{port.id}</div>
       </Html>
     </group>
   )

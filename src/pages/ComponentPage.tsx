@@ -49,7 +49,7 @@ function Detail({ item }: { item: Item }) {
           <ViewMarkdown href={`/r/${item.name}.md`} />
         </div>
       </div>
-      <p className="mt-3 max-w-3xl text-[16px] leading-7 text-fg-3">
+      <p className="mt-3 max-w-3xl text-[17px] leading-7 text-fg-3">
         <RichText text={item.description} />
       </p>
       <div className="mt-4 flex flex-wrap gap-1.5">
@@ -88,16 +88,16 @@ function Detail({ item }: { item: Item }) {
                 </Viewer>
               )}
               {bounds && (
-                <div className="dark-zone pointer-events-none absolute bottom-3 left-3 rounded-md bg-black/75 px-2.5 py-1.5 font-mono text-[11.5px] text-white">
+                <div className="dark-zone pointer-events-none absolute bottom-3 left-3 rounded-md bg-black/75 px-2.5 py-1.5 font-mono text-[13px] text-white">
                   {bounds.size[0].toFixed(2)} × {bounds.size[2].toFixed(2)} × {bounds.size[1].toFixed(2)} m <span className="text-fg-3">L × W × H</span>
                 </div>
               )}
-              <div className="pointer-events-none absolute right-3 bottom-3 text-[11.5px] text-fg-3">Drag to orbit, scroll to zoom</div>
+              <div className="pointer-events-none absolute right-3 bottom-3 text-[13px] text-fg-3">Drag to orbit, scroll to zoom</div>
             </div>
             <div className="border-t border-border bg-muted p-5 lg:max-h-[600px] lg:overflow-y-auto lg:border-t-0 lg:border-l">
               <div className="mb-4 flex items-center justify-between">
                 <div className="text-[13px] font-semibold text-ink">Parameters</div>
-                <button onClick={() => mod && setValues({ ...(mod.defaults ?? {}), ...(item.preview ?? {}) })} className="text-xs font-medium text-brand hover:underline hover:underline-offset-4">
+                <button onClick={() => mod && setValues({ ...(mod.defaults ?? {}), ...(item.preview ?? {}) })} className="text-[13px] font-medium text-brand hover:underline hover:underline-offset-4">
                   Reset
                 </button>
               </div>
@@ -132,10 +132,10 @@ function Detail({ item }: { item: Item }) {
           <Table
             head={['Id', 'Label', 'Position', 'Direction', 'Size', 'Class']}
             rows={ports.map((p) => [
-              <code className="font-mono text-xs">{p.id}</code>,
+              <code className="font-mono text-[13px]">{p.id}</code>,
               p.label,
-              <span className="font-mono text-xs">{p.position.map((v) => v.toFixed(3)).join(', ')}</span>,
-              <span className="font-mono text-xs">{p.direction.map((v) => +v.toFixed(2)).join(', ')}</span>,
+              <span className="font-mono text-[13px]">{p.position.map((v) => v.toFixed(3)).join(', ')}</span>,
+              <span className="font-mono text-[13px]">{p.direction.map((v) => +v.toFixed(2)).join(', ')}</span>,
               `${frac(p.nps)}"`,
               p.rating ?? '–',
             ])}
@@ -171,16 +171,16 @@ function Detail({ item }: { item: Item }) {
 
 function PropsTable({ item, defaults }: { item: Item; defaults: Record<string, unknown> }) {
   const rows = item.params.map((p) => {
-    return [<code className="font-mono text-xs">{p.key}</code>, <span className="font-mono text-xs text-fg-3">{propType(p)}</span>, <span className="font-mono text-xs">{JSON.stringify(defaults[p.key] ?? null)}</span>, propRange(p)]
+    return [<code className="font-mono text-[13px]">{p.key}</code>, <span className="font-mono text-[13px] text-fg-3">{propType(p)}</span>, <span className="font-mono text-[13px]">{JSON.stringify(defaults[p.key] ?? null)}</span>, propRange(p)]
   })
-  return <Table head={['Prop', 'Type', 'Default', 'Range']} rows={[...rows, [<code className="font-mono text-xs">...group</code>, <span className="font-mono text-xs text-fg-3">position, rotation, scale…</span>, '', '']]} />
+  return <Table head={['Prop', 'Type', 'Default', 'Range']} rows={[...rows, [<code className="font-mono text-[13px]">...group</code>, <span className="font-mono text-[13px] text-fg-3">position, rotation, scale…</span>, '', '']]} />
 }
 
 function Table({ head, rows }: { head: string[]; rows: ReactNode[][] }) {
   return (
     <div className="overflow-x-auto rounded-lg border border-border bg-surface">
       <table className="w-full text-left text-[13px]">
-        <thead className="bg-muted text-[12.5px] text-fg-3">
+        <thead className="bg-muted text-[13px] text-fg-3">
           <tr>
             {head.map((h) => (
               <th key={h} className="px-3 py-2.5 font-semibold">
@@ -214,7 +214,7 @@ function PidSection({ name }: { name: string }) {
       <H2>P&amp;ID</H2>
       <div className="grid gap-5 rounded-lg border border-border bg-surface p-5 sm:grid-cols-[180px_1fr]">
         <div className="flex aspect-square items-center justify-center rounded-lg border border-border bg-surface p-4">{url && <img src={url} alt={`P&ID symbol for ${name}`} className="sym max-h-full max-w-full" />}</div>
-        <div className="space-y-3 text-[14px]">
+        <div className="space-y-3 text-[15px]">
           <p className="leading-6 text-fg-2">{e.drawn}</p>
           <div className="flex flex-wrap gap-1.5">
             {e.tags?.map((t) => <Badge key={t}>tag {t}</Badge>)}
@@ -224,12 +224,12 @@ function PidSection({ name }: { name: string }) {
           {e.notes && <p className="text-[13px] text-muted-fg">{e.notes}</p>}
           {e.datasheet && (
             <div>
-              <div className="mb-1.5 text-[12.5px] font-semibold text-ink">{e.datasheet.form} fields and the props they set</div>
+              <div className="mb-1.5 text-[13px] font-semibold text-ink">{e.datasheet.form} fields and the props they set</div>
               <div className="grid grid-cols-[1fr_auto] gap-x-6 gap-y-1 text-[13px]">
                 {Object.entries(e.datasheet.fields).map(([f, p]) => (
                   <div key={f} className="contents">
                     <span className="text-fg-3">{f}</span>
-                    <code className="font-mono text-xs">{p}</code>
+                    <code className="font-mono text-[13px]">{p}</code>
                   </div>
                 ))}
               </div>
@@ -241,11 +241,11 @@ function PidSection({ name }: { name: string }) {
   )
 }
 
-const H2 = ({ children }: { children: ReactNode }) => <h2 className="mt-14 mb-4 border-t border-border pt-8 text-[22px] font-semibold text-ink">{children}</h2>
+const H2 = ({ children }: { children: ReactNode }) => <h2 className="mt-14 mb-4 border-t border-border pt-8 text-[24px] font-semibold text-ink">{children}</h2>
 
 function Toggle({ on, onClick, children }: { on: boolean; onClick: () => void; children: ReactNode }) {
   return (
-    <button onClick={onClick} className={`rounded-md border px-2.5 py-1 text-xs font-medium transition-colors ${on ? 'border-ink bg-ink text-on-ink' : 'border-border bg-surface text-fg-3 hover:border-line-strong hover:text-ink'}`}>
+    <button onClick={onClick} className={`rounded-md border px-2.5 py-1 text-[13px] font-medium transition-colors ${on ? 'border-ink bg-ink text-on-ink' : 'border-border bg-surface text-fg-3 hover:border-line-strong hover:text-ink'}`}>
       {children}
     </button>
   )

@@ -25,6 +25,7 @@
   color-scheme: dark;
   font: 15px/1.55 'Plain Ampersand', 'Archivo Variable', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   -webkit-font-smoothing: antialiased;
+  font-stretch: 108%;
 }
 html.light .lite-body {
   --bg: #f7f7f9;

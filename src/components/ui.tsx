@@ -14,7 +14,7 @@ export function CopyButton({ text, className = '' }: { text: string; className?:
         setDone(true)
         setTimeout(() => setDone(false), 1400)
       }}
-      className={`rounded-md border border-border bg-surface px-2 py-1 text-xs font-medium text-muted-fg transition-colors hover:text-ink ${className}`}
+      className={`rounded-md border border-border bg-surface px-2 py-1 text-[13px] font-medium text-muted-fg transition-colors hover:text-ink ${className}`}
     >
       {done ? 'Copied' : 'Copy'}
     </button>
@@ -26,7 +26,7 @@ export function Code({ code, lang = 'tsx', className = '', maxHeight, dark }: { 
   return (
     <div className={`group relative rounded-lg border ${dark ? 'code-dark border-border bg-code text-fg' : 'border-border bg-muted light:bg-surface'} ${className}`}>
       <CopyButton text={code} className="absolute top-2.5 right-2.5 opacity-0 group-hover:opacity-100 focus-visible:opacity-100" />
-      <pre className="overflow-auto p-4 font-mono text-[12.5px] leading-6" style={{ maxHeight }}>
+      <pre className="overflow-auto p-4 font-mono text-[13px] leading-6" style={{ maxHeight }}>
         <code dangerouslySetInnerHTML={{ __html: html }} />
       </pre>
     </div>
@@ -43,7 +43,7 @@ export function Command({ cmd }: { cmd: string }) {
   )
 }
 
-const pill = 'h-8 shrink-0 items-center whitespace-nowrap gap-1.5 rounded-md border border-border px-2.5 text-[12.5px] font-medium text-fg-3 transition-colors hover:border-line-strong hover:text-ink'
+const pill = 'h-8 shrink-0 items-center whitespace-nowrap gap-1.5 rounded-md border border-border px-2.5 text-[13px] font-medium text-fg-3 transition-colors hover:border-line-strong hover:text-ink'
 
 export function CopyMarkdown({ md }: { md: string }) {
   const [state, setState] = useState<'idle' | 'copied' | 'failed'>('idle')
@@ -92,7 +92,7 @@ export function Tabs<T extends string>({ tabs, value, onChange, right }: { tabs:
         <button
           key={t.id}
           onClick={() => onChange(t.id)}
-          className={`-mb-px border-b-2 px-3.5 py-2.5 text-[14px] font-medium transition-colors ${value === t.id ? 'border-ink text-ink' : 'border-transparent text-muted-fg hover:text-ink'}`}
+          className={`-mb-px border-b-2 px-3.5 py-2.5 text-[15px] font-medium transition-colors ${value === t.id ? 'border-ink text-ink' : 'border-transparent text-muted-fg hover:text-ink'}`}
         >
           {t.label}
         </button>
@@ -103,7 +103,7 @@ export function Tabs<T extends string>({ tabs, value, onChange, right }: { tabs:
 }
 
 export function Badge({ children }: { children: ReactNode }) {
-  return <span className="inline-flex items-center rounded-md border border-border bg-surface px-2 py-0.5 text-[12px] font-medium text-fg-3">{children}</span>
+  return <span className="inline-flex items-center rounded-md border border-border bg-surface px-2 py-0.5 text-[13px] font-medium text-fg-3">{children}</span>
 }
 
 const escape = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
@@ -120,7 +120,7 @@ export function FilterInput({ value, onChange, placeholder, className = '' }: { 
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
-        className="h-9 w-full rounded-md border border-border bg-surface pr-8 pl-8.5 text-[13.5px] outline-none placeholder:text-muted-fg focus:border-line-strong focus:ring-2 focus:ring-brand/15"
+        className="h-9 w-full rounded-md border border-border bg-surface pr-8 pl-8.5 text-[13px] outline-none placeholder:text-muted-fg focus:border-line-strong focus:ring-2 focus:ring-brand/15"
       />
       {value && (
         <button onClick={() => onChange('')} aria-label="Clear filter" className="absolute top-1/2 right-2 flex h-5 w-5 -translate-y-1/2 items-center justify-center rounded text-muted-fg hover:bg-muted hover:text-ink">
@@ -140,7 +140,7 @@ export function Select({ value, onChange, label, options }: { value: string; onC
       <select
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="h-9 w-full max-w-full cursor-pointer appearance-none truncate rounded-md border border-border bg-surface pr-9 pl-3 text-[13.5px] font-medium text-ink outline-none hover:border-line-strong focus:border-line-strong focus:ring-2 focus:ring-brand/15"
+        className="h-9 w-full max-w-full cursor-pointer appearance-none truncate rounded-md border border-border bg-surface pr-9 pl-3 text-[13px] font-medium text-ink outline-none hover:border-line-strong focus:border-line-strong focus:ring-2 focus:ring-brand/15"
       >
         {options.map((o) => (
           <option key={o.value} value={o.value}>
@@ -169,7 +169,7 @@ export function Segmented<T extends string>({ value, onChange, label, options }:
             className={`flex h-full items-center gap-1.5 rounded-[5px] px-2.5 text-[13px] font-medium whitespace-nowrap transition-colors ${on ? 'bg-hover text-ink light:bg-surface light:ring-1 light:ring-border' : 'text-muted-fg hover:text-ink'}`}
           >
             {o.label}
-            {o.count !== undefined && <span className={`text-[12px] tabular-nums ${on ? 'text-muted-fg' : 'text-fg-3'}`}>{o.count}</span>}
+            {o.count !== undefined && <span className={`text-[13px] tabular-nums ${on ? 'text-muted-fg' : 'text-fg-3'}`}>{o.count}</span>}
           </button>
         )
       })}
@@ -200,7 +200,7 @@ export function RichText({ text }: { text: string }) {
     <>
       {text.split(/(`[^`]+`)/).map((part, i) =>
         part.startsWith('`') && part.endsWith('`') ? (
-          <code key={i} className="rounded border border-border bg-muted px-1 py-px font-mono text-[0.86em] text-ink">
+          <code key={i} className="rounded border border-border bg-muted px-1 py-px font-mono text-[13px] text-ink">
             {part.slice(1, -1)}
           </code>
         ) : (
@@ -240,7 +240,7 @@ export function Combobox({ value, onChange, label, allLabel, placeholder, option
         aria-haspopup="listbox"
         aria-expanded={open}
         aria-label={label}
-        className={`flex h-9 max-w-full items-center gap-2 rounded-md border bg-surface pr-9 pl-3 text-[13.5px] font-medium outline-none hover:border-line-strong focus-visible:border-line-strong focus-visible:ring-2 focus-visible:ring-brand/15 ${value ? 'border-line-strong text-ink' : 'border-border text-ink'}`}
+        className={`flex h-9 max-w-full items-center gap-2 rounded-md border bg-surface pr-9 pl-3 text-[13px] font-medium outline-none hover:border-line-strong focus-visible:border-line-strong focus-visible:ring-2 focus-visible:ring-brand/15 ${value ? 'border-line-strong text-ink' : 'border-border text-ink'}`}
       >
         <span className="truncate">{current ? current.label : allLabel}</span>
         <svg viewBox="0 0 16 16" className="pointer-events-none absolute top-1/2 right-3 h-3.5 w-3.5 -translate-y-1/2 text-muted-fg" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
@@ -264,7 +264,7 @@ export function Combobox({ value, onChange, label, allLabel, placeholder, option
               else if (e.key === 'Escape') setOpen(false)
             }}
             placeholder={placeholder}
-            className="h-10 w-full border-b border-border px-3 text-[13.5px] outline-none placeholder:text-muted-fg"
+            className="h-10 w-full border-b border-border px-3 text-[13px] outline-none placeholder:text-muted-fg"
           />
           <ul role="listbox" className="max-h-72 overflow-y-auto p-1">
             {list.map((o, i) => (
@@ -275,7 +275,7 @@ export function Combobox({ value, onChange, label, allLabel, placeholder, option
                   className={`flex w-full items-center gap-2 rounded-md px-2.5 py-1.5 text-left text-[13px] ${i === active ? 'bg-muted' : ''} ${o.value === value ? 'font-semibold text-ink' : 'text-fg-2'}`}
                 >
                   <span className="min-w-0 flex-1 truncate">{o.label}</span>
-                  {o.count >= 0 && <span className="shrink-0 text-[12px] text-muted-fg tabular-nums">{o.count}</span>}
+                  {o.count >= 0 && <span className="shrink-0 text-[13px] text-muted-fg tabular-nums">{o.count}</span>}
                 </button>
               </li>
             ))}

@@ -35,7 +35,7 @@ export function ComponentsIndex() {
   return (
     <div className="mx-auto max-w-[1400px] px-6 py-10 lg:px-10">
       <h1 className="display text-[34px] sm:text-[44px] text-ink">Components</h1>
-      <p className="mt-3 max-w-2xl text-[16px] leading-7 text-fg-3">
+      <p className="mt-3 max-w-2xl text-[17px] leading-7 text-fg-3">
         {ITEMS.length} parametric three.js components for offshore and onshore oil and gas facilities. Each is a single file, sized to its governing standard, with ports for pipe connections.
       </p>
       <div className="mt-8">
@@ -61,7 +61,7 @@ export function ComponentsIndex() {
         return (
           <section key={c.id} className="mt-10 scroll-mt-32">
             <div className="mb-4">
-              <h2 className="flex items-baseline gap-2 text-[19px] font-semibold text-ink">
+              <h2 className="flex items-baseline gap-2 text-[20px] font-semibold text-ink">
                 {c.title}
                 <span className="text-[13px] font-medium text-muted-fg">{items.length}</span>
               </h2>
@@ -78,7 +78,7 @@ export function ComponentsIndex() {
       {!shown.length && (
         <div className="py-20 text-center">
           <div className="text-[15px] font-medium text-ink">No components match “{q}”</div>
-          <p className="mt-1 text-[13.5px] text-muted-fg">Try a standard such as API 610, or clear the filter.</p>
+          <p className="mt-1 text-[13px] text-muted-fg">Try a standard such as API 610, or clear the filter.</p>
         </div>
       )}
     </div>
@@ -93,8 +93,8 @@ export function Card({ item }: { item: Item }) {
         <img src={thumb(item.name, theme)} alt="" loading="lazy" className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.03]" onError={(e) => (e.currentTarget.style.visibility = 'hidden')} />
       </div>
       <div className="border-t border-border p-3.5">
-        <div className="text-[14px] font-semibold text-ink">{item.title}</div>
-        <div className="mt-1 truncate text-[12.5px] text-muted-fg">{item.standards.slice(0, 2).join(', ')}</div>
+        <div className="text-[15px] font-semibold text-ink">{item.title}</div>
+        <div className="mt-1 truncate text-[13px] text-muted-fg">{item.standards.slice(0, 2).join(', ')}</div>
       </div>
     </Link>
   )
