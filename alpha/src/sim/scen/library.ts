@@ -32,14 +32,14 @@ function release(c: Ctx, key: string, f: Fault) {
   return id
 }
 
-const MUSTER: ScenarioAction = {
+export const MUSTER: ScenarioAction = {
   id: 'muster',
   label: 'PA: sound the general alarm, muster at the primary muster stations',
   who: 'operator',
   detail: 'Platform PA / general alarm. Personnel go to their muster stations and are counted (POB).',
   run: () => 'General alarm sounded: personnel mustering at the lifeboat stations',
 }
-const POB: ScenarioAction = {
+export const POB: ScenarioAction = {
   id: 'pob',
   label: 'Muster check: account for all personnel on board',
   who: 'operator',
@@ -47,7 +47,7 @@ const POB: ScenarioAction = {
   available: (c) => c.did.muster !== undefined,
   run: () => 'Muster complete: all 68 POB accounted for (incl. 2 in the field response team)',
 }
-const HOTWORK: ScenarioAction = {
+export const HOTWORK: ScenarioAction = {
   id: 'hotwork',
   label: 'PA: suspend all hot work and crane operations',
   who: 'operator',

@@ -47,6 +47,44 @@ headless screenshots of the console pages.
 
 Imported plants have no process model, so the ticker, alarm bar, Operations, maintenance and the console are hidden for them.
 
+## Building a scenario with AI
+
+On the console's Scenarios page, **Build with AI** opens a chat. The operator says what they want to train, the model writes a scenario, and it joins the library in this browser.
+
+**The model writes data, never code.** A built-in scenario holds closures. A generated one is a JSON spec in a fixed vocabulary of conditions and effects, and a compiler turns it into an ordinary `Scenario`, so the runner, scoring and debrief don't know the difference. Nothing a model returns is ever evaluated.
+
+| File | What |
+|---|---|
+| `src/sim/scen/spec.ts` | The format: conditions, effects, metrics |
+| `src/sim/scen/compile.ts` | Spec to `Scenario`, using the same helpers as the built-in library |
+| `src/sim/scen/validate.ts` | Checks every tag, zone, reference and number against the loaded plant and what the engine drives |
+| `src/sim/scen/dryRun.ts`, `dryRun.worker.ts` | Runs a spec once with nobody at the console, on a separate copy of the engine in a Web Worker, so the live plant never notices |
+| `src/sim/scen/examples.ts` | Three built-ins as specs. They teach the model the format, and `tests/scenario-spec.test.ts` proves each scores exactly like its hand-written twin |
+| `src/sim/scen/custom.ts` | Saved scenarios, in localStorage under `deckTwin.customScenarios.v1`, with their conversations |
+| `src/agents/scenarioPrompt.ts` | The system prompt, built from the running code and the loaded plant |
+| `src/agents/scenarioAuthor.ts` | The conversation, the checks and the spending rules |
+| `src/agents/authorProvider.ts` | Providers, list prices and the stream reader |
+| `src/ui/hmi/ScenarioAuthor.tsx` | The chat in the console |
+| `llm-route.js` | The Worker route to the providers. The dev server mounts the same code |
+
+**The checks.** Each reply is validated, then run unattended. What fails goes back to the model, up to twice per Send. A scenario can't be saved if a tag, zone, alarm or shutdown cause doesn't exist, if nothing happened to the plant, if a step fired before anything went wrong, if it asks for an alarm that never came, or if a trainee who does nothing passes. A saved one is checked again before it starts.
+
+**Providers.** The operator brings the key and pays the provider directly.
+
+| Provider | Model | Needs |
+|---|---|---|
+| Modal shared endpoint | Muse Spark Open, fixed | the endpoint URL and a `wk-….ws-…` proxy token |
+| Baseten | `meta-models/muse-spark-open-1026`, fixed | an API key |
+| Meta Model API | chosen from a list | an API key, shared with the camera page |
+
+Keys are kept encrypted in IndexedDB (`src/safety/metaKey.ts`). They travel in the POST body and the route forwards them and keeps nothing. It builds the upstream request itself and reaches only `api.meta.ai`, `inference.baseten.co` and `*.modal.direct`, so it can't be used as an open relay. None of these can be called from a browser directly: Modal refuses the preflight, and Meta's docs say to keep keys off the page.
+
+**What it costs.** Nothing goes out until the operator presses Send. One Send can use up to three requests. A page load stops at 24 requests or 400,000 tokens, any error stops the turn with no retry, and the running count stays on screen. The dollar figure is tokens × list price, an estimate rather than the bill. `node tools/scenario-author.mjs` drives the real console with a fake model at no cost; set `LLM_ENDPOINT` and `LLM_KEY` in the environment to use a real one.
+
+**Honesty.** A generated scenario says which model wrote it and that no engineer reviewed it, and its ideal response is the model's estimate, not a calibrated figure. The Meta path follows Meta's docs and the shape SAM 3.1 uses, but hasn't been run against the real API with a valid key.
+
+**Not included.** Custom scenarios stay out of what-if on the Risk page, the agent tools and the alert rules, which are hand-mapped to the twelve built-ins. The in-app agents in `src/agents/provider.ts` are unchanged.
+
 ## Commands (run in this folder)
 
 | Task | Command |
@@ -55,6 +93,7 @@ Imported plants have no process model, so the ticker, alarm bar, Operations, mai
 | Tests | `npm test` |
 | Rebuild | `npm run build` (writes `../public/alpha`) |
 | Save raw CCTV feeds | `node tools/cctv-frames.mjs [outDir]`, with the dev server running |
+| Test the scenario author | `node tools/scenario-author.mjs`, with the dev server running |
 | Deploy | `cd .. && npm run deploy` (the library build copies `public/alpha` into `dist`) |
 
 ## Remove it

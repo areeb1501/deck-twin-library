@@ -1,6 +1,7 @@
 import react from '@vitejs/plugin-react'
 import { defineConfig, loadEnv, type Plugin } from 'vite'
 import { pbkdf2Sync, randomBytes } from 'node:crypto'
+import { LLM_ROUTE, llmRoute } from './llm-route.js'
 import { META_SAM_ROUTE, metaSamRoute } from './meta-sam-route.js'
 import { SAM_ROUTE, samRoute } from './sam-route.js'
 
@@ -22,7 +23,7 @@ function demoGate(env: Record<string, string>, serve: boolean) {
   return { salt: salt.toString('hex'), hash, iter: GATE_ITER }
 }
 
-/** the Worker's SAM routes on the dev server. Modal's key comes from ../modal/.env.local (never sent to the browser); Meta's comes with each request */
+/** the Worker's routes on the dev server. Modal's SAM key comes from ../modal/.env.local (never sent to the browser); the operator's own keys come with each request */
 function samDevRoute(): Plugin {
   const env = loadEnv('', new URL('../modal', import.meta.url).pathname, 'DECK_TWIN_')
   return {
@@ -35,12 +36,21 @@ function samDevRoute(): Plugin {
           for await (const c of req) chunks.push(c as Buffer)
           const headers = Object.fromEntries(Object.entries(req.headers).filter(([, v]) => typeof v === 'string')) as Record<string, string>
           const body = req.method === 'POST' ? Buffer.concat(chunks) : undefined
-          const r = await handle(new Request(`http://${req.headers.host}${route}`, { method: req.method, headers, body }))
-          res.writeHead(r.status, { 'content-type': 'application/json' })
-          res.end(await r.text())
+          const gone = new AbortController()
+          res.on('close', () => gone.abort())
+          const r = await handle(new Request(`http://${req.headers.host}${route}`, { method: req.method, headers, body, signal: gone.signal }))
+          res.writeHead(r.status, { 'content-type': r.headers.get('content-type') ?? 'application/json' })
+          // a model's answer arrives token by token, so it is passed on as it comes
+          try {
+            for await (const chunk of r.body ?? []) res.write(chunk)
+          } catch {
+            /* the browser went away */
+          }
+          res.end()
         })
       mount(SAM_ROUTE, (r) => samRoute(r, env))
       mount(META_SAM_ROUTE, (r) => metaSamRoute(r, {}))
+      mount(LLM_ROUTE, (r) => llmRoute(r, {}))
     },
   }
 }
