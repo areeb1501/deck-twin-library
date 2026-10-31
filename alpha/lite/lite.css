@@ -23,7 +23,9 @@
   background: var(--bg);
   color: var(--fg);
   color-scheme: dark;
-  font: 15px/1.55 'Plain Ampersand', 'Archivo Variable', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-family: 'Plain Ampersand', 'Archivo Variable', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: 15px;
+  line-height: 1.55;
   -webkit-font-smoothing: antialiased;
   font-stretch: 108%;
 }
