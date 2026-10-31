@@ -108,12 +108,12 @@ function Sheet() {
             Build 3D models of oil and gas facilities from P&amp;IDs, datasheets and equipment lists. All components are open source and sized to published engineering standards.
           </p>
           <div className="pointer-events-auto mt-8 flex flex-wrap gap-3">
-            <Link href="/components" className="sheet-btn solid">
-              Browse components
-            </Link>
-            <a href="/alpha/" className="sheet-btn line">
+            <a href="/alpha/" className="sheet-btn solid">
               View demo
             </a>
+            <Link href="/components" className="sheet-btn line">
+              Browse components
+            </Link>
           </div>
           <div className="dark-zone pointer-events-auto mt-5 w-full max-w-[560px]">
             <AgentLine />

@@ -150,7 +150,7 @@ function Header({ onDocsMenu }: { onDocsMenu?: () => void }) {
         <div className="flex shrink-0 items-center pr-2">
           <Brand />
         </div>
-        <nav aria-label="Main" className="ml-4 hidden items-stretch gap-1 md:flex lg:ml-7">
+        <nav aria-label="Main" className="ml-7 hidden items-stretch gap-1 lg:flex">
           {NAV.map(([href, label]) => {
             const on = loc.startsWith(href)
             return (
@@ -164,13 +164,13 @@ function Header({ onDocsMenu }: { onDocsMenu?: () => void }) {
           <SearchButton />
           <ThemeToggle />
           <span className="mx-1.5 hidden h-5 w-px bg-border lg:block" />
-          <a href="/alpha/" className="nav-cta line hidden h-8 shrink-0 items-center rounded-md px-3.5 text-[15px] font-medium whitespace-nowrap lg:flex">
-            View demo
-          </a>
-          <Link href="/docs/installation" className="nav-cta hidden h-8 shrink-0 items-center rounded-md px-3.5 text-[15px] font-medium whitespace-nowrap xl:flex">
+          <Link href="/docs/installation" className="nav-cta line hidden h-8 shrink-0 items-center rounded-md px-3.5 text-[15px] font-medium whitespace-nowrap xl:flex">
             Get started
           </Link>
-          <button onClick={() => (onDocsMenu ? onDocsMenu() : setMenu((m) => !m))} aria-label="Menu" aria-expanded={menu} className={`flex h-8 w-8 items-center justify-center rounded-md text-ink transition-colors hover:bg-muted ${onDocsMenu ? 'lg:hidden' : 'md:hidden'}`}>
+          <a href="/alpha/" className="nav-cta hidden h-8 shrink-0 items-center rounded-md px-3.5 text-[15px] font-medium whitespace-nowrap min-[344px]:flex">
+            View demo
+          </a>
+          <button onClick={() => (onDocsMenu ? onDocsMenu() : setMenu((m) => !m))} aria-label="Menu" aria-expanded={menu} className="flex h-8 w-8 items-center justify-center rounded-md text-ink transition-colors hover:bg-muted lg:hidden">
             <svg viewBox="0 0 16 16" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" aria-hidden>
               {menu ? <path d="m4 4 8 8M12 4l-8 8" /> : <path d="M2.5 5.5h11M2.5 10.5h11" />}
             </svg>
@@ -178,7 +178,7 @@ function Header({ onDocsMenu }: { onDocsMenu?: () => void }) {
         </div>
       </div>
       {menu && !onDocsMenu && (
-        <nav className="border-t border-border bg-panel px-3 py-2 md:hidden">
+        <nav className="border-t border-border bg-panel px-3 py-2 lg:hidden">
           {NAV.map(([href, label]) => (
             <Link key={href} href={href} className={`block rounded-md px-3 py-2.5 text-[15px] font-medium ${loc.startsWith(href) ? 'bg-muted text-ink' : 'text-fg-3'}`}>
               {label}
@@ -188,10 +188,10 @@ function Header({ onDocsMenu }: { onDocsMenu?: () => void }) {
             <span className="text-[15px] font-medium text-fg-3">Theme</span>
             <ThemeSwitch />
           </div>
-          <a href="/alpha/" className="nav-cta line mt-2 flex h-10 items-center justify-center rounded-md text-[15px] font-medium">
+          <a href="/alpha/" className="nav-cta mt-2 flex h-10 items-center justify-center rounded-md text-[15px] font-medium">
             View demo
           </a>
-          <Link href="/docs/installation" className="mt-2 mb-1 flex h-10 items-center justify-center rounded-md bg-ink text-[15px] font-medium text-on-ink">
+          <Link href="/docs/installation" className="nav-cta line mt-2 mb-1 flex h-10 items-center justify-center rounded-md text-[15px] font-medium">
             Get started
           </Link>
         </nav>
@@ -204,7 +204,7 @@ function ThemeToggle() {
   const theme = useTheme()
   const next: Theme = theme === 'dark' ? 'light' : 'dark'
   return (
-    <button onClick={() => setTheme(next)} aria-label={`Switch to ${next} theme`} title={`Switch to ${next} theme`} className="hidden h-8 w-8 items-center justify-center rounded-md text-muted-fg transition-colors hover:bg-muted hover:text-ink md:flex">
+    <button onClick={() => setTheme(next)} aria-label={`Switch to ${next} theme`} title={`Switch to ${next} theme`} className="hidden h-8 w-8 items-center justify-center rounded-md text-muted-fg transition-colors hover:bg-muted hover:text-ink lg:flex">
       <svg viewBox="0 0 16 16" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
         {theme === 'dark' ? (
           <>
@@ -349,14 +349,12 @@ function SidebarPanel({ drawer = false }: { drawer?: boolean }) {
     <>
       <nav ref={ref} aria-label="Docs" className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 pt-4 pb-8">
         {drawer && (
-          <div className="md:hidden">
-            <Section title="Site">
-              {NAV.map(([href, label]) => item(href, label))}
-              <a href="/alpha/" className="block truncate rounded-lg px-3 py-1.5 text-[15px] font-medium text-fg-3 transition-colors hover:bg-hover hover:text-ink">
-                View demo
-              </a>
-            </Section>
-          </div>
+          <Section title="Site">
+            <a href="/alpha/" className="block truncate rounded-lg px-3 py-1.5 text-[15px] font-medium text-fg-3 transition-colors hover:bg-hover hover:text-ink">
+              View demo
+            </a>
+            {NAV.map(([href, label]) => item(href, label))}
+          </Section>
         )}
         <Section title="Getting started">{DOCS.map((d) => item(`/docs/${d.slug}`, d.title))}</Section>
         <Section title="Components">
@@ -384,7 +382,7 @@ function SidebarPanel({ drawer = false }: { drawer?: boolean }) {
         </Section>
       </nav>
       {drawer && (
-        <div className="flex items-center justify-between border-t border-border px-4 py-3 md:hidden">
+        <div className="flex items-center justify-between border-t border-border px-4 py-3">
           <span className="text-[13px] text-muted-fg">v{VERSION}</span>
           <ThemePicker />
         </div>

@@ -543,11 +543,6 @@ body {
 .index-row {
   transition: color 0.15s ease-out;
 }
-@media (max-width: 1023px) {
-  .nav-link {
-    padding: 0 7px;
-  }
-}
 @media (max-width: 1239px) {
   .sheet-stage {
     position: relative;
