@@ -20,7 +20,7 @@ export function Shell({ children }: { children: ReactNode }) {
   const [drawer, setDrawer] = useState(false)
   useEffect(() => setDrawer(false), [loc])
   return (
-    <div className="page flex min-h-full flex-col [--header-h:3.5rem]">
+    <div className="flex min-h-full flex-col [--header-h:3.5rem]">
       <Header onDocsMenu={docs ? () => setDrawer(true) : undefined} />
       {docs ? (
         <DocsLayout drawer={drawer} closeDrawer={() => setDrawer(false)}>
@@ -102,9 +102,7 @@ function DocsLayout({ drawer, closeDrawer, children }: { drawer: boolean; closeD
 function Brand() {
   return (
     <Link href="/" className="flex min-w-0 items-center gap-2 rounded-md">
-      <span className="logo-gloss shrink-0">
-        <Logo className="h-[22px] w-[22px]" />
-      </span>
+      <Logo className="block h-[22px] w-[22px] shrink-0" />
       <span className="nav-wordmark truncate">Deck Twin</span>
     </Link>
   )
@@ -137,11 +135,11 @@ function Header({ onDocsMenu }: { onDocsMenu?: () => void }) {
   useEffect(() => setMenu(false), [loc])
   return (
     <header className="site-header sticky top-0 z-40">
-      <div className="flex h-14 items-center px-5 lg:px-6">
-        <div className="shrink-0 pr-2">
+      <div className="flex h-14 items-stretch px-5 lg:px-6">
+        <div className="flex shrink-0 items-center pr-2">
           <Brand />
         </div>
-        <nav aria-label="Main" className="ml-4 hidden items-center gap-1 md:flex lg:ml-7">
+        <nav aria-label="Main" className="ml-4 hidden items-stretch gap-1 md:flex lg:ml-7">
           {NAV.map(([href, label]) => {
             const on = loc.startsWith(href)
             return (
@@ -155,7 +153,7 @@ function Header({ onDocsMenu }: { onDocsMenu?: () => void }) {
           <SearchButton />
           <ThemeToggle />
           <span className="mx-1.5 hidden h-5 w-px bg-border xl:block" />
-          <Link href="/docs/installation" className="nav-cta hidden h-8 shrink-0 items-center rounded-full px-3.5 text-[13px] font-semibold whitespace-nowrap xl:flex">
+          <Link href="/docs/installation" className="nav-cta hidden h-8 shrink-0 items-center rounded-md px-3.5 text-[13px] font-semibold whitespace-nowrap xl:flex">
             Get started
           </Link>
           <button onClick={() => (onDocsMenu ? onDocsMenu() : setMenu((m) => !m))} aria-label="Menu" aria-expanded={menu} className={`flex h-8 w-8 items-center justify-center rounded-md text-ink transition-colors hover:bg-muted ${onDocsMenu ? 'lg:hidden' : 'md:hidden'}`}>
@@ -176,7 +174,7 @@ function Header({ onDocsMenu }: { onDocsMenu?: () => void }) {
             <span className="text-[14px] font-medium text-fg-3">Theme</span>
             <ThemeSwitch />
           </div>
-          <Link href="/docs/installation" className="mt-2 mb-1 flex h-10 items-center justify-center rounded-full bg-ink text-[14px] font-medium text-on-ink">
+          <Link href="/docs/installation" className="mt-2 mb-1 flex h-10 items-center justify-center rounded-md bg-ink text-[14px] font-medium text-on-ink">
             Get started
           </Link>
         </nav>
@@ -235,72 +233,62 @@ function Footer() {
     ['Docs', [['/docs/installation', 'Installation'], ['/docs/cli', 'CLI'], ['/docs/assemble', 'Assembling plants'], ['/docs/standards', 'Standards & data']]],
     ['For agents', [['/docs/agents', 'Agent skill'], ['/llms.txt', 'llms.txt'], ['/r/index.json', 'Registry index'], ['/prompt.md', 'Setup prompt']]],
   ]
-  const link = 'group inline-flex items-center gap-1.5 text-fg-3 transition-colors hover:text-white light:hover:text-ink'
-  const arrow = <span aria-hidden className="text-brand-soft opacity-0 transition-[opacity,transform] -translate-x-1 group-hover:translate-x-0 group-hover:opacity-100">→</span>
+  const link = 'text-fg-3 transition-colors hover:text-ink'
   return (
-    <footer className="relative isolate overflow-hidden bg-deep text-fg-2 [container-type:inline-size]">
-      <div aria-hidden className="pointer-events-none absolute inset-0 -z-10">
-        <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-brand-soft/60 to-transparent" />
-        <div className="footer-light absolute inset-0" />
-        <div className="grain absolute inset-0" />
-      </div>
-      <div className="mx-auto max-w-[1440px] px-6">
-        <div className="grid grid-cols-[minmax(0,1fr)] items-center gap-8 border-b border-border py-14 lg:grid-cols-[minmax(0,1fr)_minmax(0,460px)] lg:gap-16">
+    <footer className="bg-deep text-fg-2">
+      <section className="sheet">
+        <div className="mx-auto grid max-w-[1440px] grid-cols-1 items-end gap-10 px-6 py-16 sm:py-20 lg:grid-cols-[minmax(0,7fr)_minmax(0,5fr)] lg:gap-16">
           <div>
-            <div className="text-[13px] font-medium text-brand-soft">Open source, MIT licence</div>
-            <h2 className="mt-2 text-[28px] leading-tight font-semibold text-balance head-grad tracking-[-0.03em] sm:text-[36px]">From one valve to a whole platform.</h2>
-            <p className="mt-3 max-w-lg text-[15px] leading-7 text-fg-3">Copy a component into your project, or hand your agent a P&amp;ID and let it assemble the plant.</p>
+            <h2 className="display text-[38px] sm:text-[clamp(52px,5.4vw,84px)]">From one valve to a whole platform</h2>
+            <p className="mt-5 max-w-lg text-[18px] leading-[1.5] font-[450]">Copy a component into your project, or hand your agent a P&amp;ID and let it assemble the plant.</p>
           </div>
           <div className="min-w-0 space-y-3">
-            <Command cmd={`${CLI} add horizontal-separator`} />
-            <div className="flex flex-wrap gap-2.5">
-              <Link href="/docs/installation" className="inline-flex h-10 items-center rounded-full bg-ink px-5 text-[14px] font-medium text-on-ink transition-colors hover:bg-ink-2">
+            <div className="dark-zone">
+              <Command cmd={`${CLI} add horizontal-separator`} />
+            </div>
+            <div className="flex flex-wrap gap-3">
+              <Link href="/docs/installation" className="sheet-btn solid">
                 Get started
               </Link>
-              <Link href="/components" className="inline-flex h-10 items-center rounded-full border border-white/15 bg-white/[0.04] px-5 text-[14px] font-medium text-white transition-colors hover:border-white/30 hover:bg-hover light:border-line-strong light:bg-surface light:text-ink light:hover:border-ink/35 light:hover:bg-surface">
+              <Link href="/components" className="sheet-btn line">
                 Browse {ITEMS.length} components
               </Link>
             </div>
           </div>
         </div>
-        <div className="grid gap-10 py-12 sm:grid-cols-2 md:grid-cols-[1.4fr_repeat(3,1fr)]">
-          <div className="max-w-sm">
-            <div className="flex items-center gap-2.5">
-              <Logo className="h-8 w-8 rounded-lg ring-1 ring-white/15 light:ring-border" />
-              <span className="text-[15px] font-semibold text-white light:text-ink">Deck Twin</span>
-              <span className="rounded border border-border px-1.5 py-px font-mono text-[10.5px] text-fg-3">v{VERSION}</span>
-            </div>
-            <p className="mt-4 text-[14px] leading-6 text-fg-3">3D components for oil &amp; gas digital twins, sized from public engineering standards.</p>
+      </section>
+      <div className="mx-auto grid max-w-[1440px] grid-cols-2 gap-x-6 gap-y-10 px-6 py-14 md:grid-cols-[1.4fr_repeat(3,1fr)]">
+        <div className="col-span-2 max-w-sm md:col-span-1">
+          <div className="flex items-center gap-2.5">
+            <Logo className="block h-[22px] w-[22px]" />
+            <span className="nav-wordmark">Deck Twin</span>
+            <span className="text-[13px] text-muted-fg tabular-nums">v{VERSION}</span>
           </div>
-          {cols.map(([title, links]) => (
-            <div key={title}>
-              <div className="text-[12px] font-semibold tracking-[0.08em] text-fg-3 uppercase">{title}</div>
-              <ul className="mt-4 space-y-2.5 text-[14px]">
-                {links.map(([href, label]) => (
-                  <li key={href}>
-                    {href.includes('.') ? (
-                      <a href={href} className={link}>
-                        {label}
-                        {arrow}
-                      </a>
-                    ) : (
-                      <Link href={href} className={link}>
-                        {label}
-                        {arrow}
-                      </Link>
-                    )}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ))}
+          <p className="mt-4 text-[15px] leading-6 text-fg-3">3D components for oil &amp; gas digital twins, sized from public engineering standards.</p>
         </div>
+        {cols.map(([title, links]) => (
+          <div key={title}>
+            <div className="text-[15px] font-semibold text-ink">{title}</div>
+            <ul className="mt-4 space-y-2.5 text-[15px]">
+              {links.map(([href, label]) => (
+                <li key={href}>
+                  {href.includes('.') ? (
+                    <a href={href} className={link}>
+                      {label}
+                    </a>
+                  ) : (
+                    <Link href={href} className={link}>
+                      {label}
+                    </Link>
+                  )}
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))}
       </div>
-      <div aria-hidden className="pointer-events-none -mt-2 overflow-hidden px-6 select-none">
-        <div className="mx-auto max-w-[1440px] translate-y-[22%] bg-gradient-to-b from-white/[0.09] to-transparent light:from-ink/[0.07] bg-clip-text text-center text-[16cqw] leading-[0.8] font-semibold tracking-[-0.05em] whitespace-nowrap text-transparent">Deck Twin</div>
-      </div>
-      <div className="relative border-t border-border bg-deep">
-        <div className="mx-auto flex max-w-[1440px] flex-wrap justify-between gap-2 px-6 py-5 text-[12.5px] text-fg-3">
+      <div className="border-t border-border">
+        <div className="mx-auto flex max-w-[1440px] flex-wrap justify-between gap-2 px-6 py-5 text-[13px] text-muted-fg">
           <span>MIT licence</span>
           <span>Reference geometry from public standards, not vendor CAD. Check dimensions against the current edition.</span>
         </div>
@@ -471,7 +459,7 @@ function Keycaps() {
 function SearchButton() {
   const mac = useMac()
   return (
-    <button onClick={openSearch} aria-label="Search docs and components" aria-keyshortcuts={mac ? 'Meta+K' : 'Control+K'} className="flex h-8 w-8 items-center justify-center gap-2 rounded-md text-muted-fg transition-colors hover:bg-muted hover:text-ink lg:w-44 lg:justify-start lg:rounded-full lg:border lg:border-border lg:bg-muted/60 lg:px-3 lg:hover:border-line-strong lg:hover:bg-hover xl:w-56">
+    <button onClick={openSearch} aria-label="Search docs and components" aria-keyshortcuts={mac ? 'Meta+K' : 'Control+K'} className="flex h-8 w-8 items-center justify-center gap-2 rounded-md text-muted-fg transition-colors hover:bg-muted hover:text-ink lg:w-44 lg:justify-start lg:rounded-md lg:border lg:border-border lg:bg-muted/60 lg:px-3 lg:hover:border-line-strong lg:hover:bg-hover xl:w-56">
       {searchIcon}
       <span className="hidden text-left text-[13px] lg:inline">Search</span>
       <span className="hidden lg:contents">
