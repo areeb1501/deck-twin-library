@@ -20,10 +20,11 @@ import { buildFlareBoom, buildTopsides, flareTip, FLARE } from './topsides'
 import { buildDrillingRig } from './drillingRig'
 import { RigMotion } from './RigMotion'
 import { envMat } from './envShared'
-import { facadeTextures, helideckTexture } from './envTextures'
+import { facadeTextures } from './envTextures'
 import { FlareFlame } from './Flare'
 import { SupplyVessel } from './Vessel'
 import { Helicopter } from './Helicopter'
+import { AlphaHelideck } from './Helidecks'
 import { AlphaLogistics } from './AlphaLogistics'
 import { LQPlatform } from './LQPlatform'
 import { WHPPlatform } from './WHPPlatform'
@@ -58,8 +59,6 @@ type MatKey =
   | 'roof'
   | 'glass'
   | 'orange'
-  | 'heli'
-  | 'heliLights'
   | 'soot'
   | 'blue'
   | 'green'
@@ -91,8 +90,6 @@ function useEnvMaterials(): Record<MatKey, THREE.Material> {
       roof: envMat('roof', { color: '#8e9599', roughness: 0.8, metalness: 0.2 }),
       glass: envMat('glass', { color: '#17222a', roughness: 0.08, metalness: 0.5 }),
       orange: envMat('lifeboat', { color: '#ff6512', roughness: 0.45, metalness: 0.05 }),
-      heli: envMat('helideck', { map: helideckTexture(), roughness: 0.75, metalness: 0.05 }),
-      heliLights: envMat('heliLights', { color: '#6dff8a', emissive: '#3dff6a', emissiveIntensity: 2.5, roughness: 0.3 }),
       soot: envMat('soot', { color: '#1f1d1b', roughness: 0.9, metalness: 0.1 }),
       blue: envMat('container2', { color: '#285f9c', roughness: 0.6, metalness: 0.3 }),
       green: envMat('container3', { color: '#3f7a3a', roughness: 0.6, metalness: 0.3 }),
@@ -155,9 +152,6 @@ function buildUpper(): Part[] {
     glass: get('tsGlass', 'glass'),
     yellow: get('tsYellow', 'yellow'),
     orange: get('tsOrange', 'orange'),
-    heli: get('tsHeli', 'heli'),
-    heliLights: get('tsHeliLights', 'heliLights'),
-    net: get('tsNet', 'grating'),
     soot: get('tsSoot', 'soot'),
     red: get('tsRed', 'red'),
     blue: get('tsBlue', 'blue'),
@@ -182,7 +176,7 @@ function buildUpper(): Part[] {
     light: get('rigLight', 'avLight'),
     rail: { rail: get('tsRail', 'yellow'), kick: get('tsKick', 'yellow') },
   })
-  return collect(B, m, (k) => k !== 'tsNet' && k !== 'tsHeliLights' && k !== 'rigGrating' && k !== 'rigLight')
+  return collect(B, m, (k) => k !== 'rigGrating' && k !== 'rigLight')
 }
 
 function PartMeshes({ parts, mats }: { parts: Part[]; mats: Record<MatKey, THREE.Material> }) {
@@ -215,6 +209,7 @@ export function Surroundings({ upperDeck = true, vessel = true }: SurroundingsPr
       <PartMeshes parts={base} mats={mats} />
       {upperDeck && <PartMeshes parts={upper} mats={mats} />}
       {upperDeck && <RigMotion mats={mats} />}
+      {upperDeck && <AlphaHelideck />}
       <FlareFlame position={[tip[0] + d.x * 3.4, tip[1] + d.y * 3.4 - 0.5, tip[2] + d.z * 3.4]} />
       <GaBeacons upperDeck={upperDeck} />
       <group position={[0, DECK_WORLD_Y, 0]}>

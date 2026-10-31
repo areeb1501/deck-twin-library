@@ -1,4 +1,4 @@
-/** Procedural textures for the environment (accommodation facade, helideck markings, PSV). */
+/** Procedural textures for the environment (accommodation facade, PSV). */
 import * as THREE from 'three'
 
 /** Facade tile: 25.6 m wide x 12.8 m (4 storeys of 3.2 m). Used with world-metre UVs. */
@@ -74,68 +74,4 @@ export function facadeTextures() {
   }
   facade = { map, emissive }
   return facade
-}
-
-let heli: THREE.CanvasTexture | null = null
-/** Helideck surface (CAP 437 style): dark green, white perimeter line, yellow TD/PM circle and H, landing net. */
-export function helideckTexture() {
-  if (heli) return heli
-  const S = 1024
-  const c = document.createElement('canvas')
-  c.width = c.height = S
-  const g = c.getContext('2d')!
-  const R = S / 2
-  const m = (metres: number) => (metres / 11.5) * R // circumradius 11.5 m == R px
-  g.fillStyle = '#2f5d3a'
-  g.fillRect(0, 0, S, S)
-  // octagon perimeter line (white, 0.3 m)
-  g.strokeStyle = '#f4f4f0'
-  g.lineWidth = m(0.3)
-  g.beginPath()
-  for (let k = 0; k <= 8; k++) {
-    const a = (k / 8) * Math.PI * 2 + Math.PI / 8
-    const r = m(11.5 - 0.35)
-    const x = R + Math.cos(a) * r
-    const y = R + Math.sin(a) * r
-    if (k === 0) g.moveTo(x, y)
-    else g.lineTo(x, y)
-  }
-  g.stroke()
-  // landing net (rope grid 12 x 12 m)
-  g.strokeStyle = 'rgba(25,35,25,0.55)'
-  g.lineWidth = m(0.05)
-  const n = m(6)
-  for (let v = -n; v <= n + 1; v += m(0.25)) {
-    g.beginPath()
-    g.moveTo(R + v, R - n)
-    g.lineTo(R + v, R + n)
-    g.stroke()
-    g.beginPath()
-    g.moveTo(R - n, R + v)
-    g.lineTo(R + n, R + v)
-    g.stroke()
-  }
-  // TD/PM circle (yellow, 1 m wide, inner diameter ~ 0.5 D)
-  g.strokeStyle = '#f2c200'
-  g.lineWidth = m(1.0)
-  g.beginPath()
-  g.arc(R, R, m(3.4), 0, Math.PI * 2)
-  g.stroke()
-  // H (yellow per spec of this model): 4 x 3 m, bars 0.75 m
-  g.fillStyle = '#f2c200'
-  const hw = m(1.5)
-  const hh = m(2.0)
-  const b = m(0.75)
-  g.fillRect(R - hw, R - hh, b, 2 * hh)
-  g.fillRect(R + hw - b, R - hh, b, 2 * hh)
-  g.fillRect(R - hw, R - b / 2, 2 * hw, b)
-  // max weight box
-  g.fillStyle = '#f4f4f0'
-  g.font = `700 ${Math.round(m(0.9))}px Arial, sans-serif`
-  g.textAlign = 'center'
-  g.fillText('12.8t', R, R + m(8.3))
-  heli = new THREE.CanvasTexture(c)
-  heli.colorSpace = THREE.SRGBColorSpace
-  heli.anisotropy = 8
-  return heli
 }

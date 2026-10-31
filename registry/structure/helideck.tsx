@@ -19,6 +19,10 @@ export interface HelideckProps {
   lights?: boolean
   /** two stair access routes on ±Z */
   access?: boolean
+  /** four braced legs to y = 0; off when the host carries the grillage on its own steel */
+  legs?: boolean
+  /** openings in the netting for a landing the host builds: [side, from, to], sides 0-7 from +X+Z round through +Z (side 1), from and to 0-1 along the side */
+  netGaps?: readonly (readonly [number, number, number])[]
 }
 
 export const defaults = {
@@ -29,13 +33,15 @@ export const defaults = {
   netting: true,
   lights: true,
   access: true,
+  legs: true,
+  netGaps: [] as NonNullable<HelideckProps['netGaps']>,
 }
 
 type P = typeof defaults
 
 export function Helideck(props: HelideckProps & GroupProps) {
-  const { dValue, height, maxMass, installation, netting, lights, access, ...group } = { ...defaults, ...props }
-  const data = useKit((k) => build(k, { dValue, height, maxMass, installation, netting, lights, access }), [dValue, height, maxMass, installation, netting, lights, access])
+  const { dValue, height, maxMass, installation, netting, lights, access, legs, netGaps, ...group } = { ...defaults, ...props }
+  const data = useKit((k) => build(k, { dValue, height, maxMass, installation, netting, lights, access, legs, netGaps }), [dValue, height, maxMass, installation, netting, lights, access, legs, netGaps])
   return (
     <group {...group}>
       <KitMesh data={data} />
@@ -171,12 +177,24 @@ function build(k: Kit, p: P) {
       const t = (ax - x) / (ax - bx)
       return [ax + (bx - ax) * t, az + (bz - az) * t]
     }
+    const along = (r: number, i: number, t: number): [number, number] => {
+      const [ax, az] = vtx(r, i)
+      const [bx, bz] = vtx(r, i + 1)
+      return [ax + (bx - ax) * t, az + (bz - az) * t]
+    }
     for (let i = 0; i < 8; i++) {
       if (p.access && (i === 1 || i === 5)) {
         const g = i === 1 ? ACCESS_W / 2 : -ACCESS_W / 2
         quad(vtx(r0, i), at(r0, i, g), at(r1, i, g), vtx(r1, i))
         quad(at(r0, i, -g), vtx(r0, i + 1), vtx(r1, i + 1), at(r1, i, -g))
-      } else quad(vtx(r0, i), vtx(r0, i + 1), vtx(r1, i + 1), vtx(r1, i))
+        continue
+      }
+      let t = 0
+      for (const [, from, to] of p.netGaps.filter((g) => g[0] === i).sort((a, b) => a[1] - b[1])) {
+        if (from > t) quad(along(r0, i, t), along(r0, i, from), along(r1, i, from), along(r1, i, t))
+        t = to
+      }
+      if (t < 1) quad(along(r0, i, t), along(r0, i, 1), along(r1, i, 1), along(r1, i, t))
     }
   }
 
@@ -232,8 +250,11 @@ function build(k: Kit, p: P) {
   }
 
   // ---- legs: CHS columns on base plates, cap plates, X-bracing, knee struts to the cantilevers
+  if (p.legs) legFrame(k, tos - Ps.d, a, H, halfAt)
+}
+
+function legFrame(k: Kit, yb: number, a: number, H: number, halfAt: (z: number) => number) {
   const legR = 0.2032 // CHS 406.4
-  const yb = tos - Ps.d
   const legs: [number, number][] = [[-a, -a], [a, -a], [a, a], [-a, a]]
   for (const [x, z] of legs) {
     const t = basePlate(k, x, 0, z, 0.75, 0.75, 0.04, 0.03, 'structSteel')

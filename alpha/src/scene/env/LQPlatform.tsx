@@ -11,6 +11,7 @@ import { structMats } from '../structure/structMaterials'
 import { envMat } from './envShared'
 import { FACADE, facadeTextures } from './envTextures'
 import { buildAccommodation, type LqKey } from './accommodation'
+import { LqHelideck } from './Helidecks'
 import { LQ_JACKET } from './lqJacket'
 
 /** batch key -> Surroundings material key (string) or an LQ-only material (resolved in lqMaterials) */
@@ -34,9 +35,6 @@ const MAT: Record<LqKey, string | null> = {
   roof: 'roof',
   glass: 'glass',
   orange: 'orange',
-  heli: 'heli',
-  heliLights: 'heliLights',
-  net: 'grating',
   facade: 'lq:facade',
   signGreen: 'lq:signGreen',
   signBlue: 'lq:signBlue',
@@ -46,7 +44,7 @@ const MAT: Record<LqKey, string | null> = {
   cable: 'lq:cable',
   aviation: 'lq:aviation',
 }
-const NO_SHADOW = new Set<LqKey>(['grating', 'net', 'heliLights', 'lamp', 'aviation', 'anode'])
+const NO_SHADOW = new Set<LqKey>(['grating', 'lamp', 'aviation', 'anode'])
 
 function lqMaterials(): Record<string, THREE.Material> {
   const sm = structMats('env')
@@ -96,6 +94,7 @@ export function LQPlatform({ mats }: { mats: Partial<Record<string, THREE.Materi
           <mesh key={p.key} name={`lq-${p.key}`} geometry={p.geometry} material={material} castShadow={!NO_SHADOW.has(p.key)} receiveShadow raycast={noRaycast} />
         )
       })}
+      <LqHelideck />
     </group>
   )
 }

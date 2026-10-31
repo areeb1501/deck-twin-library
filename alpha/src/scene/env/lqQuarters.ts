@@ -2,12 +2,11 @@
  * LQ accommodation block on the main deck (WORLD coordinates): 5-storey clad block (procedural facade
  * texture with window rows), doors, HVAC louvres, roof plant, external escape stair on the east wall that
  * continues up to the helideck, east embarkation / muster deck with 2 TEMPSC lifeboats in gravity davits
- * hanging outboard, liferaft canisters, safety signage panels, and the helideck on the roof (net, H
- * marking from the shared helideck texture, perimeter lights, safety-net shelf).
+ * hanging outboard, liferaft canisters and safety signage panels. The helideck on the roof is Helidecks.tsx.
  */
 import * as THREE from 'three'
 import type { V3 } from '../structure/batch'
-import { bar, box, boxMinMax, ibeam, place, sphere, tube, unitCyl } from '../structure/batch'
+import { bar, box, boxMinMax, place, sphere, tube, unitCyl } from '../structure/batch'
 import { railRun, type RailBatches } from '../structure/handrail'
 import type { GratingBatches } from '../structure/panels'
 import { LQ } from '../../model/site'
@@ -40,12 +39,6 @@ export const LQ_ESCAPE_STAIR: LqStairDef = {
 }
 
 const capsule = new THREE.CapsuleGeometry(1, 1, 6, 16)
-const octagon = (() => {
-  const g = new THREE.CircleGeometry(1, 8, Math.PI / 8)
-  g.rotateX(-Math.PI / 2)
-  return g
-})()
-const octRim = new THREE.CylinderGeometry(1, 1, 1, 8, 1, false, Math.PI / 8 + Math.PI / 2)
 
 /** Totally enclosed lifeboat, long axis along Z, centre c. */
 function tempsc(get: LqGet, c: V3) {
@@ -111,86 +104,6 @@ function louvreZ(get: LqGet, wz: number, x0: number, x1: number, y0: number, y1:
   for (let y = y0 + 0.08; y < y1 - 0.04; y += 0.1) bar(get('galv'), [x0 + 0.05, y, wz - 0.12], [x1 - 0.05, y, wz - 0.12], 0.06, 0.025)
 }
 
-function helideck(get: LqGet) {
-  const H = LQ.helideck
-  const hy = LQ_HELI_Y
-  const ap = H.r * Math.cos(Math.PI / 8)
-  place(get('heli'), octagon, [H.x, hy, H.z], [0, 0, 0], [H.r, 1, H.r])
-  place(get('steelDark'), octRim, [H.x, hy - 0.25, H.z], [0, 0, 0], [H.r, 0.48, H.r])
-  // under-frame: radial girders + ring, columns + bracing down to the roof
-  const vtx = (k: number, r = H.r): V3 => {
-    const a = (k / 8) * Math.PI * 2 + Math.PI / 8
-    return [H.x + Math.cos(a) * r, hy - 0.75, H.z - Math.sin(a) * r]
-  }
-  for (let k = 0; k < 8; k++) {
-    bar(get('steel'), [H.x, hy - 0.75, H.z], vtx(k, H.r - 0.1), 0.2, 0.5)
-    const m0 = vtx(k, ap - 0.4)
-    const m1 = vtx(k + 1, ap - 0.4)
-    bar(get('steel'), m0, m1, 0.2, 0.5)
-  }
-  const roof = LQ_ROOF_Y + 0.25
-  const cols: [number, number][] = [
-    [Q.x0 + 1.2, Q.z0 + 1.2],
-    [Q.x1 - 1.2, Q.z0 + 1.2],
-    [Q.x0 + 1.2, Q.z1 - 1.2],
-    [Q.x1 - 1.2, Q.z1 - 1.2],
-    [H.x, Q.z0 + 1.2],
-    [H.x, Q.z1 - 1.2],
-  ]
-  for (const [x, z] of cols) {
-    ibeam(get('steel'), [x, roof, z], [x, hy - 1.0, z], [1, 0, 0], 'HEB 300')
-    boxMinMax(get('steel'), [x - 0.25, roof, z - 0.25], [x + 0.25, roof + 0.03, z + 0.25])
-    // knee braces to the radial frame
-    for (const [dx, dz] of [
-      [1, 0],
-      [-1, 0],
-      [0, 1],
-      [0, -1],
-    ])
-      bar(get('steel'), [x, hy - 2.2, z], [x + dx * 1.2, hy - 1.0, z + dz * 1.2], 0.1, 0.1)
-  }
-  // perimeter lights (green) + safety-net shelf (open at the escape-stair landing on the east side)
-  const stair = { z0: LQ_ESCAPE_STAIR.o[1] - 0.3, z1: LQ_ESCAPE_STAIR.o[1] + LQ_ESCAPE_STAIR.landing + 0.3 }
-  const o = 1.5
-  for (let k = 0; k < 8; k++) {
-    const a0 = (k / 8) * Math.PI * 2 + Math.PI / 8
-    const a1 = ((k + 1) / 8) * Math.PI * 2 + Math.PI / 8
-    const p0: V3 = [H.x + Math.cos(a0) * H.r, hy, H.z - Math.sin(a0) * H.r]
-    const p1: V3 = [H.x + Math.cos(a1) * H.r, hy, H.z - Math.sin(a1) * H.r]
-    for (let j = 0; j < 4; j++) {
-      const t = (j + 0.5) / 4
-      box(get('heliLights'), [p0[0] + (p1[0] - p0[0]) * t, hy + 0.06, p0[2] + (p1[2] - p0[2]) * t], [0.18, 0.12, 0.18])
-    }
-    const q0: V3 = [H.x + Math.cos(a0) * (H.r + o), hy + 0.15, H.z - Math.sin(a0) * (H.r + o)]
-    const q1: V3 = [H.x + Math.cos(a1) * (H.r + o), hy + 0.15, H.z - Math.sin(a1) * (H.r + o)]
-    const N = 4
-    for (let j = 0; j < N; j++) {
-      const t0 = j / N
-      const t1 = (j + 1) / N
-      const L = (p: V3, q: V3, t: number): V3 => [p[0] + (q[0] - p[0]) * t, p[1] + (q[1] - p[1]) * t, p[2] + (q[2] - p[2]) * t]
-      const a = L(p0, p1, t0)
-      const b = L(p0, p1, t1)
-      const c = L(q0, q1, t1)
-      const d = L(q0, q1, t0)
-      const midZ = (a[2] + b[2]) / 2
-      const midX = (a[0] + b[0]) / 2
-      if (midX > H.x + ap - 0.5 && midZ > stair.z0 - 1 && midZ < stair.z1 + 1) continue // access opening
-      const g = new THREE.BufferGeometry()
-      g.setAttribute('position', new THREE.Float32BufferAttribute([...a, ...b, ...c, ...d], 3))
-      g.setAttribute('uv', new THREE.Float32BufferAttribute([0, 0, 1, 0, 1, 1, 0, 1], 2))
-      g.setIndex([0, 1, 2, 0, 2, 3])
-      g.computeVertexNormals()
-      get('net').add(g, new THREE.Matrix4(), 'world', 1)
-      tube(get('steel'), d, c, 0.04, 6, true)
-      bar(get('steel'), [(a[0] + b[0]) / 2, hy - 0.1, (a[2] + b[2]) / 2], [(c[0] + d[0]) / 2, hy + 0.12, (c[2] + d[2]) / 2], 0.05, 0.05)
-    }
-  }
-  // windsock on the NW net shelf corner
-  const ws = vtx(3, H.r + 1.2)
-  tube(get('galv'), [ws[0], hy, ws[2]], [ws[0], hy + 3.2, ws[2]], 0.05, 6, true)
-  place(get('orange'), new THREE.ConeGeometry(0.3, 1.6, 10, 1, true), [ws[0] + 0.8, hy + 3.0, ws[2]], [0, 0, Math.PI / 2 + 0.2])
-}
-
 export function buildQuarters(get: LqGet, gb: GratingBatches, rb: RailBatches) {
   const roofY = LQ_ROOF_Y
   // block
@@ -213,12 +126,12 @@ export function buildQuarters(get: LqGet, gb: GratingBatches, rb: RailBatches) {
   boxMinMax(get('white'), [Q.x1 - 0.15, p0, Q.z0 + 0.15], [Q.x1, p1, pz0])
   boxMinMax(get('white'), [Q.x1 - 0.15, p0, pz1], [Q.x1, p1, Q.z1 - 0.15])
 
-  // roof plant under the helideck: AHUs, exhaust fans
-  boxMinMax(get('equipDark'), [5, roofY + 0.25, 72.5], [9, roofY + 1.9, 75])
-  boxMinMax(get('equipDark'), [14, roofY + 0.25, 80], [18, roofY + 1.6, 83])
+  // roof plant under the helideck, clear of its legs: AHUs, exhaust fans
+  boxMinMax(get('equipDark'), [5, roofY + 0.25, 73.4], [9, roofY + 1.9, 75.9])
+  boxMinMax(get('equipDark'), [11.5, roofY + 0.25, 79], [15.5, roofY + 1.6, 82])
   for (const x of [15.5, 17.2]) {
-    place(get('galv'), unitCyl(16, false), [x, roofY + 0.65, 73], [0, 0, 0], [0.42, 0.8, 0.42])
-    place(get('steelDark'), unitCyl(16, false), [x, roofY + 1.1, 73], [0, 0, 0], [0.5, 0.1, 0.5])
+    place(get('galv'), unitCyl(16, false), [x, roofY + 0.65, 74.2], [0, 0, 0], [0.42, 0.8, 0.42])
+    place(get('steelDark'), unitCyl(16, false), [x, roofY + 1.1, 74.2], [0, 0, 0], [0.5, 0.1, 0.5])
   }
 
   // doors: bridge-facing main entrance (north) with canopy, east doors onto the escape stair, west door
@@ -262,5 +175,4 @@ export function buildQuarters(get: LqGet, gb: GratingBatches, rb: RailBatches) {
 
   lifeboatStations(get)
   liferafts(get)
-  helideck(get)
 }

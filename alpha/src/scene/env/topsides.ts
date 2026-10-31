@@ -38,9 +38,6 @@ export interface TopsideBatches {
   glass: GeoBatch
   yellow: GeoBatch
   orange: GeoBatch
-  heli: GeoBatch
-  heliLights: GeoBatch
-  net: GeoBatch
   soot: GeoBatch
   red: GeoBatch
   blue: GeoBatch
@@ -51,11 +48,6 @@ export interface TopsideBatches {
 }
 
 const capsule = new THREE.CapsuleGeometry(1, 1, 6, 16)
-const octagon = (() => {
-  const g = new THREE.CircleGeometry(1, 8, Math.PI / 8)
-  g.rotateX(-Math.PI / 2)
-  return g
-})()
 const cylClosed = new THREE.CylinderGeometry(1, 1, 1, 24, 1, false)
 
 /** Lattice: 4 chords from heel section to tip section with zig-zag lacing on every face. */
@@ -196,33 +188,12 @@ export function buildTopsides(tb: TopsideBatches) {
     }
   }
 
-  // ---------------- helideck on a support truss above the quarters, cantilevered west
+  // ---------------- helideck support above the quarters, cantilevered west (the deck itself is Helidecks.tsx)
   {
     const H = HELIDECK
-    place(tb.heli, octagon, [H.x, H.y, H.z], [0, 0, 0], [H.r, 1, H.r])
-    // deck edge / sub-structure plate
-    place(tb.steelDark, new THREE.CylinderGeometry(1, 1, 1, 8, 1, false, Math.PI / 8 + Math.PI / 2), [H.x, H.y - 0.25, H.z], [0, 0, 0], [H.r, 0.48, H.r])
-    // perimeter lights + safety net shelf (grating-like mesh)
+    // radial braces from the deck rim down to the quarters roof / west wall
     for (let k = 0; k < 8; k++) {
       const a0 = (k / 8) * Math.PI * 2 + Math.PI / 8
-      const a1 = ((k + 1) / 8) * Math.PI * 2 + Math.PI / 8
-      const p0: V3 = [H.x + Math.cos(a0) * H.r, H.y, H.z - Math.sin(a0) * H.r]
-      const p1: V3 = [H.x + Math.cos(a1) * H.r, H.y, H.z - Math.sin(a1) * H.r]
-      for (let j = 0; j < 4; j++) {
-        const t = (j + 0.5) / 4
-        box(tb.heliLights, [p0[0] + (p1[0] - p0[0]) * t, H.y + 0.06, p0[2] + (p1[2] - p0[2]) * t], [0.18, 0.12, 0.18])
-      }
-      // net shelf: quad from rim outward 1.5 m, sloping up 10 deg
-      const o = 1.5
-      const q0: V3 = [H.x + Math.cos(a0) * (H.r + o), H.y + 0.15, H.z - Math.sin(a0) * (H.r + o)]
-      const q1: V3 = [H.x + Math.cos(a1) * (H.r + o), H.y + 0.15, H.z - Math.sin(a1) * (H.r + o)]
-      const g = new THREE.BufferGeometry()
-      g.setAttribute('position', new THREE.Float32BufferAttribute([...p0, ...p1, ...q1, ...q0], 3))
-      g.setIndex([0, 1, 2, 0, 2, 3])
-      g.computeVertexNormals()
-      tb.net.add(g, new THREE.Matrix4(), 'world')
-      tube(tb.steel, q0, q1, 0.04, 6, true)
-      // radial truss members down to the quarters roof / west wall
       const rim: V3 = [H.x + Math.cos(a0) * H.r * 0.95, H.y - 0.5, H.z - Math.sin(a0) * H.r * 0.95]
       const foot: V3 = [
         Math.min(Math.max(rim[0], Q.x0 + 0.5), Q.x1 - 0.5),
@@ -231,18 +202,17 @@ export function buildTopsides(tb: TopsideBatches) {
       ]
       if (rim[0] < Q.x0) foot[0] = Q.x0
       tube(tb.steel, rim, foot, 0.2, 10, true)
-      tube(tb.steel, rim, [H.x, H.y - 0.5, H.z], 0.16, 8, true)
     }
-    // vertical posts from the roof
+    // vertical posts from the roof up to the deck grillage
     for (const [x, z] of [
       [-27, -10],
-      [-17, -10],
+      [-23.5, -10],
       [-27, 4],
-      [-17, 4],
+      [-23.5, 4],
     ])
       tube(tb.steel, [x, qTop + 0.25, z], [x, H.y - 0.5, z], 0.3, 12, true)
-    // access ladder from the roof
-    ladder(tb.steel, [-16, qTop + 0.25, 5.2], H.y - qTop - 0.25, [1, 0], true)
+    // access ladder from the roof to the deck's east edge, through a gap in the net
+    ladder(tb.steel, [H.x + H.r * Math.cos(Math.PI / 8) + 0.33, qTop + 0.25, H.z - 3], H.y - qTop - 0.25, [1, 0], true)
   }
 
   // ---------------- pedestal cranes CR-A1 (NE leg) and CR-A2 (SW leg): drawn and animated by Cranes.tsx

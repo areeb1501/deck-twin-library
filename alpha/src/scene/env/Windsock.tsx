@@ -16,6 +16,8 @@ import { LQ } from '../../model/site'
 import { windNow } from '../../sim/cranes'
 
 const WY = 28
+/** helideck vertex to the corner of the net's outer rail, m */
+const NET_RAIL = 1.86
 const noRay = () => null
 
 interface Sock {
@@ -29,11 +31,11 @@ interface Sock {
 
 function socks(upperDeck: boolean): Sock[] {
   const out: Sock[] = []
-  // Alpha helideck: on the safety-net shelf, NE (platform side, outside the obstacle-free sector)
-  const a = (-30 * Math.PI) / 180
-  if (upperDeck) out.push({ x: HELIDECK.x + (HELIDECK.r + 0.9) * Math.cos(a), y: HELIDECK.y, z: HELIDECK.z + (HELIDECK.r + 0.9) * Math.sin(a), mast: 2.6, alpha: true })
-  const b = (200 * Math.PI) / 180
-  out.push({ x: LQ.helideck.x + (LQ.helideck.r + 0.8) * Math.cos(b), y: LQ_HELI_Y, z: LQ.helideck.z + (LQ.helideck.r + 0.8) * Math.sin(b), mast: 2.6, alpha: false })
+  // Alpha helideck: on the safety net's outer rail, NE corner (platform side, outside the obstacle-free sector)
+  const a = (-22.5 * Math.PI) / 180
+  if (upperDeck) out.push({ x: HELIDECK.x + (HELIDECK.r + NET_RAIL) * Math.cos(a), y: HELIDECK.y, z: HELIDECK.z + (HELIDECK.r + NET_RAIL) * Math.sin(a), mast: 2.6, alpha: true })
+  const b = (202.5 * Math.PI) / 180
+  out.push({ x: LQ.helideck.x + (LQ.helideck.r + NET_RAIL) * Math.cos(b), y: LQ_HELI_Y, z: LQ.helideck.z + (LQ.helideck.r + NET_RAIL) * Math.sin(b), mast: 2.6, alpha: false })
   // deck masts beside the crane pedestals (outboard corner, clear of the slewing house)
   for (const [tag, dx, dz] of [
     ['CR-N1', 2.3, -2.2],

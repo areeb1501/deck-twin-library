@@ -194,6 +194,7 @@ export default defineMeta([
       { key: 'netting', label: 'Safety net', type: 'bool' },
       { key: 'lights', label: 'Lights', type: 'bool' },
       { key: 'access', label: 'Stair access (±Z)', type: 'bool' },
+      { key: 'legs', label: 'Legs', type: 'bool' },
     ],
   },
   {
