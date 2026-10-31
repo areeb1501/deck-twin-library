@@ -17,6 +17,11 @@
   "r2_buckets": [{ "binding": "MEDIA", "bucket_name": "deck-twin-alpha-media" }],
   // per visitor: the camera page sends about two frames a second
   "ratelimits": [{ "name": "SAM_LIMIT", "namespace_id": "7315", "simple": { "limit": 150, "period": 60 } }],
+  // branch builds run `wrangler preview`, which uses only these: the media is read-only, and previews get their own rate limit counter
+  "previews": {
+    "r2_buckets": [{ "binding": "MEDIA", "bucket_name": "deck-twin-alpha-media" }],
+    "ratelimits": [{ "name": "SAM_LIMIT", "namespace_id": "7316", "simple": { "limit": 150, "period": 60 } }]
+  },
   "observability": {
     "logs": {
       "enabled": false,
