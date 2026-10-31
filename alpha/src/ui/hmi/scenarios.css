@@ -109,37 +109,61 @@
 .scn-chip.done .dot { background: #6fbf8a; animation: none; }
 @keyframes scn-pulse { 50% { opacity: 0.35; } }
 
-/* building a scenario with a model */
-.scn-author { display: grid; grid-template-columns: minmax(420px, 1.25fr) minmax(360px, 1fr); gap: 10px; align-items: start; }
-.scn-chat { display: flex; flex-direction: column; gap: 8px; min-height: 340px; max-height: 58vh; overflow-y: auto; padding-right: 4px; scrollbar-width: thin; }
-.scn-start { display: grid; gap: 8px; }
+/* building a scenario with a model: header, the connection when open, then two panes filling the rest of the console */
+.hmi .scn-workspace { display: flex; flex-direction: column; gap: 12px; height: 100%; }
+.scn-author { flex: 1; display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); grid-template-rows: minmax(0, 1fr); gap: 12px; min-height: 380px; }
+.hmi .scn-pane { display: flex; flex-direction: column; min-height: 0; padding: 12px 16px; }
+.hmi .scn-pane > h3 { margin-bottom: 12px; }
+
+.hmi .scn-setup-btn { display: inline-flex; align-items: center; gap: 6px; }
+.scn-setup-btn svg { width: 12px; height: 12px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; transition: transform 160ms ease-out; }
+.scn-setup-btn.open svg { transform: rotate(180deg); }
+.hmi .scn-setup { padding: 12px 16px; }
+.hmi .scn-setup > h3 { margin-bottom: 12px; }
+.scn-setup-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 12px 24px; margin-bottom: 12px; }
+.scn-setup-col { display: grid; gap: 8px; align-content: start; }
+.scn-setup .seg2 { display: flex; flex-wrap: wrap; gap: 2px; }
+
+.scn-chat { flex: 1; display: flex; flex-direction: column; gap: 12px; min-height: 0; overflow-y: auto; padding-right: 4px; scrollbar-width: thin; }
+.scn-start { display: grid; gap: 12px; }
 .scn-starters { display: grid; gap: 4px; }
-.hmi .scn-starters button { text-align: left; white-space: normal; line-height: 1.4; padding: 6px 8px; }
-.scn-msg { max-width: 92%; padding: 6px 9px; border-radius: 3px; border: 1px solid var(--h-line); font-size: 12.5px; line-height: 1.5; display: grid; gap: 4px; justify-items: start; }
+.hmi .scn-starters button { text-align: left; white-space: normal; line-height: 1.4; padding: 8px 12px; }
+.scn-msg { max-width: min(92%, 76ch); font-size: 13px; line-height: 1.55; display: grid; gap: 4px; justify-items: start; }
 .scn-msg p { margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; }
-.scn-msg.user { align-self: flex-end; background: #34373c; border-color: var(--h-line2); }
-.scn-msg.assistant { align-self: flex-start; background: var(--h-bg2); }
-.scn-msg.check { align-self: flex-start; color: var(--h-dim); font-size: 11.5px; background: none; border-style: dashed; }
+.scn-msg.user { align-self: flex-end; padding: 8px 12px; border-radius: 3px; background: #34373c; }
+.scn-msg.assistant { align-self: flex-start; }
+.scn-msg.check { align-self: flex-start; padding: 4px 8px; color: var(--h-dim); font-size: 11.5px; border: 1px dashed var(--h-line); border-radius: 3px; }
 .scn-msg.check summary { cursor: pointer; }
-.scn-compose { display: grid; grid-template-columns: 1fr auto; gap: 6px; align-items: end; margin-top: 8px; }
-.hmi .scn-compose textarea { width: 100%; box-sizing: border-box; resize: vertical; min-height: 58px; font: inherit; font-size: 12.5px; line-height: 1.45; padding: 6px 8px; color: var(--h-fg); background: #1d1f22; border: 1px solid var(--h-line2); border-radius: 2px; }
+.scn-compose { display: grid; grid-template-columns: 1fr auto; gap: 8px; align-items: end; margin-top: 12px; }
+.hmi .scn-compose textarea { width: 100%; box-sizing: border-box; resize: vertical; min-height: 58px; font: inherit; font-size: 13px; line-height: 1.45; padding: 8px 12px; color: var(--h-fg); background: #1d1f22; border: 1px solid var(--h-line2); border-radius: 3px; }
 .hmi .scn-compose textarea:focus { outline: none; border-color: var(--h-fg); }
-.scn-conn { display: grid; gap: 6px; margin: 6px 0; }
-.scn-conn label { display: grid; gap: 2px; color: var(--h-dim); font-size: 11px; }
-.hmi .scn-conn input, .hmi .scn-conn select { width: 100%; box-sizing: border-box; }
+
+.scn-conn { display: grid; gap: 8px; align-content: start; }
+.scn-conn label { display: grid; gap: 4px; color: var(--h-dim); font-size: 11px; }
+.hmi .scn-conn input, .hmi .scn-conn select { width: 100%; box-sizing: border-box; font: inherit; font-size: 12px; color: var(--h-fg); background: #1d1f22; border: 1px solid var(--h-line2); border-radius: 3px; padding: 4px 8px; }
 .scn-model { color: var(--h-dim); font-size: 11px; display: flex; gap: 8px; align-items: baseline; }
 .scn-model .mono { color: var(--h-fg); }
 .scn-usage { text-transform: none; letter-spacing: 0; font-size: 10.5px; }
 .scn-usage.bad { color: #ffb8b2; }
-.scn-draft-title { font-weight: 600; font-size: 13px; line-height: 1.3; }
-.scn-sum.full { display: block; color: var(--h-fg); }
-.scn-checks { list-style: none; margin: 0; padding: 0; display: grid; gap: 3px; font-size: 11.5px; line-height: 1.4; }
-.scn-checks li { padding: 3px 6px; border-left: 3px solid var(--h-line2); background: rgba(255,255,255,0.02); }
+
+.scn-draft { flex: 1; display: grid; gap: 16px; align-content: start; min-height: 0; overflow-y: auto; padding-right: 4px; scrollbar-width: thin; }
+.scn-draft-head { display: grid; gap: 8px; }
+.scn-draft-title { font-weight: 600; font-size: 15px; line-height: 1.3; }
+.scn-sum.full { display: block; color: var(--h-fg); font-size: 12.5px; line-height: 1.55; }
+.scn-checks { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; font-size: 11.5px; line-height: 1.4; }
+.scn-checks li { padding: 4px 8px; border-left: 3px solid var(--h-line2); background: rgba(255,255,255,0.02); }
 .scn-checks li.ok { border-left-color: var(--h-ok); }
 .scn-checks li.bad { border-left-color: var(--h-p1); }
 .scn-problems { color: #ffb8b2; font-size: 11.5px; }
 .scn-warn { color: #ffd7a0; }
-.scn-more summary { cursor: pointer; color: var(--h-dim); font-size: 11.5px; margin-bottom: 4px; }
-.scn-more { font-size: 11.5px; display: grid; gap: 4px; }
+.scn-more { font-size: 12px; }
+.scn-more summary { cursor: pointer; color: var(--h-dim); font-size: 10.5px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; }
+.scn-more[open] summary { margin-bottom: 8px; }
+.scn-draft-foot { display: grid; gap: 8px; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--h-line); }
 .h-filters .grow, .scn .h-row .grow { flex: 1; }
-@media (max-width: 1100px) { .scn-author { grid-template-columns: 1fr; } }
+@media (max-width: 1100px) {
+  .hmi .scn-workspace { height: auto; }
+  .scn-author { grid-template-columns: minmax(0, 1fr); grid-template-rows: none; }
+  .scn-chat { min-height: 340px; max-height: 58vh; flex: none; }
+  .scn-setup-grid { grid-template-columns: minmax(0, 1fr); }
+}

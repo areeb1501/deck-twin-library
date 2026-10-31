@@ -1,7 +1,8 @@
 /**
  * Build a training scenario by talking to a model. The operator brings a provider and a key, and every Send is one billed
- * request they chose to make, with the running count on screen. The conversation is on the left. On the right are the
- * connection and the draft, with what the plant check and the unattended run found. Logic: agents/scenarioAuthor.ts.
+ * request they chose to make, with the running count on screen. Two full-height panes: the conversation on the left, the
+ * draft on the right with what the plant check and the unattended run found. The connection opens from the header, and opens
+ * by itself while it still needs something. Logic: agents/scenarioAuthor.ts.
  */
 import { useEffect, useRef, useState, type FormEvent, type KeyboardEvent } from 'react'
 import { AUTHOR_PROVIDERS, modelOf, priceOf, type AuthorProviderId } from '../../agents/authorProvider'
@@ -30,28 +31,45 @@ const STARTERS = [
 
 const setLibrary = () => useScenario.getState().setView({ kind: 'library' })
 
+const needsOf = (s: ReturnType<typeof useAuthor.getState>) => (AUTHOR_PROVIDERS[s.provider].endpoint && !s.endpoint ? 'Add your Modal endpoint to start.' : s.saved[s.provider] === false ? 'Save a key to start.' : null)
+
 export function ScenarioAuthor() {
   const chat = useAuthor((s) => s.chat)
   const newChat = useAuthor((s) => s.newChat)
+  const provider = useAuthor((s) => s.provider)
+  const needs = useAuthor(needsOf)
   const [plantOk] = useState(() => simTags().alpha)
+  const [setup, setSetup] = useState(false)
+  useEffect(() => {
+    if (needs) setSetup(true)
+  }, [needs])
   return (
-    <div className="h-grid scn" data-scn="author">
+    <div className="scn scn-workspace" data-scn="author">
       <div className="h-row">
         <button onClick={setLibrary}>← Library</button>
         <h2 className="scn-title">Build a scenario with AI</h2>
         <span className="grow" />
+        {plantOk && (
+          <>
+            <Usage />
+            <button className={`scn-setup-btn ${setup ? 'open' : ''}`} aria-expanded={setup} onClick={() => setSetup(!setup)} data-scn="setup">
+              Model: {AUTHOR_PROVIDERS[provider].label}
+              <svg viewBox="0 0 16 16" aria-hidden="true"><path d="m3 6 5 5 5-5" /></svg>
+            </button>
+          </>
+        )}
         <button onClick={newChat} disabled={!chat.length}>
           New conversation
         </button>
       </div>
       {plantOk ? (
-        <div className="scn-author">
-          <Conversation />
-          <div className="h-grid">
-            <Connection />
+        <>
+          {setup && <Connection />}
+          <div className="scn-author">
+            <Conversation />
             <DraftCard />
           </div>
-        </div>
+        </>
       ) : (
         <div className="h-msg">Scenarios run on the Alpha field. Load it from the plant menu to build one here.</div>
       )}
@@ -66,7 +84,7 @@ function Conversation() {
   const stage = useAuthor((s) => s.stage)
   const partial = useAuthor((s) => s.partial)
   const note = useAuthor((s) => s.note)
-  const needs = useAuthor((s) => (AUTHOR_PROVIDERS[s.provider].endpoint && !s.endpoint ? 'Add your Modal endpoint to start.' : s.saved[s.provider] === false ? 'Save a key to start.' : null))
+  const needs = useAuthor(needsOf)
   const [text, setText] = useState('')
   const end = useRef<HTMLDivElement>(null)
   const busy = stage !== 'idle'
@@ -90,7 +108,7 @@ function Conversation() {
   // the JSON stays out of the chat: it arrives in the draft card once it has been checked
   const shown = partial.split('```')[0].trim()
   return (
-    <Box title="Conversation">
+    <Box title="Conversation" className="scn-pane">
       <div className="scn-chat" data-scn="chat">
         {!chat.length && !busy && (
           <div className="scn-start">
@@ -168,62 +186,66 @@ function Connection() {
   const [draft, setDraft] = useState('')
   const key = cleanKey(draft)
   return (
-    <Box title="Model" right={<Usage />}>
-      <div className="seg2" data-scn="providers">
-        {(Object.keys(AUTHOR_PROVIDERS) as AuthorProviderId[]).map((id) => (
-          <button key={id} className={id === provider ? 'on' : ''} onClick={() => (a.setProvider(id), setDraft(''))} data-scn-provider={id}>
-            {AUTHOR_PROVIDERS[id].label}
-          </button>
-        ))}
-      </div>
-      <p className="h-note">{p.blurb}</p>
-      <div className="scn-conn">
-        {p.endpoint && (
-          <label>
-            Endpoint
-            <input type="url" spellCheck={false} autoComplete="off" placeholder="https://….us-west.modal.direct" value={endpoint} onChange={(e) => a.setEndpoint(e.target.value)} data-scn="endpoint" />
-          </label>
-        )}
-        {saved ? (
-          <div className="h-row">
-            <span className="dim">Key saved in this browser.</span>
-            <span className="grow" />
-            <button className="danger" onClick={() => void a.forgetProviderKey()} data-scn="forget">
-              Forget key
-            </button>
+    <Box title="Model" className="scn-setup">
+      <div className="scn-setup-grid">
+        <div className="scn-setup-col">
+          <div className="seg2" data-scn="providers">
+            {(Object.keys(AUTHOR_PROVIDERS) as AuthorProviderId[]).map((id) => (
+              <button key={id} className={id === provider ? 'on' : ''} onClick={() => (a.setProvider(id), setDraft(''))} data-scn-provider={id}>
+                {AUTHOR_PROVIDERS[id].label}
+              </button>
+            ))}
           </div>
-        ) : (
-          <form
-            className="h-row"
-            onSubmit={(e) => {
-              e.preventDefault()
-              if (!key) return
-              void a.saveProviderKey(key)
-              setDraft('')
-            }}
-          >
-            <input className="grow" type="password" autoComplete="off" spellCheck={false} placeholder={p.keyPlaceholder} aria-label={`${p.label} key`} value={draft} onChange={(e) => setDraft(e.target.value)} data-scn="key" />
-            <button type="submit" disabled={!key} data-scn="save-key">
-              Save key
-            </button>
-          </form>
-        )}
-        {p.models.length > 1 ? (
-          <label>
-            Model
-            <select value={model} onChange={(e) => a.setModel(e.target.value)} data-scn="model">
-              {p.models.map((m) => (
-                <option key={m} value={m}>
-                  {m}
-                </option>
-              ))}
-            </select>
-          </label>
-        ) : (
-          <div className="scn-model">
-            Model <span className="mono" data-scn="model-fixed">{model}</span>
-          </div>
-        )}
+          <p className="h-note">{p.blurb}</p>
+        </div>
+        <div className="scn-conn">
+          {p.endpoint && (
+            <label>
+              Endpoint
+              <input type="url" spellCheck={false} autoComplete="off" placeholder="https://….us-west.modal.direct" value={endpoint} onChange={(e) => a.setEndpoint(e.target.value)} data-scn="endpoint" />
+            </label>
+          )}
+          {saved ? (
+            <div className="h-row">
+              <span className="dim">Key saved in this browser.</span>
+              <span className="grow" />
+              <button className="danger" onClick={() => void a.forgetProviderKey()} data-scn="forget">
+                Forget key
+              </button>
+            </div>
+          ) : (
+            <form
+              className="h-row"
+              onSubmit={(e) => {
+                e.preventDefault()
+                if (!key) return
+                void a.saveProviderKey(key)
+                setDraft('')
+              }}
+            >
+              <input className="grow" type="password" autoComplete="off" spellCheck={false} placeholder={p.keyPlaceholder} aria-label={`${p.label} key`} value={draft} onChange={(e) => setDraft(e.target.value)} data-scn="key" />
+              <button type="submit" disabled={!key} data-scn="save-key">
+                Save key
+              </button>
+            </form>
+          )}
+          {p.models.length > 1 ? (
+            <label>
+              Model
+              <select value={model} onChange={(e) => a.setModel(e.target.value)} data-scn="model">
+                {p.models.map((m) => (
+                  <option key={m} value={m}>
+                    {m}
+                  </option>
+                ))}
+              </select>
+            </label>
+          ) : (
+            <div className="scn-model">
+              Model <span className="mono" data-scn="model-fixed">{model}</span>
+            </div>
+          )}
+        </div>
       </div>
       <p className="h-note">
         Runs on your own account, billed by {p.endpoint ? 'Modal' : p.id === 'meta' ? 'Meta' : 'Baseten'}. The key stays encrypted in this browser and goes to the provider only with each message, through this site's server, which keeps nothing. One Send can use up to {1 + MAX_REPAIRS} requests when the checks find problems.
@@ -255,7 +277,7 @@ function DraftCard() {
   const [msg, setMsg] = useState<string | null>(null)
   if (!draft) {
     return (
-      <Box title="Draft">
+      <Box title="Draft" className="scn-pane">
         <div className="h-empty">The scenario shows up here once the model has written one.</div>
       </Box>
     )
@@ -270,13 +292,11 @@ function DraftCard() {
     if (!why && open && id) useScenario.getState().setView({ kind: 'brief', id })
   }
   return (
-    <Box title={editing ? 'Draft: changing a saved scenario' : 'Draft'}>
-      <div className="h-grid" data-scn="draft">
+    <Box title={editing ? 'Draft: changing a saved scenario' : 'Draft'} className="scn-pane">
+      <div className="scn-draft" data-scn="draft">
         {spec && (
-          <>
-            <div className="h-row">
-              <b className="scn-draft-title">{spec.title}</b>
-            </div>
+          <div className="scn-draft-head">
+            <b className="scn-draft-title">{spec.title}</b>
             <div className="scn-tags">
               <span className={`scn-diff ${spec.difficulty}`}>{DIFFICULTY_LABEL[spec.difficulty]}</span>
               <span className="chip">{spec.category}</span>
@@ -284,7 +304,7 @@ function DraftCard() {
               <span className="chip dim">{spec.goals.filter((g) => !g.optional).length} objectives</span>
             </div>
             <p className="scn-sum full">{spec.summary}</p>
-          </>
+          </div>
         )}
         <ul className="scn-checks" data-scn="checks">
           <li className={errors.length ? 'bad' : 'ok'}>{errors.length ? `${errors.length} problem${errors.length > 1 ? 's' : ''} against this plant` : 'Tags, valves, zones and references exist on this plant'}</li>
@@ -311,23 +331,30 @@ function DraftCard() {
           </p>
         )}
         {spec && (
-          <details className="scn-more">
-            <summary>What happens and what is asked</summary>
-            <ol className="scn-ul">
-              {spec.expected.map((b, i) => (
-                <li key={i}>{b}</li>
-              ))}
-            </ol>
-            <ul className="scn-ul dim">
-              {spec.goals.map((g) => (
-                <li key={g.id}>
-                  {g.kind === 'avoid' ? 'Avoid: ' : ''}
-                  {g.text}
-                </li>
-              ))}
-            </ul>
-          </details>
+          <>
+            <details className="scn-more" open>
+              <summary>What happens</summary>
+              <ol className="scn-ul">
+                {spec.expected.map((b, i) => (
+                  <li key={i}>{b}</li>
+                ))}
+              </ol>
+            </details>
+            <details className="scn-more" open>
+              <summary>What is asked</summary>
+              <ul className="scn-ul">
+                {spec.goals.map((g) => (
+                  <li key={g.id}>
+                    {g.kind === 'avoid' ? 'Avoid: ' : ''}
+                    {g.text}
+                  </li>
+                ))}
+              </ul>
+            </details>
+          </>
         )}
+      </div>
+      <div className="scn-draft-foot">
         <div className="h-row">
           <button className="on" disabled={!ok || busy} onClick={() => save(true)} data-scn="save-open">
             Save and open briefing

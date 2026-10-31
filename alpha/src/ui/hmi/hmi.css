@@ -65,7 +65,14 @@
 .hmi-close { margin-left: 4px; }
 
 /* tabs */
-.hmi-tabs { display: flex; gap: 1px; padding: 0 12px; background: #1f2124; border-bottom: 1px solid var(--h-line); overflow-x: auto; scrollbar-width: thin; }
+.hmi-tabbar { display: flex; align-items: stretch; background: #1f2124; border-bottom: 1px solid var(--h-line); }
+.hmi-tabs { display: flex; flex: 1; min-width: 0; gap: 1px; padding: 0 12px; scroll-padding-inline: 12px; overflow-x: auto; scrollbar-width: none; }
+.hmi-tabs::-webkit-scrollbar { display: none; }
+@media (prefers-reduced-motion: no-preference) { .hmi-tabs { scroll-behavior: smooth; } }
+.hmi .hmi-tabs-arrow { flex: none; display: grid; place-items: center; width: 32px; padding: 0; border: 0; border-radius: 0; background: var(--h-bg3); }
+.hmi-tabs-arrow.left { box-shadow: 1px 0 0 var(--h-line); }
+.hmi-tabs-arrow.right { box-shadow: -1px 0 0 var(--h-line); }
+.hmi-tabs-arrow svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
 .hmi-tabs button { flex: none; }
 .hmi-tabs button { border: 0; border-radius: 0; background: none; padding: 7px 14px; color: var(--h-dim); border-bottom: 2px solid transparent; }
 .hmi-tabs button:hover:not(:disabled) { background: var(--h-bg); border-color: transparent; color: var(--h-fg); }
