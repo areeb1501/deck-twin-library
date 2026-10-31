@@ -1,67 +1,112 @@
 # Deck Twin
 
-Standards-based three.js / React Three Fiber components for oil & gas digital twins. You copy them into your project, then assemble plants from data.
+A 3D digital twin for oil and gas plants, with an AI agent that tells the person in charge what to do next, and why.
 
-**Site:** https://deck-twin-library.demoareeb.workers.dev · **Source:** https://github.com/areeb1501/deck-twin-library
+When an alarm or an incident comes up, the twin reads what the plant is showing, works out the next steps, and backs each one with data. The operator approves every action, and the twin reads the plant back to prove it happened.
 
-- **Components**: separators, columns, tanks, pumps, compressors, gas turbines, exchangers, valves, piping, instruments, fire & gas devices, decks, pipe racks, jackets, bridges, cranes, process packages, and an animated ocean and day or night sky for offshore scenes. Each is one readable `.tsx` file.
-- **Standards**: sized from ASME B36.10, B16.5, B16.9, B16.10 and VIII-1, API 526/594/609/610/617/618/650, TEMA, IEC 60072, ISO 14122 and ISO 14726. Change the NPS or the class and the geometry follows.
-- **Ports**: every flange face is a port. `plant.json` wires ports together, and `<Plant>` routes the pipe with B16.9 elbows, mating flanges, gaskets, studs, inline valves, colour bands and supports.
-- **For agents**: `SKILL.md`, `/r/index.json`, `/r/<name>.md`, `llms.txt`, and `deck-twin validate` and `assemble` that any model can drive, including cost-effective ones.
+**Site:** https://decktwin.com
 
-## Use
+## What is here
 
-Until it is published to npm, run the CLI from the deployed site: `npx -y <site>/cli/deck-twin-0.2.2.tgz <command>`. The examples below use the short `npx deck-twin`.
+| Part | What it does |
+|---|---|
+| **The twin** (`alpha/`) | A five-platform offshore field, driven by a live process simulation: alarms, shutdowns, fire and gas, maintenance, spares, risk and training scenarios. |
+| **The components** | 220 standards-based three.js components, plus a CLI and an agent skill, so an agent can turn your documents into a 3D plant. |
+
+## What to do next
+
+The **Response** page in the control room console is the agent.
+
+1. **It sees what an operator can see.** Alarms, fire and gas zones, shutdowns and machine health. It never reads the simulator's hidden fault list.
+2. **It gives a plan straight away.** A free rule plan comes from the cause and effect matrix and the RCM library.
+3. **Ask Muse Spark goes deeper.** One press sends an evidence pack from the twin's read-only tools. Muse answers with ordered steps, a one-line reason for each, and the evidence it used.
+4. **Every step is checked.** A tag that does not exist, a wrong action for that equipment, or a cited source that is not in the pack goes back to the model once, and is then dropped.
+5. **The operator decides.** A step that can be done remotely shows a button such as "Shut down K-2200 here", then "Are you sure?". The model never touches the plant.
+6. **The plant answers.** The twin reads the plant, not the command, so a stuck valve shows as refused or not verified.
+7. **Re-plan.** One more press plans again from the new state, around whatever failed.
+
+The same card sits beside a running training scenario, and actions taken through it count in the score.
+
+The **RCM library** tab holds example failure modes per machine type, plus process, fire and gas rows. You can edit them as a demo. Edits stay in your browser and change the plans straight away.
+
+## Where AI is used
+
+| Feature | Model | Runs on | State |
+|---|---|---|---|
+| Next action | Muse Spark Open | Modal or Baseten | On a click, with your own key |
+| Next action | Muse Spark or Muse Wonder | Meta Model API | On a click, with your own key. Not yet run against the real API |
+| Build a scenario with AI | Same choice as above | Same as above | On a click, with your own key |
+| CCTV segmentation | SAM 3.1 | Modal, or Meta Model API | Off until switched on. Simulated detections otherwise, and each tile says which it is |
+| Ask the plant, Investigate, Agents strip | None | A local rule planner in the browser | Simulated |
+
+Real credits are spent only on a click. Nothing runs on load or in the background, errors are never retried, the running cost stays on screen, and each page load has a hard limit.
+
+**Setup.** Open the console, go to Response or Scenarios, and pick a provider under Model. Save your key: it stays encrypted in your browser and goes only to that provider.
+
+| Provider | Model | You need |
+|---|---|---|
+| Modal shared endpoint | `meta-models/Muse-Spark-Open-816B-A42B` | Your endpoint URL and a proxy token |
+| Baseten | `meta-models/muse-spark-open-1026` | An API key |
+| Meta Model API | Chosen from a list | An API key |
+
+## The engine and live data
+
+The twin runs on its own simulator, so every reading in this demo is simulated.
+
+For a real plant, the data would come from our data engine, which already exists as a separate backend. It was not built for this hackathon and is not part of this repository.
+
+```
+plant sensors → ingest → Kafka → stream processing → ClickHouse → the twin
+                                       ↑
+                     Postgres: equipment limits, RCM failure modes
+             Airflow: scheduled jobs such as periodic inspection data
+```
+
+| Piece | Job |
+|---|---|
+| Kafka | Takes readings from the plant and hands them to the consumers |
+| Stream processing | Validates each reading, scores risk and raises alerts, in real time |
+| ClickHouse | The data warehouse: readings, risk scores and alerts |
+| Postgres | Equipment master data, operating limits and RCM failure modes |
+| Airflow | Scheduled batch work around the stream, such as periodic inspections and reconciliation |
+
+The twin reads every instrument through one seam, `sample()` and `history()` in `alpha/src/ui/live.ts`. The engine would feed that seam, and the gauges, trends, alarms, risk and 3D model would then follow the real plant as it changes. That link is not wired in this repository yet.
+
+## Use the components
+
+Until it is on npm, run the CLI from the site: `npx -y <site>/cli/deck-twin-0.2.2.tgz <command>`. The examples use the short `npx deck-twin`.
 
 ```bash
 npx deck-twin add horizontal-separator centrifugal-pump gate-valve
-npx deck-twin info centrifugal-pump
 npx deck-twin validate plant.json && npx deck-twin assemble plant.json
 npx deck-twin skill
 ```
 
+Each component is one readable `.tsx` file, sized from public standards such as ASME B16.5, API 610 and TEMA. Every flange face is a port, and `plant.json` wires ports together. An agent can build a plant from P&IDs, datasheets or equipment lists, and the twin can load the result to view and walk it. The full console runs on the bundled Alpha field.
+
 | Doc | What it covers |
 |---|---|
 | [Introduction](docs/introduction.md) | What it is, and what it isn't |
-| [Installation](docs/installation.md) | Setting up a project |
 | [CLI](docs/cli.md) | Every command |
 | [Assembling plants](docs/assemble.md) | Writing a `plant.json` |
 | [Agent skill](docs/agents.md) | Using it from an AI agent |
-| [Conventions](docs/conventions.md) | Units, axes, ports, materials |
 | [Standards](docs/standards.md) | The dimensional tables |
 | [Adding a component](docs/contributing.md) | Writing a new component |
-| [Research notes](docs/research.md) | Sources, vendors and decisions behind each category. Read before re-researching. |
-
-## Repository
-
-| Path | What |
-|---|---|
-| `registry/lib/` | Shared core: geometry kit, PBR materials, textures, parts, ports, router, stage, `standards/` tables |
-| `registry/<category>/` | Components (`*.tsx`), shared `_helpers`, and `_meta*.ts` (title, description, standards, controls) |
-| `registry/assembly/` | `plant.json` types and the `<Plant>` assembler |
-| `registry/examples/` | Example plants |
-| `registry/pid/` | P&ID data: one symbol and datasheet mapping per component (`pid.json`, `symbols/`), plus the extended legend (`library.json`, `library/`) |
-| `src/` | The website: gallery, component pages with live preview and controls, docs, examples, playground |
-| `cli/deck-twin.mjs` | The CLI. Zero dependencies. |
-| `skill/` | The agent skill |
-| `scripts/` | `build-registry.ts` (writes `public/r`, `llms.txt`, `sitemap.xml`, `robots.txt` and the skill), `prerender.ts` (renders every sitemap page to its own HTML file in `dist`, with its title, description and canonical), `shoot.mjs` (headless screenshots and thumbnails), `pid-gen/` (per-component P&ID symbols), `pid-legend/` (the extended legend) |
 
 ## Develop
 
 ```bash
-npm install
-npm run dev                                   # http://localhost:5190
-npx tsx scripts/build-registry.ts --check     # validate every component
-node scripts/shoot.mjs <name> --ports         # screenshot to .snaps/
-node scripts/shoot.mjs --all --thumbs         # regenerate thumbnails and bounds
-npm run build                                 # registry + type-check + site → dist/
-npm run deploy                                # build + wrangler deploy (Cloudflare Workers static assets)
+npm install && npm run dev                # site, http://localhost:5190
+cd alpha && npm install && npm run dev    # twin, http://localhost:5191/alpha/demo/
+npm test                                  # in each folder
 ```
 
 ## Honesty
 
-The geometry is generic and representative, built from public standards. It is not vendor CAD, and it doesn't reproduce any manufacturer's product. Supplier names on component pages show who makes that type of equipment. The standards tables are reference values: check them against the current edition before engineering use.
+Everything in the twin is simulated, including process values, alarms, stock and prices. It is a demonstration, not a safety system, and it must not be used to operate a real plant. The RCM rows are examples, not a real asset's study. The geometry is generic, not vendor CAD, and the standards tables are reference values.
 
 ## License
 
-MIT
+Free for personal use. Commercial use needs a license. This covers both the components and the engine: see [LICENSE](LICENSE). It is not MIT and not open source.
+
+Visit [decktwin.com](https://decktwin.com) to learn more.

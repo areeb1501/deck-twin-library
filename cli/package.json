@@ -2,7 +2,7 @@
   "name": "deck-twin",
   "version": "0.2.2",
   "description": "CLI for the Deck Twin registry: add standards-based three.js oil & gas components, check and assemble plant.json.",
-  "license": "MIT",
+  "license": "SEE LICENSE IN LICENSE",
   "homepage": "https://deck-twin-library.demoareeb.workers.dev",
   "repository": {
     "type": "git",
@@ -19,7 +19,8 @@
   "files": [
     "deck-twin.mjs",
     "check.mjs",
-    "README.md"
+    "README.md",
+    "LICENSE"
   ],
   "engines": {
     "node": ">=18"

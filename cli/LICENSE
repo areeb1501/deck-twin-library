@@ -1,0 +1,32 @@
+Deck Twin License
+
+Copyright (c) 2026 Deck Twin contributors. All rights reserved.
+
+This license covers everything in this repository: the components, the engine
+and twin, the CLI, the agent skill, the website and the docs. It does not cover
+third-party files that come with their own license, such as the fonts in
+src/fonts and the model licenses in alpha/public/licenses.
+
+Personal use is free. You may read, run, copy and change this software for your
+own personal, non-commercial projects, for study, and to evaluate it, including
+judging it in a competition. Keep this notice in every copy.
+
+Commercial use needs a license. Commercial use means any use by or for a company
+or other organisation, any use that earns money or supports paid work, and any
+product, service or client project that includes or is built with this software,
+including components copied out of it. Get a license at https://decktwin.com
+before you start.
+
+You may not sell, sublicense or host this software as a product or service for
+others without a commercial license.
+
+This software is a demonstration on simulated data. It is not a safety system and
+must not be used to operate or protect a real plant. The geometry is generic and
+the standards tables are reference values.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN
+AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
