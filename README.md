@@ -6,6 +6,10 @@ Deck Twin is an engine for simulating an oil and gas plant in 3D. It gives you o
 
 **Site:** https://decktwin.com
 
+![A flat plant diagram standing up into a 3D model](.github/assets/plan-to-3d.gif)
+
+*From a plant diagram to a 3D model, built from `plant.json`.*
+
 ## The problem
 
 - Plant data sits in separate systems, so nobody sees the whole picture.
