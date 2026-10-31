@@ -1,6 +1,7 @@
 // The library site's Worker. It serves demo media from the private R2 bucket at /alpha/media/*, with the same noindex rule as
 // the rest of /alpha, forwards camera frames to SAM 3.1, and hands everything else to the static assets. Range requests matter:
 // Safari won't play video without them.
+import { META_SAM_ROUTE, metaSamRoute } from './meta-sam-route.js'
 import { SAM_ROUTE, samRoute } from './sam-route.js'
 
 const PREFIX = '/alpha/media/'
@@ -9,6 +10,7 @@ export default {
   async fetch(request, env) {
     const { pathname } = new URL(request.url)
     if (pathname === SAM_ROUTE) return samRoute(request, env)
+    if (pathname === META_SAM_ROUTE) return metaSamRoute(request, env)
     if (!pathname.startsWith(PREFIX)) return env.ASSETS.fetch(request)
     const head = request.method === 'HEAD'
     if (!head && request.method !== 'GET') return new Response('Method not allowed', { status: 405, headers: { Allow: 'GET, HEAD' } })

@@ -10,7 +10,8 @@
  *    flame detector states, zone status) and the detector's boxes (people, no hard hat, no hi-vis vest,
  *    flame, gas cloud).
  *  - Right column: the call-up, the detection log (Walk to), and the detector-model card. Detections are
- *    simulated from the twin's ground truth today; SAM 3.1 on a Modal GPU is the planned replacement.
+ *    simulated from the twin's ground truth until the operator turns on real SAM 3.1: on the site's Modal GPU, or on
+ *    their own Meta key (safety/samClient.ts, safety/metaSam.ts). Neither survives a reload.
  *  - Below the wall: Hazardous areas (plan 14, HazardAreasPanel.tsx) — zone / PPE matrix, people per zone,
  *    violations, instructor drills; zone boxes (Zone 0 entry red, Zone 1 orange, Zone 2 yellow) on the feeds.
  */
@@ -18,6 +19,8 @@ import { memo, useEffect, useMemo, useRef, useState } from 'react'
 import { Box, Kpi } from './common'
 import { EMPTY_ARR, EMPTY_OBJ, useS } from './simApi'
 import { CAMERAS, FEED_H, FEED_INTERVAL_MS, FEED_W, PTZ_HOME, SEG_BY_ID, SEG_CLASSES, aimOf, cameraById, detLabel, feedCanvases, feedStats, registerFeed, segFrames, unregisterFeed, useCctv, type CctvCameraEx, type SegInstance } from '../../safety/cctv'
+import { CAP_IMAGES, EVERY_S, IMAGE_USD, startMetaSam, testKey, useMeta, worstScan } from '../../safety/metaSam'
+import { cleanKey } from '../../safety/metaKey'
 import { samCamera, samLive, startSam, useSam } from '../../safety/samClient'
 import { useWorkers } from '../../safety/workers'
 import { DETECTION_LABEL, type Detection, type DetectionKind, type WorkerInfo } from '../../safety/types'
@@ -45,7 +48,14 @@ const EMPTY_DET: Detection[] = EMPTY_ARR
 const EMPTY_ROSTER: WorkerInfo[] = EMPTY_ARR
 
 export function CctvPage() {
-  useEffect(() => startSam(), [])
+  useEffect(() => {
+    const stopModal = startSam()
+    const stopMeta = startMetaSam()
+    return () => {
+      stopModal()
+      stopMeta()
+    }
+  }, [])
   const selected = useCctv((s) => s.selected)
   const callUp = useCctv((s) => s.callUp)
   const setFeedsVisible = useCctv((s) => s.setFeedsVisible)
@@ -563,9 +573,10 @@ function useSamLive(cam: string) {
 /** says which detector this tile's boxes come from */
 function ModelBadge({ cam }: { cam: string }) {
   const live = useSamLive(cam)
+  const meta = useSam((s) => s.source === 'meta')
   return (
     <div className={`cctv-model-badge ${live ? 'live' : ''}`} data-model-badge={live ? 'sam-3.1' : 'sim'}>
-      {live ? 'SAM 3.1' : 'SIM'}
+      {live ? (meta ? 'SAM 3.1 · Meta API' : 'SAM 3.1') : 'SIM'}
     </div>
   )
 }
@@ -575,6 +586,7 @@ const SAM_COLOURS: Record<string, string> = { person: '#22d3ee', 'hard hat': '#f
 /** real SAM 3.1 masks from the last answer. Hard hats and vests are small, so labels stack instead of overlapping */
 function SamLayer({ cam, big, masksOn }: { cam: string; big: boolean; masksOn: boolean }) {
   const frame = useSam((s) => s.frames[cam])
+  const meta = useSam((s) => s.source === 'meta')
   const roster = useWorkers((s) => s.roster)
   const masks = useMemo(() => frame?.masks ?? [], [frame])
   const labels = useMemo(() => {
@@ -589,19 +601,23 @@ function SamLayer({ cam, big, masksOn }: { cam: string; big: boolean; masksOn: b
   }, [masks, roster])
   return (
     <div className="cctv-seg" data-sam-layer>
-      {frame && <img className="cctv-sam-frame" src={frame.image} alt="" />}
       {masksOn && (
-        <svg className="cctv-sam-mask" viewBox="0 0 1 1" preserveAspectRatio="none">
+        <svg key={frame?.at} className="cctv-sam-mask" viewBox="0 0 1 1" preserveAspectRatio="none">
           {masks.flatMap((m, i) => m.polygons.map((p, j) => <polygon key={`${i}-${j}`} points={p.map((q) => q.join(',')).join(' ')} style={{ ['--c' as string]: SAM_COLOURS[m.label] ?? '#e5e7eb' }} />))}
         </svg>
       )}
       {big && masksOn && labels.map(({ m, x, y, name }, i) => (
-        <span key={i} className="cctv-seglbl" style={{ left: `${x * 100}%`, top: `${y * 100}%`, ['--c' as string]: SAM_COLOURS[m.label] ?? '#e5e7eb' }}>
+        <span key={`${frame?.at}-${i}`} className="cctv-seglbl cctv-sam-lbl" style={{ left: `${x * 100}%`, top: `${y * 100}%`, ['--c' as string]: SAM_COLOURS[m.label] ?? '#e5e7eb' }}>
           {m.label} <b>{m.score.toFixed(2)}</b>
           {name && <i>{name}</i>}
         </span>
       ))}
-      {big && <div className="cctv-segtag">SAM 3.1 · live model · {masks.length} instances</div>}
+      {big && (
+        <div className="cctv-segtag">
+          SAM 3.1 · live model · {masks.length} instances
+          {meta && frame && ` · scan from ${Math.round((performance.now() - frame.at) / 1000)} s ago`}
+        </div>
+      )}
     </div>
   )
 }
@@ -670,9 +686,10 @@ function SegLayer({ cam, big }: { cam: string; big: boolean }) {
 /** what SAM 3.1 is really being asked for, with what it found in the last frame */
 function SamPrompts({ cam }: { cam: string }) {
   const masks = useSam((s) => s.frames[cam]?.masks) ?? EMPTY_ARR
+  const asked = useSam((s) => s.frames[cam]?.asked)
   return (
     <div className="cctv-prompts" data-sam-prompts>
-      {Object.entries(SAM_COLOURS).map(([prompt, colour]) => (
+      {Object.entries(SAM_COLOURS).filter(([prompt]) => !asked || asked.includes(prompt)).map(([prompt, colour]) => (
         <span key={prompt} className="cctv-prompt on" style={{ ['--c' as string]: colour }}>
           <i />
           {prompt}
@@ -734,6 +751,72 @@ function PromptsBox({ cam }: { cam: string }) {
   )
 }
 
+/** the operator's own Meta Model API key. Off on every load, and the running cost stays on screen while it runs */
+function MetaRow({ cam }: { cam: string }) {
+  const m = useMeta()
+  const [draft, setDraft] = useState('')
+  const key = cleanKey(draft)
+  const worst = worstScan(m.ppe, m.fire)
+  const save = () => {
+    if (!key) return
+    void m.save(key)
+    setDraft('')
+  }
+  return (
+    <tr>
+      <td className="dim">Meta API</td>
+      <td className="cctv-meta" data-meta-row>
+        {!m.saved ? (
+          <form onSubmit={(e) => (e.preventDefault(), save())}>
+            <input type="password" autoComplete="off" spellCheck={false} placeholder="API key from dev.meta.ai" aria-label="Meta Model API key" value={draft} onChange={(e) => setDraft(e.target.value)} data-meta-key />
+            <button type="submit" disabled={!key} data-meta-save>
+              Save
+            </button>
+            <div className="dim">Runs real SAM 3.1 on your own Meta account. Billed by Meta at about $2.50 per 1,000 images. The key stays encrypted in this browser and goes to Meta only with each scan, through this site's server.</div>
+          </form>
+        ) : (
+          <>
+            <div>
+              <button className={m.on ? 'on' : ''} onClick={() => m.setOn(!m.on)} data-meta-toggle>
+                {m.on ? 'On: click to turn off' : 'Turn on'}
+              </button>{' '}
+              <button onClick={() => void testKey()} disabled={m.busy} title="One billed image on the main monitor" data-meta-test>
+                Test key
+              </button>{' '}
+              <button onClick={() => void m.forget()} data-meta-forget>
+                Forget key
+              </button>
+            </div>
+            <div>
+              <label>
+                <input type="checkbox" checked={m.ppe} onChange={(e) => m.set({ ppe: e.target.checked })} /> Hard hat and vest
+              </label>{' '}
+              <label>
+                <input type="checkbox" checked={m.fire} onChange={(e) => m.set({ fire: e.target.checked })} /> Flame and smoke
+              </label>{' '}
+              <label>
+                every{' '}
+                <select value={m.every} onChange={(e) => m.set({ every: Number(e.target.value) })} aria-label="Seconds between scans">
+                  {EVERY_S.map((s) => (
+                    <option key={s} value={s}>
+                      {s} s
+                    </option>
+                  ))}
+                </select>
+              </label>
+            </div>
+            <div className="dim" data-meta-spend>
+              {m.images} {m.images === 1 ? 'image' : 'images'} · about ${(m.images * IMAGE_USD).toFixed(4)} since this page loaded{' · '}{m.on ? `${m.run} of ${CAP_IMAGES} before it stops itself` : `at most ${worst} per scan, about $${((worst * IMAGE_USD * 3600) / m.every).toFixed(2)}/h`}
+            </div>
+            {m.on && !samCamera(cam) && <div className="dim">Thermal camera on the main monitor: no calls until a colour camera is up.</div>}
+          </>
+        )}
+        {m.note && <div data-meta-note>{m.note}</div>}
+      </td>
+    </tr>
+  )
+}
+
 function ModelBox() {
   const live = useCctv((s) => s.live)
   useS((s) => s.t) // refresh the measured rates with the sim clock (2 Hz)
@@ -759,9 +842,13 @@ function ModelBox() {
           <tr>
             <td className="dim">Active</td>
             <td data-detector-active>
-              {samOn ? (
+              {samOn && sam.source === 'meta' ? (
                 <>
-                  <b>SAM 3.1 on a Modal GPU</b> : real masks and scores on the 11 colour cameras, in turn. {sam.rtt.toFixed(0)} ms round trip, {sam.gpu} ms on the GPU. Each picture is the frame SAM saw. Thermal cameras stay simulated.
+                  <b>SAM 3.1 through the Meta Model API</b> : real masks and scores on the main monitor only, billed to your key. {sam.rtt.toFixed(0)} ms round trip. The video stays live, and masks fade until the next scan. Moving the camera clears them, and it scans again once the camera rests. Every other camera, and anything SAM isn't asked about, stays simulated.
+                </>
+              ) : samOn ? (
+                <>
+                  <b>SAM 3.1 on a Modal GPU</b> : real masks and scores on the 11 colour cameras, in turn. {sam.rtt.toFixed(0)} ms round trip, {sam.gpu} ms on the GPU. The video stays live and masks fade between answers. Thermal cameras stay simulated.
                 </>
               ) : (
                 <>
@@ -770,21 +857,25 @@ function ModelBox() {
               )}
             </td>
           </tr>
-          <tr>
-            <td className="dim">SAM 3.1</td>
-            <td>
-              {sam.connected ? (
-                <>
-                  <button className={sam.on ? 'on' : ''} onClick={() => sam.setOn(!sam.on)} data-sam-toggle>
-                    {sam.on ? 'On' : 'Off'}
-                  </button>{' '}
-                  {!samCamera(selected) ? 'Thermal camera: simulated detector' : sam.state === 'waking' ? 'Waking the GPU, up to a minute. Simulated until then' : sam.state === 'error' ? 'Not answering. Simulated until it does' : sam.state === 'live' ? 'Connected' : ''}
-                </>
-              ) : (
-                'Not connected on this site, so the simulated detector runs'
-              )}
-            </td>
-          </tr>
+          {sam.connected && (
+            <tr>
+              <td className="dim">SAM 3.1</td>
+              <td>
+                <button
+                  className={sam.on ? 'on' : ''}
+                  onClick={() => {
+                    useMeta.getState().setOn(false)
+                    sam.setOn(!sam.on)
+                  }}
+                  data-sam-toggle
+                >
+                  {sam.on ? 'On' : 'Off'}
+                </button>{' '}
+                {!sam.on ? 'Simulated until turned on' : !samCamera(selected) ? 'Thermal camera: simulated detector' : sam.state === 'waking' ? 'Waking the GPU, up to a minute. Simulated until then' : sam.state === 'error' ? 'Not answering. Simulated until it does' : sam.state === 'live' ? 'Connected' : ''}
+              </td>
+            </tr>
+          )}
+          <MetaRow cam={selected} />
           <tr>
             <td className="dim">Frame rate</td>
             <td className="mono">

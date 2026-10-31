@@ -37,6 +37,7 @@ await page.evaluate(() => {
   window.__store.getState().setHmi('cctv')
   window.__cctv.getState().setSelected('CCTV-A02')
 })
+await page.click('[data-sam-toggle]')
 
 const t0 = Date.now()
 await page.waitForSelector('.cctv-tile.big [data-model-badge="sam-3.1"]', { timeout: 150000 })

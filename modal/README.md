@@ -5,6 +5,8 @@ Model API. Status and next steps: [PLAN.md](PLAN.md).
 
 The twin's colour CCTV cameras call it through `alpha/sam-route.js`, the main monitor on every other frame. Thermal cameras stay simulated, and each tile says which it is.
 
+Anyone can also run SAM 3.1 on their own Meta account from the camera page, with no GPU of ours: see [PLAN.md](PLAN.md#your-own-meta-key). Both routes start switched off on every page load.
+
 | File | What |
 |---|---|
 | `sam31.py` | The Modal app: Meta's `sam3` code with the `facebook/sam3.1` checkpoint, on an A10G that scales to zero |
@@ -13,7 +15,7 @@ The twin's colour CCTV cameras call it through `alpha/sam-route.js`, the main mo
 | `dt_gateway/sam_api.py` | The routes |
 | `dt_gateway/security.py` | Key check, rate limit, body limit, CORS, safe errors |
 | `dt_gateway/ppe.py` | Detections to alerts: the 65 % rule, PPE geometry, Zones 0, 1 and 2 |
-| `dt_gateway/meta_sam.py` | SAM 3.1 through the Meta Model API |
+| `dt_gateway/meta_sam.py` | SAM 3.1 through the Meta Model API, from Python. The twin uses `alpha/meta-sam-route.js` instead |
 | `tests/` | Offline tests, and `live` tests that call the real endpoints |
 
 ## Setup

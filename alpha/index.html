@@ -122,7 +122,7 @@
           </div>
           <ol class="beats">
             <li class="on"><img data-still="leak" alt="Gas spreading from the HP separator" /><h3>A flange starts to leak</h3><p>It lets go at the HP separator outlet, and one gas detector sees it.</p></li>
-            <li><img data-still="cctv" alt="The CCTV wall with the release on the main monitor" /><h3>A second detector agrees</h3><p>The console puts the camera up on its own. The camera detections are simulated too.</p></li>
+            <li><img data-still="cctv" alt="The CCTV wall with the release on the main monitor" /><h3>A second detector agrees</h3><p>The console puts the camera up on its own. We use SAM 3.1 segmentation to identify people and give alerts in real time.</p></li>
             <li><img data-still="flare" alt="The flare burning at the end of its boom" /><h3>The platform shuts itself down</h3><p>Emergency shutdown. The zone blows down to the flare.</p></li>
             <li><img data-still="fire" alt="Fire and deluge on the separation deck" /><h3>The gas ignites</h3><p>The deluge comes on and the fire pumps start.</p></li>
             <li><img data-still="investigate" alt="The investigation trace on the console" /><h3>An agent works out what happened</h3><p>Every step it takes is on the record. In this demo it is a simulated local planner, not a live model.</p></li>
@@ -171,7 +171,7 @@
     </main>
 
     <footer class="foot">
-      <p>Everything here is simulated: process values, alarms, people, CCTV detections and agent answers. The engineering data is plausible and based on public standards, but it isn't from a real asset.</p>
+      <p>Everything here is simulated: process values, alarms, people and agent answers. Cameras run SAM 3.1 when it is switched on, and a simulated detector otherwise. The engineering data is plausible and based on public standards, but it isn't from a real asset.</p>
     </footer>
 
     <dialog class="search" aria-label="Search docs and components">

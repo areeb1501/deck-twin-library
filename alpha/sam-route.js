@@ -6,7 +6,7 @@ const MAX_BODY = 2_000_000
 // what the browser may see of an upstream answer; anything else is our fault, not theirs
 const PASS_THROUGH = new Set([200, 400, 422, 429])
 
-const json = (body, status = 200, extra = {}) =>
+export const json = (body, status = 200, extra = {}) =>
   new Response(JSON.stringify(body), { status, headers: { 'content-type': 'application/json', 'cache-control': 'no-store', 'x-robots-tag': 'noindex, nofollow, noarchive', ...extra } })
 
 export async function samRoute(request, env) {

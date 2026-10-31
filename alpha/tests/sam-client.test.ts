@@ -18,51 +18,47 @@ const answer = (over: Partial<SamAnswer> = {}): SamAnswer => ({ detections: [{ l
 
 describe('toFrame', () => {
   it('marks every detection as SAM 3.1', () => {
-    const f = toFrame(answer({ alerts: [{ kind: 'noVest', label: 'person', box: BOX, confidence: 0.8, workerId: 'w02' }] }), CAM, 5, 100, 'frame')
+    const f = toFrame(answer({ alerts: [{ kind: 'noVest', label: 'person', box: BOX, confidence: 0.8, workerId: 'w02' }] }), CAM, 5, 100)
     expect(f.dets.map((d) => d.model)).toEqual(['sam-3.1', 'sam-3.1'])
   })
 
   it('names the person SAM found', () => {
-    const [d] = toFrame(answer(), CAM, 5, 100, 'frame').dets
+    const [d] = toFrame(answer(), CAM, 5, 100).dets
     expect(d).toMatchObject({ kind: 'person', workerId: 'w02', confidence: 0.8, camera: CAM, t: 5 })
   })
 
   it('keeps an unnamed person, with no invented worker', () => {
-    const [d] = toFrame(answer({ detections: [{ label: 'person', box: BOX, score: 0.9 }] }), CAM, 5, 100, 'frame').dets
+    const [d] = toFrame(answer({ detections: [{ label: 'person', box: BOX, score: 0.9 }] }), CAM, 5, 100).dets
     expect(d.workerId).toBeUndefined()
   })
 
   it('leaves out a person below the alert threshold', () => {
-    expect(toFrame(answer({ detections: [{ label: 'person', box: BOX, score: 0.6 }] }), CAM, 5, 100, 'frame').dets).toEqual([])
+    expect(toFrame(answer({ detections: [{ label: 'person', box: BOX, score: 0.6 }] }), CAM, 5, 100).dets).toEqual([])
   })
 
   it('carries the zone and what is missing', () => {
-    const f = toFrame(answer({ alerts: [{ kind: 'zonePpe', label: 'person', box: BOX, confidence: 0.8, workerId: 'w07', zone: 1, missing: ['hardHat'] }] }), CAM, 5, 100, 'frame')
+    const f = toFrame(answer({ alerts: [{ kind: 'zonePpe', label: 'person', box: BOX, confidence: 0.8, workerId: 'w07', zone: 1, missing: ['hardHat'] }] }), CAM, 5, 100)
     expect(f.dets[1]).toMatchObject({ kind: 'zonePpe', workerId: 'w07', zone: 1, missing: ['hardHat'] })
   })
 
   it('gives each detection the id the detection log dedupes on', () => {
-    const f = toFrame(answer({ alerts: [{ kind: 'noVest', label: 'person', box: BOX, confidence: 0.8, workerId: 'w02' }] }), CAM, 5, 100, 'frame')
+    const f = toFrame(answer({ alerts: [{ kind: 'noVest', label: 'person', box: BOX, confidence: 0.8, workerId: 'w02' }] }), CAM, 5, 100)
     expect(f.dets[1].id.split('|')[1]).toBe('w02')
   })
 
   it('keeps masks for what it is fairly sure of, including hard hats and vests', () => {
-    const f = toFrame(answer({ detections: [{ label: 'person', box: BOX, score: 0.8 }, { label: 'hard hat', box: BOX, score: MASK_FLOOR }] }), CAM, 5, 100, 'frame')
+    const f = toFrame(answer({ detections: [{ label: 'person', box: BOX, score: 0.8 }, { label: 'hard hat', box: BOX, score: MASK_FLOOR }] }), CAM, 5, 100)
     expect(f.masks.map((m) => m.label)).toEqual(['person', 'hard hat'])
   })
 
   it('hides weak masks, which are mostly valve handles', () => {
-    const f = toFrame(answer({ detections: [{ label: 'hard hat', box: BOX, score: 0.37 }] }), CAM, 5, 100, 'frame')
+    const f = toFrame(answer({ detections: [{ label: 'hard hat', box: BOX, score: 0.37 }] }), CAM, 5, 100)
     expect(f.masks).toEqual([])
-  })
-
-  it('keeps the picture SAM saw, so the masks line up with it', () => {
-    expect(toFrame(answer(), CAM, 5, 100, 'data:image/jpeg;base64,abc').image).toBe('data:image/jpeg;base64,abc')
   })
 })
 
 describe('pickDetections', () => {
-  const frame = toFrame(answer(), CAM, 5, 1000, 'frame')
+  const frame = toFrame(answer(), CAM, 5, 1000)
 
   it('uses the twin with no answer yet', () => {
     const dets = [sim('person', 'w01')]
@@ -110,7 +106,7 @@ describe('personHints', () => {
 
 describe('samLive', () => {
   it('is true for a fresh answer and false once stale', () => {
-    const frames = { [CAM]: toFrame(answer(), CAM, 5, 1000, 'frame') }
+    const frames = { [CAM]: toFrame(answer(), CAM, 5, 1000) }
     expect(samLive(CAM, frames, 1000 + STALE_MS)).toBe(true)
     expect(samLive(CAM, frames, 1001 + STALE_MS)).toBe(false)
   })

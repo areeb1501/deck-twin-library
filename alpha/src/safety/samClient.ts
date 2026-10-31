@@ -6,11 +6,14 @@
  *
  *  - The twin knows where every worker stands, however far away, so that goes along as a hint. It names a person SAM saw and gives their
  *    zone. It never adds a person, and SAM alone decides what they wear.
- *  - An answer is about a second old by the time it arrives, so a camera shows the frame SAM analysed, not the
- *    newest one. Otherwise masks would trail anyone walking.
+ *  - The live video always stays on top. An answer is seconds old by the time it arrives, so its masks fade on the monitor
+ *    rather than freeze the picture. Moving a camera drops them at once: they describe a view that has gone, and a frame
+ *    already on its way is thrown away for the same reason. Nothing is sent until the head has rested for REST_MS.
  *  - `withSam` is the one place a camera's detections are chosen. Every Detection says which model made it, so the UI
  *    can't call a simulated box real. A silent model falls back to the simulated detector after STALE_MS.
  *  - Runs only while the camera page is open in a visible tab, so the GPU scales to zero otherwise.
+ *  - The switch is never remembered. Every load starts simulated, and leaving the camera page turns it off.
+ *  - safety/metaSam.ts is the second way to the same model, on the operator's own Meta key. It shares `applyAnswer`.
  */
 import { create } from 'zustand'
 import { useSim } from '../state/sim'
@@ -28,10 +31,13 @@ export const STALE_MS = 25_000
 const TIMEOUT_MS = 120_000
 const RETRY_MS = 5000
 const JPEG_QUALITY = 0.85
+/** a camera must hold still this long before a frame is worth sending, ms */
+export const REST_MS = 1000
 /** what SAM doesn't judge: these keep coming from the twin, marked `sim` */
 const TWIN_ONLY = new Set<DetectionKind>(['restrictedZone', 'gasCloud'])
 
 export type SamState = 'off' | 'waking' | 'live' | 'error'
+export type SamSource = 'modal' | 'meta'
 
 export interface SamMask {
   label: string
@@ -43,10 +49,12 @@ export interface SamMask {
 export interface SamFrame {
   dets: Detection[]
   masks: SamMask[]
-  /** the picture SAM saw (a JPEG data URL), so the masks line up with it */
-  image: string
   /** wall clock of the answer, ms */
   at: number
+  /** the noun phrases sent for this frame, if not all of them */
+  asked?: string[]
+  /** what SAM wasn't asked about on this frame. Those stay with the twin, marked `sim` */
+  unjudged?: DetectionKind[]
 }
 
 interface SamStore {
@@ -56,6 +64,8 @@ interface SamStore {
   on: boolean
   setOn: (on: boolean) => void
   state: SamState
+  /** which route gave the last answer */
+  source: SamSource
   /** last round trip / last GPU time, ms */
   rtt: number
   gpu: number
@@ -64,12 +74,10 @@ interface SamStore {
 
 export const useSam = create<SamStore>((set) => ({
   connected: null,
-  on: localStorage.getItem('deck-twin.sam') !== 'off',
-  setOn: (on) => {
-    localStorage.setItem('deck-twin.sam', on ? 'on' : 'off')
-    set({ on, ...(on ? {} : { state: 'off' as const, frames: {} }) })
-  },
+  on: false,
+  setOn: (on) => set({ on, ...(on ? {} : { state: 'off' as const, frames: {} }) }),
   state: 'off',
+  source: 'modal',
   rtt: 0,
   gpu: 0,
   frames: {},
@@ -78,14 +86,14 @@ if (import.meta.env.DEV) Object.assign(window, { __sam: useSam })
 
 // ---------------------------------------------------------------- pure mapping (tests/sam-client.test.ts)
 
-interface AnswerDetection {
+export interface AnswerDetection {
   label: string
   box: [number, number, number, number]
   score: number
   polygons?: [number, number][][]
   workerId?: string
 }
-interface AnswerAlert {
+export interface AnswerAlert {
   kind: DetectionKind
   label: string
   box: [number, number, number, number]
@@ -110,13 +118,13 @@ export interface PersonHint {
   permit: boolean
 }
 
-const PERSON = 'person'
-const PERSON_FLOOR = 0.65
+export const PERSON = 'person'
+export const PERSON_FLOOR = 0.65
 /** weaker masks are mostly valve handles called hard hats: the PPE check on the server still uses them */
 export const MASK_FLOOR = 0.45
 
 /** the detector's answer as the twin's detections, and the masks for the monitor */
-export function toFrame(answer: SamAnswer, camera: string, t: number, at: number, image: string): SamFrame {
+export function toFrame(answer: SamAnswer, camera: string, t: number, at: number, scope: Pick<SamFrame, 'asked' | 'unjudged'> = {}): SamFrame {
   const base = (kind: DetectionKind, ref: string, box: Detection['box'], confidence: number): Detection => ({ id: `${camera}|${ref}|${kind}|${t.toFixed(1)}`, t, camera, kind, box, confidence, model: 'sam-3.1' })
   const people = answer.detections.filter((d) => d.label === PERSON && d.score >= PERSON_FLOOR)
   const dets = people.map((d, i) => ({ ...base('person', d.workerId ?? `sam${i}`, d.box, d.score), ...(d.workerId ? { workerId: d.workerId } : {}) }))
@@ -129,13 +137,13 @@ export function toFrame(answer: SamAnswer, camera: string, t: number, at: number
     })
   })
   const masks = answer.detections.filter((d) => d.score >= MASK_FLOOR).map((d) => ({ label: d.label, score: d.score, box: d.box, polygons: d.polygons ?? [], workerId: d.workerId }))
-  return { dets, masks, image, at }
+  return { dets, masks, at, ...scope }
 }
 
 /** a camera's detections for this frame: SAM's if it has answered lately, else the twin's own */
 export function pickDetections(sim: Detection[], frame: SamFrame | undefined, now: number): Detection[] {
   if (!frame || now - frame.at > STALE_MS) return sim
-  return [...frame.dets, ...sim.filter((d) => TWIN_ONLY.has(d.kind))]
+  return [...frame.dets, ...sim.filter((d) => TWIN_ONLY.has(d.kind) || frame.unjudged?.includes(d.kind))]
 }
 
 /** where the twin says each visible worker is in this frame, with the zone their tag reports */
@@ -169,6 +177,42 @@ export function withSam(camera: string, sim: Detection[], tags?: WorkerBox[]): D
   return pickDetections(sim, useSam.getState().frames[camera], performance.now())
 }
 
+const moved = new Map<string, number>()
+
+/** when this camera's head last moved, ms (0 if it hasn't) */
+export const lastMoved = (camera: string) => moved.get(camera) ?? 0
+
+/** this camera goes back to the twin's own detector now */
+export function dropFrame(camera: string) {
+  useSam.setState((s) => {
+    if (!s.frames[camera]) return s
+    const frames = { ...s.frames }
+    delete frames[camera]
+    return { frames }
+  })
+}
+
+useCctv.subscribe((s, was) => {
+  if (s.ptz === was.ptz) return
+  for (const id of new Set([...Object.keys(s.ptz), ...Object.keys(was.ptz)])) {
+    if (s.ptz[id] === was.ptz[id]) continue
+    moved.set(id, performance.now())
+    dropFrame(id)
+  }
+})
+
+/** where the twin last said the workers on this camera are */
+export const hintsFor = (camera: string) => personHints(lastTags.get(camera) ?? [], useHazardTrack.getState().present)
+
+/** an answer goes up on its camera now, unless that camera has moved since the frame was taken. Tiles repaint every few seconds, so this can't wait for that */
+export function applyAnswer(camera: string, answer: SamAnswer, t: number, sentAt: number, source: SamSource, scope: Pick<SamFrame, 'asked' | 'unjudged'> = {}) {
+  if (lastMoved(camera) > sentAt) return false
+  const now = performance.now()
+  useSam.setState((s) => ({ state: 'live', source, rtt: now - sentAt, gpu: answer.ms, frames: { ...s.frames, [camera]: toFrame(answer, camera, t, now, scope) } }))
+  useCctv.getState().pushFrame(camera, withSam(camera, lastSim.get(camera) ?? []))
+  return true
+}
+
 /** SAM has answered for this camera lately */
 export const samLive = (camera: string, frames: Record<string, SamFrame> = useSam.getState().frames, now = performance.now()) => {
   const f = frames[camera]
@@ -179,23 +223,19 @@ export const samLive = (camera: string, frames: Record<string, SamFrame> = useSa
 
 async function ask(camera: string, canvas: HTMLCanvasElement) {
   const t = useSim.getState().t
-  const image = canvas.toDataURL('image/jpeg', JPEG_QUALITY)
+  const t0 = performance.now()
   const body = JSON.stringify({
-    image_base64: image,
+    image_base64: canvas.toDataURL('image/jpeg', JPEG_QUALITY),
     camera,
-    people: personHints(lastTags.get(camera) ?? [], useHazardTrack.getState().present),
+    people: hintsFor(camera),
     return_masks: true,
   })
-  const t0 = performance.now()
   const r = await fetch(ROUTE, { method: 'POST', headers: { 'content-type': 'application/json' }, body, signal: AbortSignal.timeout(TIMEOUT_MS) })
   if (!r.ok) throw new Error(`SAM route answered ${r.status}`)
   const answer = (await r.json()) as SamAnswer
   // switched off while this frame was on its way: it must not turn the camera back on
   if (!useSam.getState().on) return
-  const now = performance.now()
-  useSam.setState((s) => ({ state: 'live', rtt: now - t0, gpu: answer.ms, frames: { ...s.frames, [camera]: toFrame(answer, camera, t, now, image) } }))
-  // tiles repaint every few seconds: put the boxes up with their picture now, not at the next repaint
-  useCctv.getState().pushFrame(camera, withSam(camera, lastSim.get(camera) ?? []))
+  applyAnswer(camera, answer, t, t0, 'modal')
 }
 
 const wait = (ms: number) => new Promise((done) => setTimeout(done, ms))
@@ -216,7 +256,7 @@ export function startSam(): () => void {
         const cctv = useCctv.getState()
         const camera = nextCamera(cctv.callUp ?? cctv.selected, [...feedCanvases.keys()], turn++)
         const canvas = camera && feedCanvases.get(camera)
-        if (!useSam.getState().on || !cctv.feedsVisible || document.hidden || !camera || !canvas) {
+        if (!useSam.getState().on || !cctv.feedsVisible || document.hidden || !camera || !canvas || performance.now() - lastMoved(camera) < REST_MS) {
           await wait(FRAME_MS)
           continue
         }
@@ -236,6 +276,6 @@ export function startSam(): () => void {
   })()
   return () => {
     run++
-    useSam.setState({ state: 'off' })
+    useSam.getState().setOn(false)
   }
 }

@@ -37,7 +37,7 @@ const CONSOLE: Shot[] = [
   [economics, 'Asset and economics', 'Production value, deferment, asset risk and insights in dollars.'],
   [process, 'Process overview', 'Mimic of Alpha and WHP-N: separation, compression, export and utilities.'],
   [risk, 'Risk and what-if', 'Rehearse a scenario, such as a fire at the HP separator, before it happens.'],
-  [cctv, 'CCTV and PPE', 'Camera wall with simulated segmentation and thermal views.'],
+  [cctv, 'CCTV and PPE', 'Camera wall with SAM 3.1 segmentation to identify people and give alerts in real time.'],
 ]
 
 const FACTS: [string, string][] = [

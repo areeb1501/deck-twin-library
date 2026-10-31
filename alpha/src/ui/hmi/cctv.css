@@ -98,11 +98,15 @@
 .hmi .cctv-kpis { grid-template-columns: repeat(3, 1fr); margin-bottom: 6px; }
 .hmi .cctv-model td { vertical-align: top; line-height: 1.4; }
 .hmi .cctv-model td:first-child { white-space: nowrap; width: 1%; }
+.hmi .cctv-meta > *, .hmi .cctv-meta form > * { margin-bottom: 3px; }
+.hmi .cctv-meta input[type='password'] { width: 62%; margin-right: 4px; padding: 2px 5px; font: inherit; color: inherit; background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.18); border-radius: 3px; }
+.hmi .cctv-meta label { margin-right: 6px; white-space: nowrap; }
 
 /* simulated SAM 3.1 masks on the main monitor */
 .hmi .cctv-seg { position: absolute; inset: 0; z-index: 1; pointer-events: none; }
-.hmi .cctv-sam-frame { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: fill; }
 .hmi .cctv-sam-mask { position: absolute; inset: 0; width: 100%; height: 100%; }
+.hmi .cctv-sam-mask, .hmi .cctv-sam-lbl { animation: cctv-sam-age 5s ease-in forwards; }
+@keyframes cctv-sam-age { to { opacity: 0.2; } }
 .hmi .cctv-sam-mask polygon { fill: var(--c); fill-opacity: 0.32; stroke: var(--c); stroke-width: 1.5; vector-effect: non-scaling-stroke; }
 .hmi .cctv-model-badge { position: absolute; z-index: 2; left: 50%; top: 5px; transform: translateX(-50%); padding: 1px 5px; border-radius: 3px; font-size: 9px; font-weight: 600; letter-spacing: 0.04em; color: #c9cdd0; background: rgba(0, 0, 0, 0.55); }
 .hmi .cctv-model-badge.live { color: #06222a; background: #22d3ee; }

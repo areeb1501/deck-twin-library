@@ -1,6 +1,7 @@
 import react from '@vitejs/plugin-react'
 import { defineConfig, loadEnv, type Plugin } from 'vite'
 import { pbkdf2Sync, randomBytes } from 'node:crypto'
+import { META_SAM_ROUTE, metaSamRoute } from './meta-sam-route.js'
 import { SAM_ROUTE, samRoute } from './sam-route.js'
 
 /**
@@ -21,22 +22,25 @@ function demoGate(env: Record<string, string>, serve: boolean) {
   return { salt: salt.toString('hex'), hash, iter: GATE_ITER }
 }
 
-/** the Worker's SAM route on the dev server, with the key from ../modal/.env.local (never sent to the browser) */
+/** the Worker's SAM routes on the dev server. Modal's key comes from ../modal/.env.local (never sent to the browser); Meta's comes with each request */
 function samDevRoute(): Plugin {
   const env = loadEnv('', new URL('../modal', import.meta.url).pathname, 'DECK_TWIN_')
   return {
     name: 'sam-dev-route',
     apply: 'serve',
     configureServer(server) {
-      server.middlewares.use(SAM_ROUTE, async (req, res) => {
-        const chunks: Buffer[] = []
-        for await (const c of req) chunks.push(c as Buffer)
-        const headers = Object.fromEntries(Object.entries(req.headers).filter(([, v]) => typeof v === 'string')) as Record<string, string>
-        const body = req.method === 'POST' ? Buffer.concat(chunks) : undefined
-        const r = await samRoute(new Request(`http://${req.headers.host}${SAM_ROUTE}`, { method: req.method, headers, body }), env)
-        res.writeHead(r.status, { 'content-type': 'application/json' })
-        res.end(await r.text())
-      })
+      const mount = (route: string, handle: (r: Request) => Promise<Response>) =>
+        server.middlewares.use(route, async (req, res) => {
+          const chunks: Buffer[] = []
+          for await (const c of req) chunks.push(c as Buffer)
+          const headers = Object.fromEntries(Object.entries(req.headers).filter(([, v]) => typeof v === 'string')) as Record<string, string>
+          const body = req.method === 'POST' ? Buffer.concat(chunks) : undefined
+          const r = await handle(new Request(`http://${req.headers.host}${route}`, { method: req.method, headers, body }))
+          res.writeHead(r.status, { 'content-type': 'application/json' })
+          res.end(await r.text())
+        })
+      mount(SAM_ROUTE, (r) => samRoute(r, env))
+      mount(META_SAM_ROUTE, (r) => metaSamRoute(r, {}))
     },
   }
 }
