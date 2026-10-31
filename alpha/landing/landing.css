@@ -115,8 +115,11 @@ img {
   align-items: center;
   gap: 10px;
   color: var(--ink);
-  font: 600 16px/1 'Archivo Variable', sans-serif;
+  font-family: 'Archivo Variable', sans-serif;
+  font-size: 16px;
   font-stretch: 112%;
+  font-weight: 600;
+  line-height: 1;
   letter-spacing: -0.02em;
   text-decoration: none;
 }
@@ -352,6 +355,7 @@ h1 {
   line-height: 1.06;
 }
 .unbroken {
+  display: block;
   white-space: nowrap;
 }
 .hero-side p {
@@ -382,8 +386,11 @@ h1 {
   width: var(--page);
   margin: clamp(72px, 10vw, 136px) auto 0;
   color: var(--muted);
-  font: 560 clamp(38px, 6.4vw, 96px) / 1.06 'Archivo Variable', 'Inter Variable', sans-serif;
+  font-family: 'Archivo Variable', 'Inter Variable', sans-serif;
+  font-size: clamp(38px, 6.4vw, 96px);
   font-stretch: 112%;
+  font-weight: 560;
+  line-height: 1.06;
   letter-spacing: -0.03em;
   text-wrap: pretty;
 }
