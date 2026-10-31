@@ -1,14 +1,10 @@
-![Deck Twin: simulate your plant in 3D, see the risk, know what to do next](.github/assets/header.svg)
+![Deck Twin: a P&ID turns into a plant layout, then stands up as a 3D model](.github/assets/header.gif)
 
 # Deck Twin
 
 Deck Twin is an engine for simulating an oil and gas plant in 3D. It gives you one live view of production, risk, money, maintenance and spares. You can break things on purpose, see how the plant reacts, and get guidance on what to do next.
 
 **Site:** https://decktwin.com
-
-![A flat plant diagram standing up into a 3D model](.github/assets/plan-to-3d.gif)
-
-*From a plant diagram to a 3D model, built from `plant.json`.*
 
 ## The problem
 
