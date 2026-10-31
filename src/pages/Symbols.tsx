@@ -8,13 +8,13 @@ import { useQueryState } from '../url'
 import { usePageMeta } from '../meta'
 
 export function Symbols() {
-  usePageMeta('P&ID symbols', `${LIBRARY.symbols.length} P&ID symbols: what each one looks like, what it means, and which Deck Twin 3D component it becomes.`)
+  usePageMeta('P&ID symbols', `${LIBRARY.symbols.length} P&ID symbols: how each one is drawn, what it means and which Deck Twin component it maps to.`)
   const [tab, setTab] = useQueryState<'legend' | 'components'>('view', LIBRARY.symbols.length ? 'legend' : 'components')
   return (
     <div className="mx-auto max-w-[1440px] px-6 py-10 lg:px-10">
       <h1 className="display text-[34px] sm:text-[44px] text-ink">P&amp;ID symbols</h1>
       <p className="mt-2 max-w-3xl text-[15px] leading-7 text-fg-3">
-        What each symbol on a P&amp;ID looks like, what it means, and which Deck Twin component it becomes. The conventions are ISO 10628-2 and PIP PIC001 for process, ISA 5.1 for instruments, IEC 60617 for electrical, and NFPA 170 / ISO 7010 for fire &amp; gas. Company legends vary, so read the drawing's own legend sheet first.
+        A reference for P&amp;ID symbols: how each one is drawn, what it means and which Deck Twin component it maps to. The conventions are ISO 10628-2 and PIP PIC001 for process, ISA 5.1 for instruments, IEC 60617 for electrical, and NFPA 170 / ISO 7010 for fire &amp; gas. Company legends vary, so read the drawing's own legend sheet first.
       </p>
       <p className="mt-3 text-[13px] text-muted-fg">
         For agents: <a className="font-medium text-brand hover:underline hover:underline-offset-4" href="/skill/references/pid-legend.md">pid-legend.md</a>, <a className="font-medium text-brand hover:underline hover:underline-offset-4" href="/skill/references/pid-symbols.md">pid-symbols.md</a>, <a className="font-medium text-brand hover:underline hover:underline-offset-4" href="/r/pid-library.json">pid-library.json</a>, <a className="font-medium text-brand hover:underline hover:underline-offset-4" href="/symbols/legend.svg">legend.svg</a>

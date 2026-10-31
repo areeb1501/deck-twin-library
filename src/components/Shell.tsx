@@ -133,8 +133,19 @@ function Header({ onDocsMenu }: { onDocsMenu?: () => void }) {
   const [loc] = useLocation()
   const [menu, setMenu] = useState(false)
   useEffect(() => setMenu(false), [loc])
+  const [past, setPast] = useState(false)
+  useEffect(() => {
+    if (loc !== '/') return setPast(false)
+    const check = () => {
+      const sheet = document.querySelector('.home .sheet')
+      setPast(!!sheet && sheet.getBoundingClientRect().bottom <= 56)
+    }
+    check()
+    addEventListener('scroll', check, { passive: true })
+    return () => removeEventListener('scroll', check)
+  }, [loc])
   return (
-    <header className="site-header sticky top-0 z-40">
+    <header className="site-header sticky top-0 z-40" data-on-sheet={loc === '/' && !past && !menu ? '' : undefined}>
       <div className="flex h-14 items-stretch px-5 lg:px-6">
         <div className="flex shrink-0 items-center pr-2">
           <Brand />
@@ -220,7 +231,7 @@ function ThemeSwitch() {
 export function Logo({ className = 'h-6 w-6' }: { className?: string }) {
   return (
     <svg viewBox="0 0 32 32" className={className} aria-hidden>
-      <rect width="32" height="32" rx="7" fill="#fe5510" />
+      <rect className="logo-mark" width="32" height="32" rx="7" fill="#fe5510" />
       <path d="M7 22h18M9.5 22v-6h13v6M12.5 16v-4h7v4M16 12V8.5" stroke="#ffffff" strokeWidth="2.2" fill="none" strokeLinecap="round" strokeLinejoin="round" />
       <circle cx="16" cy="6.5" r="2" fill="#ffffff" />
     </svg>
@@ -239,8 +250,8 @@ function Footer() {
       <section className="sheet">
         <div className="mx-auto grid max-w-[1440px] grid-cols-1 items-end gap-10 px-6 py-16 sm:py-20 lg:grid-cols-[minmax(0,7fr)_minmax(0,5fr)] lg:gap-16">
           <div>
-            <h2 className="display text-[38px] sm:text-[clamp(52px,5.4vw,84px)]">From one valve to a whole platform</h2>
-            <p className="mt-5 max-w-lg text-[18px] leading-[1.5] font-[450]">Copy a component into your project, or hand your agent a P&amp;ID and let it assemble the plant.</p>
+            <h2 className="display text-[38px] sm:text-[clamp(52px,5.4vw,84px)]">Start building</h2>
+            <p className="mt-5 max-w-lg text-[18px] leading-[1.5] font-[450]">Install a single component, or give your agent a P&amp;ID to build a complete plant.</p>
           </div>
           <div className="min-w-0 space-y-3">
             <div className="dark-zone">
@@ -264,7 +275,7 @@ function Footer() {
             <span className="nav-wordmark">Deck Twin</span>
             <span className="text-[13px] text-muted-fg tabular-nums">v{VERSION}</span>
           </div>
-          <p className="mt-4 text-[15px] leading-6 text-fg-3">3D components for oil &amp; gas digital twins, sized from public engineering standards.</p>
+          <p className="mt-4 text-[15px] leading-6 text-fg-3">3D components for oil and gas digital twins, sized to public engineering standards.</p>
         </div>
         {cols.map(([title, links]) => (
           <div key={title}>
@@ -290,7 +301,7 @@ function Footer() {
       <div className="border-t border-border">
         <div className="mx-auto flex max-w-[1440px] flex-wrap justify-between gap-2 px-6 py-5 text-[13px] text-muted-fg">
           <span>MIT licence</span>
-          <span>Reference geometry from public standards, not vendor CAD. Check dimensions against the current edition.</span>
+          <span>Reference geometry based on public standards, not vendor CAD. Verify dimensions against the current edition.</span>
         </div>
       </div>
     </footer>
@@ -409,7 +420,7 @@ function SlimFooter() {
   return (
     <footer className="border-t border-border">
       <div className="mx-auto flex max-w-[1180px] flex-wrap items-center justify-between gap-x-6 gap-y-2 px-6 py-6 text-[12.5px] text-muted-fg lg:px-12">
-        <span>Deck Twin v{VERSION}, MIT licence. Reference geometry from public standards, not vendor CAD.</span>
+        <span>Deck Twin v{VERSION}, MIT licence. Reference geometry based on public standards, not vendor CAD.</span>
         <span className="flex gap-4">
           <a href="/llms.txt" className="hover:text-ink">llms.txt</a>
           <a href="/r/index.json" className="hover:text-ink">Registry</a>

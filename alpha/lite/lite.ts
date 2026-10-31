@@ -3,7 +3,7 @@
  * The images are captures of the twin itself; every process figure and console value is design data or simulated.
  * Tapping a screenshot opens it full size for pinch-zoom; Back returns to the same place.
  */
-import '@fontsource-variable/inter'
+import '@fontsource-variable/archivo/wdth.css'
 import './lite.css'
 import field from './img/field.webp'
 import overview from './img/overview.webp'
@@ -90,7 +90,7 @@ export function render(tier: Exclude<Tier, 'full'>) {
       </header>
       <section class="lite-hero">
         <h1>The Alpha field, in 3D</h1>
-        <p>Five bridge-linked offshore platforms in 62 m of water, generated from a plain data model and driven by a dynamic plant simulation.</p>
+        <p>Five connected offshore platforms in 62 m of water, generated from plant data and driven by a dynamic process simulation.</p>
         <div class="lite-frame">
           <div class="lite-frame-bar">Alpha field, five platforms</div>
           <img src="${field}" alt="The Alpha field: five platforms linked by bridges" fetchpriority="high" />

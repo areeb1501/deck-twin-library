@@ -12,12 +12,12 @@ import { useTheme } from '../theme'
 import { thumb } from '../registry'
 
 export function ExamplesIndex() {
-  usePageMeta('Example plants', 'Oil and gas plants assembled from the Deck Twin registry with a single plant.json, wired port to port. Use them as starting points or as references for your agent.')
+  usePageMeta('Example plants', 'Complete oil and gas plants built from the Deck Twin component library. Use them as starting points or as references for your agent.')
   const theme = useTheme()
   return (
     <div className="mx-auto max-w-[1280px] px-6 py-10">
       <h1 className="display text-[34px] sm:text-[44px] text-ink">Examples</h1>
-      <p className="mt-3 max-w-2xl text-[16px] leading-7 text-fg-3">Plants assembled from the registry with a single <code className="font-mono text-sm">plant.json</code>. Each one is wired port to port. Use them as starting points or as references for your agent.</p>
+      <p className="mt-3 max-w-2xl text-[16px] leading-7 text-fg-3">Complete plants built from the component library, each defined in a single <code className="font-mono text-sm">plant.json</code> file. Use them as starting points or as references for your agent.</p>
       <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
         {[...EXAMPLES].sort(byLevel).map((e) => (
           <Link key={e.name} href={`/examples/${e.name}`} className="group flex flex-col overflow-hidden rounded-lg border border-border bg-surface transition-colors hover:border-line-strong">

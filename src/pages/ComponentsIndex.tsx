@@ -18,7 +18,7 @@ const SUPPLIERS = (() => {
 })()
 
 export function ComponentsIndex() {
-  usePageMeta('Components', `${ITEMS.length} parametric three.js components for oil & gas plants: piping, valves, vessels, rotating equipment, wellheads and more, sized from public engineering standards.`)
+  usePageMeta('Components', `${ITEMS.length} parametric three.js components for oil and gas facilities: piping, valves, vessels, rotating equipment, wellheads and more, sized from public engineering standards.`)
   const [q, setQ] = useQueryState('q', '')
   const [cat, setCat] = useQueryState('category', 'all')
   const [supplier, setSupplier] = useQueryState('supplier', '')
@@ -36,7 +36,7 @@ export function ComponentsIndex() {
     <div className="mx-auto max-w-[1400px] px-6 py-10 lg:px-10">
       <h1 className="display text-[34px] sm:text-[44px] text-ink">Components</h1>
       <p className="mt-3 max-w-2xl text-[16px] leading-7 text-fg-3">
-        {ITEMS.length} parametric three.js components for offshore and onshore oil &amp; gas plants. Each one is a single file sized from the standard it follows, with ports for wiring pipe.
+        {ITEMS.length} parametric three.js components for offshore and onshore oil and gas facilities. Each is a single file, sized to its governing standard, with ports for pipe connections.
       </p>
       <div className="mt-8">
         <Toolbar shown={shown.length} total={ITEMS.length} onReset={q || cat !== 'all' || supplier ? () => { setQ(''); setCat('all'); setSupplier('') } : undefined}>

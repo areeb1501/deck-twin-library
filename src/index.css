@@ -1,15 +1,22 @@
 @import 'tailwindcss';
-@import '@fontsource-variable/inter';
+@import '@fontsource-variable/archivo/wdth.css';
 @import '@fontsource/ibm-plex-mono/400.css';
 @import '@fontsource/ibm-plex-mono/500.css';
 
 @source not "../alpha";
 
+/* Archivo's ampersand is ornate and makes "P&ID" hard to read, so that one character comes from a plain system face. */
+@font-face {
+  font-family: 'Plain Ampersand';
+  src: local('Helvetica Neue'), local('Helvetica'), local('Arial');
+  unicode-range: U+26;
+}
+
 /* Site theme: dark by default (near-black ground, flat surfaces); html.light swaps the same tokens for a crisp near-white set. .dark-zone keeps a region dark in either theme. */
 @custom-variant light (&:where(.light, .light *));
 
 @theme inline {
-  --font-sans: 'Inter Variable', ui-sans-serif, system-ui, sans-serif;
+  --font-sans: 'Plain Ampersand', 'Archivo Variable', ui-sans-serif, system-ui, sans-serif;
   --font-mono: 'IBM Plex Mono', ui-monospace, monospace;
   --color-bg: var(--bg);
   --color-fg: var(--fg);
@@ -156,10 +163,15 @@ body {
     outline-offset: 2px;
   }
 }
-h1,
-h2,
-h3 {
-  letter-spacing: -0.025em;
+/* One typeface. Every heading, at every level on every page, is the same wide cut; only the size changes. Monospace is for code. */
+@layer base {
+  h1,
+  h2,
+  h3 {
+    font-stretch: 112%;
+    font-weight: 560;
+    letter-spacing: -0.025em;
+  }
 }
 
 /* P&ID symbols are black line drawings: inverted on dark, as drawn on light. */
@@ -171,10 +183,30 @@ h3 {
 .site-header {
   background: var(--bg);
   box-shadow: 0 1px 0 var(--border);
+  transition: background-color 0.2s ease-out, box-shadow 0.2s ease-out;
+}
+/* At the top of the home page the bar is part of the orange sheet, the same in both themes. */
+.site-header[data-on-sheet] {
+  --bg: var(--color-signal);
+  --ink: #0f1015;
+  --ink-2: #2b2c34;
+  --on-ink: #ffffff;
+  --fg-3: #0f1015;
+  --muted-fg: #0f1015;
+  --muted: rgb(15 16 21 / 0.07);
+  --hover: rgb(15 16 21 / 0.1);
+  --border: rgb(15 16 21 / 0.28);
+  --line-strong: rgb(15 16 21 / 0.5);
+  box-shadow: none;
+}
+.site-header[data-on-sheet] .logo-mark {
+  fill: #0f1015;
+}
+.site-header[data-on-sheet] .nav-link[aria-current='page'] {
+  box-shadow: inset 0 -2px 0 #0f1015;
 }
 .nav-wordmark {
   color: var(--ink);
-  font-family: 'Archivo Variable', var(--font-sans);
   font-size: 16px;
   font-stretch: 112%;
   font-weight: 600;
@@ -183,7 +215,7 @@ h3 {
 }
 .nav-text {
   color: var(--fg-3);
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 500;
   line-height: 1.3;
   transition: color 0.15s ease-out;
@@ -230,7 +262,6 @@ h3 {
 }
 .prose-docs h1,
 .prose-docs h2 {
-  font-family: 'Archivo Variable', var(--font-sans);
   font-stretch: 112%;
   font-weight: 560;
   letter-spacing: -0.03em;
@@ -298,15 +329,7 @@ h3 {
 }
 
 /* The orange drawing sheet: it opens the home page and closes every marketing page, the same in both themes. */
-@font-face {
-  font-family: 'Archivo Variable';
-  src: url('../node_modules/@fontsource-variable/archivo/files/archivo-latin-wdth-normal.woff2') format('woff2');
-  font-weight: 100 900;
-  font-stretch: 62% 125%;
-  font-display: swap;
-}
 .display {
-  font-family: 'Archivo Variable', var(--font-sans);
   font-stretch: 112%;
   font-weight: 560;
   letter-spacing: -0.03em;
@@ -461,6 +484,52 @@ h3 {
   }
   to {
     transform: scaleX(1);
+  }
+}
+/* Home below the sheet: every section is built the same way, heading left and sentence right, then its content on the same columns. These four values are the page's only spacing. */
+.home {
+  --chapter: clamp(96px, 11vw, 160px);
+  --lead: clamp(40px, 4vw, 56px);
+  --row: 56px;
+  --col: 32px;
+}
+.home-block {
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: var(--chapter) 1.5rem 0;
+}
+.home-block:last-child {
+  padding-bottom: var(--chapter);
+}
+.home-lead,
+.home-columns {
+  display: grid;
+  grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+  gap: var(--col);
+}
+.home-lead {
+  gap: 16px var(--col);
+  align-items: end;
+}
+.home-lead h2 {
+  font-size: clamp(32px, 3.6vw, 52px);
+  line-height: 1.06;
+}
+.home-lead p {
+  color: var(--fg-2);
+  font-size: 18px;
+  line-height: 1.5;
+}
+.home-body {
+  margin-top: var(--lead);
+}
+@media (max-width: 900px) {
+  .home-lead,
+  .home-columns {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .home-columns {
+    gap: var(--row);
   }
 }
 .index-row {

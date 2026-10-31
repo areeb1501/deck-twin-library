@@ -1,6 +1,6 @@
 # Introduction
 
-Deck Twin is a library of 3D components for oil and gas digital twins, built with three.js and React Three Fiber. Use it to turn the data you already have (P&IDs, datasheets, drawings, dimensions) into a 3D model of your plant, then link that model to your own data.
+Deck Twin is a library of 3D components for oil and gas digital twins, built with three.js and React Three Fiber. Use it to build a 3D model of a plant from P&IDs, datasheets, drawings and dimensions, then connect that model to your own data.
 
 It covers separators, columns, pumps, compressors, gas turbines, valves, piping, instruments, fire and gas devices, decks, pipe racks, jackets, cranes and process packages. Each component has a page with a live preview, and one command installs it into your project.
 

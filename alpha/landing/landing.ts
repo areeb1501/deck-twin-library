@@ -4,7 +4,7 @@
  * stay still and no video is fetched. The two long films (data-film) come in three cuts: a small one for phones, AV1 where the
  * browser plays it, and H.264 for the rest.
  */
-import '@fontsource-variable/inter'
+import '@fontsource-variable/archivo/wdth.css'
 import './landing.css'
 import { initSearch } from './search'
 

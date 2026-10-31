@@ -1,11 +1,10 @@
-/* /alpha landing page. Near-black ground, one signal orange sheet, Archivo for display and Inter for text. The words sit on the
+/* /alpha landing page. Near-black ground, one signal orange sheet, Archivo throughout. The words sit on the
    ground and the footage runs clean below them, with nothing on top. One thing is loud: the pinned incident screen on the orange sheet. */
+/* Archivo's ampersand is ornate and makes "P&ID" hard to read, so that one character comes from a plain system face. */
 @font-face {
-  font-family: 'Archivo Variable';
-  src: url('../node_modules/@fontsource-variable/archivo/files/archivo-latin-wdth-normal.woff2') format('woff2');
-  font-weight: 100 900;
-  font-stretch: 62% 125%;
-  font-display: swap;
+  font-family: 'Plain Ampersand';
+  src: local('Helvetica Neue'), local('Helvetica'), local('Arial');
+  unicode-range: U+26;
 }
 
 :root {
@@ -41,14 +40,14 @@ body {
   margin: 0;
   background: var(--bg);
   color: var(--fg);
-  font: 400 17px/1.6 'Inter Variable', system-ui, sans-serif;
+  font: 400 17px/1.6 'Plain Ampersand', 'Archivo Variable', system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
 }
 h1,
 h2,
 h3 {
   margin: 0;
-  font-family: 'Archivo Variable', 'Inter Variable', sans-serif;
+  font-family: 'Plain Ampersand', 'Archivo Variable', sans-serif;
   font-stretch: 112%;
   font-weight: 560;
   letter-spacing: -0.03em;
@@ -87,7 +86,7 @@ img {
   border-radius: var(--radius);
   background: var(--ink);
   color: var(--bg);
-  font: 600 15px/1 'Inter Variable', sans-serif;
+  font: 600 15px/1 'Plain Ampersand', 'Archivo Variable', sans-serif;
   text-decoration: none;
   white-space: nowrap;
   transition: background-color 0.15s ease-out, color 0.15s ease-out, transform 0.12s ease-out;
@@ -136,7 +135,7 @@ img {
   align-items: center;
   gap: 10px;
   color: var(--ink);
-  font-family: 'Archivo Variable', sans-serif;
+  font-family: 'Plain Ampersand', 'Archivo Variable', sans-serif;
   font-size: 16px;
   font-stretch: 112%;
   font-weight: 600;
@@ -161,7 +160,7 @@ img {
   align-items: center;
   padding: 0 11px;
   color: #b4b4bd;
-  font: 500 14px/1.3 'Inter Variable', sans-serif;
+  font: 500 15px/1.3 'Plain Ampersand', 'Archivo Variable', sans-serif;
   text-decoration: none;
   white-space: nowrap;
   transition: color 0.15s ease-out;
@@ -217,7 +216,7 @@ img {
   border: 1px solid var(--line);
   border-radius: 4px;
   background: rgb(255 255 255 / 0.04);
-  font: 500 11px/1 Inter, sans-serif;
+  font: 500 11px/1 'Plain Ampersand', 'Archivo Variable', sans-serif;
 }
 /* the same dialog as the library site's search */
 .search {
@@ -247,7 +246,7 @@ img {
   outline: 0;
   background: none;
   color: var(--ink);
-  font: 400 15px/1 'Inter Variable', sans-serif;
+  font: 400 15px/1 'Plain Ampersand', 'Archivo Variable', sans-serif;
 }
 .search input::placeholder {
   color: var(--muted);
@@ -407,7 +406,7 @@ h1 {
   width: var(--page);
   margin: var(--chapter) auto 0;
   color: var(--muted);
-  font-family: 'Archivo Variable', 'Inter Variable', sans-serif;
+  font-family: 'Plain Ampersand', 'Archivo Variable', sans-serif;
   font-size: clamp(32px, 4.8vw, 72px);
   font-stretch: 112%;
   font-weight: 560;
@@ -655,7 +654,7 @@ figcaption h3 {
 }
 .foot-cols h3 {
   margin-bottom: 6px;
-  font: 600 15px/1.4 'Inter Variable', sans-serif;
+  font: 600 15px/1.4 'Plain Ampersand', 'Archivo Variable', sans-serif;
   letter-spacing: 0;
 }
 .foot-cols nav a {

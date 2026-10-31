@@ -11,8 +11,8 @@ export function PromptCard() {
     <div className="rounded-lg border border-border p-5">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <div className="text-[15px] font-semibold text-ink">Set it up with your agent</div>
-          <p className="mt-1 text-[13px] leading-5 text-muted-fg">One prompt for Claude Code, Cursor, Codex or any coding agent. It covers setup, installs, the skill, and building a plant from your P&amp;IDs.</p>
+          <h3 className="text-[24px] leading-[1.15] text-ink">Set up with your agent</h3>
+          <p className="mt-2 text-[15px] leading-6 text-muted-fg">One prompt for Claude Code, Cursor, Codex and other coding agents. It covers setup, the agent skill and building a plant from your P&amp;IDs.</p>
         </div>
         <button
           onClick={() => {
