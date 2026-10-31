@@ -16,11 +16,16 @@ import type { Fault, OperatorAction, PlatformId, SimPlugin, SimState } from './t
 import { SCENARIOS, SCENARIO_BY_ID, travelTime, unavailable } from './scen/library'
 import { downAtLeast, fmtEl } from './scen/helpers'
 import { score } from './scen/scoring'
+import { useCustom } from './scen/custom'
+import { validate } from './scen/validate'
 import type { Attempt, Ctx, KpiSnap, ObjState, Objective, Scenario, ScenarioAction, Step, TimelineRow, TrackedAlarm } from './scen/types'
 import { platformOfTag } from './fg'
 
 export { SCENARIOS, SCENARIO_BY_ID, unavailable }
 export type { Attempt, Scenario }
+
+/** a built-in or a saved custom scenario. SCENARIOS stays the built-ins: what-if, the agent tools and the alert rules are hand-mapped to them */
+export const scenarioById = (id: string): Scenario | undefined => SCENARIO_BY_ID[id] ?? useCustom.getState().compiled[id]
 
 const useSim = simMod.useSim as unknown as { getState: () => SimState; subscribe: (fn: (s: SimState, p: SimState) => void) => () => void }
 const ext = simMod as unknown as { registerSimPlugin?: (p: SimPlugin) => void; actAs?: <T>(who: OperatorAction['who'], fn: () => T) => T }
@@ -66,14 +71,14 @@ export interface LiveView {
   hints: string[]
   hintCount: number
 }
-export type ScenView = { kind: 'library' } | { kind: 'brief'; id: string } | { kind: 'debrief'; attemptId: string }
+export type ScenView = { kind: 'library' } | { kind: 'brief'; id: string } | { kind: 'debrief'; attemptId: string } | { kind: 'author' }
 
 interface ScenStore {
   live: LiveView | null
   last: Attempt | null
   history: Attempt[]
   view: ScenView
-  start: (id: string, speed?: number) => string | null
+  start: (id: string | Scenario, speed?: number) => string | null
   abort: (why?: string) => void
   showHint: () => void
   /** order a scenario CCR / field action */
@@ -206,13 +211,16 @@ function snap(s: SimState): KpiSnap {
   }
 }
 
-function startScenario(id: string, speed = 1): string | null {
-  const sc = SCENARIO_BY_ID[id]
+function startScenario(id: string | Scenario, speed = 1): string | null {
+  const sc = typeof id === 'string' ? scenarioById(id) : id
   if (!sc) return `Unknown scenario ${id}`
   const plant = usePlantStore.getState().plant
   const why = unavailable(sc, plant)
   if (why) return `Not available in this plant: ${why}`
   if (L) return 'A scenario is already running: abort it first'
+  const saved = typeof id === 'string' ? useCustom.getState().items.find((x) => x.id === id) : undefined
+  const problems = saved ? validate(saved.spec, plant).errors : []
+  if (problems.length) return `This saved scenario no longer checks out: ${problems[0]}`
   const g = sim()
   if (typeof g.reset !== 'function' || typeof g.inject !== 'function') return 'Simulation engine not ready'
   const prev = g.knobs ?? ({} as SimState['knobs'])
@@ -522,6 +530,7 @@ function finish(aborted?: string) {
     if (l.prevKnobs.reliability && g.knobs?.reliability !== l.prevKnobs.reliability) g.setKnob('reliability', l.prevKnobs.reliability)
     if (l.prevKnobs.wind && l.sc.setup?.knobs?.wind) g.setKnob('wind', l.prevKnobs.wind)
   })
+  attempt.marks = l.mark
   const history = [attempt, ...useScenario.getState().history].slice(0, 40)
   saveHistory(history)
   useScenario.setState({ live: null, last: attempt, history, view: { kind: 'debrief', attemptId: attempt.id } })

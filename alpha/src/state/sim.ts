@@ -691,6 +691,12 @@ function stateOf(d: Pick<Draft, 'status'>, tag: string): RunState {
   return defaultState(c.plant, e)
 }
 /** Current run state of an equipment tag (non-reactive getter for animation / values). */
+/** what the engine actually drives on the loaded plant: a generated scenario may only name these (sim/scen/validate.ts) */
+export function simTags() {
+  const c = getCtx()
+  return { alpha: c.alpha, machines: c.machines, valves: c.simValves, wells: c.wells }
+}
+
 export function runState(tag: string): RunState {
   return stateOf(useSim.getState(), tag)
 }
