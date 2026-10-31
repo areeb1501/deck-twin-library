@@ -2,6 +2,7 @@ import react from '@vitejs/plugin-react'
 import { defineConfig, loadEnv, type Plugin } from 'vite'
 import { pbkdf2Sync, randomBytes } from 'node:crypto'
 import { META_SAM_ROUTE, metaSamRoute } from './meta-sam-route.js'
+import { META_VIDEO_ROUTE, metaVideoRoute } from './meta-sam-video-route.js'
 import { SAM_ROUTE, samRoute } from './sam-route.js'
 
 /**
@@ -41,6 +42,7 @@ function samDevRoute(): Plugin {
         })
       mount(SAM_ROUTE, (r) => samRoute(r, env))
       mount(META_SAM_ROUTE, (r) => metaSamRoute(r, {}))
+      mount(META_VIDEO_ROUTE, (r) => metaVideoRoute(r, {}))
     },
   }
 }

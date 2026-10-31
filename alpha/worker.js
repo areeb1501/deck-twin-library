@@ -2,6 +2,7 @@
 // the rest of /alpha, forwards camera frames to SAM 3.1, and hands everything else to the static assets. Range requests matter:
 // Safari won't play video without them.
 import { META_SAM_ROUTE, metaSamRoute } from './meta-sam-route.js'
+import { META_VIDEO_ROUTE, metaVideoRoute } from './meta-sam-video-route.js'
 import { SAM_ROUTE, samRoute } from './sam-route.js'
 
 const PREFIX = '/alpha/media/'
@@ -11,6 +12,7 @@ export default {
     const { pathname } = new URL(request.url)
     if (pathname === SAM_ROUTE) return samRoute(request, env)
     if (pathname === META_SAM_ROUTE) return metaSamRoute(request, env)
+    if (pathname === META_VIDEO_ROUTE) return metaVideoRoute(request, env)
     if (!pathname.startsWith(PREFIX)) return env.ASSETS.fetch(request)
     const head = request.method === 'HEAD'
     if (!head && request.method !== 'GET') return new Response('Method not allowed', { status: 405, headers: { Allow: 'GET, HEAD' } })

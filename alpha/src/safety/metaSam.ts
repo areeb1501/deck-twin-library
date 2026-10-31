@@ -43,7 +43,7 @@ export interface Found extends AnswerDetection {
   zone?: 0 | 1 | 2 | null
   permit?: boolean
 }
-type Box = Found['box']
+export type Box = Found['box']
 
 // ---------------------------------------------------------------- PPE rules (ppe.py)
 
@@ -168,12 +168,16 @@ export function maskPolygons(path: string, raster: { width: number; height: numb
     .map((p) => simplify(p, 0.003 * perimeter(p)).map(([x, y]): Point => [+((bounds.left + (x + 0.5) * sx) / w).toFixed(4), +((bounds.top + (y + 0.5) * sy) / h).toFixed(4)]))
 }
 
-async function* lane(text: string) {
+export async function* lane(text: string) {
   const at = { item_id: 'sam', output_index: 0, content_index: 0 }
   yield { type: 'response.output_text.delta', ...at, delta: text } as const
   yield { type: 'response.output_text.done', ...at, text } as const
   yield { type: 'response.completed' } as const
 }
+
+const unit = (v: number, size: number) => +Math.min(Math.max(v / size, 0), 1).toFixed(4)
+/** a box in source pixels as 0 … 1 of the frame */
+export const unitBox = (b: { left: number; top: number; right: number; bottom: number }, w: number, h: number): Box => [unit(b.left, w), unit(b.top, h), unit(b.right, w), unit(b.bottom, h)]
 
 /** the output text for one prompt as detections. The parser only loads for someone who has turned this on */
 export async function parseOutput(text: string, label: string, w: number, h: number): Promise<Found[]> {
@@ -181,12 +185,11 @@ export async function parseOutput(text: string, label: string, w: number, h: num
   const { decodeMaskToSVGPath, parseImageStream, recordsOfKind } = await import('@meta-sam/parser')
   const { records } = await parseImageStream(lane(text)).finalResult
   const masks = recordsOfKind(records, 'mask')
-  const unit = (v: number, size: number) => +Math.min(Math.max(v / size, 0), 1).toFixed(4)
   return recordsOfKind(records, 'box').flatMap((b) => {
     const score = b.confidence ?? 1
     if (score < SEEN_FLOOR) return []
     const m = masks.find((r) => r.objectId === b.objectId)
-    return [{ label, score, box: [unit(b.left, w), unit(b.top, h), unit(b.right, w), unit(b.bottom, h)] as Box, polygons: m ? maskPolygons(decodeMaskToSVGPath(m.mask), m.mask, m.bounds, w, h) : [] }]
+    return [{ label, score, box: unitBox(b, w, h), polygons: m ? maskPolygons(decodeMaskToSVGPath(m.mask), m.mask, m.bounds, w, h) : [] }]
   })
 }
 
@@ -213,7 +216,7 @@ interface MetaStore {
 
 let inflight: AbortController | null = null
 
-function stop(note = '') {
+export function stop(note = '') {
   inflight?.abort()
   inflight = null
   const was = useMeta.getState().on
@@ -280,7 +283,7 @@ const WHY: Record<number, string> = {
   429: 'Meta is rate limiting this key',
 }
 
-class Refused extends Error {
+export class Refused extends Error {
   constructor(status: number) {
     super(WHY[status] ?? 'Meta did not answer')
   }

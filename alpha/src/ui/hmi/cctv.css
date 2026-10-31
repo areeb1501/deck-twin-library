@@ -103,6 +103,12 @@
 .hmi .cctv-meta label { margin-right: 6px; white-space: nowrap; }
 
 /* simulated SAM 3.1 masks on the main monitor */
+.hmi .cctv.reviewing { grid-template-columns: minmax(0, 1fr) 560px; }
+.hmi .cctv-replay { position: relative; aspect-ratio: 16 / 9; background: #000; overflow: hidden; }
+.hmi .cctv-replay video, .hmi .cctv-replay svg { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.hmi .cctv-replay svg, .hmi .cctv-replay .cctv-seglbl, .hmi .cctv-replay-tag { pointer-events: none; }
+.hmi .cctv-replay polygon { fill: var(--c); fill-opacity: 0.32; stroke: var(--c); stroke-width: 1.5; vector-effect: non-scaling-stroke; }
+.hmi .cctv-replay-tag { position: absolute; left: 6px; top: 6px; font: 600 10.5px var(--mono, ui-monospace, monospace); color: #fff; background: rgba(150, 22, 16, 0.85); padding: 2px 6px; border-radius: 3px; }
 .hmi .cctv-seg { position: absolute; inset: 0; z-index: 1; pointer-events: none; }
 .hmi .cctv-sam-mask { position: absolute; inset: 0; width: 100%; height: 100%; }
 .hmi .cctv-sam-mask, .hmi .cctv-sam-lbl { animation: cctv-sam-age 5s ease-in forwards; }

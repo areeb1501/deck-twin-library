@@ -1,7 +1,7 @@
 /**
  * SAM 3.1 on the operator's own Meta key (modal/PLAN.md). Real money goes through this path, so the spending rules are tested
- * by counting requests: no scan before On, none after a reload, and the switch stops the bill. Also the Worker route, Meta's
- * output format (using sample output from the @meta-sam/parser README) and the PPE rules ported from ppe.py.
+ * by counting requests: no scan before On, none after a reload, no clip without a press, and the switch stops the bill. Also the
+ * Worker routes, Meta's output format (using sample output from the @meta-sam/parser README) and the PPE rules ported from ppe.py.
  */
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import './harness'
@@ -15,8 +15,10 @@ vi.mock('../src/safety/metaKey', async (real) => ({
 }))
 
 import { metaSamRoute, readStream, requestBody } from '../meta-sam-route.js'
+import { metaVideoRoute, videoBody } from '../meta-sam-video-route.js'
 import { CAP_IMAGES, charge, due, evaluate, matchPeople, maskPolygons, needsPpe, parseOutput, startMetaSam, testKey, unjudged, useMeta, worstScan, type Found } from '../src/safety/metaSam'
 import { cleanKey } from '../src/safety/metaKey'
+import { canRecord, CLIP_FRAMES, CLIP_IMAGES, CLIP_USD, closeReview, frameAt, parseClip, reviewLastSeconds, startReview, useReview } from '../src/safety/metaReview'
 import { feedCanvases, useCctv } from '../src/safety/cctv'
 import { pickDetections, toFrame, useSam } from '../src/safety/samClient'
 import type { Detection } from '../src/safety/types'
@@ -520,5 +522,471 @@ describe('the switch', () => {
     expect(prompts()).toEqual([['person']])
     expect(useMeta.getState()).toMatchObject({ on: false, images: 1 })
     expect(useMeta.getState().note).toMatch(/Key works: 1 person/)
+  })
+})
+
+describe('the clip route', () => {
+  const ORIGIN = 'https://decktwin.com'
+  const video = 'data:video/mp4;base64,AAAAGGZ0eXA='
+  const good = { key: 'test-key-12345', video }
+  const post = (body: unknown, headers: Record<string, string> = {}) => {
+    const text = JSON.stringify(body)
+    return new Request(`${ORIGIN}/alpha/api/meta-sam-video`, { method: 'POST', headers: { origin: ORIGIN, 'content-length': String(text.length), ...headers }, body: text })
+  }
+  const STREAM = 'data: {"type":"response.output_text.delta","delta":"ab"}\n\ndata: [DONE]\n\n'
+  const upstream = vi.fn()
+
+  beforeEach(() => {
+    upstream.mockReset().mockImplementation(async () => new Response(STREAM))
+    vi.stubGlobal('fetch', upstream)
+  })
+  afterEach(() => vi.unstubAllGlobals())
+
+  it('sends the clip inline, once, with person, and uploads nothing', async () => {
+    await metaVideoRoute(post(good), {})
+    expect(upstream).toHaveBeenCalledTimes(1)
+    const [url, init] = upstream.mock.calls[0]
+    expect(url).toBe('https://api.meta.ai/v1/responses')
+    expect(init.headers.authorization).toBe('Bearer test-key-12345')
+    const body = JSON.parse(init.body)
+    expect(body).toEqual(videoBody(video))
+    expect(body.input[0].content).toEqual([{ type: 'input_text', text: 'person' }, { type: 'input_video', video_url: video }])
+  })
+
+  it('passes the event stream straight through, for the browser to read', async () => {
+    const r = await metaVideoRoute(post(good), {})
+    expect(r.headers.get('content-type')).toBe('text/event-stream')
+    expect(await r.text()).toBe(STREAM)
+  })
+
+  it('does not return the key', async () => {
+    const r = await metaVideoRoute(post(good), {})
+    expect(await r.text()).not.toContain(good.key)
+  })
+
+  it('cannot be asked for another prompt', async () => {
+    await metaVideoRoute(post({ ...good, prompt: 'cat', prompts: ['cat'] }), {})
+    expect(JSON.parse(upstream.mock.calls[0][1].body).input[0].content[0].text).toBe('person')
+  })
+
+  it.each([
+    ['WebM, which Meta refuses', { ...good, video: 'data:video/webm;base64,GkXfow==' }],
+    ['an image', { ...good, video: 'data:image/jpeg;base64,/9j/' }],
+    ['a link instead of a clip', { ...good, video: 'https://example.com/a.mp4' }],
+    ['no key', { video }],
+    ['a key with a line break', { ...good, key: 'abcdefgh\nx-other: 1' }],
+    ['no clip', { key: good.key }],
+  ])('refuses %s before spending anything', async (_, body) => {
+    expect((await metaVideoRoute(post(body), {})).status).toBe(400)
+    expect(upstream).not.toHaveBeenCalled()
+  })
+
+  it('refuses another origin', async () => {
+    expect((await metaVideoRoute(post(good, { origin: 'https://evil.example' }), {})).status).toBe(403)
+    expect(upstream).not.toHaveBeenCalled()
+  })
+
+  it('refuses a body over its limit', async () => {
+    expect((await metaVideoRoute(post(good, { 'content-length': '4000001' }), {})).status).toBe(413)
+    expect(upstream).not.toHaveBeenCalled()
+  })
+
+  it('takes POST only', async () => {
+    expect((await metaVideoRoute(new Request(`${ORIGIN}/alpha/api/meta-sam-video`), {})).status).toBe(405)
+  })
+
+  it('applies the rate limit before spending anything', async () => {
+    const env = { SAM_LIMIT: { limit: async () => ({ success: false }) } }
+    expect((await metaVideoRoute(post(good), env)).status).toBe(429)
+    expect(upstream).not.toHaveBeenCalled()
+  })
+
+  it.each([401, 402, 403, 429])('tells the browser Meta answered %i', async (status) => {
+    upstream.mockImplementation(async () => new Response('{}', { status }))
+    expect((await metaVideoRoute(post(good), {})).status).toBe(status)
+  })
+
+  it('hides anything else as 502', async () => {
+    upstream.mockImplementation(async () => new Response('{}', { status: 500 }))
+    expect((await metaVideoRoute(post(good), {})).status).toBe(502)
+  })
+
+  it('treats no answer as 502', async () => {
+    upstream.mockImplementation(async () => {
+      throw new TypeError('network')
+    })
+    expect((await metaVideoRoute(post(good), {})).status).toBe(502)
+  })
+})
+
+describe('reading a tracked clip', () => {
+  const frame = (n: number, line = SAMPLE) => line.replace('<0f>', `<${n}f>`)
+
+  it('keeps each person under one id from frame to frame', async () => {
+    const frames = await parseClip(frame(0) + frame(1), 320, 334)
+    expect(frames[0].map((p) => p.id)).toEqual(['0'])
+    expect(frames[1].map((p) => p.id)).toEqual(['0'])
+    expect(frames[1][0].polygons.length).toBeGreaterThan(0)
+    expect(frames[1][0].box).toEqual([0.6594, 0.6826, 0.8469, 0.7635])
+  })
+
+  it('puts frames in their place whatever order they arrive', async () => {
+    const frames = await parseClip(frame(4) + frame(2), 320, 334)
+    expect(frames[2]).toHaveLength(1)
+    expect(frames[3]).toBeUndefined()
+    expect(frames[4]).toHaveLength(1)
+  })
+
+  it('drops an unsure track whole, not frame by frame', async () => {
+    const sure = frame(1, SAMPLE.replaceAll('c=0.91', 'c=0.40').replaceAll('c=0.42', 'c=0.80'))
+    const frames = await parseClip(frame(0, SAMPLE.replaceAll('c=0.91', 'c=0.40').replaceAll('c=0.42', 'c=0.30')) + sure, 320, 334)
+    expect(frames[0].map((p) => [p.id, p.score])).toEqual([['1', 0.3]])
+    expect(frames[1].map((p) => p.id)).toEqual(['1'])
+  })
+
+  it('takes no matches as nobody tracked', async () => {
+    expect(await parseClip('', 320, 334)).toEqual([])
+  })
+
+  it('finds the frame showing at a point in the clip, when frames are not evenly spaced', () => {
+    const times = [0, 0.3, 0.6, 1.5]
+    expect(frameAt(times, 0)).toBe(0)
+    expect(frameAt(times, 0.31)).toBe(1)
+    expect(frameAt(times, 1)).toBe(2)
+    expect(frameAt(times, 1.4)).toBe(3)
+    expect(frameAt(times, 99)).toBe(3)
+  })
+})
+
+describe('the review button', () => {
+  const CAM = 'CCTV-A01'
+  const THERMAL = 'CCTV-A03'
+  const ROUTE = /meta-sam-video$/
+  const canvas = { width: 960, height: 540, toDataURL: () => 'data:image/jpeg;base64,/9j/' } as unknown as HTMLCanvasElement
+  const fetcher = vi.fn()
+  let stopScans: () => void
+  let stopReview: () => void
+  let hidden = false
+  let supported = true
+  let frames = 0
+  let clipSize = 1000
+
+  class FakeRecorder {
+    static made: FakeRecorder[] = []
+    static isTypeSupported = (type: string) => supported && type === 'video/mp4;codecs=avc1'
+    state = 'inactive'
+    ondataavailable: ((e: { data: Blob }) => void) | null = null
+    onstop: (() => void) | null = null
+    options: { mimeType: string }
+    constructor(_: unknown, options: { mimeType: string }) {
+      this.options = options
+      FakeRecorder.made.push(this)
+    }
+    start() {
+      this.state = 'recording'
+    }
+    stop() {
+      this.state = 'inactive'
+      this.ondataavailable?.({ data: new Blob([new Uint8Array(clipSize)]) })
+      this.onstop?.()
+    }
+  }
+  const copy = () => ({
+    width: 0,
+    height: 0,
+    getContext: () => ({ drawImage: () => undefined }),
+    captureStream: () => ({ getVideoTracks: () => [{ requestFrame: () => frames++, stop: () => undefined }] }),
+  })
+  const clips = () => fetcher.mock.calls.filter(([url]) => ROUTE.test(url))
+  const scans = () => fetcher.mock.calls.filter(([url]) => !ROUTE.test(url))
+  const recording = () => FakeRecorder.made.filter((r) => r.state === 'recording').length
+  const sse = (...text: string[]) => new Response(text.map((delta) => `data: ${JSON.stringify({ type: 'response.output_text.delta', delta })}\n\n`).join('') + 'data: {"type":"response.completed"}\n\n')
+  const record = (ms = 11_000) => vi.advanceTimersByTimeAsync(ms)
+
+  beforeEach(async () => {
+    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout', 'performance'] })
+    hidden = false
+    supported = true
+    frames = 0
+    clipSize = 1000
+    FakeRecorder.made = []
+    vi.stubGlobal('MediaRecorder', FakeRecorder)
+    Object.defineProperty(globalThis, 'document', { value: { get hidden() { return hidden }, createElement: copy }, configurable: true })
+    fetcher.mockReset().mockImplementation(async (url, init) => {
+      if (ROUTE.test(url)) return sse(SAMPLE)
+      return new Response(JSON.stringify({ outputs: JSON.parse(init.body).prompts.map((prompt: string) => ({ prompt, text: '' })), ms: 10 }))
+    })
+    vi.stubGlobal('fetch', fetcher)
+    feedCanvases.clear()
+    feedCanvases.set(CAM, canvas)
+    feedCanvases.set('CCTV-A02', canvas)
+    feedCanvases.set(THERMAL, canvas)
+    useCctv.setState({ feedsVisible: true, selected: CAM, callUp: null, ptz: {} })
+    useSam.setState(useSam.getInitialState())
+    useMeta.setState({ ...useMeta.getInitialState(), saved: true })
+    useReview.setState(useReview.getInitialState())
+    stopScans = startMetaSam()
+    stopReview = startReview()
+    await vi.advanceTimersByTimeAsync(0)
+  })
+
+  afterEach(() => {
+    stopScans()
+    stopReview()
+    vi.useRealTimers()
+    vi.unstubAllGlobals()
+    delete (globalThis as { document?: unknown }).document
+  })
+
+  it('records nothing and sends nothing until the switch is on', async () => {
+    await vi.advanceTimersByTimeAsync(120_000)
+    expect(FakeRecorder.made).toHaveLength(0)
+    expect(fetcher).not.toHaveBeenCalled()
+  })
+
+  it('sends no clip without a press, however long it records', async () => {
+    useMeta.getState().setOn(true)
+    await vi.advanceTimersByTimeAsync(300_000)
+    expect(FakeRecorder.made.length).toBeGreaterThan(50)
+    expect(scans().length).toBeGreaterThan(0)
+    expect(clips()).toHaveLength(0)
+  })
+
+  it('a press with the switch off sends nothing', async () => {
+    useMeta.getState().setOn(true)
+    await record()
+    useMeta.setState({ on: false })
+    await reviewLastSeconds()
+    expect(clips()).toHaveLength(0)
+  })
+
+  it('a press before 10 s are recorded sends nothing', async () => {
+    useMeta.getState().setOn(true)
+    await record(9000)
+    await reviewLastSeconds()
+    expect(useReview.getState().have).toBeLessThan(10)
+    expect(clips()).toHaveLength(0)
+  })
+
+  it('one press, one request, with the whole clip as MP4', async () => {
+    useMeta.getState().setOn(true)
+    await record()
+    await reviewLastSeconds()
+    await vi.advanceTimersByTimeAsync(60_000)
+    expect(clips()).toHaveLength(1)
+    const body = JSON.parse(clips()[0][1].body)
+    expect(body.key).toBe('test-key-12345')
+    expect(body.video.startsWith('data:video/mp4;base64,')).toBe(true)
+    expect(FakeRecorder.made[0].options.mimeType).toBe('video/mp4;codecs=avc1')
+    expect(Object.keys(body)).toEqual(['key', 'video'])
+  })
+
+  it('a second press while one is on its way sends nothing', async () => {
+    let release = () => {}
+    const hold = new Promise<void>((done) => (release = done))
+    fetcher.mockImplementation(async (url) => {
+      if (!ROUTE.test(url)) return new Response(JSON.stringify({ outputs: [], ms: 1 }))
+      await hold
+      return sse('')
+    })
+    useMeta.getState().setOn(true)
+    await record()
+    const first = reviewLastSeconds()
+    await vi.waitFor(() => expect(clips()).toHaveLength(1))
+    // a slow answer gives the next take time to reach 10 s
+    await record(10_000)
+    expect(useReview.getState().have).toBe(10)
+    const second = reviewLastSeconds()
+    await vi.advanceTimersByTimeAsync(0)
+    const sent = clips().length
+    release()
+    await Promise.all([first, second])
+    expect(sent).toBe(1)
+  })
+
+  it('costs the price on the button, and counts towards the running total', async () => {
+    useMeta.getState().set({ every: 20 })
+    useMeta.getState().setOn(true)
+    await record()
+    const { images, run } = useMeta.getState()
+    await reviewLastSeconds()
+    expect(CLIP_USD).toBeCloseTo(0.01)
+    expect(CLIP_FRAMES).toBe(50)
+    expect(CLIP_IMAGES).toBe(4)
+    expect(useMeta.getState().images).toBe(images + 4)
+    expect(useMeta.getState().run).toBe(run + 4)
+    expect(useReview.getState().clips).toBe(1)
+  })
+
+  it('stops at the same limit as the scans, before sending', async () => {
+    useMeta.getState().setOn(true)
+    await record()
+    useMeta.setState({ run: CAP_IMAGES - 3 })
+    await reviewLastSeconds()
+    expect(clips()).toHaveLength(0)
+    expect(useMeta.getState().on).toBe(false)
+    expect(useMeta.getState().note).toMatch(/limit/)
+  })
+
+  it('keeps every clip within the billed minimum: no take passes 50 frames', async () => {
+    useMeta.getState().setOn(true)
+    await record(10_000)
+    frames = 0
+    await record(15_000)
+    // three takes on the go, each a frame every 300 ms
+    expect(frames / 3).toBeLessThanOrEqual(CLIP_FRAMES)
+    expect(recording()).toBeLessThanOrEqual(3)
+  })
+
+  it('refuses a clip too large to send, and spends nothing', async () => {
+    clipSize = 3_000_000
+    useMeta.getState().setOn(true)
+    await record()
+    const { images } = useMeta.getState()
+    await reviewLastSeconds()
+    expect(clips()).toHaveLength(0)
+    expect(useMeta.getState().images).toBe(images)
+    expect(useMeta.getState().note).toMatch(/too large/)
+  })
+
+  it.each([
+    [401, /rejected/],
+    [402, /credit/],
+    [429, /rate limiting/],
+    [500, /did not answer/],
+  ])('turns off on %i, with no retry', async (status, why) => {
+    fetcher.mockImplementation(async (url) => (ROUTE.test(url) ? new Response('{}', { status }) : new Response(JSON.stringify({ outputs: [], ms: 1 }))))
+    useMeta.getState().setOn(true)
+    await record()
+    await reviewLastSeconds()
+    await vi.advanceTimersByTimeAsync(60_000)
+    expect(clips()).toHaveLength(1)
+    expect(useMeta.getState().on).toBe(false)
+    expect(useMeta.getState().note).toMatch(why)
+    expect(useReview.getState().busy).toBe(false)
+  })
+
+  it('a failure part way through the answer turns it off too', async () => {
+    fetcher.mockImplementation(async (url) => (ROUTE.test(url) ? new Response('data: {"type":"response.failed"}\n\n') : new Response(JSON.stringify({ outputs: [], ms: 1 }))))
+    useMeta.getState().setOn(true)
+    await record()
+    await reviewLastSeconds()
+    expect(useMeta.getState().on).toBe(false)
+    expect(useReview.getState().clip).toBeNull()
+  })
+
+  it('shows the clip with what was tracked, one time per frame', async () => {
+    useMeta.getState().setOn(true)
+    await record()
+    await reviewLastSeconds()
+    const { clip } = useReview.getState()
+    expect(clip).toMatchObject({ camera: CAM, ids: ['0'] })
+    expect(clip!.frames[0][0].id).toBe('0')
+    expect(clip!.times[0]).toBe(0)
+    expect(clip!.times.length).toBeGreaterThanOrEqual(33)
+    expect(clip!.times.every((t, i) => !i || t > clip!.times[i - 1])).toBe(true)
+  })
+
+  it('leaves the live cameras alone: a replay is not a scan', async () => {
+    useMeta.getState().set({ every: 20 })
+    useMeta.getState().setOn(true)
+    await record()
+    const before = useSam.getState().frames
+    await reviewLastSeconds()
+    expect(useSam.getState().frames).toBe(before)
+  })
+
+  it('turning off while it is on its way sends nothing more and shows nothing', async () => {
+    let release = () => {}
+    const hold = new Promise<void>((done) => (release = done))
+    fetcher.mockImplementation(async (url, init) => {
+      if (!ROUTE.test(url)) return new Response(JSON.stringify({ outputs: [], ms: 1 }))
+      await hold
+      init.signal.throwIfAborted()
+      return sse(SAMPLE)
+    })
+    useMeta.getState().setOn(true)
+    await record()
+    const press = reviewLastSeconds()
+    await vi.waitFor(() => expect(clips()).toHaveLength(1))
+    useMeta.getState().setOn(false)
+    release()
+    await press
+    expect(useReview.getState()).toMatchObject({ busy: false, clip: null, have: 0 })
+    expect(useMeta.getState().note).toBe('')
+    expect(clips()).toHaveLength(1)
+  })
+
+  it('turning off stops the recording', async () => {
+    useMeta.getState().setOn(true)
+    await record()
+    expect(recording()).toBeGreaterThan(0)
+    useMeta.getState().setOn(false)
+    expect(recording()).toBe(0)
+    const made = FakeRecorder.made.length
+    await vi.advanceTimersByTimeAsync(30_000)
+    expect(FakeRecorder.made.length).toBe(made)
+  })
+
+  it('leaving the camera page stops the recording and closes the replay', async () => {
+    useMeta.getState().setOn(true)
+    await record()
+    await reviewLastSeconds()
+    expect(useReview.getState().clip).not.toBeNull()
+    stopReview()
+    expect(recording()).toBe(0)
+    expect(useReview.getState().clip).toBeNull()
+  })
+
+  it('closing the replay is all it takes to get rid of it', async () => {
+    useMeta.getState().setOn(true)
+    await record()
+    await reviewLastSeconds()
+    closeReview()
+    expect(useReview.getState().clip).toBeNull()
+    expect(useMeta.getState().on).toBe(true)
+  })
+
+  it('a clip never spans two cameras: changing camera starts over', async () => {
+    feedCanvases.set('CCTV-A02', { ...canvas } as HTMLCanvasElement)
+    useMeta.getState().setOn(true)
+    await record()
+    expect(useReview.getState().have).toBe(10)
+    useCctv.setState({ selected: 'CCTV-A02' })
+    await vi.advanceTimersByTimeAsync(500)
+    expect(useReview.getState().have).toBe(0)
+    await reviewLastSeconds()
+    expect(clips()).toHaveLength(0)
+  })
+
+  it('records nothing for a thermal camera', async () => {
+    useCctv.setState({ selected: THERMAL })
+    useMeta.getState().setOn(true)
+    await record()
+    expect(FakeRecorder.made).toHaveLength(0)
+    await reviewLastSeconds()
+    expect(clips()).toHaveLength(0)
+  })
+
+  it('records nothing in a hidden tab, and a clip does not span the gap', async () => {
+    useMeta.getState().setOn(true)
+    await record()
+    hidden = true
+    await vi.advanceTimersByTimeAsync(500)
+    expect(recording()).toBe(0)
+    hidden = false
+    await vi.advanceTimersByTimeAsync(500)
+    await reviewLastSeconds()
+    expect(clips()).toHaveLength(0)
+  })
+
+  it('records nothing where MP4 recording is not available, as in Firefox', async () => {
+    supported = false
+    expect(canRecord()).toBe(false)
+    useMeta.getState().setOn(true)
+    await record()
+    expect(FakeRecorder.made).toHaveLength(0)
+    vi.stubGlobal('MediaRecorder', undefined)
+    expect(canRecord()).toBe(false)
   })
 })

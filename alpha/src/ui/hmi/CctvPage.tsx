@@ -21,6 +21,7 @@ import { EMPTY_ARR, EMPTY_OBJ, useS } from './simApi'
 import { CAMERAS, FEED_H, FEED_INTERVAL_MS, FEED_W, PTZ_HOME, SEG_BY_ID, SEG_CLASSES, aimOf, cameraById, detLabel, feedCanvases, feedStats, registerFeed, segFrames, unregisterFeed, useCctv, type CctvCameraEx, type SegInstance } from '../../safety/cctv'
 import { CAP_IMAGES, EVERY_S, IMAGE_USD, startMetaSam, testKey, useMeta, worstScan } from '../../safety/metaSam'
 import { cleanKey } from '../../safety/metaKey'
+import { canRecord, CLIP_FRAMES, CLIP_IMAGES, CLIP_S, CLIP_USD, closeReview, frameAt, reviewLastSeconds, startReview, useReview, type ReviewClip } from '../../safety/metaReview'
 import { samCamera, samLive, startSam, useSam } from '../../safety/samClient'
 import { useWorkers } from '../../safety/workers'
 import { DETECTION_LABEL, type Detection, type DetectionKind, type WorkerInfo } from '../../safety/types'
@@ -51,9 +52,11 @@ export function CctvPage() {
   useEffect(() => {
     const stopModal = startSam()
     const stopMeta = startMetaSam()
+    const stopReview = startReview()
     return () => {
       stopModal()
       stopMeta()
+      stopReview()
     }
   }, [])
   const selected = useCctv((s) => s.selected)
@@ -68,9 +71,10 @@ export function CctvPage() {
   const big = cameraById(bigId) ?? CAMERAS[0]
   const [group, setGroup] = useState<string>('all')
   const small = CAMERAS.filter((c) => c.id !== big.id && (group === 'all' || (group === 'thermal' ? c.type === 'thermal' : c.platform === group)))
+  const clip = useReview((s) => s.clip)
 
   return (
-    <div className="cctv">
+    <div className={`cctv ${clip ? 'reviewing' : ''}`}>
       <div className="cctv-main">
       <div className="cctv-groups" role="group" aria-label="Camera groups">
         {GROUPS.map(([k, label]) => {
@@ -92,6 +96,7 @@ export function CctvPage() {
       <HazardAreasPanel />
       </div>
       <div className="cctv-side">
+        {clip && <ReviewBox key={clip.url} clip={clip} />}
         <CallUpBox />
         <PromptsBox cam={big.id} />
         <LogBox />
@@ -751,12 +756,71 @@ function PromptsBox({ cam }: { cam: string }) {
   )
 }
 
+const TRACK_COLOURS = ['#22d3ee', '#facc15', '#4ade80', '#fb7185', '#a78bfa', '#fb923c', '#38bdf8', '#f472b6']
+
+/** a recorded clip with SAM 3.1's tracks on it, in its own panel so the live monitor stays uncovered */
+function ReviewBox({ clip }: { clip: ReviewClip }) {
+  const video = useRef<HTMLVideoElement>(null)
+  const [frame, setFrame] = useState(0)
+  useEffect(() => {
+    const v = video.current
+    if (!v) return
+    let id = 0
+    const seen: VideoFrameRequestCallback = (_, shown) => {
+      setFrame(frameAt(clip.times, shown.mediaTime))
+      id = v.requestVideoFrameCallback(seen)
+    }
+    id = v.requestVideoFrameCallback(seen)
+    return () => v.cancelVideoFrameCallback(id)
+  }, [clip])
+  const tracked = clip.frames[frame] ?? EMPTY_ARR
+  const colour = (id: string) => TRACK_COLOURS[clip.ids.indexOf(id) % TRACK_COLOURS.length]
+  const people = clip.ids.length
+  return (
+    <Box title={`Review: ${clip.camera}`} right={<button onClick={closeReview} data-review-close>Close</button>} className="cctv-review">
+      <div className="cctv-replay" data-review-replay>
+        <video ref={video} src={clip.url} autoPlay loop muted playsInline controls />
+        <svg viewBox="0 0 1 1" preserveAspectRatio="none" aria-hidden>
+          {tracked.flatMap((p) => p.polygons.map((g, i) => <polygon key={`${p.id}-${i}`} points={g.map((q) => q.join(',')).join(' ')} style={{ ['--c' as string]: colour(p.id) }} />))}
+        </svg>
+        {tracked.map((p) => (
+          <span key={p.id} className="cctv-seglbl" style={{ left: `${(p.box[0] + p.box[2]) * 50}%`, top: `${Math.max(p.box[1] * 100, 8)}%`, ['--c' as string]: colour(p.id) }} data-review-track={p.id}>
+            person {p.id} <b>{p.score.toFixed(2)}</b>
+          </span>
+        ))}
+        <div className="cctv-replay-tag">Recorded clip, not live</div>
+      </div>
+      <p className="h-note" data-review-summary>
+        {people ? `${people} ${people === 1 ? 'person' : 'people'} tracked by real SAM 3.1 through the Meta Model API. Each keeps one number through the clip.` : 'SAM 3.1 tracked nobody in this clip.'} Ends at {fmtClock(clip.t)}. Only people were looked for.
+      </p>
+    </Box>
+  )
+}
+
+/** the one way a clip is sent. The cost is on screen before the press */
+function ReviewRow() {
+  const r = useReview()
+  const ready = r.have >= CLIP_S
+  return (
+    <div data-review-row>
+      <button onClick={() => void reviewLastSeconds()} disabled={!ready || r.busy} title="One clip, sent once, looking only for people" data-review>
+        {r.busy ? 'Tracking the clip' : `Review the last ${CLIP_S} s`}
+      </button>{' '}
+      <span className="dim" data-review-cost>
+        {ready || r.busy ? '' : `Recording, ${r.have} of ${CLIP_S} s. `}One press sends one clip: at least {CLIP_FRAMES} frames, about ${CLIP_USD.toFixed(2)}. It counts as {CLIP_IMAGES} images towards the limit.
+      </span>
+    </div>
+  )
+}
+
 /** the operator's own Meta Model API key. Off on every load, and the running cost stays on screen while it runs */
 function MetaRow({ cam }: { cam: string }) {
   const m = useMeta()
+  const clips = useReview((s) => s.clips)
   const [draft, setDraft] = useState('')
   const key = cleanKey(draft)
   const worst = worstScan(m.ppe, m.fire)
+  const scans = m.images - clips * CLIP_IMAGES
   const save = () => {
     if (!key) return
     void m.save(key)
@@ -806,9 +870,10 @@ function MetaRow({ cam }: { cam: string }) {
               </label>
             </div>
             <div className="dim" data-meta-spend>
-              {m.images} {m.images === 1 ? 'image' : 'images'} · about ${(m.images * IMAGE_USD).toFixed(4)} since this page loaded{' · '}{m.on ? `${m.run} of ${CAP_IMAGES} before it stops itself` : `at most ${worst} per scan, about $${((worst * IMAGE_USD * 3600) / m.every).toFixed(2)}/h`}
+              {scans} {scans === 1 ? 'image' : 'images'}{clips > 0 && ` + ${clips} ${clips === 1 ? 'clip' : 'clips'}`} · about ${(m.images * IMAGE_USD).toFixed(4)} since this page loaded{' · '}{m.on ? `${m.run} of ${CAP_IMAGES} before it stops itself` : `at most ${worst} per scan, about $${((worst * IMAGE_USD * 3600) / m.every).toFixed(2)}/h`}
             </div>
             {m.on && !samCamera(cam) && <div className="dim">Thermal camera on the main monitor: no calls until a colour camera is up.</div>}
+            {m.on && samCamera(cam) && canRecord() && <ReviewRow />}
           </>
         )}
         {m.note && <div data-meta-note>{m.note}</div>}
