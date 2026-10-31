@@ -4,6 +4,8 @@ import data from '../pages/homePlan.json'
 export interface PlanItem {
   tag: string
   component: string
+  /** the P&ID symbol as a data URI */
+  symbol?: string
   x: number
   z: number
   w: number

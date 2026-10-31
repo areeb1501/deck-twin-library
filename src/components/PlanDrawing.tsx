@@ -1,5 +1,4 @@
 // The home hero's first frame: the plant as a plan drawing, with real P&ID symbols on the routes <Plant> builds. Prerendered, so it stands without JavaScript or WebGL.
-import { PID, symbolUrl } from '../pid'
 import { PLAN, SHEET } from '../viewer/plan'
 
 const SKIP = new Set(['pipe-rack'])
@@ -23,12 +22,11 @@ export function PlanDrawing({ className = '' }: { className?: string }) {
       {PLAN.items
         .filter((it) => !SKIP.has(it.component))
         .map((it) => {
-          const url = symbolUrl(PID[it.component])
           const w = Math.max(it.w, MIN_SYMBOL)
           const d = Math.max(it.d, MIN_SYMBOL)
           return (
             <g key={it.tag}>
-              {url && <image href={url} x={it.x - w / 2} y={it.z - d / 2} width={w} height={d} preserveAspectRatio="xMidYMid meet" />}
+              {it.symbol && <image href={it.symbol} x={it.x - w / 2} y={it.z - d / 2} width={w} height={d} preserveAspectRatio="xMidYMid meet" />}
               {!QUIET.has(it.component) && (
                 <text x={it.x} y={it.z + d / 2 + 1.5} textAnchor="middle" className="plan-tag">
                   {it.tag}

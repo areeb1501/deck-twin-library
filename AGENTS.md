@@ -24,7 +24,7 @@ A shadcn-style registry of standards-based three.js / R3F components for oil & g
 | Screenshot a component | `node scripts/shoot.mjs <name> [--ports] [--props '{…}'] [--view x,y,z]` → `.snaps/` |
 | Thumbnails and bounds | `node scripts/shoot.mjs --all --thumbs` |
 | P&ID symbols for new components | add an entry to `scripts/pid-gen/p-*.ts`, then `npx tsx scripts/pid-gen/gen.mts` |
-| Home hero drawing | after changing `separation-train.plant.json`, `npx tsx scripts/plan-drawing.ts` rewrites `src/pages/homePlan.json` |
+| Home hero drawing | after changing `separation-train.plant.json` or `registry/generated/bounds.json`, `npx tsx scripts/plan-drawing.ts` rewrites `src/pages/homePlan.json` |
 | Build | `npm run build`: registry → `public/r`, then type-check, then site → `dist/`, then `scripts/prerender.ts` renders every sitemap page to HTML in `dist/` |
 | Build everything | `npm run build:all`: the twin in `alpha/` into `public/alpha`, then the site. This is what a deploy from GitHub runs. |
 | Deploy | Push to `main`: Workers Builds runs `npm run build:all`, then `npx wrangler deploy`. `npm run deploy` by hand skips the twin build, so run `npm run build` in `alpha/` first. |

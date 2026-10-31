@@ -1,7 +1,7 @@
 // The home hero's plant: it starts as the flat plan drawing, stands up once, then stays still until someone drags it.
 import { useEffect, useLayoutEffect, useMemo, useRef, useState, type RefObject } from 'react'
 import * as THREE from 'three'
-import { Canvas, useFrame, useThree } from '@react-three/fiber'
+import { Canvas, invalidate, useFrame, useThree } from '@react-three/fiber'
 import { Line, OrbitControls } from '@react-three/drei'
 import { Plant, type ComponentMap } from '../../registry/assembly/plant'
 import type { PlantSpec } from '../../registry/assembly/spec'
@@ -138,10 +138,13 @@ function Scene({ spec, components, still, onReady, onStood }: { spec: PlantSpec;
   )
 }
 
+/** Contained like Viewer: a context that drops and doesn't come back is rebuilt quietly, and a canvas that throws is retried with default settings. Only then does the drawing stay. */
 export function RisingPlant({ spec, onReady, onStood, onLost, className }: { spec: PlantSpec; onReady: () => void; onStood: () => void; onLost: () => void; className?: string }) {
   const [components, setComponents] = useState<ComponentMap | null>(null)
-  const [broken, setBroken] = useState(false)
-  const still = useMemo(() => matchMedia('(prefers-reduced-motion: reduce)').matches, [])
+  const [attempt, setAttempt] = useState(0)
+  const [gen, setGen] = useState(0)
+  const stood = useRef(false)
+  const reduced = useMemo(() => matchMedia('(prefers-reduced-motion: reduce)').matches, [])
   useLayoutEffect(() => {
     let live = true
     loadAll(componentsOf(spec)).then((c) => live && setComponents(c as ComponentMap))
@@ -149,24 +152,37 @@ export function RisingPlant({ spec, onReady, onStood, onLost, className }: { spe
       live = false
     }
   }, [spec])
-  if (broken || !components) return null
+  if (attempt >= 2 || !components) return null
+  const safe = attempt > 0
   return (
-    <Boundary fallback={() => (queueMicrotask(() => (setBroken(true), onLost())), null)}>
+    <Boundary key={`${attempt}.${gen}`} fallback={() => (queueMicrotask(() => (onLost(), setAttempt((a) => a + 1))), null)}>
       <div className={className}>
         <Canvas
           frameloop="demand"
           shadows
           dpr={[1, 2]}
-          gl={{ alpha: true, antialias: true }}
+          gl={safe ? { alpha: true, antialias: false, powerPreference: 'default' } : { alpha: true, antialias: true }}
           camera={{ fov: FOV, near: 1, far: 900, position: [SHEET.cx, 200, SHEET.cz] }}
           onCreated={({ gl }) => {
             gl.toneMapping = THREE.NoToneMapping
             gl.outputColorSpace = THREE.SRGBColorSpace
             gl.setClearColor(0x000000, 0)
-            gl.domElement.addEventListener('webglcontextlost', onLost)
+            const el = gl.domElement
+            let timer = 0
+            el.addEventListener('webglcontextlost', () => {
+              onLost()
+              clearTimeout(timer)
+              timer = window.setTimeout(() => el.isConnected && setGen((g) => g + 1), 1500)
+            })
+            el.addEventListener('webglcontextrestored', () => {
+              clearTimeout(timer)
+              invalidate()
+              if (stood.current) onStood()
+              else onReady()
+            })
           }}
         >
-          <Scene spec={spec} components={components} still={still} onReady={onReady} onStood={onStood} />
+          <Scene spec={spec} components={components} still={reduced || stood.current} onReady={onReady} onStood={() => ((stood.current = true), onStood())} />
         </Canvas>
       </div>
     </Boundary>

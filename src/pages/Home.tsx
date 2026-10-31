@@ -105,9 +105,9 @@ function Sheet() {
       </div>
       <div className="pointer-events-none flex flex-1 flex-col justify-between gap-10 px-6 pt-10 pb-6 sm:pt-14 lg:pb-8 2xl:px-[max(1.5rem,calc((100vw-1440px)/2+1.5rem))]">
         <div className="max-w-[780px]">
-          <h1 className="display text-[46px] sm:text-[clamp(64px,7vw,104px)] min-[1240px]:max-w-[6.2em]">Turn your P&amp;IDs into a 3D plant</h1>
+          <h1 className="display text-[38px] sm:text-[60px] min-[1240px]:max-w-[8.8em] min-[1240px]:text-[clamp(56px,4.5vw,68px)]">3D components for oil &amp; gas digital twins</h1>
           <p className="mt-6 max-w-[33rem] text-[18px] leading-[1.5] font-[450] sm:text-[20px] min-[1240px]:max-w-[27rem]">
-            Open-source three.js components for oil and gas. Start from P&amp;IDs, datasheets, plant drawings, dimensions or design discussions, then link the model back to that data.
+            Turn the data you already have into a 3D model of your plant, then link the model back to that data. Every part is open-source code you can customise.
           </p>
           <div className="pointer-events-auto mt-8 flex flex-wrap gap-3">
             <Link href="/components" className="sheet-btn solid">
