@@ -15,7 +15,7 @@ const FOV = 20
 const HOLD = 520
 const STAND = 2600
 const FLAT = 0.012
-const END = { target: new THREE.Vector3(-4.2, 1.5, -1.2), polar: 0.98, azimuth: 0.5, zoom: 0.68 }
+const END = { target: new THREE.Vector3(-5.7, 2, 0.3), polar: 0.95, azimuth: -1.05, zoom: 0.72 }
 
 const clay = new THREE.MeshLambertMaterial({ color: '#ffffff' })
 const steel = new THREE.MeshLambertMaterial({ color: INK })

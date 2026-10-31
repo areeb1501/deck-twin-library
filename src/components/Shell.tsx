@@ -163,7 +163,10 @@ function Header({ onDocsMenu }: { onDocsMenu?: () => void }) {
         <div className="ml-auto flex items-center gap-2">
           <SearchButton />
           <ThemeToggle />
-          <span className="mx-1.5 hidden h-5 w-px bg-border xl:block" />
+          <span className="mx-1.5 hidden h-5 w-px bg-border lg:block" />
+          <a href="/alpha/" className="nav-cta line hidden h-8 shrink-0 items-center rounded-md px-3.5 text-[15px] font-medium whitespace-nowrap lg:flex">
+            View demo
+          </a>
           <Link href="/docs/installation" className="nav-cta hidden h-8 shrink-0 items-center rounded-md px-3.5 text-[15px] font-medium whitespace-nowrap xl:flex">
             Get started
           </Link>
@@ -185,6 +188,9 @@ function Header({ onDocsMenu }: { onDocsMenu?: () => void }) {
             <span className="text-[15px] font-medium text-fg-3">Theme</span>
             <ThemeSwitch />
           </div>
+          <a href="/alpha/" className="nav-cta line mt-2 flex h-10 items-center justify-center rounded-md text-[15px] font-medium">
+            View demo
+          </a>
           <Link href="/docs/installation" className="mt-2 mb-1 flex h-10 items-center justify-center rounded-md bg-ink text-[15px] font-medium text-on-ink">
             Get started
           </Link>
@@ -342,7 +348,16 @@ function SidebarPanel({ drawer = false }: { drawer?: boolean }) {
   return (
     <>
       <nav ref={ref} aria-label="Docs" className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 pt-4 pb-8">
-        {drawer && <div className="md:hidden"><Section title="Site">{NAV.map(([href, label]) => item(href, label))}</Section></div>}
+        {drawer && (
+          <div className="md:hidden">
+            <Section title="Site">
+              {NAV.map(([href, label]) => item(href, label))}
+              <a href="/alpha/" className="block truncate rounded-lg px-3 py-1.5 text-[15px] font-medium text-fg-3 transition-colors hover:bg-hover hover:text-ink">
+                View demo
+              </a>
+            </Section>
+          </div>
+        )}
         <Section title="Getting started">{DOCS.map((d) => item(`/docs/${d.slug}`, d.title))}</Section>
         <Section title="Components">
           {item('/components', `All components (${ITEMS.length})`)}

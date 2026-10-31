@@ -112,7 +112,7 @@ function Sheet() {
               Browse components
             </Link>
             <a href="/alpha/" className="sheet-btn line">
-              Explore demo
+              View demo
             </a>
           </div>
           <div className="dark-zone pointer-events-auto mt-5 w-full max-w-[560px]">

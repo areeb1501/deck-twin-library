@@ -243,6 +243,16 @@ body {
 .nav-cta:active {
   transform: scale(0.98);
 }
+.nav-cta.line {
+  background: none;
+  box-shadow: inset 0 0 0 1px var(--line-strong);
+  color: var(--ink);
+}
+.nav-cta.line:hover {
+  background: var(--ink);
+  box-shadow: none;
+  color: var(--on-ink);
+}
 
 :root:not(.light) .code-dark {
   --sh-class: #a5b4fc;
@@ -350,7 +360,7 @@ body {
 }
 .sheet-stage {
   position: absolute;
-  inset: 0 0 0 33%;
+  inset: 0 0 0 38%;
   z-index: -1;
 }
 .sheet-plan {
