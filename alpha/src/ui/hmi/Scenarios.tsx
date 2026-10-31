@@ -8,6 +8,7 @@
 import { Fragment, useMemo, useState } from 'react'
 import { usePlant } from '../../state/plantStore'
 import { SCENARIOS, scenarioById, unavailable, useScenario, type Attempt, type LiveView, type Scenario } from '../../sim/scenarios'
+import { NextActions } from './ResponsePage'
 import { useAuthor } from '../../agents/scenarioAuthor'
 import { useCustom } from '../../sim/scen/custom'
 import { DIFFICULTY_LABEL, type Difficulty, type ObjStatus } from '../../sim/scen/types'
@@ -401,6 +402,7 @@ function Running({ live }: { live: LiveView }) {
               </ul>
             )}
           </Box>
+          <NextActions />
           <LivePlant />
           <Box
             title={`Hints: ${live.hints.length}/${live.hintCount}`}

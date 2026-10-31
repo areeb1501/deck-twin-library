@@ -52,14 +52,14 @@ function asPlatform(v: unknown): PlatformId | undefined {
   if (!s) return undefined
   return PLATFORM_IDS.find((p) => p.toLowerCase() === s) ?? PLATFORM_IDS.find((p) => s.includes(p.toLowerCase()))
 }
-function platformOf(tag: string): PlatformId {
+export function platformOf(tag: string): PlatformId {
   try {
     return platformOfTag(plant(), tag)
   } catch {
     return 'Alpha'
   }
 }
-function zoneIdOf(tag: string): string | null {
+export function zoneIdOf(tag: string): string | null {
   try {
     return zoneOfTag(plant(), tag)?.id ?? null
   } catch {

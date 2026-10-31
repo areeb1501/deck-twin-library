@@ -198,3 +198,11 @@ export const RELIABILITY_FACTOR = { off: 0, realistic: 1, training: 500 }
 
 /** MMscf of gas ↔ boe (1 boe = 5 800 scf) */
 export const BOE_PER_MMSCF = 1e6 / 5800
+
+/** process alarms that have a cause & effect row: instrument tag to row id */
+export const ALARM_CAUSE: Record<string, string> = {
+  'LT-1101': 'lahh-1101',
+  'PT-1101': 'pahh-1101',
+  'PT-4603': 'ia-ll',
+  'TT-6303': 'cm-hh',
+}
