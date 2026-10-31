@@ -3,7 +3,6 @@
  * The images are captures of the twin itself; every process figure and console value is design data or simulated.
  * Tapping a screenshot opens it full size for pinch-zoom; Back returns to the same place.
  */
-import '@fontsource-variable/archivo/wdth.css'
 import './lite.css'
 import field from './img/field.webp'
 import overview from './img/overview.webp'

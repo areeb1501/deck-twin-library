@@ -1,9 +1,10 @@
 /* Light /alpha view for phones (lite.ts). Same tokens as the library site: near-black ground, flat panels, one orange sheet; html.light follows the site's saved theme. */
-/* Archivo's ampersand is ornate and makes "P&ID" hard to read, so that one character comes from a plain system face. */
 @font-face {
-  font-family: 'Plain Ampersand';
-  src: local('Helvetica Neue'), local('Helvetica'), local('Arial');
-  unicode-range: U+26;
+  font-family: 'Switzer';
+  src: url('../../src/fonts/Switzer-Variable.woff2') format('woff2');
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
 }
 .lite-body {
   --bg: #0e0f13;
@@ -23,11 +24,10 @@
   background: var(--bg);
   color: var(--fg);
   color-scheme: dark;
-  font-family: 'Plain Ampersand', 'Archivo Variable', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-family: 'Switzer', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   font-size: 15px;
   line-height: 1.55;
   -webkit-font-smoothing: antialiased;
-  font-stretch: 108%;
 }
 html.light .lite-body {
   --bg: #f7f7f9;

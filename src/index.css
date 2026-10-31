@@ -1,22 +1,22 @@
 @import 'tailwindcss';
-@import '@fontsource-variable/archivo/wdth.css';
 @import '@fontsource/ibm-plex-mono/400.css';
 @import '@fontsource/ibm-plex-mono/500.css';
 
 @source not "../alpha";
 
-/* Archivo's ampersand is ornate and makes "P&ID" hard to read, so that one character comes from a plain system face. */
 @font-face {
-  font-family: 'Plain Ampersand';
-  src: local('Helvetica Neue'), local('Helvetica'), local('Arial');
-  unicode-range: U+26;
+  font-family: 'Switzer';
+  src: url('./fonts/Switzer-Variable.woff2') format('woff2');
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
 }
 
 /* Site theme: dark by default (near-black ground, flat surfaces); html.light swaps the same tokens for a crisp near-white set. .dark-zone keeps a region dark in either theme. */
 @custom-variant light (&:where(.light, .light *));
 
 @theme inline {
-  --font-sans: 'Plain Ampersand', 'Archivo Variable', ui-sans-serif, system-ui, sans-serif;
+  --font-sans: 'Switzer', ui-sans-serif, system-ui, sans-serif;
   --font-mono: 'IBM Plex Mono', ui-monospace, monospace;
   --color-bg: var(--bg);
   --color-fg: var(--fg);
@@ -164,11 +164,8 @@ body {
     outline-offset: 2px;
   }
 }
-/* One type system. Archivo in one width everywhere. Weights: 400 for text, 500 for interface, 600 for headings and titles. Sizes: 13, 15, 17, 20, 24, then headings. Monospace is for code, at 13. */
+/* One type system. Switzer everywhere. Weights: 400 for text, 500 for interface, 600 for headings and titles. Sizes: 13, 15, 17, 20, 24, then headings. Monospace is for code, at 13. */
 @layer base {
-  html {
-    font-stretch: 108%;
-  }
   h1,
   h2,
   h3 {
@@ -265,7 +262,7 @@ body {
 .prose-docs h1,
 .prose-docs h2 {
   font-weight: 600;
-  letter-spacing: -0.03em;
+  letter-spacing: -0.02em;
 }
 .prose-docs h1 {
   @apply text-[40px] leading-tight text-ink mb-4;
@@ -332,7 +329,7 @@ body {
 /* The orange drawing sheet: it opens the home page and closes every marketing page, the same in both themes. */
 .display {
   font-weight: 600;
-  letter-spacing: -0.03em;
+  letter-spacing: -0.02em;
   line-height: 1;
   text-wrap: balance;
 }
