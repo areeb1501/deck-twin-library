@@ -43,7 +43,7 @@ export function AgentLine({ className = '' }: { className?: string }) {
   const text = `Read ${SITE}/prompt.md and follow it`
   const [copied, setCopied] = useState(false)
   return (
-    <div className={`flex items-center gap-3 rounded-lg border border-border bg-bg/75 py-1.5 pr-1.5 pl-3.5 text-left shadow-[0_1px_2px_rgb(0_0_0/0.05)] backdrop-blur ${className}`}>
+    <div className={`flex items-center gap-3 rounded-lg border border-border bg-bg py-1.5 pr-1.5 pl-3.5 text-left ${className}`}>
       <span className="hidden shrink-0 text-[13px] font-medium text-muted-fg sm:inline">For agents</span>
       <span className="hidden h-4 w-px shrink-0 bg-border sm:block" />
       <code className="min-w-0 flex-1 truncate font-mono text-[12px] text-ink" title={text}>{text}</code>

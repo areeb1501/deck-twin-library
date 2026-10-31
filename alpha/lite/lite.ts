@@ -89,8 +89,7 @@ export function render(tier: Exclude<Tier, 'full'>) {
         ${logo}<span class="lite-brand">Deck Twin</span><span class="lite-tag">Light view</span>
       </header>
       <section class="lite-hero">
-        <span class="lite-eyebrow">Offshore digital twin</span>
-        <h1><span class="g">The Alpha field,</span> <span class="o">in 3D</span></h1>
+        <h1>The Alpha field, in 3D</h1>
         <p>Five bridge-linked offshore platforms in 62 m of water, generated from a plain data model and driven by a dynamic plant simulation.</p>
         <div class="lite-frame">
           <div class="lite-frame-bar">Alpha field, five platforms</div>

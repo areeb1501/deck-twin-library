@@ -1,9 +1,16 @@
-/* /alpha landing page. The library's brand: near-black ground, signal orange and indigo light, Inter, white pill buttons. One
-   thing is loud, the pinned incident screen; the rest stays quiet. */
+/* /alpha landing page. Near-black ground, one signal orange sheet, Archivo for display and Inter for text. The footage runs clean, a
+   title block carries the words over it, and one thing is loud: the pinned incident screen on the orange sheet. */
 @font-face {
   font-family: 'Inter Display';
   src: url('../node_modules/@fontsource-variable/inter/files/inter-latin-opsz-normal.woff2') format('woff2');
   font-weight: 100 900;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Archivo Variable';
+  src: url('../node_modules/@fontsource-variable/archivo/files/archivo-latin-wdth-normal.woff2') format('woff2');
+  font-weight: 100 900;
+  font-stretch: 62% 125%;
   font-display: swap;
 }
 
@@ -14,9 +21,8 @@
   --muted: #9c9ca7;
   --line: rgb(255 255 255 / 0.1);
   --signal: #fe5510;
-  --indigo: #3b46cf;
-  --head: linear-gradient(180deg, #fff 30%, #a8a8b3);
-  --radius: 10px;
+  --sheet-ink: #0f1015;
+  --radius: 6px;
   --page: min(1240px, calc(100vw - 48px));
   color-scheme: dark;
 }
@@ -43,20 +49,20 @@ h1,
 h2,
 h3 {
   margin: 0;
-  font-family: 'Inter Display', 'Inter Variable', sans-serif;
-  font-weight: 620;
+  font-family: 'Archivo Variable', 'Inter Variable', sans-serif;
+  font-stretch: 112%;
+  font-weight: 560;
+  letter-spacing: -0.03em;
   color: var(--ink);
   text-wrap: balance;
 }
 h2 {
-  width: fit-content;
-  font-size: clamp(34px, 4.6vw, 60px);
-  line-height: 1.04;
-  letter-spacing: -0.032em;
-  background: var(--head);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
+  font-size: clamp(36px, 5vw, 72px);
+  line-height: 1.02;
+}
+::selection {
+  background: var(--signal);
+  color: var(--sheet-ink);
 }
 p {
   margin: 0;
@@ -79,17 +85,26 @@ img {
   align-items: center;
   height: 48px;
   padding: 0 24px;
-  border-radius: 999px;
-  background: linear-gradient(180deg, #fff, #d4d4dc);
-  box-shadow: inset 0 1px 0 #fff, inset 0 -1px 0 rgb(0 0 0 / 0.14), 0 10px 30px -12px rgb(254 85 16 / 0.65);
-  color: #0e0f13;
+  border-radius: var(--radius);
+  background: var(--ink);
+  color: var(--bg);
   font: 600 16px/1 'Inter Variable', sans-serif;
   text-decoration: none;
   white-space: nowrap;
-  transition: filter 0.15s;
+  transition: background-color 0.15s ease-out, transform 0.12s ease-out;
 }
 .cta:hover {
-  filter: brightness(1.08);
+  background: #d6d6dc;
+}
+.cta:active {
+  transform: scale(0.98);
+}
+.cta.on-sheet {
+  background: var(--sheet-ink);
+  color: #fff;
+}
+.cta.on-sheet:hover {
+  background: #2b2c34;
 }
 .cta.small {
   height: 36px;
@@ -105,13 +120,7 @@ img {
   align-items: center;
   height: 64px;
   padding: 0 24px;
-  background: linear-gradient(180deg, rgb(14 15 19 / 0.8), transparent);
-  transition: background-color 0.2s, box-shadow 0.2s;
-}
-/* past the hero the page scrolls under the header, so it needs a ground of its own */
-.top.solid,
-.top.menu-open {
-  background: rgb(14 15 19 / 0.92);
+  background: var(--bg);
   box-shadow: 0 1px 0 var(--line);
 }
 .brand {
@@ -341,71 +350,89 @@ img {
   color: var(--ink);
 }
 
-/* the field itself is the hero; it sinks into the ground colour through the brand's orange and indigo light */
+/* the film runs clean to its edges; the words sit in a title block in its corner, as on any engineering drawing */
 .hero {
   position: relative;
   display: flex;
   align-items: flex-end;
-  min-height: 100svh;
+  min-height: calc(100svh - 64px);
+  margin-top: 64px;
   overflow: hidden;
   isolation: isolate;
 }
-.hero-film {
-  position: absolute;
-  inset: 0;
-  z-index: -3;
-  height: 100%;
-  object-fit: cover;
-}
-.hero-shade {
-  position: absolute;
-  inset: 0;
-  z-index: -2;
-  background:
-    linear-gradient(180deg, transparent 34%, rgb(14 15 19 / 0.5) 62%, var(--bg) 100%),
-    radial-gradient(55% 34% at 86% 100%, rgb(59 70 207 / 0.62), transparent 72%),
-    radial-gradient(60% 32% at 12% 100%, rgb(254 85 16 / 0.42), transparent 72%);
-}
-.grain {
+.hero-film,
+.close-film {
   position: absolute;
   inset: 0;
   z-index: -1;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 0.6 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-  opacity: 0.12;
-  mix-blend-mode: overlay;
-  pointer-events: none;
+  height: 100%;
+  object-fit: cover;
 }
-.hero-copy {
-  width: var(--page);
-  margin: 0 auto;
-  padding-bottom: clamp(40px, 8vh, 88px);
+.title-block {
+  width: min(660px, 100%);
+  background: var(--signal);
+  color: var(--sheet-ink);
+}
+.title-block > * {
+  padding: 20px 28px;
+  color: inherit;
+}
+.title-block > * + * {
+  border-top: 1.5px solid var(--sheet-ink);
+}
+.title-block ::selection {
+  background: var(--sheet-ink);
+  color: var(--signal);
+}
+.title-block a:focus-visible {
+  outline-color: var(--sheet-ink);
 }
 h1 {
-  max-width: 19ch;
-  font-size: clamp(40px, 5.2vw, 72px);
-  line-height: 1.04;
-  letter-spacing: -0.032em;
-  font-weight: 600;
+  padding-top: 26px;
+  font-size: clamp(38px, 4.3vw, 62px);
+  line-height: 1.02;
 }
-.hero-copy p {
-  max-width: 56ch;
-  margin-top: 20px;
-  color: #e6e6ea;
-  font-size: clamp(17px, 1.3vw, 19px);
+.unbroken {
+  white-space: nowrap;
+}
+.title-block p {
+  font-size: 17px;
+  font-weight: 450;
   line-height: 1.5;
 }
 .hero-actions {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 14px 20px;
-  margin-top: 30px;
+  gap: 12px 20px;
 }
 .hero-actions span {
-  max-width: 38ch;
-  color: #b4b4bd;
+  max-width: 34ch;
   font-size: 14px;
+  font-weight: 450;
   line-height: 1.4;
+}
+
+/* the whole capability list, as one sentence at display size; each phrase jumps to its clip */
+.verbs {
+  width: var(--page);
+  margin: clamp(72px, 10vw, 136px) auto 0;
+  color: var(--muted);
+  font: 560 clamp(38px, 6.4vw, 96px) / 1.06 'Archivo Variable', 'Inter Variable', sans-serif;
+  font-stretch: 112%;
+  letter-spacing: -0.03em;
+  text-wrap: pretty;
+}
+.verbs a {
+  color: var(--ink);
+  text-decoration: none;
+  transition: color 0.15s ease-out;
+}
+.verbs a:hover {
+  color: var(--signal);
+}
+[id] {
+  scroll-margin-top: 96px;
 }
 
 .block {
@@ -434,25 +461,47 @@ figure img {
   object-fit: cover;
 }
 figcaption {
-  max-width: 46ch;
-  margin-top: 12px;
+  max-width: 44ch;
+  margin-top: 16px;
   color: var(--muted);
-  font-size: 15px;
+  font-size: 16px;
   line-height: 1.45;
 }
+figcaption h3 {
+  margin-bottom: 6px;
+  font-size: clamp(23px, 2.2vw, 30px);
+  line-height: 1.1;
+}
 
-/* one large clip with three small ones stepping down its side */
+/* one clip edge to edge, then three stepping down the page */
 .mosaic {
   display: grid;
   grid-template-columns: repeat(6, 1fr);
-  gap: 32px 20px;
+  gap: 56px 20px;
   margin-top: 56px;
 }
 .mosaic figure {
   grid-column: span 2;
 }
-.mosaic .wide {
+.mosaic figure:nth-child(3) {
+  margin-top: 56px;
+}
+.mosaic figure:nth-child(4) {
+  margin-top: 112px;
+}
+.mosaic .wide,
+.full {
   grid-column: 1 / -1;
+  margin-inline: calc((var(--page) - 100vw) / 2);
+}
+.mosaic .wide video,
+.full img {
+  aspect-ratio: 21 / 9;
+  border-radius: 0;
+}
+.mosaic .wide figcaption,
+.full figcaption {
+  margin-inline: calc((100vw - var(--page)) / 2);
 }
 .full {
   margin-top: 56px;
@@ -467,13 +516,22 @@ figcaption {
   margin-top: 56px;
 }
 
-/* the one loud thing: a pinned screen that follows the upset as the steps scroll past it */
+/* the one loud thing: a pinned screen on the orange sheet, following the upset as the steps scroll past it */
 .incident {
   margin-top: clamp(96px, 14vw, 176px);
   padding: clamp(72px, 9vw, 120px) 0 clamp(40px, 6vw, 80px);
-  background:
-    radial-gradient(50% 420px at 10% 0, rgb(254 85 16 / 0.2), transparent 72%),
-    radial-gradient(46% 460px at 100% 30%, rgb(59 70 207 / 0.24), transparent 72%);
+  background: var(--signal);
+  color: var(--sheet-ink);
+}
+.incident ::selection {
+  background: var(--sheet-ink);
+  color: var(--signal);
+}
+.incident h2 {
+  color: var(--sheet-ink);
+}
+.incident .lead p {
+  font-weight: 450;
 }
 .incident .lead {
   width: var(--page);
@@ -497,9 +555,8 @@ figcaption {
   position: relative;
   aspect-ratio: 16 / 9;
   overflow: hidden;
-  border-radius: 14px;
-  background: #17181e;
-  box-shadow: 0 0 0 1px var(--line), 0 40px 120px -40px rgb(254 85 16 / 0.42), 0 30px 90px -40px rgb(59 70 207 / 0.6);
+  border-radius: var(--radius);
+  background: var(--sheet-ink);
 }
 .screen video {
   position: absolute;
@@ -516,7 +573,7 @@ figcaption {
   margin: 0;
   padding: 0;
   list-style: none;
-  border-left: 2px solid var(--line);
+  border-left: 2px solid rgb(15 16 21 / 0.25);
 }
 .beats li {
   position: relative;
@@ -525,8 +582,7 @@ figcaption {
   justify-content: center;
   min-height: 74vh;
   padding-left: 28px;
-  color: var(--muted);
-  transition: color 0.25s;
+  color: color-mix(in srgb, var(--sheet-ink) 86%, var(--signal));
 }
 .beats li::before {
   content: '';
@@ -535,12 +591,12 @@ figcaption {
   bottom: 0;
   left: -2px;
   width: 2px;
-  background: var(--signal);
+  background: var(--sheet-ink);
   opacity: 0;
   transition: opacity 0.25s;
 }
 .beats li.on {
-  color: var(--fg);
+  color: var(--sheet-ink);
 }
 .beats li.on::before {
   opacity: 1;
@@ -551,14 +607,11 @@ figcaption {
 .beats h3 {
   font-size: clamp(23px, 2.1vw, 30px);
   line-height: 1.14;
-  letter-spacing: -0.022em;
   color: inherit;
-}
-.beats li.on h3 {
-  color: var(--ink);
 }
 .beats p {
   margin-top: 10px;
+  font-weight: 450;
 }
 
 .own {
@@ -579,40 +632,15 @@ figcaption {
 .close {
   position: relative;
   display: flex;
-  align-items: center;
+  align-items: flex-end;
   min-height: 78svh;
   margin-top: clamp(96px, 14vw, 176px);
   overflow: hidden;
   isolation: isolate;
 }
-.close-film {
-  position: absolute;
-  inset: 0;
-  z-index: -2;
-  height: 100%;
-  object-fit: cover;
-}
-.close-shade {
-  position: absolute;
-  inset: 0;
-  z-index: -1;
-  background:
-    linear-gradient(180deg, var(--bg) 0, rgb(14 15 19 / 0.28) 34%, rgb(14 15 19 / 0.28) 66%, var(--bg) 100%),
-    linear-gradient(90deg, rgb(14 15 19 / 0.72), transparent 66%);
-}
-.close-copy {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 26px;
-  width: var(--page);
-  margin: 0 auto;
-}
 .close h2 {
-  font-size: clamp(36px, 4.8vw, 64px);
-  letter-spacing: -0.032em;
-  background: none;
-  color: var(--ink);
+  padding-top: 26px;
+  font-size: clamp(36px, 4.3vw, 62px);
 }
 
 .open {
@@ -634,9 +662,13 @@ figcaption {
   letter-spacing: -0.012em;
 }
 .cta.ghost {
-  background: rgb(255 255 255 / 0.05);
-  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.18);
+  background: none;
+  box-shadow: inset 0 0 0 1.5px var(--ink);
   color: var(--ink);
+}
+.cta.ghost:hover {
+  background: var(--ink);
+  color: var(--bg);
 }
 
 .foot {
@@ -696,16 +728,39 @@ figcaption {
   .top {
     padding: 0 20px;
   }
+  .hero {
+    display: block;
+    min-height: 0;
+  }
+  .hero-film {
+    position: static;
+    aspect-ratio: 4 / 3;
+    height: auto;
+  }
+  .title-block {
+    width: 100%;
+  }
+  .title-block > * {
+    padding: 16px 20px;
+  }
+  h1,
+  .close h2 {
+    padding-top: 22px;
+  }
   .mosaic {
-    grid-template-columns: 1fr 1fr;
-    gap: 24px 12px;
+    grid-template-columns: 1fr;
+    gap: 36px;
     margin-top: 36px;
   }
-  .mosaic figure {
-    grid-column: span 1;
+  .mosaic figure,
+  .mosaic figure:nth-child(3),
+  .mosaic figure:nth-child(4) {
+    grid-column: auto;
+    margin-top: 0;
   }
-  .mosaic figure:last-child {
-    grid-column: 1 / -1;
+  .mosaic .wide video,
+  .full img {
+    aspect-ratio: 16 / 9;
   }
   .pair {
     grid-template-columns: 1fr;
@@ -725,14 +780,13 @@ figcaption {
     display: block;
     min-height: 0;
     padding: 0 0 36px;
-    color: var(--fg);
+    color: var(--sheet-ink);
   }
   .beats li::before {
     display: none;
   }
   .beats li h3 {
     margin-top: 14px;
-    color: var(--ink);
   }
   .beats img {
     display: block;

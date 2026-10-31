@@ -20,7 +20,7 @@ export function Shell({ children }: { children: ReactNode }) {
   const [drawer, setDrawer] = useState(false)
   useEffect(() => setDrawer(false), [loc])
   return (
-    <div className="flex min-h-full flex-col [--header-h:3.5rem]">
+    <div className="page flex min-h-full flex-col [--header-h:3.5rem]">
       <Header onDocsMenu={docs ? () => setDrawer(true) : undefined} />
       {docs ? (
         <DocsLayout drawer={drawer} closeDrawer={() => setDrawer(false)}>

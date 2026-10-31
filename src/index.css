@@ -384,49 +384,198 @@ html.light .footer-light {
     radial-gradient(40% 70% at 95% 10%, rgb(254 85 16 / 0.1), transparent 70%);
 }
 
-/* Home hero: a grainy gradient of signal orange and deep indigo light under a white-to-grey headline. Static, so the
-   full orange-to-indigo blend shows from the first frame. */
-.hero-grain {
-  background:
-    radial-gradient(60% 55% at 50% -8%, rgb(254 85 16 / 0.42), transparent 70%),
-    radial-gradient(45% 50% at 88% 62%, rgb(59 70 207 / 0.5), transparent 72%),
-    radial-gradient(40% 45% at 8% 72%, rgb(59 70 207 / 0.3), transparent 70%),
-    radial-gradient(35% 30% at 30% 30%, rgb(254 120 60 / 0.14), transparent 70%),
-    var(--bg);
-}
 .grain {
   background-image: var(--grain-img);
   background-size: 240px 240px;
   opacity: var(--grain-opacity);
   mix-blend-mode: var(--grain-blend);
 }
-.hero-ink {
-  background: linear-gradient(100deg, #ff8a4c 0%, #fe5510 35%, #f2683a 62%, #b47fc4 82%, #8f97ff 100%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
+
+/* Home: one orange drawing sheet, the same in both themes, then flat, quiet sections. */
+@font-face {
+  font-family: 'Archivo Variable';
+  src: url('../node_modules/@fontsource-variable/archivo/files/archivo-latin-wdth-normal.woff2') format('woff2');
+  font-weight: 100 900;
+  font-stretch: 62% 125%;
+  font-display: swap;
 }
-html.light .hero-grain {
-  background:
-    radial-gradient(60% 55% at 50% -8%, rgb(254 85 16 / 0.26), transparent 70%),
-    radial-gradient(45% 50% at 88% 62%, rgb(59 70 207 / 0.2), transparent 72%),
-    radial-gradient(40% 45% at 8% 72%, rgb(59 70 207 / 0.13), transparent 70%),
-    radial-gradient(35% 30% at 30% 30%, rgb(254 120 60 / 0.12), transparent 70%),
-    var(--bg);
+.display {
+  font-family: 'Archivo Variable', var(--font-sans);
+  font-stretch: 112%;
+  font-weight: 560;
+  letter-spacing: -0.03em;
+  line-height: 1;
+  text-wrap: balance;
 }
-html.light .hero-ink {
-  background-image: linear-gradient(100deg, #f0601f 0%, #e5470a 35%, #ee5a2a 62%, #9a5cbc 82%, #4c56dc 100%);
+.sheet {
+  --ink-on: #0f1015;
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  background: var(--color-signal);
+  color: var(--ink-on);
 }
-/* "Built for agents" band: the same light, turned down and flipped. */
-.agents-band {
-  background:
-    radial-gradient(50% 70% at 0% 0%, rgb(59 70 207 / 0.35), transparent 70%),
-    radial-gradient(40% 60% at 100% 100%, rgb(254 85 16 / 0.18), transparent 70%),
-    var(--deep);
+.sheet ::selection {
+  background: var(--ink-on);
+  color: var(--color-signal);
 }
-html.light .agents-band {
-  background:
-    radial-gradient(50% 70% at 0% 0%, rgb(59 70 207 / 0.12), transparent 70%),
-    radial-gradient(40% 60% at 100% 100%, rgb(254 85 16 / 0.12), transparent 70%),
-    var(--deep);
+.sheet :focus-visible {
+  outline-color: var(--ink-on);
+}
+.sheet-stage {
+  position: absolute;
+  inset: 0 0 0 33%;
+  z-index: -1;
+}
+.sheet-plan {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  transition: opacity 0.7s ease-out 0.45s;
+}
+.sheet-canvas {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transition: opacity 0.3s ease-out;
+}
+.sheet[data-plant='ready'] .sheet-canvas,
+.sheet[data-plant='stood'] .sheet-canvas {
+  opacity: 1;
+}
+.sheet[data-plant='ready'] .sheet-plan,
+.sheet[data-plant='stood'] .sheet-plan {
+  opacity: 0;
+}
+.sheet[data-plant='stood'] .sheet-stage {
+  cursor: grab;
+}
+.sheet[data-plant='stood'] .sheet-stage:active {
+  cursor: grabbing;
+}
+.plan-tag,
+.plan-end {
+  fill: currentColor;
+  font-family: var(--font-sans);
+  font-size: 1px;
+  font-weight: 560;
+}
+.plan-end {
+  font-weight: 450;
+}
+.sheet-btn {
+  display: inline-flex;
+  align-items: center;
+  height: 44px;
+  padding: 0 20px;
+  border-radius: 6px;
+  font-size: 15px;
+  font-weight: 560;
+  transition: background-color 0.15s ease-out, color 0.15s ease-out, transform 0.12s ease-out;
+}
+.sheet-btn:active {
+  transform: scale(0.98);
+}
+.sheet-btn.solid {
+  background: var(--ink-on);
+  color: #fff;
+}
+.sheet-btn.solid:hover {
+  background: #2b2c34;
+}
+.sheet-btn.line {
+  box-shadow: inset 0 0 0 1.5px var(--ink-on);
+}
+.sheet-btn.line:hover {
+  background: var(--ink-on);
+  color: #fff;
+}
+/* The drawing's title block: every sheet carries one, in its lower corner. */
+.title-block {
+  display: grid;
+  grid-template-columns: auto auto;
+  font-size: 13px;
+  line-height: 1.3;
+  box-shadow: inset 0 0 0 1.5px var(--ink-on);
+}
+.title-block > * {
+  padding: 9px 14px;
+}
+.title-block > * + * {
+  box-shadow: -1.5px 0 0 var(--ink-on);
+}
+.title-block a {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.title-block a:hover {
+  background: var(--ink-on);
+  color: #fff;
+}
+/* The process line: one orange run through the steps, with a pair of flange faces at each. */
+.run {
+  position: relative;
+}
+.run::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 0;
+  height: 2px;
+  background: var(--color-signal);
+  transform-origin: left;
+}
+.run-stop {
+  position: relative;
+}
+.run-stop::before {
+  content: '';
+  position: absolute;
+  top: -8px;
+  left: 0;
+  width: 7px;
+  height: 18px;
+  border-inline: 2px solid var(--color-signal);
+  background: var(--bg);
+}
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .run::before {
+      animation: run-draw linear both;
+      animation-timeline: view();
+      animation-range: entry 20% cover 45%;
+    }
+  }
+}
+@keyframes run-draw {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+.index-row {
+  transition: color 0.15s ease-out;
+}
+/* The shared footer's glow and grain stay on the other pages; next to the sheet they read as noise. */
+.page:has(.home) .footer-light,
+.page:has(.home) footer .grain {
+  display: none;
+}
+@media (max-width: 1239px) {
+  .sheet-stage {
+    position: relative;
+    inset: auto;
+    height: min(67.5vw, 48svh);
+    z-index: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .sheet-plan,
+  .sheet-canvas {
+    transition: none;
+  }
 }

@@ -76,10 +76,6 @@ addEventListener('keydown', (e) => {
   if (e.key === 'Escape') setMenu(false)
 })
 
-const top = document.querySelector('.top')
-const hero = document.querySelector('.hero')
-if (top && hero) new IntersectionObserver(([e]) => top.classList.toggle('solid', !e.isIntersecting), { rootMargin: '-64px 0px 0px 0px' }).observe(hero)
-
 const beats = [...document.querySelectorAll<HTMLLIElement>('.beats li')]
 const screens = [...document.querySelectorAll<HTMLVideoElement>('.screen video')]
 const stage = document.querySelector<HTMLElement>('.stage')
