@@ -17,6 +17,11 @@
   --signal: #fe5510;
   --sheet-ink: #0f1015;
   --radius: 6px;
+  /* the page's spacing, and the only spacing: between sections, heading to content, between rows, between columns */
+  --chapter: clamp(96px, 11vw, 160px);
+  --lead: clamp(40px, 4vw, 56px);
+  --row: 56px;
+  --col: 32px;
   --page: min(1240px, calc(100vw - 48px));
   color-scheme: dark;
 }
@@ -51,8 +56,8 @@ h3 {
   text-wrap: balance;
 }
 h2 {
-  font-size: clamp(36px, 5vw, 72px);
-  line-height: 1.02;
+  font-size: clamp(32px, 3.6vw, 52px);
+  line-height: 1.06;
 }
 ::selection {
   background: var(--signal);
@@ -77,21 +82,37 @@ img {
 .cta {
   display: inline-flex;
   align-items: center;
-  height: 48px;
-  padding: 0 24px;
+  height: 44px;
+  padding: 0 20px;
   border-radius: var(--radius);
   background: var(--ink);
   color: var(--bg);
-  font: 600 16px/1 'Inter Variable', sans-serif;
+  font: 600 15px/1 'Inter Variable', sans-serif;
   text-decoration: none;
   white-space: nowrap;
-  transition: background-color 0.15s ease-out, transform 0.12s ease-out;
+  transition: background-color 0.15s ease-out, color 0.15s ease-out, transform 0.12s ease-out;
 }
 .cta:hover {
   background: #d6d6dc;
 }
 .cta:active {
   transform: scale(0.98);
+}
+.cta.on-sheet {
+  background: var(--sheet-ink);
+  color: #fff;
+}
+.cta.on-sheet:hover {
+  background: #2b2c34;
+}
+.cta.on-sheet.outline {
+  background: none;
+  box-shadow: inset 0 0 0 1.5px var(--sheet-ink);
+  color: var(--sheet-ink);
+}
+.cta.on-sheet.outline:hover {
+  background: var(--sheet-ink);
+  color: #fff;
 }
 .cta.small {
   height: 32px;
@@ -343,11 +364,11 @@ img {
 .hero-copy {
   display: grid;
   grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
-  gap: 24px 56px;
+  gap: 24px var(--col);
   align-items: end;
   width: var(--page);
   margin: 0 auto;
-  padding: clamp(36px, 5vh, 64px) 0 clamp(28px, 4vh, 44px);
+  padding: var(--lead) 0;
 }
 h1 {
   text-wrap: wrap;
@@ -381,17 +402,17 @@ h1 {
   object-fit: cover;
 }
 
-/* the whole capability list, as one sentence at display size; each phrase jumps to its clip */
+/* what you can do here, as one sentence at display size; each phrase jumps to its clip */
 .verbs {
   width: var(--page);
-  margin: clamp(88px, 11vw, 152px) auto 0;
+  margin: var(--chapter) auto 0;
   color: var(--muted);
   font-family: 'Archivo Variable', 'Inter Variable', sans-serif;
-  font-size: clamp(38px, 6.4vw, 96px);
+  font-size: clamp(32px, 4.8vw, 72px);
   font-stretch: 112%;
   font-weight: 560;
-  line-height: 1.06;
   letter-spacing: -0.03em;
+  line-height: 1.08;
   text-wrap: pretty;
 }
 .verbs a {
@@ -403,24 +424,42 @@ h1 {
   color: var(--signal);
 }
 [id] {
-  scroll-margin-top: 96px;
+  scroll-margin-top: 88px;
 }
 
+/* every section is built the same way, on the hero's columns: heading left, sentence right, then the clips in two columns */
 .block {
   width: var(--page);
   margin: 0 auto;
-  padding-top: clamp(112px, 15vw, 208px);
+  padding-top: var(--chapter);
 }
 .lead {
-  max-width: 44rem;
+  display: grid;
+  grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+  gap: 16px var(--col);
+  align-items: end;
 }
-.lead p,
-.own-copy p {
-  margin-top: 18px;
-  font-size: clamp(17px, 1.4vw, 20px);
-  line-height: 1.55;
+.lead p {
+  font-size: 18px;
+  line-height: 1.5;
 }
-
+.lead p.quiet {
+  margin-top: 12px;
+  color: var(--muted);
+  font-size: 16px;
+}
+.clips {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: var(--row) var(--col);
+  margin-top: var(--lead);
+}
+.clips .wide {
+  grid-column: 1 / -1;
+}
+.clips .wide img {
+  aspect-ratio: 2 / 1;
+}
 figure {
   margin: 0;
 }
@@ -432,59 +471,22 @@ figure img {
   object-fit: cover;
 }
 figcaption {
-  max-width: 44ch;
-  margin-top: 24px;
+  max-width: 46ch;
+  margin-top: 16px;
   color: var(--muted);
   font-size: 16px;
-  line-height: 1.45;
+  line-height: 1.5;
 }
 figcaption h3 {
-  margin-bottom: 10px;
-  font-size: clamp(23px, 2.2vw, 30px);
-  line-height: 1.1;
+  margin-bottom: 6px;
+  font-size: 24px;
+  line-height: 1.15;
 }
 
-/* one clip edge to edge, then three in a row */
-.mosaic {
-  display: grid;
-  grid-template-columns: repeat(6, 1fr);
-  gap: clamp(64px, 8vw, 112px) 32px;
-  margin-top: clamp(56px, 7vw, 96px);
-}
-.mosaic figure {
-  grid-column: span 2;
-}
-.mosaic .wide,
-.full {
-  grid-column: 1 / -1;
-  margin-inline: calc((var(--page) - 100vw) / 2);
-}
-.mosaic .wide video,
-.full img {
-  aspect-ratio: 21 / 9;
-  border-radius: 0;
-}
-.mosaic .wide figcaption,
-.full figcaption {
-  margin-inline: calc((100vw - var(--page)) / 2);
-}
-.full {
-  margin-top: clamp(56px, 7vw, 96px);
-}
-.pair {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 56px 32px;
-  margin-top: clamp(64px, 8vw, 112px);
-}
-.pair.offset {
-  margin-top: clamp(56px, 7vw, 96px);
-}
-
-/* the one loud thing: a pinned screen on the orange sheet, following the upset as the steps scroll past it */
+/* the one loud thing: a pinned screen on the orange sheet, following the incident as the steps scroll past it */
 .incident {
-  margin-top: clamp(112px, 15vw, 208px);
-  padding: clamp(88px, 10vw, 144px) 0 clamp(56px, 7vw, 96px);
+  margin-top: var(--chapter);
+  padding: var(--chapter) 0;
   background: var(--signal);
   color: var(--sheet-ink);
 }
@@ -495,26 +497,26 @@ figcaption h3 {
 .incident h2 {
   color: var(--sheet-ink);
 }
-.incident .lead p {
-  font-weight: 450;
-}
 .incident .lead {
   width: var(--page);
   margin: 0 auto;
 }
+.incident .lead p {
+  font-weight: 450;
+}
 .story {
   display: grid;
-  grid-template-columns: minmax(0, 1.75fr) minmax(0, 1fr);
-  gap: 56px;
+  grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+  gap: var(--col);
   width: var(--page);
-  margin: 56px auto 0;
+  margin: var(--lead) auto 0;
 }
 .stage {
   position: sticky;
   top: 50%;
   align-self: start;
   transform: translateY(-50%);
-  margin-top: 26vh;
+  margin-top: 30vh;
 }
 .screen {
   position: relative;
@@ -545,8 +547,8 @@ figcaption h3 {
   display: flex;
   flex-direction: column;
   justify-content: center;
-  min-height: 74vh;
-  padding-left: 28px;
+  min-height: 60vh;
+  padding-left: var(--col);
   color: color-mix(in srgb, var(--sheet-ink) 86%, var(--signal));
 }
 .beats li::before {
@@ -579,23 +581,8 @@ figcaption h3 {
   font-weight: 450;
 }
 
-.own {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1.7fr);
-  gap: 56px;
-  align-items: center;
-}
-.own-copy p + p {
-  color: var(--muted);
-  font-size: 16px;
-}
-.own-shot {
-  border-radius: var(--radius);
-  box-shadow: 0 0 0 1px var(--line);
-}
-
 .close {
-  margin-top: clamp(112px, 15vw, 208px);
+  margin-top: var(--chapter);
 }
 .close-film {
   aspect-ratio: 21 / 9;
@@ -606,56 +593,89 @@ figcaption h3 {
   flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
-  gap: 20px 48px;
+  gap: 16px var(--col);
   width: var(--page);
   margin: 0 auto;
-  padding: 44px 0;
-  border-bottom: 1px solid var(--line);
+  padding: var(--lead) 0;
 }
 
-.open {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 20px 48px;
+/* the library site's footer */
+.foot-sheet {
+  background: var(--signal);
+  color: var(--sheet-ink);
+}
+.foot-sheet-in {
+  display: grid;
+  grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+  gap: 24px var(--col);
+  align-items: end;
   width: var(--page);
   margin: 0 auto;
-  padding: 44px 0;
-  border-bottom: 1px solid var(--line);
+  padding: var(--chapter) 0;
 }
-.open p {
-  max-width: 34em;
-  color: var(--ink);
-  font-size: clamp(19px, 1.7vw, 23px);
-  line-height: 1.35;
-  letter-spacing: -0.012em;
+.foot-sheet h2 {
+  color: inherit;
 }
-.cta.ghost {
-  background: none;
-  box-shadow: inset 0 0 0 1.5px var(--ink);
-  color: var(--ink);
-}
-.cta.ghost:hover {
-  background: var(--ink);
-  color: var(--bg);
-}
-
-.foot {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 16px 48px;
-  width: var(--page);
-  margin: 0 auto;
-  padding: 40px 0 48px;
-  color: var(--muted);
-  font-size: 14px;
+.foot-sheet p {
+  max-width: 44ch;
+  margin-top: 16px;
+  font-size: 18px;
+  font-weight: 450;
   line-height: 1.5;
 }
-.foot p {
-  max-width: 76ch;
+.foot-sheet a:focus-visible {
+  outline-color: var(--sheet-ink);
+}
+.foot-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.foot-cols {
+  display: grid;
+  grid-template-columns: 1.4fr repeat(3, 1fr);
+  gap: var(--lead) var(--col);
+  width: var(--page);
+  margin: 0 auto;
+  padding: var(--lead) 0;
+}
+.foot-brand p {
+  max-width: 34ch;
+  margin-top: 16px;
+  color: #b4b4bd;
+  font-size: 15px;
+  line-height: 1.5;
+}
+.foot-cols nav {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 15px;
+}
+.foot-cols h3 {
+  margin-bottom: 6px;
+  font: 600 15px/1.4 'Inter Variable', sans-serif;
+  letter-spacing: 0;
+}
+.foot-cols nav a {
+  color: #b4b4bd;
+  text-decoration: none;
+  transition: color 0.15s ease-out;
+}
+.foot-cols nav a:hover {
+  color: var(--ink);
+}
+.foot-end {
+  border-top: 1px solid var(--line);
+}
+.foot-end p {
+  width: var(--page);
+  margin: 0 auto;
+  padding: 20px 0;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.5;
 }
 
 /* the stage needs width to pin beside the text: narrower screens get a still with each step */
@@ -684,7 +704,7 @@ figcaption h3 {
   }
 }
 @media (max-width: 380px) {
-  .brand span {
+  .top .brand span {
     display: none;
   }
 }
@@ -701,38 +721,28 @@ figcaption h3 {
   .hero {
     min-height: 0;
   }
-  .hero-copy {
+  .hero-copy,
+  .lead,
+  .foot-sheet-in {
     grid-template-columns: minmax(0, 1fr);
-    padding: 32px 0 28px;
   }
   .hero-film {
     flex: none;
     min-height: 0;
     aspect-ratio: 4 / 3;
   }
+  .clips {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 40px;
+  }
+  .clips .wide img {
+    aspect-ratio: 16 / 9;
+  }
   .close-film {
     aspect-ratio: 16 / 9;
   }
-  .mosaic {
-    grid-template-columns: 1fr;
-    gap: 56px;
-    margin-top: 44px;
-  }
-  .mosaic figure {
-    grid-column: auto;
-  }
-  .mosaic .wide video,
-  .full img {
-    aspect-ratio: 16 / 9;
-  }
-  .pair {
-    grid-template-columns: 1fr;
-    gap: 48px;
-    margin-top: 48px;
-  }
   .story {
     display: block;
-    margin-top: 40px;
   }
   .stage {
     display: none;
@@ -743,14 +753,17 @@ figcaption h3 {
   .beats li {
     display: block;
     min-height: 0;
-    padding: 0 0 36px;
+    padding: 0 0 40px;
     color: var(--sheet-ink);
+  }
+  .beats li:last-child {
+    padding-bottom: 0;
   }
   .beats li::before {
     display: none;
   }
   .beats li h3 {
-    margin-top: 14px;
+    margin-top: 16px;
   }
   .beats img {
     display: block;
@@ -758,9 +771,11 @@ figcaption h3 {
     object-fit: cover;
     border-radius: var(--radius);
   }
-  .own {
-    grid-template-columns: 1fr;
-    gap: 32px;
+  .foot-cols {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .foot-brand {
+    grid-column: 1 / -1;
   }
 }
 

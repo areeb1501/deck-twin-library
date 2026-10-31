@@ -8,7 +8,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#0e0f13" />
     <title>Deck Twin: the Alpha field, running in your browser</title>
-    <meta name="description" content="A browser 3D digital twin of a simulated offshore field. Walk it, run it and rehearse the worst day." />
+    <meta name="description" content="A 3D digital twin of a simulated offshore oil and gas field, running in your browser. Walk it, operate it and practise emergencies." />
     <link rel="preload" as="image" href="/alpha/media/v2/hero-flyover.webp" fetchpriority="high" />
   </head>
   <body>
@@ -49,60 +49,60 @@
         <div class="hero-copy">
           <h1><span class="unbroken">The Alpha field,</span> running in your browser</h1>
           <div class="hero-side">
-            <p>A simulated offshore oil and gas field: five platforms, 97 equipment items and 360 instruments. Walk the decks, or sit down at the control room console and operate the plant.</p>
+            <p>A simulated offshore oil and gas field with five platforms, 97 pieces of equipment and 360 instruments. Walk the decks, or sit at the control room console and run the plant.</p>
             <div class="hero-actions">
               <a class="cta" href="/alpha/demo/">Explore demo</a>
-              <span>Best on a laptop or desktop. Phones get a light view.</span>
+              <span>Works best on a laptop or desktop. Phones get a simplified view.</span>
             </div>
           </div>
         </div>
         <video class="hero-film" data-clip="hero-flyover" data-film data-now muted loop playsinline poster="/alpha/media/v2/hero-flyover.webp" aria-hidden="true"></video>
       </section>
 
-      <p class="verbs"><a href="#walk">Walk it</a>, <a href="#inspect">inspect it</a>, <a href="#cut">cut it open</a>, <a href="#xray">see through it</a>, <a href="#console">take the console</a>, <a href="#shutdown">shut it down</a>, <a href="#drills">rehearse it</a>, <a href="#own">load your own</a>.</p>
+      <p class="verbs"><a href="#walk">Walk the decks</a>, <a href="#inspect">inspect equipment</a>, <a href="#cut">see inside it</a>, <a href="#console">run the control room</a>, <a href="#drills">practise emergencies</a> and <a href="#own">load your own plant</a>.</p>
 
       <section class="block">
         <div class="lead">
-          <h2>Go anywhere on the field</h2>
-          <p>The whole field is generated from plant data, so what you see is what the model knows: tagged, connected and open to inspect.</p>
+          <h2>Explore the whole field</h2>
+          <p>The field is built from plant data, so everything you see is tagged, connected and ready to inspect.</p>
         </div>
-        <div class="mosaic">
-          <figure class="wide" id="walk">
+        <div class="clips">
+          <figure id="walk">
             <video data-clip="walk-bridge" data-film muted loop playsinline aria-label="A person in orange coveralls walking along a bridge between platforms"></video>
-            <figcaption><h3>Walk it</h3>Cross the bridges, climb the stairs and step into the control room.</figcaption>
+            <figcaption><h3>Walk the decks</h3>Cross the bridges, climb the stairs and step into the control room.</figcaption>
           </figure>
           <figure id="inspect">
             <video data-clip="inspect" muted loop playsinline aria-label="A pump on deck with its design data and readings beside it"></video>
-            <figcaption><h3>Inspect it</h3>Look at any item for its design data and simulated readings.</figcaption>
+            <figcaption><h3>Inspect any equipment</h3>Select any item to see its design data and simulated readings.</figcaption>
           </figure>
           <figure id="cut">
             <video data-clip="cut-open" muted loop playsinline aria-label="The HP separator cut open, showing its internals and liquid levels"></video>
-            <figcaption><h3>Cut it open</h3>Cut open the HP separator to see its internals and liquid levels.</figcaption>
+            <figcaption><h3>See inside</h3>Cut open the high-pressure separator to see its internals and liquid levels.</figcaption>
           </figure>
           <figure id="xray">
             <video data-clip="xray" muted loop playsinline aria-label="The production deck in x-ray, with vessels and pipes showing through"></video>
-            <figcaption><h3>See through it</h3>Switch to x-ray and follow the pipes through the deck.</figcaption>
+            <figcaption><h3>See through the deck</h3>Switch to x-ray view and follow the pipes from one vessel to the next.</figcaption>
           </figure>
         </div>
       </section>
 
-      <section class="block running">
+      <section class="block">
         <div class="lead">
           <h2>The plant is running</h2>
-          <p>Behind the model is a dynamic simulation of the wells, separation, compression, export, power and utilities. The control room console is where you operate it.</p>
+          <p>Wells, separation, compression, export, power and utilities all run in a live simulation. You operate them from the control room console.</p>
         </div>
-        <figure class="full" id="console">
-          <img data-still="control-wall" alt="The Central Control Room, with its video wall and operator consoles" />
-          <figcaption><h3>Take the console</h3>Walk into the Central Control Room and sit at the console.</figcaption>
-        </figure>
-        <div class="pair">
+        <div class="clips">
+          <figure class="wide" id="console">
+            <img data-still="control-wall" alt="The Central Control Room, with its video wall and operator consoles" />
+            <figcaption><h3>Run the control room</h3>Walk into the Central Control Room and sit down at the console.</figcaption>
+          </figure>
           <figure>
             <video data-clip="dashboard" muted loop playsinline aria-label="The console dashboard with a field risk score and platform status"></video>
-            <figcaption><h3>Watch the risk</h3>Field risk, production and availability change as the plant does.</figcaption>
+            <figcaption><h3>Watch the numbers</h3>Field risk, production and availability update as the plant changes.</figcaption>
           </figure>
           <figure id="shutdown">
             <video data-clip="shutdown" muted loop playsinline aria-label="The console shutdown page with its cause and effect list"></video>
-            <figcaption><h3>Shut it down</h3>Shutdowns latch, and reset only once the cause has cleared.</figcaption>
+            <figcaption><h3>Handle shutdowns</h3>A shutdown stays active until its cause has been cleared.</figcaption>
           </figure>
         </div>
       </section>
@@ -110,7 +110,7 @@
       <section class="incident">
         <div class="lead">
           <h2>When something goes wrong</h2>
-          <p>One upset, followed through the twin from the first detector to the investigation.</p>
+          <p>Follow one incident from the first gas alarm through to the investigation.</p>
         </div>
         <div class="story">
           <div class="stage" aria-hidden="true">
@@ -123,39 +123,45 @@
             </div>
           </div>
           <ol class="beats">
-            <li class="on"><img data-still="leak" alt="Gas spreading from the HP separator" /><h3>A flange starts to leak</h3><p>It lets go at the HP separator outlet, and one gas detector sees it.</p></li>
-            <li><img data-still="cctv" alt="The CCTV wall with the release on the main monitor" /><h3>A second detector agrees</h3><p>The console puts the camera up on its own. We use SAM 3.1 segmentation to identify people and give alerts in real time.</p></li>
-            <li><img data-still="flare" alt="The flare burning at the end of its boom" /><h3>The platform shuts itself down</h3><p>Emergency shutdown. The zone blows down to the flare.</p></li>
-            <li><img data-still="fire" alt="Fire and deluge on the separation deck" /><h3>The gas ignites</h3><p>The deluge comes on and the fire pumps start.</p></li>
-            <li><img data-still="investigate" alt="The investigation trace on the console" /><h3>An agent works out what happened</h3><p>Every step it takes is on the record. In this demo it is a simulated local planner, not a live model.</p></li>
+            <li class="on"><img data-still="leak" alt="Gas spreading from the HP separator" /><h3>A flange starts to leak</h3><p>Gas escapes at the high-pressure separator, and one detector picks it up.</p></li>
+            <li><img data-still="cctv" alt="The CCTV wall with the release on the main monitor" /><h3>A second detector confirms it</h3><p>The console brings up the nearest camera on its own. SAM 3.1 segmentation identifies people on screen and raises alerts in real time.</p></li>
+            <li><img data-still="flare" alt="The flare burning at the end of its boom" /><h3>The platform shuts itself down</h3><p>An emergency shutdown starts, and gas from the affected area is sent to the flare.</p></li>
+            <li><img data-still="fire" alt="Fire and deluge on the separation deck" /><h3>The gas ignites</h3><p>The deluge system sprays the area with water and the fire pumps start.</p></li>
+            <li><img data-still="investigate" alt="The investigation trace on the console" /><h3>An agent investigates</h3><p>It works out what happened and records every step. In this demo it is a simulated local planner, not a live AI model.</p></li>
           </ol>
         </div>
       </section>
 
       <section class="block">
         <div class="lead">
-          <h2>Rehearse it before it happens</h2>
-          <p>The same plant is a training ground, so a crew can practise a bad day on a quiet one.</p>
+          <h2>Practise before it happens</h2>
+          <p>Crews can train on the same plant and work through emergencies with no real risk.</p>
         </div>
-        <div class="pair offset">
+        <div class="clips">
           <figure id="drills">
             <video data-clip="scenarios" muted loop playsinline aria-label="The console list of training scenarios"></video>
-            <figcaption><h3>Run the drills</h3>Run 12 operator-training drills, and see how each one was handled.</figcaption>
+            <figcaption><h3>Run training drills</h3>Work through 12 operator drills and review how each one was handled.</figcaption>
           </figure>
           <figure>
             <video data-clip="fg-map" muted loop playsinline aria-label="The Alpha deck coloured by fire and gas coverage"></video>
-            <figcaption><h3>Map the gaps</h3>Fire and gas mapping shows what every detector can see, and what none of them can.</figcaption>
+            <figcaption><h3>Check detector coverage</h3>See what each fire and gas detector can see, and where the gaps are.</figcaption>
           </figure>
         </div>
       </section>
 
-      <section class="block own" id="own">
-        <div class="own-copy">
+      <section class="block" id="own">
+        <div class="lead">
           <h2>Bring your own plant</h2>
-          <p>Load a plant.json built from the Deck Twin component library and use the same engine on it. Orbit it, walk it, inspect it and cut it open.</p>
-          <p>It stays in your browser until you remove it. The simulation and the console stay with the Alpha field.</p>
+          <div>
+            <p>Load a plant.json file built from Deck Twin components, then orbit it, walk it, inspect it and cut it open.</p>
+            <p class="quiet">Your file stays in your browser until you remove it. The simulation and control room console work with the Alpha field only.</p>
+          </div>
         </div>
-        <img class="own-shot" data-still="own-plant" alt="An imported offshore water injection module on its jacket, with its tag list beside it" />
+        <div class="clips">
+          <figure class="wide">
+            <img data-still="own-plant" alt="An imported offshore water injection module on its jacket, with its tag list beside it" />
+          </figure>
+        </div>
       </section>
 
       <section class="close">
@@ -165,14 +171,36 @@
           <a class="cta" href="/alpha/demo/">Explore demo</a>
         </div>
       </section>
-      <section class="open">
-        <p>All the components used to build this model are open source, and you can find them in the component library.</p>
-        <a class="cta ghost" href="/components">Browse components</a>
-      </section>
     </main>
 
-    <footer class="foot">
-      <p>Everything here is simulated: process values, alarms, people and agent answers. Cameras run SAM 3.1 when it is switched on, and a simulated detector otherwise. The engineering data is plausible and based on public standards, but it isn't from a real asset.</p>
+    <footer class="site-foot">
+      <section class="foot-sheet">
+        <div class="foot-sheet-in">
+          <div>
+            <h2>From one valve to a whole platform</h2>
+            <p>Every component in this model is open source. You can find them all in the component library.</p>
+          </div>
+          <div class="foot-actions">
+            <a class="cta on-sheet" href="/docs/installation">Get started</a>
+            <a class="cta on-sheet outline" href="/components">Browse components</a>
+          </div>
+        </div>
+      </section>
+      <div class="foot-cols">
+        <div class="foot-brand">
+          <a class="brand" href="/">
+            <svg viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="7" fill="#fe5510" /><path d="M7 22h18M9.5 22v-6h13v6M12.5 16v-4h7v4M16 12V8.5" stroke="#fff" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round" /><circle cx="16" cy="6.5" r="2" fill="#fff" /></svg>
+            <span>Deck Twin</span>
+          </a>
+          <p>3D components for oil &amp; gas digital twins, sized from public engineering standards.</p>
+        </div>
+        <nav aria-label="Library"><h3>Library</h3><a href="/components">Components</a><a href="/symbols">P&amp;ID symbols</a><a href="/examples">Example plants</a><a href="/playground">Playground</a></nav>
+        <nav aria-label="Docs"><h3>Docs</h3><a href="/docs/installation">Installation</a><a href="/docs/cli">CLI</a><a href="/docs/assemble">Assembling plants</a><a href="/docs/standards">Standards &amp; data</a></nav>
+        <nav aria-label="For agents"><h3>For agents</h3><a href="/docs/agents">Agent skill</a><a href="/llms.txt">llms.txt</a><a href="/r/index.json">Registry index</a><a href="/prompt.md">Setup prompt</a></nav>
+      </div>
+      <div class="foot-end">
+        <p>Everything here is simulated: process values, alarms, people and agent answers. Cameras use SAM 3.1 when it is switched on, and a simulated detector otherwise. The engineering data is based on public standards, but it does not come from a real asset.</p>
+      </div>
     </footer>
 
     <dialog class="search" aria-label="Search docs and components">
