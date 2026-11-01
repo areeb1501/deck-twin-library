@@ -6,8 +6,8 @@
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 import { fresh, run, sim } from './harness'
 import { PLANT_CONTEXT, runWorkflow, useWorkflowRuns, WORKFLOWS } from '../src/agents/catalog'
-import { chat, PROVIDER_LABEL, useProvider, type LlmMessage } from '../src/agents/provider'
-import { jsonFrom, runAgent } from '../src/agents/runtime'
+import { PROVIDER_LABEL, useProvider } from '../src/agents/provider'
+import { jsonFrom } from '../src/agents/runtime'
 import { AGENT_TOOLS, runTool } from '../src/safety/agentTools'
 import { useAlerts } from '../src/safety/alerts'
 import { useCctv } from '../src/safety/cctv'
@@ -138,104 +138,14 @@ describe('workflows on the sim provider', () => {
     expect(sim().actions).toHaveLength(before)
   })
 
-  it('falls back to the local planner when the provider fails', async () => {
-    vi.stubGlobal('fetch', vi.fn(async () => new Response('{}', { status: 503 })))
-    useProvider.setState({ provider: 'tokenfactory' })
-    const result = await complete('drift')
-    vi.unstubAllGlobals()
-    expect(result).toMatchObject({ status: 'done', provider: 'tokenfactory', model: 'sim-planner' })
-    expect(useAlerts.getState().trace.some((s) => s.traceId === result.traceId && /falling back to the local planner/.test(s.text))).toBe(true)
-  })
 })
 
-describe('the browser client', () => {
-  type Sent = { url: string; init: RequestInit; body: { provider: string; messages: LlmMessage[]; tools: { function: { name: string } }[] } }
-  const reply = (message: unknown) => new Response(JSON.stringify({ model: 'test-model', choices: [{ message }], usage: { prompt_tokens: 3, completion_tokens: 2 } }))
-  const sent: Sent[] = []
-
-  function serve(...replies: unknown[]) {
-    sent.length = 0
-    const queue = [...replies]
-    vi.stubGlobal('fetch', vi.fn(async (url: string, init: RequestInit) => {
-      sent.push({ url, init, body: JSON.parse(init.body as string) })
-      return reply(queue.length > 1 ? queue.shift() : queue[0])
-    }))
-  }
-  const toolCall = (name: string) => ({ content: '', tool_calls: [{ id: 'c1', function: { name, arguments: '{}' } }] })
-
-  afterEach(() => void vi.unstubAllGlobals())
-
-  describe('chat()', () => {
-    beforeEach(async () => {
-      serve({ content: 'ok' })
-      await chat('tokenfactory', [{ role: 'user', content: 'status?' }], AGENT_TOOLS.slice(0, 1))
-    })
-
-    it('posts to the same-origin proxy', () => expect(sent[0].url).toBe('/api/llm'))
-    it('sends a content type and no other header', () => expect(Object.keys(sent[0].init.headers as object)).toEqual(['content-type']))
-    it('sends no credentials field in the body', () => expect(Object.keys(sent[0].body).sort()).toEqual(['messages', 'provider', 'tools']))
-    it('carries nothing that looks like a key', () => expect(sent[0].init.body).not.toMatch(/api[-_]?key|authorization|bearer/i))
-    it('names the provider and leaves the key to the server', () => expect(sent[0].body.provider).toBe('tokenfactory'))
-  })
-
-  it('strips reasoning from the reply', async () => {
-    serve({ content: '<think>hmm</think> answer' })
-    expect((await chat('tokenfactory', [], [])).content).toBe('answer')
-  })
-
-  it('raises the server error', async () => {
-    vi.stubGlobal('fetch', vi.fn(async () => new Response(JSON.stringify({ error: 'no key configured' }), { status: 500 })))
-    await expect(chat('muse', [], [])).rejects.toThrow('no key configured')
-  })
-
-  describe('runAgent()', () => {
-    beforeEach(() => fresh())
-
-    it('refuses to run the local planner remotely', async () => {
-      await expect(runAgent({ traceId: 'T', system: '', user: '', provider: 'sim' })).rejects.toThrow(/sim provider/)
-    })
-
-    it('runs the tool the model calls and returns its result to the model', async () => {
-      serve(toolCall('get_field_status'), { content: 'all good' })
-      const result = await runAgent({ traceId: 'T1', system: 'sys', user: 'status?', provider: 'tokenfactory' })
-      expect(result).toEqual({ text: 'all good', model: 'test-model', provider: 'tokenfactory', toolCalls: 1 })
-      expect(sent[1].body.messages.at(-1)).toMatchObject({ role: 'tool', tool_call_id: 'c1' })
-      expect(sent[1].body.messages.at(-1)?.content).toContain('oilExportBpd')
-    })
-
-    it('offers the model only the tools the workflow lists', async () => {
-      serve({ content: 'done' })
-      await runAgent({ traceId: 'T2', system: '', user: '', tools: ['get_risk'], provider: 'tokenfactory' })
-      expect(sent[0].body.tools.map((t) => t.function.name)).toEqual(['get_risk'])
-    })
-
-    it('traces each model turn and tool call', async () => {
-      serve(toolCall('get_risk'), { content: 'done' })
-      await runAgent({ traceId: 'T3', system: '', user: '', provider: 'tokenfactory' })
-      expect(useAlerts.getState().trace.filter((s) => s.traceId === 'T3').map((s) => s.actor)).toEqual(['model', 'tool', 'model'])
-    })
-
-    it('asks for an answer without tools at the step limit', async () => {
-      serve(toolCall('get_risk'))
-      await runAgent({ traceId: 'T4', system: '', user: '', maxSteps: 2, provider: 'tokenfactory' })
-      expect(sent).toHaveLength(3)
-      expect(sent[2].body.tools).toEqual([])
-    })
-
-    it('leaves the plant unchanged when the model calls a tool that does not exist', async () => {
-      serve(toolCall('close_valve'), { content: 'done' })
-      const before = sim().actions.length
-      await runAgent({ traceId: 'T5', system: '', user: '', provider: 'tokenfactory' })
-      expect(sent[1].body.messages.at(-1)?.content).toContain('Unknown tool close_valve')
-      expect(sim().actions).toHaveLength(before)
-    })
-  })
-
+describe('model replies', () => {
   it('reads the JSON out of a wrapped model reply', () => expect(jsonFrom('Here you go: {"a": 1} done')).toEqual({ a: 1 }))
 })
 
 describe('models', () => {
-  it('defaults to the local planner', () => expect(useProvider.getInitialState().provider).toBe('sim'))
+  it('defaults to Muse Spark', () => expect(useProvider.getInitialState().provider).toBe('muse'))
   it('names no Claude model anywhere in the agent setup', () => {
     expect(JSON.stringify({ PROVIDER_LABEL, PLANT_CONTEXT, WORKFLOWS })).not.toMatch(/claude|anthropic/i)
   })

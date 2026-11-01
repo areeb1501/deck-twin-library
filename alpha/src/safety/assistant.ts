@@ -3,8 +3,7 @@
  *
  * The planner here is LOCAL and rule-based (keyword intents → read-only tool calls → a crisp answer
  * with the numbers). It reaches the twin ONLY through `runTool` (agentTools.ts) and records every
- * step in the trace, so plan 09 can swap `localAnswer` for a tool-calling LLM (Nemotron / Muse
- * Spark) without changing the tool, trace or ChatMessage shapes.
+ * step in the trace, so Muse Spark can answer in place of `localAnswer` without changing the tool, trace or ChatMessage shapes.
  *
  * Advisory only: nothing here calls a simulation action.
  */
@@ -14,8 +13,7 @@ import type { PlatformId } from '../sim/types'
 import { useSim } from '../state/sim'
 import { addTrace, newTraceId } from './alerts'
 import { runTool } from './agentTools'
-import { runAgent } from '../agents/runtime'
-import { useProvider } from '../agents/provider'
+import { modelOn, runAgent } from '../agents/runtime'
 import { PLANT_CONTEXT } from '../agents/catalog'
 
 const CAP_CHAT = 100
@@ -396,10 +394,10 @@ export async function ask(question: string): Promise<ChatMessage> {
   // a short pause so the answer reads like it was worked out, not pasted
   await new Promise((r) => setTimeout(r, 350))
   let msg: ChatMessage
-  // a remote model (Nemotron / Muse) when one is selected; the local planner otherwise or on failure
-  if (useProvider.getState().provider !== 'sim') {
+  // Muse Spark when it is selected and connected; the local planner otherwise or on failure
+  if (modelOn()) {
     try {
-      const r = await runAgent({ traceId, system: PLANT_CONTEXT, user: q, maxSteps: 6 })
+      const r = await runAgent({ traceId, system: PLANT_CONTEXT, user: q })
       const tags = tagsInText(r.text, traceId, new Set())
       addTrace(traceId, { actor: 'assistant', kind: 'answer', text: `Answered by ${r.model} with ${r.toolCalls} tool call(s)`, data: { planner: r.provider, model: r.model } })
       msg = push({ role: 'assistant', text: r.text || '(no answer)', tags, traceId })

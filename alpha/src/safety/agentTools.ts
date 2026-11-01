@@ -1,6 +1,6 @@
 /**
  * Read-only agent tools over the twin (plan 04). The same names and parameter shapes are what a
- * tool-calling LLM (plan 09: Nemotron via Token Factory now, Muse Spark later) will call.
+ * evidence Muse Spark answers from.
  *
  * Rules:
  *   - every `run()` returns PLAIN JSON (no functions, getters, class instances or cycles);

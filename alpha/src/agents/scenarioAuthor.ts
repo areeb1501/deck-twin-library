@@ -58,6 +58,8 @@ export interface Usage {
 interface AuthorStore extends Settings {
   /** a key is saved for each provider (null until asked) */
   saved: Partial<Record<AuthorProviderId, boolean>>
+  /** finds a key already in this browser, and moves to its provider when the current one has none */
+  detectKey: () => Promise<void>
   /** text waiting in the message box */
   seed: string
   chat: ChatLine[]
@@ -123,7 +125,7 @@ async function refreshSaved(p: AuthorProviderId) {
 }
 
 export const useAuthor = create<AuthorStore>((set, get) => ({
-  provider: settings0.provider && AUTHOR_PROVIDERS[settings0.provider] ? settings0.provider : 'modal',
+  provider: settings0.provider && AUTHOR_PROVIDERS[settings0.provider] ? settings0.provider : 'meta',
   models: settings0.models ?? {},
   endpoint: settings0.endpoint ?? '',
   saved: {},
@@ -161,6 +163,13 @@ export const useAuthor = create<AuthorStore>((set, get) => ({
     else await forgetKey(AUTHOR_PROVIDERS[p].keyId)
     await refreshSaved(p)
   },
+  detectKey: async () => {
+    const ids = Object.keys(AUTHOR_PROVIDERS) as AuthorProviderId[]
+    await Promise.all(ids.map(refreshSaved))
+    const s = get()
+    const found = ids.find((id) => s.saved[id])
+    if (!s.saved[s.provider] && found) s.setProvider(found)
+  },
   send: (text) => send(text),
   stop: () => controller?.abort(),
   newChat: () => {
@@ -170,7 +179,7 @@ export const useAuthor = create<AuthorStore>((set, get) => ({
   begin: (text) => {
     const s = get()
     if (!text) return
-    if (s.saved[s.provider] === true && !needsSetup(s)) void send(text)
+    if (connected(s)) void send(text)
     else set({ seed: text })
   },
   edit: (id) => {
@@ -197,6 +206,18 @@ export const useAuthor = create<AuthorStore>((set, get) => ({
 /** what the model connection still needs, or null */
 export const needsSetup = (s: Pick<AuthorStore, 'provider' | 'endpoint' | 'saved'>) =>
   AUTHOR_PROVIDERS[s.provider].endpoint && !s.endpoint ? 'Add your Modal endpoint to start.' : s.saved[s.provider] === false ? 'Add your key to start.' : null
+
+/** true when a model can be called right now */
+export const connected = (s: Pick<AuthorStore, 'provider' | 'endpoint' | 'saved'>) => s.saved[s.provider] === true && !needsSetup(s)
+
+/** the operator's connection with its key, read only when a request is about to go out */
+export async function connection() {
+  const s = useAuthor.getState()
+  if (needsSetup(s)) return null
+  const p = AUTHOR_PROVIDERS[s.provider]
+  const key = await loadKey(p.keyId).catch(() => null)
+  return key ? { provider: s.provider, model: modelOf(p, s.models[s.provider]), endpoint: s.endpoint, key } : null
+}
 
 const why = (e: unknown) => (e instanceof Error ? e.message : String(e))
 
@@ -228,7 +249,7 @@ export function messagesFor(system: string, chat: ChatLine[]): ChatMessage[] {
   ]
 }
 
-function charge(a: Answer) {
+export function charge(a: Answer) {
   const price = priceOf(a.model)
   useAuthor.setState((s) => ({
     usage: {

@@ -5,7 +5,7 @@
  */
 import { useEffect, useRef, useState, type FormEvent, type KeyboardEvent } from 'react'
 import { AUTHOR_PROVIDERS, modelOf, priceOf, type AuthorProviderId } from '../../agents/authorProvider'
-import { CAP_REQUESTS, CAP_TOKENS, MAX_REPAIRS, needsSetup, overLimit, useAuthor, type Stage } from '../../agents/scenarioAuthor'
+import { CAP_REQUESTS, CAP_TOKENS, MAX_REPAIRS, connected, needsSetup, overLimit, useAuthor, type Stage } from '../../agents/scenarioAuthor'
 import { cleanKey } from '../../safety/metaKey'
 import type { ChatLine } from '../../sim/scen/custom'
 import { DIFFICULTY_LABEL } from '../../sim/scen/types'
@@ -162,60 +162,71 @@ function Line({ l }: { l: ChatLine }) {
 
 // ================================================================= connection
 
-export function Connection() {
+/** the endpoint and key of the selected provider. The one place a key goes in, wherever it is shown */
+export function KeyField() {
   const provider = useAuthor((s) => s.provider)
   const saved = useAuthor((s) => s.saved[provider])
   const endpoint = useAuthor((s) => s.endpoint)
+  const a = useAuthor.getState()
+  const p = AUTHOR_PROVIDERS[provider]
+  const [draft, setDraft] = useState('')
+  const key = cleanKey(draft)
+  return (
+    <>
+      {p.endpoint && (
+        <label>
+          Endpoint
+          <input type="url" spellCheck={false} autoComplete="off" placeholder="https://….us-west.modal.direct" value={endpoint} onChange={(e) => a.setEndpoint(e.target.value)} data-scn="endpoint" />
+        </label>
+      )}
+      {saved ? (
+        <div className="scn-saved">
+          <span>Key saved</span>
+          <button className="link" onClick={() => void a.forgetProviderKey()} data-scn="forget">
+            Remove
+          </button>
+        </div>
+      ) : (
+        <form
+          onSubmit={(e) => {
+            e.preventDefault()
+            if (!key) return
+            void a.saveProviderKey(key)
+            setDraft('')
+          }}
+        >
+          <label>
+            API key
+            <input type="password" autoComplete="off" spellCheck={false} placeholder={p.keyPlaceholder} aria-label={`${p.label} key`} value={draft} onChange={(e) => setDraft(e.target.value)} data-scn="key" />
+          </label>
+          <button type="submit" disabled={!key} data-scn="save-key">
+            Save key
+          </button>
+        </form>
+      )}
+    </>
+  )
+}
+
+export function Connection() {
+  const provider = useAuthor((s) => s.provider)
   const chosen = useAuthor((s) => s.models[provider])
-  const needs = useAuthor(needsSetup)
+  const ready = useAuthor(connected)
   const a = useAuthor.getState()
   const p = AUTHOR_PROVIDERS[provider]
   const model = modelOf(p, chosen)
-  const [draft, setDraft] = useState('')
-  const key = cleanKey(draft)
-  const ready = saved === true && !needs
   return (
     <Box title="Model" right={<span className={`scn-state ${ready ? 'ok' : ''}`} data-scn="state">{ready ? 'Connected' : 'Not connected'}</span>} className="scn-setup">
       <div className="scn-setup-body" data-scn="setup">
         <div className="scn-prov" role="radiogroup" aria-label="Provider" data-scn="providers">
           {(Object.keys(AUTHOR_PROVIDERS) as AuthorProviderId[]).map((id) => (
-            <button role="radio" aria-checked={id === provider} className={id === provider ? 'on' : ''} onClick={() => (a.setProvider(id), setDraft(''))} data-scn-provider={id} key={id}>
+            <button role="radio" aria-checked={id === provider} className={id === provider ? 'on' : ''} onClick={() => a.setProvider(id)} data-scn-provider={id} key={id}>
               {AUTHOR_PROVIDERS[id].label}
             </button>
           ))}
         </div>
         <div className="scn-conn">
-          {p.endpoint && (
-            <label>
-              Endpoint
-              <input type="url" spellCheck={false} autoComplete="off" placeholder="https://….us-west.modal.direct" value={endpoint} onChange={(e) => a.setEndpoint(e.target.value)} data-scn="endpoint" />
-            </label>
-          )}
-          {saved ? (
-            <div className="scn-saved">
-              <span>Key saved</span>
-              <button className="link" onClick={() => void a.forgetProviderKey()} data-scn="forget">
-                Remove
-              </button>
-            </div>
-          ) : (
-            <form
-              onSubmit={(e) => {
-                e.preventDefault()
-                if (!key) return
-                void a.saveProviderKey(key)
-                setDraft('')
-              }}
-            >
-              <label>
-                API key
-                <input type="password" autoComplete="off" spellCheck={false} placeholder={p.keyPlaceholder} aria-label={`${p.label} key`} value={draft} onChange={(e) => setDraft(e.target.value)} data-scn="key" />
-              </label>
-              <button type="submit" disabled={!key} data-scn="save-key">
-                Save key
-              </button>
-            </form>
-          )}
+          <KeyField />
           {p.models.length > 1 ? (
             <label>
               Model
@@ -243,7 +254,7 @@ export function Connection() {
   )
 }
 
-function Usage() {
+export function Usage() {
   const u = useAuthor((s) => s.usage)
   const provider = useAuthor((s) => s.provider)
   const model = modelOf(AUTHOR_PROVIDERS[provider], useAuthor((s) => s.models[provider]))

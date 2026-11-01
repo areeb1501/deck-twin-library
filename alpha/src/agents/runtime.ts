@@ -1,15 +1,17 @@
 /**
- * Agent runtime (docs/plans/09-agents-and-models.md, 9a): one tool-calling loop for every workflow
- * and every model. The model proposes tool calls; the twin's read-only tools (safety/agentTools.ts)
- * run locally in the browser, where the live plant state is; results go back to the model until it
- * answers. Every model turn and tool call is a TraceStep, so each answer can be audited.
+ * Agent runtime: every workflow, investigation and question runs the same way. The twin's read-only tools
+ * (safety/agentTools.ts) run in the browser, where the live plant state is, and their results go to Muse Spark as evidence for
+ * one answer. One click is one request, counted against the same limit as the scenario builder. Every tool call and model
+ * answer is a TraceStep, so each answer can be audited.
  *
- * Advisory only — the tools read, they never act on the plant.
+ * Advisory only: the tools read, they never act on the plant.
  */
 import { AGENT_TOOLS, runTool } from '../safety/agentTools'
 import { addTrace } from '../safety/alerts'
 import type { AgentTool } from '../safety/types'
-import { chat, useProvider, type LlmMessage, type ProviderId } from './provider'
+import { askModel, type ChatMessage } from './authorProvider'
+import { useProvider, type ProviderId } from './provider'
+import { CAP_REQUESTS, CAP_TOKENS, charge, connection, connected, overLimit, useAuthor } from './scenarioAuthor'
 
 export interface AgentRun {
   text: string
@@ -18,47 +20,44 @@ export interface AgentRun {
   toolCalls: number
 }
 
-const MAX_RESULT = 6000
+const MAX_RESULT = 4000
+const TAG = /\b[A-Z]{1,3}-[A-Z]?\d{3,4}[A-Z]?\b/g
 
-/** run a tool-calling loop on the selected remote provider; throws when the provider is unavailable */
-export async function runAgent(opts: { traceId: string; system: string; user: string; tools?: string[]; maxSteps?: number; provider?: ProviderId }): Promise<AgentRun> {
-  const provider = opts.provider ?? useProvider.getState().provider
-  if (provider === 'sim') throw new Error('sim provider: use the local planner')
-  const tools: AgentTool[] = opts.tools ? AGENT_TOOLS.filter((t) => opts.tools!.includes(t.name)) : AGENT_TOOLS
-  const messages: LlmMessage[] = [
-    { role: 'system', content: opts.system },
-    { role: 'user', content: opts.user },
-  ]
-  let calls = 0
-  let model: string = provider
-  for (let step = 0; step < (opts.maxSteps ?? 6); step++) {
-    const turn = await chat(provider, messages, tools)
-    model = turn.model
-    addTrace(opts.traceId, {
-      actor: 'model',
-      kind: turn.toolCalls.length ? 'decide' : 'answer',
-      text: turn.toolCalls.length ? `${model} → ${turn.toolCalls.map((c) => c.name).join(', ')}` : `${model} answered`,
-      data: { provider, model, ms: turn.ms, usage: turn.usage, step },
-    })
-    if (!turn.toolCalls.length) return { text: turn.content, model, provider, toolCalls: calls }
-    messages.push({ role: 'assistant', content: turn.content, tool_calls: turn.toolCalls })
-    for (const c of turn.toolCalls) {
-      let args: Record<string, unknown> = {}
-      try {
-        args = c.arguments ? (JSON.parse(c.arguments) as Record<string, unknown>) : {}
-      } catch {
-        /* malformed arguments: run with none */
-      }
-      const result = runTool(c.name, args, opts.traceId)
-      calls++
-      messages.push({ role: 'tool', tool_call_id: c.id, content: JSON.stringify(result).slice(0, MAX_RESULT) })
-    }
+const RULES = `Answer from the evidence below, which is live plant data read just now. If it does not hold the answer, say so. Never invent a tag or a reading. You advise: the operator acts.`
+
+/** true when a run should go to the model, false when it stays on the local planner */
+export const modelOn = () => useProvider.getState().provider === 'muse' && connected(useAuthor.getState())
+
+/** the tools a run can read with no arguments, plus the equipment it names */
+function evidenceCalls(tools: AgentTool[], text: string) {
+  const free = tools.filter((t) => !Object.values(t.params).some((p) => p.required))
+  const tags = tools.some((t) => t.name === 'get_equipment') ? [...new Set(text.match(TAG) ?? [])].slice(0, 3) : []
+  return [...free.map((t) => ({ name: t.name, args: {} })), ...tags.map((tag) => ({ name: 'get_equipment', args: { tag } }))]
+}
+
+/** one request to Muse Spark; throws when it can't be made, and the caller uses the local planner */
+export async function runAgent(opts: { traceId: string; system: string; user: string; tools?: string[]; maxSteps?: number }): Promise<AgentRun> {
+  try {
+    if (overLimit(useAuthor.getState().usage)) throw new Error(`Stopped at the limit for this page load: ${CAP_REQUESTS} requests or ${CAP_TOKENS.toLocaleString()} tokens. Reload to carry on.`)
+    const c = await connection()
+    if (!c) throw new Error('No Muse Spark key saved')
+    const tools = opts.tools ? AGENT_TOOLS.filter((t) => opts.tools!.includes(t.name)) : AGENT_TOOLS
+    const calls = evidenceCalls(tools, opts.user)
+    const evidence = calls.map((x) => `${x.name}(${x.args && Object.keys(x.args).length ? JSON.stringify(x.args) : ''})\n${JSON.stringify(runTool(x.name, x.args, opts.traceId)).slice(0, MAX_RESULT)}`)
+    const messages: ChatMessage[] = [
+      { role: 'system', content: `${opts.system}\n\n${RULES}` },
+      { role: 'user', content: `${opts.user}\n\nEvidence:\n${evidence.join('\n\n')}` },
+    ]
+    const t0 = performance.now()
+    const a = await askModel(c, messages, new AbortController().signal, () => {})
+    charge(a)
+    addTrace(opts.traceId, { actor: 'model', kind: 'answer', text: `${a.model} answered`, data: { provider: 'muse', model: a.model, ms: Math.round(performance.now() - t0), usage: { in: a.input, out: a.output } } })
+    useProvider.setState({ error: null })
+    return { text: a.text, model: a.model, provider: 'muse', toolCalls: calls.length }
+  } catch (e) {
+    useProvider.setState({ error: e instanceof Error ? e.message : String(e) })
+    throw e
   }
-  // out of steps: ask for the answer without tools
-  messages.push({ role: 'user', content: 'Answer now with what you have.' })
-  const last = await chat(provider, messages, [])
-  addTrace(opts.traceId, { actor: 'model', kind: 'answer', text: `${last.model} answered (step limit)`, data: { provider, model: last.model, ms: last.ms } })
-  return { text: last.content, model: last.model, provider, toolCalls: calls }
 }
 
 /** pull the first JSON object out of a model reply (models wrap JSON in prose or fences) */

@@ -1,7 +1,7 @@
 /**
  * Agent workflow catalogue (docs/plans/09-agents-and-models.md, 9b). A workflow is a fixed process:
  * a system prompt, the tools it may use and the output it must give. The model is a setting, so the
- * same workflow runs on the local planner (`sim`), NVIDIA Nemotron (Token Factory) or, later, Muse Spark.
+ * same workflow runs on the local planner (`sim`), or Muse Spark.
  *
  * Two kinds:
  *  - easy but slow: minutes of clicking for a person, seconds for an agent (shift brief, SIMOPS check);
@@ -13,8 +13,7 @@ import { addTrace, newTraceId } from '../safety/alerts'
 import { create } from 'zustand'
 import { useSim } from '../state/sim'
 import { fmtClock } from '../sim/types'
-import { useProvider } from './provider'
-import { runAgent } from './runtime'
+import { modelOn, runAgent } from './runtime'
 
 export const PLANT_CONTEXT = `You are the safety & operations agent of the Alpha offshore oil field digital twin: five bridge-linked platforms, Alpha PDQ (process, drilling), WHP-N (wellheads), RP (risers & export), WI (water injection), LQ (accommodation & central control room).
 Process: wells → manifold M-1000 → HP 3-phase separator V-1100 (LAHH 83 %, PSV 42 barg) → LP separator V-1300 → crude cooler E-1400 → export pumps P-1500A/B → LV-1301 → ESDV-1601 → west bridge → RP fiscal metering X-R150 → pig launcher L-R110 → export riser. Gas → scrubber V-2100 → export compressor K-2200 (anti-surge) → aftercooler E-2300 → TEG contactor T-5300 → ESDV-2301 → RP gas metering X-R250 → pig launcher L-R210 → gas riser; fuel gas taken off the dry gas → turbines GT-8100A/B.
@@ -139,7 +138,7 @@ function brief(name: string, r: unknown): string {
 export async function runWorkflow(id: string): Promise<WorkflowRun | undefined> {
   const wf = WORKFLOWS.find((w) => w.id === id)
   if (!wf) return undefined
-  const provider = useProvider.getState().provider
+  const provider = modelOn() ? 'muse' : 'sim'
   const traceId = newTraceId('WF')
   const run: WorkflowRun = { id: `R${++seq}`, workflow: id, traceId, status: 'running', startedAt: useSim.getState().t, provider }
   useWorkflowRuns.setState((s) => ({ runs: [run, ...s.runs].slice(0, 20) }))
@@ -159,7 +158,7 @@ export async function runWorkflow(id: string): Promise<WorkflowRun | undefined> 
     await sleep(450)
     lines.push(brief(s.tool, runTool(s.tool, s.args ?? {}, traceId)))
   }
-  const text = `${wf.title}: findings from the local planner (choose Nemotron as the model for a written analysis):\n${lines.join('\n')}`
+  const text = `${wf.title}: findings from the local planner:\n${lines.join('\n')}`
   addTrace(traceId, { actor: 'assistant', kind: 'answer', text: `Local planner gathered ${lines.length} tool results`, data: { planner: 'local-rules' } })
   patch(run.id, { status: 'done', text, model: 'sim-planner' })
   return { ...run, status: 'done', text, model: 'sim-planner' }

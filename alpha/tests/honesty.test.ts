@@ -53,17 +53,6 @@ describe('CCTV detections', () => {
 
 describe('providers list', () => {
   it('labels the local planner as simulated', () => expect(PROVIDER_LABEL.sim).toMatch(/^Simulated/))
-  it('labels Muse Spark as planned', () => expect(PROVIDER_LABEL.muse).toMatch(/\(planned\)/))
-  it('offers only the local planner until the server reports more', () => {
-    expect(useProvider.getInitialState().available).toEqual({ sim: { ready: true, label: PROVIDER_LABEL.sim, model: 'sim-planner' } })
-  })
-
-  it('stays on the local planner when the proxy is absent', async () => {
-    vi.stubGlobal('fetch', vi.fn(async () => { throw new Error('offline') }))
-    await useProvider.getState().refresh()
-    vi.unstubAllGlobals()
-    expect(Object.keys(useProvider.getState().available)).toEqual(['sim'])
-  })
 })
 
 describe('tool results', () => {

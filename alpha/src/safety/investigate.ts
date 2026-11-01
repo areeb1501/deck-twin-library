@@ -14,8 +14,7 @@ import type { PlatformId } from '../sim/types'
 import type { TraceStep } from './types'
 import { addTrace, newTraceId, useAlerts } from './alerts'
 import { runTool } from './agentTools'
-import { jsonFrom, runAgent } from '../agents/runtime'
-import { useProvider } from '../agents/provider'
+import { jsonFrom, modelOn, runAgent } from '../agents/runtime'
 import { PLANT_CONTEXT } from '../agents/catalog'
 
 export interface InvestigationReport {
@@ -266,14 +265,13 @@ async function run(traceId: string, platform0: PlatformId | undefined, tag: stri
       hidden: uniq(hidden),
     }
     let planner = 'local-rules'
-    // root-cause synthesis on a model when one is selected (it may call more tools); rules otherwise
-    if (useProvider.getState().provider !== 'sim') {
+    // root-cause synthesis on Muse Spark when it is connected; rules otherwise
+    if (modelOn()) {
       try {
         const r = await runAgent({
           traceId,
           system: PLANT_CONTEXT,
-          user: `Root-cause analysis for: ${alertTitle || tag || platform}. Evidence gathered so far:\n${JSON.stringify(report)}\nVerify with tools if needed, separate the root cause from consequences, and reply ONLY with JSON {"summary": string, "likelyCause": string, "hidden": string[], "actions": string[]} (max 6 actions, advisory).`,
-          maxSteps: 4,
+          user: `Root-cause analysis for: ${alertTitle || tag || platform}. Evidence gathered so far:\n${JSON.stringify(report)}\nCheck it against the evidence below, separate the root cause from consequences, and reply ONLY with JSON {"summary": string, "likelyCause": string, "hidden": string[], "actions": string[]} (max 6 actions, advisory).`,
         })
         const j = jsonFrom<Partial<InvestigationReport>>(r.text)
         if (j?.likelyCause) {

@@ -116,6 +116,12 @@ The console's Response page shows what is wrong, what to do next and why. Beside
 
 **Tested with a stubbed model.** `tests/next-action.test.ts` and `tools/next-action.mjs` count requests and never call a provider. No real model has run this path yet.
 
+## Agents on Muse Spark
+
+The agents, Investigate and Ask the plant all run on Muse Spark through `src/agents/runtime.ts`. The read-only tools read the live plant, and their results go to the model as evidence for one answer. One click is one request, counted against the same limit and running cost as the scenario builder.
+
+There is one connection for the whole console, held in `src/agents/scenarioAuthor.ts`. A key already saved in this browser is found and used. With none, the Agents panel shows the key field, and the agents use the local planner until a key is saved. If a call fails, the local planner answers and the panel says why.
+
 ## Accounts and console views
 
 The console opens as the signed-in user, shown at the top right with a menu to switch views. An account type says what someone may do; a view says which tabs they see.
