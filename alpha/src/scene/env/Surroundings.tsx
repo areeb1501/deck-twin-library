@@ -70,10 +70,10 @@ function useEnvMaterials(): Record<MatKey, THREE.Material> {
     const sm = structMats('env')
     const fac = facadeTextures()
     return {
-      jacket: envMat('jacket', { color: '#bcb59f', roughness: 0.62, metalness: 0.35 }, { splash: true }),
+      jacket: envMat('jacket', { color: '#a8a18c', roughness: 0.68, metalness: 0.3 }, { splash: true, aged: 0.9 }),
       riser: envMat('riser', { color: '#454a4e', roughness: 0.5, metalness: 0.4 }, { splash: true }),
       anode: envMat('anode', { color: '#a7aba9', roughness: 0.82, metalness: 0.2 }), // matte cast aluminium
-      landing: envMat('landing', { color: '#7b7f80', roughness: 0.7, metalness: 0.3 }, { splash: true }),
+      landing: envMat('landing', { color: '#7b7f80', roughness: 0.7, metalness: 0.3 }, { splash: true, aged: 1 }),
       ladder: sm.galv,
       steel: sm.steel,
       steelDark: sm.steelDark,
@@ -81,19 +81,19 @@ function useEnvMaterials(): Record<MatKey, THREE.Material> {
       plate: sm.plate,
       yellow: sm.yellow,
       galv: sm.galv,
-      equip: envMat('equip', { color: '#cfd2cf', roughness: 0.5, metalness: 0.2 }),
-      equipDark: envMat('equipDark', { color: '#5e656a', roughness: 0.5, metalness: 0.35 }),
+      equip: envMat('equip', { color: '#b4b7b0', roughness: 0.6, metalness: 0.15 }, { aged: 1 }),
+      equipDark: envMat('equipDark', { color: '#5e656a', roughness: 0.55, metalness: 0.3 }, { aged: 0.8 }),
       red: envMat('fwRed', { color: '#b1261d', roughness: 0.45, metalness: 0.2 }),
       tree: envMat('xmasTree', { color: '#d7a514', roughness: 0.45, metalness: 0.3 }),
-      white: envMat('cladding', { color: '#dfe2de', roughness: 0.55, metalness: 0.15 }),
+      white: envMat('cladding', { color: '#c2c4bf', roughness: 0.62, metalness: 0.12 }, { aged: 0.9 }),
       facade: envMat('facade', { map: fac.map, emissiveMap: fac.emissive, emissive: '#ffffff', emissiveIntensity: 0.7, roughness: 0.45, metalness: 0.15 }),
-      roof: envMat('roof', { color: '#8e9599', roughness: 0.8, metalness: 0.2 }),
+      roof: envMat('roof', { color: '#7e8487', roughness: 0.85, metalness: 0.15 }, { aged: 1.1 }),
       glass: envMat('glass', { color: '#17222a', roughness: 0.08, metalness: 0.5 }),
       orange: envMat('lifeboat', { color: '#ff6512', roughness: 0.45, metalness: 0.05 }),
       soot: envMat('soot', { color: '#1f1d1b', roughness: 0.9, metalness: 0.1 }),
       blue: envMat('container2', { color: '#285f9c', roughness: 0.6, metalness: 0.3 }),
       green: envMat('container3', { color: '#3f7a3a', roughness: 0.6, metalness: 0.3 }),
-      flareSteel: envMat('flareSteel', { color: '#9fa4a6', roughness: 0.55, metalness: 0.4 }),
+      flareSteel: envMat('flareSteel', { color: '#8a8f90', roughness: 0.62, metalness: 0.35 }, { aged: 1 }),
       avLight: envMat('avLight', { color: '#b00d06', emissive: '#ff1a0a', emissiveIntensity: 1.4, roughness: 0.3 }),
     }
   }, [])

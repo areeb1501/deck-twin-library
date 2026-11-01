@@ -17,6 +17,7 @@ A shadcn-style registry of standards-based three.js / R3F components for oil & g
 |---|---|
 | Dev server | `npm run dev` → http://localhost:5190. In Claude Code, use the `library` entry in `../.claude/launch.json`. |
 | Twin dev server | `npm run dev` in `alpha/` → http://localhost:5191/alpha/demo/ |
+| Twin plant checks | with the twin dev server running, in `alpha/`: `node tools/clash.mjs` must be clean and `node tools/floating.mjs` must report 0 (`PORT` to change the port) |
 | Tests | `npm test` here (library and CLI), `npm test` in `alpha/` (twin), `uv run --no-project pytest -m "not live"` in `modal/` (SAM service). GitHub Actions runs all three on every push, on any branch. `npm test` here rebuilds the registry, which rewrites `public/r` and some tracked files, so run it in a clean clone when other sessions are working here. |
 | Deploy SAM 3.1 to Modal | `./setup.sh` in `modal/`. See `modal/README.md`. |
 | Validate the registry | `npx tsx scripts/build-registry.ts --check [category or name]` |

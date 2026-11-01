@@ -258,7 +258,7 @@ void main() {
   vec3 soot = mix(vec3(0.012, 0.012, 0.014), vec3(0.09, 0.088, 0.085), t.g) * uAmbient;
   vec3 steam = mix(vec3(0.36, 0.38, 0.4), vec3(0.97, 0.98, 1.0), t.g) * uAmbient;
   vec3 col = mix(soot, steam, uSteam) + vTint * (0.35 + 0.65 * (1.0 - t.g));
-  float k = a * mix(0.93, 0.55, uSteam);
+  float k = a * mix(0.93, 0.34, uSteam);
   gl_FragColor = vec4(col * k, k);
   ${END}
 }`

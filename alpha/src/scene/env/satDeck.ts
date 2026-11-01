@@ -244,7 +244,7 @@ function navAids(get: SatGet, S: SatDef) {
     tube(get('galv'), [x, Y, z], [x, Y + 2.6, z], 0.06, 10, false)
     const lx = x + sx * 0.45
     const lz = z + sz * 0.45
-    bar(get('galv'), [x, Y + 2.55, z], [lx, Y + 2.55, lz], 0.06, 0.06)
+    bar(get('galv'), [x, Y + 2.58, z], [lx, Y + 2.58, lz], 0.08, 0.06)
     place(get('soot'), unitCyl(16, false), [lx, Y + 2.65, lz], [0, 0, 0], [0.16, 0.1, 0.16])
     place(get('navLight'), unitCyl(16, false), [lx, Y + 2.86, lz], [0, 0, 0], [0.14, 0.32, 0.14])
     place(get('soot'), unitCyl(16, false), [lx, Y + 3.06, lz], [0, 0, 0], [0.17, 0.08, 0.17])
@@ -257,7 +257,7 @@ function navAids(get: SatGet, S: SatDef) {
   tube(get('galv'), [x, Y, z], [x, Y + 2.1, z], 0.07, 10, false)
   boxMinMax(get('white'), [x - 0.3, Y + 1.0, z - 0.2], [x + 0.3, Y + 1.6, z + 0.2])
   for (const [dx, dz] of dirs) {
-    const a: V3 = [x + dx * 0.1, Y + 2.15, z + dz * 0.1]
+    const a: V3 = [x, Y + 2.15, z]
     const b: V3 = [x + dx * 0.75, Y + 2.15, z + dz * 0.75]
     tube(get('white'), a, b, 0.09, 12, false)
     place(get('white'), unitCyl(16, true), [b[0] + dx * 0.12, b[1], b[2] + dz * 0.12], [dz !== 0 ? Math.PI / 2 : 0, 0, dx !== 0 ? Math.PI / 2 : 0], [0.24, 0.24, 0.24])

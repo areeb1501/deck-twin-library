@@ -20,7 +20,7 @@ const browser = await chromium.launch({ channel: 'chrome', headless: true, args:
 const page = await browser.newPage({ viewport: { width: 1400, height: 900 } })
 const errs = []
 page.on('pageerror', (e) => errs.push(e.message))
-await page.goto('http://localhost:5196/alpha/demo/?nobatch')
+await page.goto(`http://localhost:${process.env.PORT ?? 5191}/alpha/demo/?nobatch`)
 await page.waitForFunction(() => !!window.__scene && !!window.__sim?.getState().result, null, { timeout: 90000 })
 // the drone on a mission (up and hovering), the robot parked on its pad
 await page.evaluate(() => {
@@ -31,8 +31,8 @@ await page.waitForTimeout(6000)
 
 const res = await page.evaluate(
   async ({ GAP, MAX }) => {
-    const { MeshBVH } = await import('/node_modules/three-mesh-bvh/src/index.js')
-    const { BufferGeometry, Matrix4, Vector3 } = await import('/node_modules/.vite/deps/three.js')
+    const { MeshBVH } = await import('/alpha/node_modules/three-mesh-bvh/src/index.js')
+    const { BufferGeometry, Matrix4, Vector3 } = await import('/alpha/node_modules/.vite/deps/three.js')
     const sc = window.__scene
     sc.updateMatrixWorld(true)
     // meant to float / fly / move, or not solid: matched on exact group names (most effects are unnamed and
@@ -110,6 +110,8 @@ const res = await page.evaluate(
     // (a moving unit is one item too, through userData.auditOwner: its parts touch each other, so a robot off the deck
     // or a drone in the air would otherwise pass, each part held up by the next)
     const ownerOf = (s) => {
+      // a beacon's lens and housing are separate meshes of one item: neither holds the other up
+      if (s.i >= 0 && s.o.parent?.name === 'GaBeacons') return `beacon:${s.i}`
       for (let p = s.o; p; p = p.parent) {
         if (p.userData?.pick?.tag) return `tag:${p.userData.pick.tag}`
         if (p.userData?.auditOwner) return `unit:${p.userData.auditOwner}`
@@ -170,7 +172,7 @@ const res = await page.evaluate(
     // ---- pass 2: pieces inside merged environment meshes (decks, outfits, jackets are many parts in one
     // geometry). Split each into connected pieces (triangles sharing a vertex position) and test every piece
     // against the rest of the scene AND the other pieces of the same mesh.
-    const { Box3 } = await import('/node_modules/.vite/deps/three.js')
+    const { Box3 } = await import('/alpha/node_modules/.vite/deps/three.js')
     let pieces = 0
     const piecesOut = []
     for (const s of sup) {

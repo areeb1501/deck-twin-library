@@ -14,14 +14,14 @@ const lineByTag = new Map(plant.lines.map((l) => [l.tag, l]))
 const endsAt = (end: LineEnd, tag: string) => ('equipment' in end && end.equipment === tag) || ('offDeck' in end && end.offDeck.includes(tag))
 
 describe('counts match the plant description', () => {
-  it('has 97 equipment items', () => expect(plant.equipment).toHaveLength(97))
-  it('has 155 lines', () => expect(plant.lines).toHaveLength(155))
-  it('has 185 valves', () => expect(plant.valves).toHaveLength(185))
-  it('has 360 instruments', () => expect(plant.instruments).toHaveLength(360))
+  it('has 129 equipment items', () => expect(plant.equipment).toHaveLength(129))
+  it('has 216 lines', () => expect(plant.lines).toHaveLength(216))
+  it('has 235 valves', () => expect(plant.valves).toHaveLength(235))
+  it('has 370 instruments', () => expect(plant.instruments).toHaveLength(370))
 
   it('splits the valves by type as documented', () => {
     const byType = Object.fromEntries(Object.entries(Object.groupBy(plant.valves, (v) => v.type)).map(([type, list]) => [type, list!.length]))
-    expect(byType).toEqual({ esdv: 13, bdv: 2, psv: 18, control: 26, check: 34, gate: 40, ball: 25, butterfly: 20, needle: 6, globe: 1 })
+    expect(byType).toEqual({ esdv: 14, bdv: 2, psv: 18, control: 27, check: 39, gate: 55, ball: 45, butterfly: 23, needle: 8, globe: 4 })
   })
 
   it('has 181 fire and gas devices of the documented types', () => {
@@ -73,7 +73,7 @@ describe('every process item is wired in and out', () => {
   /** rigs, BOP, vent stacks: no process nozzles. Wells are sources or sinks, checked on their own below. */
   const NOT_INLINE = new Set<Equipment['kind']>(['proxy', 'module', 'transformer', 'xmasTree'])
   /** chemical and hydraulic utility packages filed under the wells system */
-  const UTILITY_PACKAGES = new Set(['C-5600', 'C-N260', 'X-1900', 'X-N270'])
+  const UTILITY_PACKAGES = new Set(['C-1800', 'C-5600', 'C-N260', 'X-1900', 'X-N270'])
   /** left out: X-R155 has no lines at all, reported as a bug */
   const REPORTED_UNWIRED = new Set(['X-R155'])
 

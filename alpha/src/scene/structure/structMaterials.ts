@@ -4,7 +4,7 @@
  * clippingPlanes, which is why every clone goes through registerMaterial (re-links sectionPlanes).
  */
 import * as THREE from 'three'
-import { materials, paint, registerMaterial, type MaterialRole } from '../../three/materials'
+import { age, materials, paint, registerMaterial, type MaterialRole } from '../../three/materials'
 import { gratingAlpha, gratingShadowDither, signAtlas } from './textures'
 
 /** Layer used by shadow-only proxies (the sun's shadow camera enables it; main camera doesn't). */
@@ -81,7 +81,13 @@ export function structMats(role: 'structure' | 'env' = 'structure'): StructMats 
     registerMaterial(m, role)
     return m
   }
-  const pick = (m: THREE.MeshStandardMaterial, name: string) => (role === 'structure' ? m : reg(m.clone(), name + '-env'))
+  // a clone keeps the look but not the shader patch: environment steel is aged here
+  const pick = (m: THREE.MeshStandardMaterial, name: string) => {
+    if (role === 'structure') return m
+    const c = reg(m.clone(), name + '-env')
+    age(c, 0.8)
+    return c
+  }
 
   const grating = reg(lib.grating.clone(), `grating-${role}`)
   grating.alphaMap = gratingAlpha()

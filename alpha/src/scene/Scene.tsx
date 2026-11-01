@@ -7,7 +7,7 @@ import { Canvas, advance, useFrame, useThree, type ThreeEvent } from '@react-thr
 import { CameraControls } from '@react-three/drei'
 import CameraControlsImpl from 'camera-controls'
 import { LabelProjector } from '../ui/labels'
-import { Bloom, EffectComposer, N8AO, Outline, SMAA, ToneMapping } from '@react-three/postprocessing'
+import { EffectComposer, N8AO, Outline, SMAA, ToneMapping } from '@react-three/postprocessing'
 import { ToneMappingMode } from 'postprocessing'
 import { Suspense, memo, useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import * as THREE from 'three'
@@ -249,16 +249,14 @@ function Effects({ selectedObjs }: { selectedObjs: THREE.Object3D[] }) {
   const viewMode = useStore((s) => s.viewMode)
   const section = useStore((s) => s.section.enabled)
   const ao = useQuality((s) => QUALITY.ao[s.level])
-  const bloom = useQuality((s) => QUALITY.bloom[s.level])
   // perf: the outline stays mounted — with an empty selection it renders nothing (OutlineEffect.update
   // skips its depth / mask passes), and mounting it on select recompiled the effect shader (~1 s hitch)
   return (
     <EffectComposer autoClear={false} multisampling={0}>
-      <N8AO ref={patchN8AO} enabled={ao && viewMode === 'shaded' && !section} halfRes aoRadius={1.1} distanceFalloff={0.6} intensity={2.2} quality="medium" />
+      <N8AO ref={patchN8AO} enabled={ao && viewMode === 'shaded' && !section} halfRes aoRadius={1.3} distanceFalloff={0.6} intensity={3} quality="medium" />
       <Outline selection={selectedObjs} edgeStrength={3.2} visibleEdgeColor={0xffffff} hiddenEdgeColor={0x000000} xRay={false} blur pulseSpeed={0} />
-      <Bloom mipmapBlur intensity={bloom ? 0.5 : 0} luminanceThreshold={1.25} luminanceSmoothing={0.25} radius={0.72} />
       <SMAA />
-      <ToneMapping mode={ToneMappingMode.NEUTRAL} />
+      <ToneMapping mode={ToneMappingMode.ACES_FILMIC} />
     </EffectComposer>
   )
 }

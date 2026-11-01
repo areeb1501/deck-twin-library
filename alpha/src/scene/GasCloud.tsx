@@ -7,8 +7,7 @@
  *  - fire: flames sized by Heskestad's flame height, soot, embers, a glow and scorch on the deck, and white steam
  *    instead of soot once deluge reaches it. A release above the deck plate burns as a directed jet fire.
  *    Smoke and steam thin out over several seconds after the fire is out.
- * Shapes follow the incident's current rate and age every frame without React re-renders. One fire light stays mounted
- * at zero: adding a light on ignition would recompile every lit material mid-incident.
+ * Shapes follow the incident's current rate and age every frame without React re-renders.
  */
 import { useEffect, useMemo, useRef, useState } from 'react'
 import * as THREE from 'three'
@@ -21,7 +20,7 @@ import { cloudShape, downwind, flameHeight, floorAt, S_LOW } from '../sim/fg'
 import { getLive, getWind, useIncidents } from '../sim/fg/live'
 import type { Incident } from '../sim/types'
 import { envNight } from './env/envShared'
-import { zoneDeluge } from './fx/simRead'
+import { fireGlow, zoneDeluge } from './fx/simRead'
 import { contourMaterial, decalMaterial, plumeAtlas, plumeGeometry, plumeMaterial, prng } from './fx/plumeFx'
 import { QUALITY, useQuality } from './perf/quality'
 
@@ -81,29 +80,25 @@ export function GasCloud() {
   )
 }
 
-/** the one fire light: follows the largest burning fire, flickering */
+/** points the borrowed light (fx/simRead.ts fireGlow) at the largest burning fire, flickering */
 function FireLight() {
-  const light = useRef<THREE.PointLight>(null)
   useFrame(({ clock }) => {
-    const l = light.current
-    if (!l) return
     let top: Incident | null = null
     for (const i of getLive().incidents ?? []) if (isFire(i) && i.burning && posOf(i) && (i.rate ?? 0) > (top?.rate ?? 0)) top = i
     const pos = top && posOf(top)
-    if (!top || !pos) {
-      l.intensity = 0
-      return
-    }
+    fireGlow.on = !!pos
+    if (!top || !pos) return
     const mw = top.rate ?? 1
-    const H = flameHeight(mw)
     const t = clock.elapsedTime
     const flick = 1 + 0.16 * Math.sin(t * 17) + 0.11 * Math.sin(t * 29 + 1.2) + 0.07 * Math.sin(t * 7.3)
-    l.position.set(pos[0], pos[1] + H * 0.45, pos[2])
+    fireGlow.x = pos[0]
+    fireGlow.y = pos[1] + flameHeight(mw) * 0.45 + DECK_WORLD_Y
+    fireGlow.z = pos[2]
     // the sun drowns a fire by day; at night it lights the whole bay
-    l.intensity = (9 + 7 * Math.sqrt(mw)) * flick * (0.55 + 1.4 * envNight.value)
-    l.distance = 14 + 9 * Math.sqrt(mw)
+    fireGlow.intensity = (9 + 7 * Math.sqrt(mw)) * flick * (0.55 + 1.4 * envNight.value)
+    fireGlow.distance = 14 + 9 * Math.sqrt(mw)
   })
-  return <pointLight ref={light} color="#ff7a30" intensity={0} distance={20} decay={1.7} />
+  return null
 }
 
 function Cloud({ id }: { id: string }) {

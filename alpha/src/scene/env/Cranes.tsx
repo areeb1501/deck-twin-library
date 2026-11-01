@@ -200,12 +200,15 @@ function bucket(b: Buckets, m: THREE.Material, g: THREE.BufferGeometry) {
   if (!b.has(m)) b.set(m, [])
   b.get(m)!.push(g)
 }
-function addBuilt(b: Buckets, built: Built, each: (g: THREE.BufferGeometry) => void) {
+function addBuilt(b: Buckets, built: Built, vc: THREE.Material, each: (g: THREE.BufferGeometry) => void) {
   const index = built.geometry.getIndex() ? built.geometry : mergeVertices(built.geometry)
   for (const grp of index.groups) {
     const piece = pieceOf(index, grp.start, grp.count)
     each(piece)
-    bucket(b, built.material[grp.materialIndex ?? 0], piece)
+    // plain paint goes in with the vertex-coloured rig, one draw per crane; only signage, stripes and glass need their own
+    const m = built.material[grp.materialIndex ?? 0] as THREE.MeshStandardMaterial
+    if (m.map || m.transparent) bucket(b, m, piece)
+    else bucket(b, vc, paintGeo(piece, m.color))
   }
   built.geometry.dispose()
   if (index !== built.geometry) index.dispose()
@@ -252,7 +255,7 @@ function buildSpecGeo(spec: CraneSpec, mats: Mats, vc: THREE.Material): SpecGeo 
   // the library crane, part by part, each on its bone
   const lib = libraryParts(spec, '')
   const parts: [(k: Kit) => void, BoneName][] = [[lib.slewing, 'slew'], [lib.boom, 'boom'], [lib.block, 'hook'], [lib.spreader, 'spreader'], [lib.ball, 'ball']]
-  for (const [fn, bone] of parts) addBuilt(buckets, draw(fn), (g) => void bindTo(g, BONE[bone]))
+  for (const [fn, bone] of parts) addBuilt(buckets, draw(fn), vc, (g) => void bindTo(g, BONE[bone]))
   const { geometry, materials } = flatten(buckets)
   return { dims, geometry: geometry!, materials }
 }
@@ -283,7 +286,7 @@ function buildStatic(sites: CraneSite[], mats: Mats, vc: THREE.Material) {
     }
     m.makeTranslation(c.x, WY + c.deckY, c.z)
     const place = new THREE.Matrix4().copy(m)
-    addBuilt(buckets, draw(libraryParts(c.spec, c.tag).base), (g) => void g.applyMatrix4(place))
+    addBuilt(buckets, draw(libraryParts(c.spec, c.tag).base), vc, (g) => void g.applyMatrix4(place))
   }
   const net = nets.length ? mergeGeometries(nets) : null
   for (const x of nets) x.dispose()

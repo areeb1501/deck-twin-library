@@ -1,13 +1,13 @@
 // Plant data checks in headless Chrome against the dev server: schema validation, piping build,
 // pipe-vs-pipe and pipe-vs-equipment clashes, overlapping equipment footprints and non-orthogonal
-// routes. Usage: node tools/clash.mjs [plantModule=/src/model/plant.ts] [--from N] (only check lines from index N)
+// routes. Usage: [PORT=5191] node tools/clash.mjs [plantModule=/alpha/src/model/plant.ts] [--from N] (only check lines from index N)
 import { chromium } from 'playwright-core'
 const mod = process.argv.find((a) => a.startsWith('/alpha/src/')) ?? '/alpha/src/model/plant.ts'
 const fromArg = process.argv.indexOf('--from')
 const from = fromArg > 0 ? Number(process.argv[fromArg + 1]) : 0
 const browser = await chromium.launch({ channel: 'chrome', headless: true })
 const page = await browser.newPage()
-await page.goto('http://localhost:5196/alpha/demo/?nofx&noenv')
+await page.goto(`http://localhost:${process.env.PORT ?? 5191}/alpha/demo/?nofx&noenv`)
 await page.waitForFunction(() => !!window.__store, null, { timeout: 60000 })
 const out = await page.evaluate(async ([mod, from]) => {
   const { plant } = await import(mod)
@@ -20,7 +20,11 @@ const out = await page.evaluate(async ([mod, from]) => {
   const levels = walkLevels(plant)
   // each item stands on a floor (walk level); it occupies floor … top of its label
   const lvl = (e) => levelAt(levels, e.position[1])
-  const span = (e) => [e.kind === 'proxy' ? e.position[1] : levels[lvl(e)].y, labelHeight(e) - 1.0]
+  // labelHeight is the item's height over its own floor, not a deck-local height: cellar items stop below the deck above
+  const span = (e) => {
+    const y0 = e.kind === 'proxy' ? e.position[1] : levels[lvl(e)].y
+    return [y0, e.position[1] < -1 ? Math.min(labelHeight(e) - 1.0, y0 + 2.2) : labelHeight(e) - 1.0]
+  }
   const r = { counts: { equipment: plant.equipment.length, lines: plant.lines.length, valves: plant.valves.length, instruments: plant.instruments.length } }
   r.schema = validatePlant(plant)
   try { buildPiping(plant); r.build = 'ok' } catch (e) { r.build = e.message }
@@ -64,7 +68,7 @@ const out = await page.evaluate(async ([mod, from]) => {
     const own = new Set([s1.l.from, s1.l.to].filter((e) => 'equipment' in e).map((e) => e.equipment))
     if (psvHost.has(s1.l.tag)) own.add(psvHost.get(s1.l.tag))
     plant.equipment.forEach((e, k) => {
-      if (own.has(e.tag) || e.kind === 'proxy') return
+      if (own.has(e.tag) || (e.kind === 'proxy' && !e.library)) return
       const f = fps[k]
       const [y0, y1] = span(e)
       for (let s = 0.05; s < 1; s += 0.05) {
@@ -82,7 +86,7 @@ const out = await page.evaluate(async ([mod, from]) => {
     for (let j = i + 1; j < fps.length; j++) {
       const a = fps[i], b = fps[j]
       const ei = plant.equipment[i], ej = plant.equipment[j]
-      if (ei.kind === 'proxy' || ej.kind === 'proxy' || lvl(ei) !== lvl(ej)) continue
+      if ((ei.kind === 'proxy' && !ei.library) || (ej.kind === 'proxy' && !ej.library) || lvl(ei) !== lvl(ej)) continue
       if (a.x0 < b.x1 && b.x0 < a.x1 && a.z0 < b.z1 && b.z0 < a.z1) r.overlappingEquipment.push(`${plant.equipment[i].tag} / ${plant.equipment[j].tag}`)
     }
   return r

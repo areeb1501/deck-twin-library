@@ -45,6 +45,8 @@ const UPLOAD_VERTS_PER_FRAME = 1_200_000
  */
 const RELEASE_ORIGINAL_GPU = false
 const ALLOWED = new Set(['MeshStandardMaterial', 'MeshPhysicalMaterial', 'MeshBasicMaterial', 'MeshLambertMaterial', 'MeshPhongMaterial'])
+/** materials only visible through a section cut or in x-ray (which draws the originals): their batches are skipped otherwise */
+const INSIDE = /^batch:(pipeBore|vesselInner|internalsSteel|meshPad|liquid)/
 const noRaycast = () => {}
 const baseBeforeRender = THREE.Object3D.prototype.onBeforeRender
 const baseAfterRender = THREE.Object3D.prototype.onAfterRender
@@ -518,6 +520,12 @@ export function StaticBatcher({ root }: { root: RefObject<THREE.Object3D | null>
     }
   }
 
+  // bores and vessel internals are a seventh of the triangles and can't be seen from outside
+  useFrame(() => {
+    const ui = useStore.getState()
+    const cut = ui.section.enabled || ui.viewMode !== 'shaded' || !ui.layers.ceiling
+    for (const b of st.current.batches) if (INSIDE.test(b.name)) b.visible = cut
+  })
   useFrame(() => {
     if (!supported) return
     const r = root.current

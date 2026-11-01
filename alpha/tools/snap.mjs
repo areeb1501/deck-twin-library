@@ -9,7 +9,7 @@ const page = await browser.newPage({ viewport: { width: 1500, height: 900 } })
 const errors = []
 page.on('pageerror', (e) => errors.push(e.message))
 page.on('console', (m) => m.type() === 'error' && errors.push(m.text().slice(0, 300)))
-await page.goto(`http://localhost:5196/alpha/demo/?${query}`)
+await page.goto(`http://localhost:${process.env.PORT ?? 5191}/alpha/demo/?${query}`)
 await page.waitForFunction(() => !!window.__controls && !!window.__sim?.getState().result, null, { timeout: 120000 })
 await page.waitForTimeout(6000)
 await page.addStyleTag({ content: '.hideui body *:not(canvas){visibility:hidden} .hideui canvas{visibility:visible!important}' })
