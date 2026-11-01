@@ -45,6 +45,7 @@ import { patchN8AO } from './perf/n8aoFix'
 // perf: the plant re-renders on select / hover; keep its big static children from re-rendering with it
 const FireGasMounts = memo(FireGasMountsRaw)
 import { requestShadows, shadowTick } from './perf/shadows'
+import { holdFrames, releaseFrames } from './perf/bootGate'
 import { FireGasMounts as FireGasMountsRaw } from './FireGasMounts'
 import { useSim } from '../state/sim'
 import { bootDone, bootStage } from '../ui/bootLoader'
@@ -406,16 +407,22 @@ function ShadowOnDemand() {
   return null
 }
 
-/** the first frame is out: the loader says so, and comes off soon if the batcher isn't going to finish it */
+/** after the first full frame, rest the renderer behind the loader until the batcher finishes, with a cap in case it doesn't */
 function BootWatch() {
   const gl = useThree((s) => s.gl)
+  const camera = useThree((s) => s.camera)
   const seen = useRef(false)
   useFrame(() => {
     if (seen.current) return
     seen.current = true
     bootStage('Preparing the view')
     const batching = !DEBUG.has('nobatch') && gl.extensions.has('WEBGL_multi_draw')
-    setTimeout(bootDone, batching ? BOOT_CAP_MS : 400)
+    // this first frame still draws everything: skipping it saves little and leaves the first x-ray click to pay for it
+    requestAnimationFrame(() => batching && holdFrames(camera))
+    setTimeout(() => {
+      releaseFrames()
+      requestAnimationFrame(() => requestAnimationFrame(bootDone))
+    }, batching ? BOOT_CAP_MS : 400)
   })
   return null
 }

@@ -29,6 +29,7 @@ import { useFrame, useThree } from '@react-three/fiber'
 import { useStore } from '../../state/store'
 import { BATCH_LAYER, CULL_LAYER, batchRegistry, refreshEntry, releaseEntry, setShown, type Entry, type Slot } from './batching'
 import { requestShadows } from './shadows'
+import { booting, releaseFrames } from './bootGate'
 import { bootDone } from '../../ui/bootLoader'
 
 const DISABLED = new URLSearchParams(location.search).has('nobatch')
@@ -464,7 +465,8 @@ export function StaticBatcher({ root }: { root: RefObject<THREE.Object3D | null>
       const holder = new THREE.Group()
       for (const b of job.batches) holder.add(b)
       try {
-        await gl.compileAsync(holder, camera, scene)
+        // not while loading: the loader hides the first draw, which builds the real variants anyway (these miss the plant's clipping planes)
+        if (!booting()) await gl.compileAsync(holder, camera, scene)
       } catch {
         /* compiled synchronously on first draw instead */
       }
@@ -510,6 +512,7 @@ export function StaticBatcher({ root }: { root: RefObject<THREE.Object3D | null>
     // the shadow map content is unchanged, but warm the batched depth shaders now, during the load
     requestShadows(0)
     // the plant now draws at its working speed: the page can open on it
+    releaseFrames()
     requestAnimationFrame(() => requestAnimationFrame(bootDone))
     job.phase = 'done'
     job.stats.step = 'done'
@@ -588,7 +591,7 @@ export function StaticBatcher({ root }: { root: RefObject<THREE.Object3D | null>
 
     // ---- look for changes once a second; rebuild once the plant has been stable for a scan
     if (job || now < s.nextScan) return
-    s.nextScan = now + 1000
+    s.nextScan = now + (booting() ? 100 : 1000)
     let dead = 0
     for (const e of batchRegistry.entries.values()) if (e.dead) dead++
     const pending = pendingCount(r)

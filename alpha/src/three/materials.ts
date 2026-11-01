@@ -63,20 +63,19 @@ interface Spec {
   transparent?: boolean
   opacity?: number
   alphaTest?: number
-  physical?: { clearcoat?: number; clearcoatRoughness?: number; transmission?: number; ior?: number; thickness?: number }
   flatShading?: boolean
 }
 
 const SPECS = {
   // --- equipment
-  equipmentPaint: { role: 'shell', color: '#b4b7b0', metalness: 0.1, roughness: 0.62, physical: { clearcoat: 0.12, clearcoatRoughness: 0.6 } },
+  equipmentPaint: { role: 'shell', color: '#b4b7b0', metalness: 0.1, roughness: 0.62 },
   equipmentPaintDark: { role: 'detail', color: '#7d8389', metalness: 0.3, roughness: 0.5 },
   vesselInner: { role: 'internal', color: '#7d746b', metalness: 0.25, roughness: 0.85, side: THREE.BackSide, emissive: '#3a342e', emissiveIntensity: 0.55 },
   internalsSteel: { role: 'internal', color: '#a9aeb2', metalness: 0.8, roughness: 0.35 },
   meshPad: { role: 'internal', color: '#9aa1a6', metalness: 0.7, roughness: 0.6, transparent: true, opacity: 0.55 },
   liquidOil: { role: 'internal', color: '#5a3613', metalness: 0.0, roughness: 0.08, transparent: true, opacity: 0.82, emissive: '#2a1405', emissiveIntensity: 0.4 },
   liquidWater: { role: 'internal', color: '#1f6f78', metalness: 0.0, roughness: 0.05, transparent: true, opacity: 0.7, emissive: '#06262a', emissiveIntensity: 0.5 },
-  motorPaint: { role: 'detail', color: '#355f80', metalness: 0.35, roughness: 0.45, physical: { clearcoat: 0.4, clearcoatRoughness: 0.35 } },
+  motorPaint: { role: 'detail', color: '#355f80', metalness: 0.35, roughness: 0.45 },
   machineryGreen: { role: 'detail', color: '#4f6b5a', metalness: 0.3, roughness: 0.5 },
   castIron: { role: 'detail', color: '#3d4247', metalness: 0.55, roughness: 0.55 },
   stainless: { role: 'detail', color: '#c3c7cb', metalness: 0.92, roughness: 0.22 },
@@ -92,16 +91,16 @@ const SPECS = {
   pipeBore: { role: 'bore', color: '#5d554e', metalness: 0.35, roughness: 0.9, emissive: '#221e1b', emissiveIntensity: 0.6 },
   pipeCut: { role: 'internal', color: '#d9d2c4', metalness: 0.9, roughness: 0.3 }, // machined ring faces
   insulation: { role: 'shell', color: '#aab0b3', metalness: 0.7, roughness: 0.52 },
-  firewaterPaint: { role: 'shell', color: '#b1261d', metalness: 0.2, roughness: 0.45, physical: { clearcoat: 0.5, clearcoatRoughness: 0.3 } },
+  firewaterPaint: { role: 'shell', color: '#b1261d', metalness: 0.2, roughness: 0.45 },
   flangeSteel: { role: 'detail', color: '#8e9498', metalness: 0.6, roughness: 0.42 },
   boltXylan: { role: 'detail', color: '#27427a', metalness: 0.45, roughness: 0.4 },
   nut: { role: 'detail', color: '#2b3443', metalness: 0.6, roughness: 0.38 },
   gasket: { role: 'detail', color: '#3b3d3f', metalness: 0.7, roughness: 0.5 },
   valveBody: { role: 'detail', color: '#4a5056', metalness: 0.5, roughness: 0.5 },
   handwheel: { role: 'detail', color: '#2a2d30', metalness: 0.4, roughness: 0.5 },
-  actuatorYellow: { role: 'detail', color: '#e1b10f', metalness: 0.25, roughness: 0.4, physical: { clearcoat: 0.6, clearcoatRoughness: 0.25 } },
-  actuatorBlue: { role: 'detail', color: '#4d6a8c', metalness: 0.35, roughness: 0.4, physical: { clearcoat: 0.5, clearcoatRoughness: 0.3 } },
-  actuatorRed: { role: 'detail', color: '#b52a20', metalness: 0.25, roughness: 0.4, physical: { clearcoat: 0.6, clearcoatRoughness: 0.25 } },
+  actuatorYellow: { role: 'detail', color: '#e1b10f', metalness: 0.25, roughness: 0.4 },
+  actuatorBlue: { role: 'detail', color: '#4d6a8c', metalness: 0.35, roughness: 0.4 },
+  actuatorRed: { role: 'detail', color: '#b52a20', metalness: 0.25, roughness: 0.4 },
   tubing: { role: 'detail', color: '#cfd3d7', metalness: 0.95, roughness: 0.2 },
 
   // --- structure
@@ -109,7 +108,7 @@ const SPECS = {
   structSteelDark: { role: 'structure', color: '#62686c', metalness: 0.3, roughness: 0.68 },
   grating: { role: 'structure', color: '#6d7276', metalness: 0.45, roughness: 0.6, alphaTest: 0.5, side: THREE.DoubleSide },
   deckPlate: { role: 'structure', color: '#565a5b', metalness: 0.2, roughness: 0.82 },
-  safetyYellow: { role: 'structure', color: '#e5b114', metalness: 0.2, roughness: 0.5, physical: { clearcoat: 0.4, clearcoatRoughness: 0.4 } },
+  safetyYellow: { role: 'structure', color: '#e5b114', metalness: 0.2, roughness: 0.5 },
   safetyGreen: { role: 'structure', color: '#2e8b57', metalness: 0.1, roughness: 0.6 },
   cableTray: { role: 'structure', color: '#9ea4a8', metalness: 0.8, roughness: 0.4 },
   cable: { role: 'structure', color: '#1e1f21', metalness: 0.0, roughness: 0.7 },
@@ -141,6 +140,7 @@ type Shader = Parameters<THREE.Material['onBeforeCompile']>[0]
 
 function ageShader(shader: Shader, k: number) {
   shader.uniforms.wDeckY = WEATHER.deckY
+  shader.uniforms.wK = { value: k }
   shader.vertexShader = shader.vertexShader
     .replace('#include <common>', '#include <common>\nvarying vec3 vWPos;')
     .replace(
@@ -156,14 +156,14 @@ function ageShader(shader: Shader, k: number) {
       vWPos = (modelMatrix * w_wp).xyz;`,
     )
   shader.fragmentShader = shader.fragmentShader
-    .replace('#include <common>', `#include <common>\nuniform float wDeckY;\n${WEATHER_NOISE}`)
+    .replace('#include <common>', `#include <common>\nuniform float wDeckY;\nuniform float wK;\n${WEATHER_NOISE}`)
     .replace(
       '#include <color_fragment>',
       `#include <color_fragment>
       float w_m = w_fbm(vWPos * 0.55);
       float w_s = w_noise(vWPos * 9.0);
       float w_low = 1.0 - smoothstep(wDeckY + 0.02, wDeckY + 0.55, vWPos.y);
-      float w_g = (smoothstep(0.42, 0.85, w_m) * 0.14 + (w_s - 0.5) * 0.05 + w_low * 0.12) * ${k.toFixed(2)};
+      float w_g = (smoothstep(0.42, 0.85, w_m) * 0.14 + (w_s - 0.5) * 0.05 + w_low * 0.12) * wK;
       // grime streaks: noise stretched down the height, so they run the way rain and salt water do
       float w_run = w_noise(vec3(vWPos.x * 6.0, vWPos.y * 0.42, vWPos.z * 6.0)) * 0.6 + w_s * 0.4;
       float w_str = smoothstep(0.54, 0.76, w_run);
@@ -172,15 +172,15 @@ function ageShader(shader: Shader, k: number) {
       float w_rust = smoothstep(0.62, 0.8, w_b + w_str * 0.14 + w_low * 0.1) * smoothstep(0.42, 0.66, w_s * 0.6 + w_run * 0.5);
       // salt dries pale on the upper faces
       float w_salt = smoothstep(0.6, 0.8, w_m) * (1.0 - w_str);
-      diffuseColor.rgb *= 1.0 - w_g - w_str * 0.17 * ${k.toFixed(2)};
-      diffuseColor.rgb = mix(diffuseColor.rgb, vec3(0.74, 0.73, 0.69), w_salt * 0.09 * ${k.toFixed(2)});
-      diffuseColor.rgb = mix(diffuseColor.rgb, vec3(0.2, 0.1, 0.05) * (0.7 + 0.7 * w_s), min(0.55, w_rust * 0.42 * ${k.toFixed(2)}));
-      diffuseColor.rgb = mix(diffuseColor.rgb, diffuseColor.rgb * vec3(1.02, 0.97, 0.9), w_low * 0.7 * ${k.toFixed(2)});`,
+      diffuseColor.rgb *= 1.0 - w_g - w_str * 0.17 * wK;
+      diffuseColor.rgb = mix(diffuseColor.rgb, vec3(0.74, 0.73, 0.69), w_salt * 0.09 * wK);
+      diffuseColor.rgb = mix(diffuseColor.rgb, vec3(0.2, 0.1, 0.05) * (0.7 + 0.7 * w_s), min(0.55, w_rust * 0.42 * wK));
+      diffuseColor.rgb = mix(diffuseColor.rgb, diffuseColor.rgb * vec3(1.02, 0.97, 0.9), w_low * 0.7 * wK);`,
     )
     .replace(
       '#include <roughnessmap_fragment>',
       `#include <roughnessmap_fragment>
-      roughnessFactor = clamp(roughnessFactor + (w_m + w_str * 0.3 - 0.6) * 0.22 * ${k.toFixed(2)} + w_low * 0.14, 0.04, 1.0);`,
+      roughnessFactor = clamp(roughnessFactor + (w_m + w_str * 0.3 - 0.6) * 0.22 * wK + w_low * 0.14, 0.04, 1.0);`,
     )
 }
 
@@ -189,7 +189,7 @@ function applyWeather(m: THREE.Material, role: MaterialRole) {
   if (!k || !(m as THREE.MeshStandardMaterial).isMeshStandardMaterial) return
   if (m.onBeforeCompile !== THREE.Material.prototype.onBeforeCompile) return // already customised
   m.onBeforeCompile = (shader) => ageShader(shader, k)
-  m.customProgramCacheKey = () => `weather-${k}`
+  m.customProgramCacheKey = () => 'weather'
 }
 
 /** age a material that already has its own shader patch (the environment's splash-zone steel) */
@@ -200,7 +200,7 @@ export function age(m: THREE.Material, k = 0.9) {
     prev.call(m, shader, renderer)
     ageShader(shader, k)
   }
-  m.customProgramCacheKey = () => `${key ? key() : ''}|aged-${k}`
+  m.customProgramCacheKey = () => `${key ? key() : ''}|aged`
 }
 
 let cache: MaterialSet | null = null
@@ -208,7 +208,7 @@ const roles = new Map<THREE.Material, MaterialRole>()
 const base = new Map<THREE.Material, { opacity: number; transparent: boolean; depthWrite: boolean }>()
 
 function build(spec: Spec): THREE.MeshStandardMaterial {
-  const params: THREE.MeshPhysicalMaterialParameters = {
+  const params: THREE.MeshStandardMaterialParameters = {
     color: spec.color,
     metalness: spec.metalness ?? 0.2,
     roughness: spec.roughness ?? 0.6,
@@ -224,8 +224,7 @@ function build(spec: Spec): THREE.MeshStandardMaterial {
     params.emissive = new THREE.Color(spec.emissive)
     params.emissiveIntensity = spec.emissiveIntensity ?? 1
   }
-  const m = spec.physical ? new THREE.MeshPhysicalMaterial({ ...params, ...spec.physical }) : new THREE.MeshStandardMaterial(params)
-  return m
+  return new THREE.MeshStandardMaterial(params)
 }
 
 export function materials(): MaterialSet {
