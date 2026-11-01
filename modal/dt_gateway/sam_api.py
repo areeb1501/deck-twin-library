@@ -3,7 +3,7 @@ The SAM 3.1 web API (modal/PLAN.md). Modal supplies the GPU; this file supplies 
 
     GET  /health       no key; says the service is up, nothing else
     POST /v1/segment   image + noun phrases → detections
-    POST /v1/ppe       camera frame + zone → detections and safety alerts
+    POST /v1/ppe       camera frame + zone → detections and safety alerts, plus masks for any typed noun phrases
 
 `segmenter` is any `(image: bytes, prompts: list[str], threshold: float, return_masks: bool) -> dict` that returns
 `{model, image, detections}`. The tests pass a fake one, so the routes run without a GPU.
@@ -48,10 +48,11 @@ def create_sam_app(segmenter: Segmenter, api_key: str | None, **guard) -> FastAP
         except ValueError as e:
             return JSONResponse({"error": str(e)}, status_code=400)
         t0 = time.perf_counter()
-        result = segmenter(image, ppe.PPE_PROMPTS, ppe.SEEN_THRESHOLD, body.return_masks)
+        prompts = list(dict.fromkeys(ppe.PPE_PROMPTS + body.extra_prompts))
+        result = segmenter(image, prompts, ppe.SEEN_THRESHOLD, body.return_masks)
         detections = ppe.match_people(result["detections"], [p.model_dump() for p in body.people])
         height = (result.get("image") or {}).get("h")
         alerts = ppe.evaluate(detections, zone=body.zone, camera=body.camera, permit=body.permit, threshold=body.threshold, frame_height=height)
-        return {**result, "detections": detections, "alerts": alerts, "camera": body.camera, "zone": body.zone, "ms": round((time.perf_counter() - t0) * 1000)}
+        return {**result, "detections": detections, "alerts": alerts, "camera": body.camera, "zone": body.zone, "prompts": prompts, "ms": round((time.perf_counter() - t0) * 1000)}
 
     return app

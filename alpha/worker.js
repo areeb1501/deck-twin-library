@@ -3,6 +3,7 @@
 // Range requests matter: Safari won't play video without them.
 import { LLM_ROUTE, llmRoute } from './llm-route.js'
 import { META_SAM_ROUTE, metaSamRoute } from './meta-sam-route.js'
+import { META_VIDEO_ROUTE, metaVideoRoute } from './meta-sam-video-route.js'
 import { SAM_ROUTE, samRoute } from './sam-route.js'
 import { SESSION_ROUTE, modelRequest, sessionRoute } from './session-route.js'
 
@@ -14,6 +15,7 @@ export default {
     if (pathname === SESSION_ROUTE) return sessionRoute(request, env)
     if (pathname === SAM_ROUTE) return modelRequest(request, env, ctx, samRoute, ['cctv'])
     if (pathname === META_SAM_ROUTE) return modelRequest(request, env, ctx, metaSamRoute, ['cctv'])
+    if (pathname === META_VIDEO_ROUTE) return modelRequest(request, env, ctx, metaVideoRoute, ['cctv'])
     if (pathname === LLM_ROUTE) return modelRequest(request, env, ctx, llmRoute, ['scenarios', 'response'])
     if (!pathname.startsWith(PREFIX)) return env.ASSETS.fetch(request)
     const head = request.method === 'HEAD'

@@ -35,11 +35,13 @@ Every route except `/health` needs the key, as `X-API-Key` or `Authorization: Be
 |---|---|---|
 | `GET /health` | | `{status, model}` |
 | `POST /v1/segment` | `image_base64`, `prompts` (1 to 8 noun phrases), `threshold` (0.3), `return_masks` | `{model, image, detections, ms}` |
-| `POST /v1/ppe` | `image_base64`, `camera`, `zone` (0, 1, 2, `"safe"`), `permit`, `threshold` (0.65), `people`, `return_masks` | the same, plus `alerts` |
+| `POST /v1/ppe` | `image_base64`, `camera`, `zone` (0, 1, 2, `"safe"`), `permit`, `threshold` (0.65), `people`, `extra_prompts`, `return_masks` | the same, plus `alerts` and `prompts` |
 
 - A detection is `{label, box: [x0, y0, x1, y1] normalised, score}`, plus `polygons` when masks are asked for.
 - Images are JPEG or PNG as base64. There is no URL input, so the service never fetches anything it is handed.
 - `people` is where the twin's worn tags say each worker is: `{workerId, box, zone, permit}`. It names a person SAM found and gives their own zone. It never adds a person, and SAM alone decides what they wear.
+- `extra_prompts` is up to 3 noun phrases the operator typed, lowercase letters, digits, spaces and hyphens, up to 40 characters. They run on the same pass as the safety prompts and come back as detections under their own label. They never raise an alert.
+- `prompts` lists what really ran. The twin reads this rather than what it sent, so a prompt an older service ignored can't read as "none found".
 - An alert matches `Detection` in `alpha/src/safety/types.ts`: `kind`, `box`, `confidence`, `camera`, `model`, and for zones
   `zone` and `missing`.
 
@@ -61,7 +63,7 @@ A camera can't see a clip-on gas monitor, so that stays with the worn tag in the
 
 `MetaSam` in `dt_gateway/meta_sam.py` is the same flow as Meta's curl sample: upload to `/v1/files`, then a streaming
 `/v1/responses` call for each noun phrase. Set `MODEL_API_KEY` to use it. It costs $2.50 per 1 000 images, and each
-prompt counts as an image. The five PPE prompts cost about 1.25 cents a frame, so sample frames rather than stream.
+prompt counts as an image, typed ones included. The five PPE prompts cost about 1.25 cents a frame, so sample frames rather than stream.
 
 ## Tests
 

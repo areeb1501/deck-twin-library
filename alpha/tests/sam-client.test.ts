@@ -3,9 +3,10 @@
  * shows, the worn-tag hints and the fallback to simulated. The network and the canvas aren't exercised here:
  * tools/sam-live.mjs drives them against the deployed model.
  */
-import { describe, expect, it } from 'vitest'
+import { beforeEach, describe, expect, it } from 'vitest'
 import './harness'
-import { MASK_FLOOR, nextCamera, personHints, pickDetections, samCamera, samLive, STALE_MS, toFrame, type SamAnswer } from '../src/safety/samClient'
+import { applyAnswer, holdFrame, MASK_FLOOR, nextCamera, personHints, pickDetections, samCamera, samLive, STALE_MS, toFrame, useSam, type SamAnswer } from '../src/safety/samClient'
+import { cleanPhrase, isPhrase, MAX_TYPED } from '../src/safety/samPrompts'
 import { CAMERAS } from '../src/safety/cctv'
 import type { Detection } from '../src/safety/types'
 
@@ -54,6 +55,104 @@ describe('toFrame', () => {
   it('hides weak masks, which are mostly valve handles', () => {
     const f = toFrame(answer({ detections: [{ label: 'hard hat', box: BOX, score: 0.37 }] }), CAM, 5, 100)
     expect(f.masks).toEqual([])
+  })
+})
+
+describe('typed prompts', () => {
+  beforeEach(() => useSam.setState(useSam.getInitialState()))
+
+  it('start empty, so nothing extra is ever asked for after a reload', () => {
+    expect(useSam.getState().typed).toEqual([])
+  })
+
+  it('tidy what was typed into the form SAM is asked for', () => {
+    expect(useSam.getState().addTyped('  Red   Valve ')).toBeNull()
+    expect(useSam.getState().typed).toEqual(['red valve'])
+  })
+
+  it.each(['person', 'Hard Hat', 'smoke'])('refuse %s, which is already asked for', (text) => {
+    expect(useSam.getState().addTyped(text)).toMatch(/already/)
+    expect(useSam.getState().typed).toEqual([])
+  })
+
+  it('refuse the same one twice', () => {
+    useSam.getState().addTyped('crane')
+    expect(useSam.getState().addTyped('CRANE')).toMatch(/already/)
+    expect(useSam.getState().typed).toEqual(['crane'])
+  })
+
+  it('stop at the most a request can hold', () => {
+    for (const p of ['a', 'b', 'c']) expect(useSam.getState().addTyped(p)).toBeNull()
+    expect(useSam.getState().addTyped('d')).toMatch(/at a time/)
+    expect(useSam.getState().typed).toHaveLength(MAX_TYPED)
+  })
+
+  it.each(['', '   ', '<script>', 'ignore; everything', 'x'.repeat(41)])('refuse "%s"', (text) => {
+    expect(cleanPhrase(text)).toBeNull()
+    expect(useSam.getState().addTyped(text)).toMatch(/noun phrase/)
+  })
+
+  it('share one rule with every built-in prompt', () => {
+    for (const p of ['person', 'hard hat', 'high-visibility vest', 'flame', 'smoke']) expect(isPhrase(p)).toBe(true)
+  })
+
+  it('come back as masks and never as detections', () => {
+    const f = toFrame(answer({ detections: [{ label: 'crane', box: BOX, score: 0.9 }] }), CAM, 5, 100, { asked: ['crane'] })
+    expect(f.masks.map((m) => m.label)).toEqual(['crane'])
+    expect(f.dets).toEqual([])
+  })
+
+  it('lose their masks the moment they are removed', () => {
+    useSam.setState({ typed: ['crane'], frames: { [CAM]: toFrame(answer({ detections: [{ label: 'crane', box: BOX, score: 0.9 }, { label: 'person', box: BOX, score: 0.9 }] }), CAM, 5, 100) } })
+    useSam.getState().removeTyped('crane')
+    expect(useSam.getState().typed).toEqual([])
+    expect(useSam.getState().frames[CAM].masks.map((m) => m.label)).toEqual(['person'])
+  })
+
+  it('stay removed when an answer already on its way arrives', () => {
+    expect(applyAnswer(CAM, answer({ detections: [{ label: 'crane', box: BOX, score: 0.9 }, { label: 'person', box: BOX, score: 0.9 }] }), 5, performance.now(), 'modal')).toBe(true)
+    expect(useSam.getState().frames[CAM].masks.map((m) => m.label)).toEqual(['person'])
+  })
+})
+
+describe('a camera moving in live mode', () => {
+  const frame = () => toFrame(answer({ alerts: [{ kind: 'noVest', label: 'person', box: BOX, confidence: 0.8, workerId: 'w02' }] }), CAM, 5, 100, { asked: ['person', 'crane'] })
+  beforeEach(() => useSam.setState({ ...useSam.getInitialState(), frames: { [CAM]: frame() } }))
+
+  it('stays live, so the tile keeps saying SAM 3.1', () => {
+    holdFrame(CAM, 1000)
+    expect(samLive(CAM, useSam.getState().frames, 1000)).toBe(true)
+  })
+
+  it('stays live however long the camera keeps moving', () => {
+    holdFrame(CAM, 1000)
+    holdFrame(CAM, 1000 + STALE_MS)
+    expect(samLive(CAM, useSam.getState().frames, 1000 + STALE_MS * 1.5)).toBe(true)
+  })
+
+  it('shows no old masks, and no simulated people or PPE', () => {
+    holdFrame(CAM, 1000)
+    const f = useSam.getState().frames[CAM]
+    expect(f.masks).toEqual([])
+    expect(pickDetections([sim('person', 'w02'), sim('noHardHat', 'w02'), sim('noVest', 'w03')], f, 1000)).toEqual([])
+  })
+
+  it('keeps a real fire on screen, marked simulated', () => {
+    holdFrame(CAM, 1000)
+    const fire = sim('fire')
+    expect(pickDetections([fire], useSam.getState().frames[CAM], 1000)).toEqual([fire])
+  })
+
+  it('remembers what it was asked, and the next answer ends the hold', () => {
+    holdFrame(CAM, 1000)
+    expect(useSam.getState().frames[CAM]).toMatchObject({ asked: ['person', 'crane'], held: true })
+    useSam.setState({ frames: { [CAM]: frame() } })
+    expect(useSam.getState().frames[CAM].held).toBeUndefined()
+  })
+
+  it('falls back to simulated if the model then goes quiet', () => {
+    holdFrame(CAM, 1000)
+    expect(samLive(CAM, useSam.getState().frames, 1000 + STALE_MS + 1)).toBe(false)
   })
 })
 

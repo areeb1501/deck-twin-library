@@ -7,9 +7,10 @@
  *   muster  red / white alternating (neighbouring beacons in opposite phase)
  *   abandon double strobe, red then white, 1 cycle a second
  *
- * Beacons sit on the jacket legs (production / cellar / weather deck), at the stair towers, the bridge
- * ends and the LQ quarters. Three instanced meshes (housing, lens, billboard halo) = 3 draw calls; the
- * colours are only re-uploaded while some platform is in alarm. WORLD coordinates (mounted in
+ * Beacons are fixed to structure that is already there, never on a pole of their own: the jacket legs where they
+ * rise through a deck, the lantern posts at the satellite deck corners, the deck-edge guard rails beside the stair
+ * towers and bridge ends, and the LQ quarters. Three instanced meshes (housing, lens, billboard halo) = 3 draw calls;
+ * the colours are only re-uploaded while some platform is in alarm. WORLD coordinates (mounted in
  * Surroundings); positions are built from model/site.ts (deck-local + [0, 28, 0]).
  */
 import { useFrame } from '@react-three/fiber'
@@ -17,12 +18,17 @@ import { useEffect, useMemo, useRef } from 'react'
 import * as THREE from 'three'
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js'
 import type { PlatformId, PlatformResult } from '../../sim/types'
+import { CRANES } from '../../model/cranes'
+import type { PlanRect } from '../../model/types'
 import { ALPHA_DECK, BRIDGE_N, BRIDGE_S, CELLAR_FLOOR, LQ, RP, WEATHER_FLOOR, WHP, WI } from '../../model/site'
 import { DECK } from '../structure/deckConst'
+import { RAIL } from '../structure/handrail'
 import { STAIR_TOWERS } from '../structure/stairs'
 import { platformGa } from './simRead'
 
 const WY = 28 // deck-local → world
+/** deck-edge guard rails stand this far in from the plate edge */
+const RAIL_IN = 0.06
 type Ga = PlatformResult['ga']
 
 interface Beacon {
@@ -44,42 +50,48 @@ function onLeg(leg: [number, number], centre: [number, number], floor: number, p
 function gaBeaconLayout(): Beacon[] {
   const out: Beacon[] = []
   const P = (x: number, y: number, z: number, platform: PlatformId, upper = false) => out.push({ pos: new THREE.Vector3(x, y + WY, z), platform, upper })
+  /** clamped on the top rail of a deck-edge guard rail */
+  const onRail = (x: number, z: number, floor: number, platform: PlatformId, upper = false) => P(x, floor + RAIL.top + 0.22, z, platform, upper)
+  /** on the deck-side face of a corner lantern post, between its battery box and solar panel (satDeck.ts, whpDeck.ts) */
+  const onLanterns = (d: PlanRect, platform: PlatformId) => {
+    for (const [x, sx] of [[d.x0 + 0.35, -1], [d.x1 - 0.35, 1]])
+      for (const [z, sz] of [[d.z0 + 0.35, -1], [d.z1 - 0.35, 1]]) P(x - sx * 0.14, 1.5, z - sz * 0.14, platform)
+  }
   const ac: [number, number] = [(ALPHA_DECK.x0 + ALPHA_DECK.x1) / 2, (ALPHA_DECK.z0 + ALPHA_DECK.z1) / 2]
   // Alpha: every main leg at the cellar, production and weather decks
   for (const leg of DECK.legs) {
     out.push(onLeg(leg, ac, CELLAR_FLOOR, 'Alpha', DECK.legOD / 2))
     out.push(onLeg(leg, ac, 0, 'Alpha', DECK.legOD / 2))
     out.push(onLeg(leg, ac, 0, 'Alpha', DECK.legOD / 2, false, true))
-    out.push(onLeg(leg, ac, WEATHER_FLOOR, 'Alpha', DECK.legOD / 2, true))
   }
-  // Alpha stair towers: beside the deck-edge opening at each level
+  // the crane pedestals rise through the weather deck; its other two corners have the edge rail
+  for (const c of CRANES) if (c.platform === 'Alpha') out.push(onLeg([c.x, c.z], ac, WEATHER_FLOOR, 'Alpha', DECK.legOD / 2, true))
+  onRail(-24, ALPHA_DECK.z0 + RAIL_IN, WEATHER_FLOOR, 'Alpha', true)
+  onRail(24, ALPHA_DECK.z1 - RAIL_IN, WEATHER_FLOOR, 'Alpha', true)
+  // Alpha stair towers: on the edge rail beside the opening at each level
   for (const t of STAIR_TOWERS)
-    for (const y of t.levels) P(t.edgeX - t.outward * 0.35, y + 2.7, t.zA - t.uDir * 0.6, 'Alpha', y >= WEATHER_FLOOR)
+    for (const y of t.levels) onRail(t.edgeX - t.outward * RAIL_IN, t.zA - t.uDir * 0.6, y, 'Alpha', y >= WEATHER_FLOOR)
   // bridge ends (each end belongs to the platform it stands on)
-  P(BRIDGE_S.walk.x0 - 0.3, 2.6, ALPHA_DECK.z1 + 0.4, 'Alpha')
-  P(BRIDGE_S.walk.x0 - 0.3, 2.6, LQ.deck.z0 - 0.4, 'LQ')
-  P(BRIDGE_N.walk.x1 + 0.3, 2.6, ALPHA_DECK.z0 - 0.4, 'Alpha')
-  P(BRIDGE_N.walk.x1 + 0.3, 2.6, WHP.deck.z1 + 0.4, 'WHP-N')
-  // LQ: legs on the main deck, the quarters' corners (2nd storey) and the lifeboat embarkation deck
-  const lc: [number, number] = [(LQ.deck.x0 + LQ.deck.x1) / 2, (LQ.deck.z0 + LQ.deck.z1) / 2]
-  for (const leg of LQ.legs) out.push(onLeg(leg, lc, 0, 'LQ', 0.75), onLeg(leg, lc, 0, 'LQ', 0.75, false, true))
+  onRail(BRIDGE_S.walk.x0 - 0.8, ALPHA_DECK.z1 - RAIL_IN, 0, 'Alpha')
+  onRail(BRIDGE_S.walk.x0 - 0.8, LQ.deck.z0 + RAIL_IN, 0, 'LQ')
+  onRail(BRIDGE_N.walk.x1 + 0.8, ALPHA_DECK.z0 + RAIL_IN, 0, 'Alpha')
+  onRail(BRIDGE_N.walk.x1 + 0.8, WHP.deck.z1 - RAIL_IN, 0, 'WHP-N')
+  // LQ: the quarters' corners (2nd storey) and the deck-edge rails
+  onRail(LQ.deck.x0 + RAIL_IN, LQ.deck.z1 - 3, 0, 'LQ')
   const Q = LQ.quarters
   P(Q.x0 - 0.2, Q.storey * 2 + 0.6, Q.z0 - 0.2, 'LQ')
   P(Q.x1 + 0.2, Q.storey * 2 + 0.6, Q.z0 - 0.2, 'LQ')
   P(Q.x0 - 0.2, Q.storey * 2 + 0.6, Q.z1 + 0.2, 'LQ')
-  P(LQ.deck.x1 + 1.3, 3.0, 71, 'LQ')
-  // WHP-N: legs on the wellhead and cellar decks, the stair tower
+  // WHP-N: the corner lantern posts and the legs on the cellar deck
   const wc: [number, number] = [(WHP.deck.x0 + WHP.deck.x1) / 2, (WHP.deck.z0 + WHP.deck.z1) / 2]
-  for (const leg of WHP.legs) {
-    out.push(onLeg(leg, wc, 0, 'WHP-N', 0.75), onLeg(leg, wc, 0, 'WHP-N', 0.75, false, true))
-    out.push(onLeg(leg, wc, WHP.cellarY, 'WHP-N', 0.75))
-  }
-  // RP and WI: on every leg at main and cellar deck, inboard and outboard
+  onLanterns(WHP.deck, 'WHP-N')
+  for (const leg of WHP.legs) out.push(onLeg(leg, wc, WHP.cellarY, 'WHP-N', 0.75))
+  // RP and WI: the corner lantern posts on the main deck, every leg on the cellar deck
   for (const [pf, id] of [[RP, 'RP'], [WI, 'WI']] as const) {
     const c: [number, number] = [(pf.deck.x0 + pf.deck.x1) / 2, (pf.deck.z0 + pf.deck.z1) / 2]
-    for (const leg of pf.legs) out.push(onLeg(leg, c, 0, id, 0.75), onLeg(leg, c, 0, id, 0.75, false, true), onLeg(leg, c, pf.cellarY, id, 0.75))
+    onLanterns(pf.deck, id)
+    for (const leg of pf.legs) out.push(onLeg(leg, c, pf.cellarY, id, 0.75))
   }
-  P(WHP.deck.x0 + 0.35, 2.7, -80.6, 'WHP-N')
   return out
 }
 

@@ -45,6 +45,7 @@ import { extendWHP } from './whpSite'
 import { extendRP } from './rpSite'
 import { extendWI } from './wiSite'
 import { extendCranes } from './cranes'
+import { extendOutfit } from './alphaOutfit'
 import { extendLogistics } from './logistics'
 import { ALPHA_WALK } from './site'
 
@@ -761,14 +762,14 @@ add_({
   system: 'safety',
   nps: 8,
   route: [
-    [-27.4, CELLAR, -3.0],
-    [-27.4, FW_Y, -3.0],
+    [-27.4, CELLAR, -4.9],
+    [-27.4, FW_Y, -4.9],
     [-27.4, FW_Y, -18.7],
     [27.0, FW_Y, -18.7],
     [27.0, FW_Y, 18.7],
     [-27.4, FW_Y, 18.7],
-    [-27.4, FW_Y, 3.0],
-    [-27.4, CELLAR, 3.0],
+    [-27.4, FW_Y, 4.9],
+    [-27.4, CELLAR, 4.9],
   ],
   from: { offDeck: 'Firewater pumps (cellar deck)' },
   to: { offDeck: 'Firewater ring (cellar deck return)' },
@@ -917,6 +918,8 @@ extendWI({ equipment, lines, valves, instruments })
 extendCranes({ equipment, lines, valves, instruments })
 // materials store, flare-gas recovery package, meter prover (static, plan 13): model/logistics.ts — appended last so no existing index shifts
 extendLogistics({ equipment })
+// utility systems, small-bore pipework and firewater outfit on the Alpha decks: model/alphaOutfit.ts
+extendOutfit({ equipment, lines, valves, instruments })
 
 export const plant: Plant = {
   name: 'Alpha Platform',

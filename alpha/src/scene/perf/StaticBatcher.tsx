@@ -29,6 +29,8 @@ import { useFrame, useThree } from '@react-three/fiber'
 import { useStore } from '../../state/store'
 import { BATCH_LAYER, CULL_LAYER, batchRegistry, refreshEntry, releaseEntry, setShown, type Entry, type Slot } from './batching'
 import { requestShadows } from './shadows'
+import { booting, releaseFrames } from './bootGate'
+import { bootDone } from '../../ui/bootLoader'
 
 const DISABLED = new URLSearchParams(location.search).has('nobatch')
 /** vertices per BatchedMesh: bounds the size of each GPU upload */
@@ -45,6 +47,8 @@ const UPLOAD_VERTS_PER_FRAME = 1_200_000
  */
 const RELEASE_ORIGINAL_GPU = false
 const ALLOWED = new Set(['MeshStandardMaterial', 'MeshPhysicalMaterial', 'MeshBasicMaterial', 'MeshLambertMaterial', 'MeshPhongMaterial'])
+/** materials only visible through a section cut or in x-ray (which draws the originals): their batches are skipped otherwise */
+const INSIDE = /^batch:(pipeBore|vesselInner|internalsSteel|meshPad|liquid)/
 const noRaycast = () => {}
 const baseBeforeRender = THREE.Object3D.prototype.onBeforeRender
 const baseAfterRender = THREE.Object3D.prototype.onAfterRender
@@ -461,7 +465,8 @@ export function StaticBatcher({ root }: { root: RefObject<THREE.Object3D | null>
       const holder = new THREE.Group()
       for (const b of job.batches) holder.add(b)
       try {
-        await gl.compileAsync(holder, camera, scene)
+        // not while loading: the loader hides the first draw, which builds the real variants anyway (these miss the plant's clipping planes)
+        if (!booting()) await gl.compileAsync(holder, camera, scene)
       } catch {
         /* compiled synchronously on first draw instead */
       }
@@ -506,6 +511,9 @@ export function StaticBatcher({ root }: { root: RefObject<THREE.Object3D | null>
     if (RELEASE_ORIGINAL_GPU) for (const [g, n] of counts) if (job.geoUsers.get(g) === n) g.dispose()
     // the shadow map content is unchanged, but warm the batched depth shaders now, during the load
     requestShadows(0)
+    // the plant now draws at its working speed: the page can open on it
+    releaseFrames()
+    requestAnimationFrame(() => requestAnimationFrame(bootDone))
     job.phase = 'done'
     job.stats.step = 'done'
     job.stats.swapAt = Math.round(performance.now())
@@ -518,6 +526,12 @@ export function StaticBatcher({ root }: { root: RefObject<THREE.Object3D | null>
     }
   }
 
+  // bores and vessel internals are a seventh of the triangles and can't be seen from outside
+  useFrame(() => {
+    const ui = useStore.getState()
+    const cut = ui.section.enabled || ui.viewMode !== 'shaded' || !ui.layers.ceiling
+    for (const b of st.current.batches) if (INSIDE.test(b.name)) b.visible = cut
+  })
   useFrame(() => {
     if (!supported) return
     const r = root.current
@@ -577,7 +591,7 @@ export function StaticBatcher({ root }: { root: RefObject<THREE.Object3D | null>
 
     // ---- look for changes once a second; rebuild once the plant has been stable for a scan
     if (job || now < s.nextScan) return
-    s.nextScan = now + 1000
+    s.nextScan = now + (booting() ? 100 : 1000)
     let dead = 0
     for (const e of batchRegistry.entries.values()) if (e.dead) dead++
     const pending = pendingCount(r)

@@ -79,6 +79,48 @@ ok('the browser talks only to the site route', sent.every((r) => new URL(r.url).
 ok('the key never reaches the browser', key && !leaked)
 await page.screenshot({ path: '.snaps/sam-live.jpg', quality: 88, type: 'jpeg' })
 
+// typed prompts, on the real model
+ok('the prompt box shows while the model is on', (await page.locator('[data-sam-typed]').count()) === 1)
+const posts = []
+page.on('request', (r) => r.url().includes('/api/sam') && r.method() === 'POST' && posts.push(r.postDataJSON()?.extra_prompts))
+for (const prompt of ['pipe', 'handrail']) {
+  await page.click('[data-sam-typed-input]')
+  await page.keyboard.type(prompt)
+  await page.keyboard.press('Enter')
+  await page.waitForSelector(`[data-sam-typed-chip="${prompt}"]`)
+}
+await page.waitForFunction(() => [...document.querySelectorAll('[data-sam-typed-chip] b')].every((b) => b.textContent !== '-'), null, { timeout: 30000 })
+await page.waitForTimeout(6000)
+const typed = await page.evaluate(() => {
+  const f = window.__sam.getState().frames['CCTV-A02']
+  return { asked: f.asked, found: Object.fromEntries(['pipe', 'handrail'].map((p) => [p, f.masks.filter((m) => m.label === p).map((m) => m.score.toFixed(2))])), poly: f.masks.filter((m) => m.polygons.length).length, chips: [...document.querySelectorAll('[data-sam-typed-chip]')].map((c) => c.textContent) }
+})
+console.log('    ', JSON.stringify(typed))
+ok('frames carry the typed prompts', posts.some((p) => p?.join() === 'pipe,handrail'))
+ok('the service says it ran them', ['pipe', 'handrail'].every((p) => typed.asked?.includes(p)), typed.asked?.join())
+ok('the old-service note stays away', (await page.locator('[data-sam-typed-old]').count()) === 0)
+ok('real masks come back for a typed prompt', typed.found.pipe.length + typed.found.handrail.length > 0, JSON.stringify(typed.found))
+const shown = await page.locator('.cctv-tile.big .cctv-sam-lbl').evaluateAll((els) => els.filter((e) => e.textContent.startsWith('pipe')).length)
+ok('a busy prompt keeps its labels readable', typed.found.pipe.length <= 5 || shown === 5, `${shown} labels on ${typed.found.pipe.length} masks`)
+ok('they raise no detection', await page.evaluate(() => (window.__cctv.getState().live['CCTV-A02'] ?? []).every((d) => !/pipe|handrail/.test(d.kind))))
+await page.screenshot({ path: '.snaps/sam-live-typed.jpg', quality: 88, type: 'jpeg' })
+await page.click('[data-sam-typed-chip="pipe"] [data-sam-typed-remove]')
+ok('removing one takes its masks at once', await page.evaluate(() => !window.__sam.getState().frames['CCTV-A02'].masks.some((m) => m.label === 'pipe')))
+await page.click('[data-sam-typed-chip="handrail"] [data-sam-typed-remove]')
+
+// turning the camera on the real model
+const liveBadges = new Set()
+for (let pan = 3; pan <= 60; pan += 3) {
+  await page.evaluate((pan) => window.__cctv.getState().setPtz('CCTV-A02', { pan }), pan)
+  liveBadges.add(await page.getAttribute('.cctv-tile.big [data-model-badge]', 'data-model-badge'))
+  await page.waitForTimeout(120)
+}
+ok('it stays live while the camera turns', liveBadges.size === 1 && liveBadges.has('sam-3.1'), [...liveBadges].join())
+ok('nothing simulated shows meanwhile', (await page.locator('.cctv-tile.big .cctv-seg canvas').count()) === 0)
+await page.waitForFunction(() => { const f = window.__sam.getState().frames['CCTV-A02']; return f && !f.held }, null, { timeout: 20000 })
+ok('it looks again once the camera rests', true)
+await page.evaluate(() => window.__cctv.getState().resetPtz('CCTV-A02'))
+
 await page.evaluate(() => window.__cctv.getState().setSelected('CCTV-A03'))
 await page.waitForTimeout(3000)
 s = await state()

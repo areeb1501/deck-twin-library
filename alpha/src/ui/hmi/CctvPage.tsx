@@ -11,17 +11,20 @@
  *    flame, gas cloud).
  *  - Right column: the call-up, the detection log (Walk to), and the detector-model card. Detections are
  *    simulated from the twin's ground truth until the operator turns on real SAM 3.1: on the site's Modal GPU, or on
- *    their own Meta key (safety/samClient.ts, safety/metaSam.ts). Neither survives a reload.
+ *    their own Meta key (safety/samClient.ts, safety/metaSam.ts). Neither survives a reload. While either is on, the operator can
+ *    type noun phrases for it to mask as well. The simulator can't look for what it wasn't built with, so it never offers that.
  *  - Below the wall: Hazardous areas (plan 14, HazardAreasPanel.tsx) — zone / PPE matrix, people per zone,
  *    violations, instructor drills; zone boxes (Zone 0 entry red, Zone 1 orange, Zone 2 yellow) on the feeds.
  */
-import { memo, useEffect, useMemo, useRef, useState } from 'react'
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Box, Kpi } from './common'
 import { EMPTY_ARR, EMPTY_OBJ, useS } from './simApi'
 import { CAMERAS, FEED_H, FEED_INTERVAL_MS, FEED_W, PTZ_HOME, SEG_BY_ID, SEG_CLASSES, aimOf, cameraById, detLabel, feedCanvases, feedStats, registerFeed, segFrames, unregisterFeed, useCctv, type CctvCameraEx, type SegInstance } from '../../safety/cctv'
 import { CAP_IMAGES, EVERY_S, IMAGE_USD, startMetaSam, testKey, useMeta, worstScan } from '../../safety/metaSam'
 import { cleanKey } from '../../safety/metaKey'
-import { samCamera, samLive, startSam, useSam } from '../../safety/samClient'
+import { canRecord, clipPrompts, CLIP_FRAMES, CLIP_IMAGES, CLIP_S, CLIP_USD, closeReview, frameAt, reviewLastSeconds, startReview, tracksOf, useReview, type ReviewClip } from '../../safety/metaReview'
+import { PERSON, samCamera, samLive, startSam, useSam } from '../../safety/samClient'
+import { MAX_TYPED } from '../../safety/samPrompts'
 import { useWorkers } from '../../safety/workers'
 import { DETECTION_LABEL, type Detection, type DetectionKind, type WorkerInfo } from '../../safety/types'
 import { fmtClock, type DetectorSim, type ZoneStatus } from '../../sim/types'
@@ -51,9 +54,11 @@ export function CctvPage() {
   useEffect(() => {
     const stopModal = startSam()
     const stopMeta = startMetaSam()
+    const stopReview = startReview()
     return () => {
       stopModal()
       stopMeta()
+      stopReview()
     }
   }, [])
   const selected = useCctv((s) => s.selected)
@@ -68,9 +73,10 @@ export function CctvPage() {
   const big = cameraById(bigId) ?? CAMERAS[0]
   const [group, setGroup] = useState<string>('all')
   const small = CAMERAS.filter((c) => c.id !== big.id && (group === 'all' || (group === 'thermal' ? c.type === 'thermal' : c.platform === group)))
+  const clip = useReview((s) => s.clip)
 
   return (
-    <div className="cctv">
+    <div className={`cctv ${clip ? 'reviewing' : ''}`}>
       <div className="cctv-main">
       <div className="cctv-groups" role="group" aria-label="Camera groups">
         {GROUPS.map(([k, label]) => {
@@ -92,6 +98,7 @@ export function CctvPage() {
       <HazardAreasPanel />
       </div>
       <div className="cctv-side">
+        {clip && <ReviewBox key={clip.url} clip={clip} />}
         <CallUpBox />
         <PromptsBox cam={big.id} />
         <LogBox />
@@ -118,7 +125,8 @@ const Tile = memo(function Tile({ cam, big, calledUp, slot }: { cam: CctvCameraE
   const h = big ? BIG_H : FEED_H
   // small tiles fill the right-hand column (3) beside the big monitor, then rows of 4 below it
   const style = big ? undefined : slot! < 3 ? { gridColumn: 4, gridRow: slot! + 1 } : { gridColumn: 1 + ((slot! - 3) % 4), gridRow: 4 + Math.floor((slot! - 3) / 4) }
-  const steer = usePtzSteer(cam, !!big)
+  const tile = useRef<HTMLDivElement>(null)
+  const steer = usePtzSteer(cam, !!big, tile)
   return (
     <div
       className={`cctv-tile ${big ? 'big ptz' : ''} ${calledUp ? 'callup' : ''} ${cam.type}`}
@@ -126,6 +134,7 @@ const Tile = memo(function Tile({ cam, big, calledUp, slot }: { cam: CctvCameraE
       onClick={big ? undefined : () => setSelected(cam.id)}
       title={big ? `${cam.id} · ${cam.model} · drag to pan and tilt, scroll to zoom, double-click to reset` : `${cam.id}: click to show on the main monitor`}
       data-cam={cam.id}
+      ref={tile}
       {...steer}
     >
       <canvas ref={canvas} width={w} height={h} />
@@ -157,20 +166,34 @@ const Tile = memo(function Tile({ cam, big, calledUp, slot }: { cam: CctvCameraE
 const CARDINAL = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW']
 const cardinal = (deg: number) => CARDINAL[Math.round(deg / 45) % 8]
 const SWEEP_DEG_S = 15
+/** zoom per unit of wheel travel: one notch of a mouse wheel is about ×1.35, and a trackpad gets there in one short swipe */
+const ZOOM_PER_WHEEL = 0.003
+const st = () => useCctv.getState()
 
 /** pointer, wheel and keyboard steering for the big tile; the small tiles get no handlers */
-function usePtzSteer(cam: CctvCameraEx, on: boolean) {
+function usePtzSteer(cam: CctvCameraEx, on: boolean, tile: React.RefObject<HTMLDivElement | null>) {
   const drag = useRef<{ x: number; y: number; id: number } | null>(null)
   const idle = useRef<number | undefined>(undefined)
   useEffect(() => () => window.clearTimeout(idle.current), [])
-  if (!on) return {}
-  const st = () => useCctv.getState()
-  const nudge = () => {
+  const nudge = useCallback(() => {
     // keep the main monitor on the fast render path for a moment after the last input
     st().setSteering(true)
     window.clearTimeout(idle.current)
     idle.current = window.setTimeout(() => !drag.current && !st().sweep && st().setSteering(false), 400)
-  }
+  }, [])
+  // React's own wheel handler is passive, so it can't keep the page from scrolling under the zoom
+  useEffect(() => {
+    const el = tile.current
+    if (!on || !el) return
+    const wheel = (e: WheelEvent) => {
+      e.preventDefault()
+      st().setPtz(cam.id, { zoom: (st().ptz[cam.id] ?? PTZ_HOME).zoom * Math.exp(-e.deltaY * ZOOM_PER_WHEEL) })
+      nudge()
+    }
+    el.addEventListener('wheel', wheel, { passive: false })
+    return () => el.removeEventListener('wheel', wheel)
+  }, [cam.id, on, nudge, tile])
+  if (!on) return {}
   const pose = () => st().ptz[cam.id] ?? PTZ_HOME
   const degPerPx = (el: HTMLElement) => aimOf(cam, pose()).fov / el.clientHeight
   return {
@@ -198,10 +221,6 @@ function usePtzSteer(cam: CctvCameraEx, on: boolean) {
       if (drag.current?.id !== e.pointerId) return
       drag.current = null
       e.currentTarget.classList.remove('grabbing')
-      nudge()
-    },
-    onWheel: (e: React.WheelEvent<HTMLDivElement>) => {
-      st().setPtz(cam.id, { zoom: pose().zoom * Math.exp(-e.deltaY * 0.0015) })
       nudge()
     },
     onDoubleClick: (e: React.MouseEvent<HTMLDivElement>) => {
@@ -582,40 +601,46 @@ function ModelBadge({ cam }: { cam: string }) {
 }
 
 const SAM_COLOURS: Record<string, string> = { person: '#22d3ee', 'hard hat': '#facc15', 'high-visibility vest': '#4ade80', flame: '#fb7185', smoke: '#a78bfa' }
+const TYPED_COLOURS = ['#fb923c', '#38bdf8', '#f472b6']
+/** a word like "pipe" can match thirty things: every one gets a mask, and the surest few a label, so the labels don't bury the picture */
+const TYPED_LABELS = 5
+const samColour = (label: string, typed: string[]) => SAM_COLOURS[label] ?? TYPED_COLOURS[typed.indexOf(label)] ?? '#e5e7eb'
 
 /** real SAM 3.1 masks from the last answer. Hard hats and vests are small, so labels stack instead of overlapping */
 function SamLayer({ cam, big, masksOn }: { cam: string; big: boolean; masksOn: boolean }) {
   const frame = useSam((s) => s.frames[cam])
   const meta = useSam((s) => s.source === 'meta')
+  const typed = useSam((s) => s.typed)
   const roster = useWorkers((s) => s.roster)
   const masks = useMemo(() => frame?.masks ?? [], [frame])
   const labels = useMemo(() => {
     const used: [number, number][] = []
-    return masks.map((m) => {
+    const named = masks.filter((m) => !typed.includes(m.label) || masks.filter((o) => o.label === m.label && o.score > m.score).length < TYPED_LABELS)
+    return named.map((m) => {
       const x = Math.min(0.93, Math.max(0.07, (m.box[0] + m.box[2]) / 2))
       let y = Math.max(0.05, m.box[1] - 0.008)
       while (used.some(([ux, uy]) => Math.abs(ux - x) < 0.15 && Math.abs(uy - y) < 0.035)) y -= 0.036
       used.push([x, y])
       return { m, x, y: Math.max(0.04, y), name: roster.find((w) => w.id === m.workerId)?.name.split(' ').at(-1) }
     })
-  }, [masks, roster])
+  }, [masks, roster, typed])
   return (
     <div className="cctv-seg" data-sam-layer>
       {masksOn && (
         <svg key={frame?.at} className="cctv-sam-mask" viewBox="0 0 1 1" preserveAspectRatio="none">
-          {masks.flatMap((m, i) => m.polygons.map((p, j) => <polygon key={`${i}-${j}`} points={p.map((q) => q.join(',')).join(' ')} style={{ ['--c' as string]: SAM_COLOURS[m.label] ?? '#e5e7eb' }} />))}
+          {masks.flatMap((m, i) => m.polygons.map((p, j) => <polygon key={`${i}-${j}`} points={p.map((q) => q.join(',')).join(' ')} style={{ ['--c' as string]: samColour(m.label, typed) }} />))}
         </svg>
       )}
       {big && masksOn && labels.map(({ m, x, y, name }, i) => (
-        <span key={`${frame?.at}-${i}`} className="cctv-seglbl cctv-sam-lbl" style={{ left: `${x * 100}%`, top: `${y * 100}%`, ['--c' as string]: SAM_COLOURS[m.label] ?? '#e5e7eb' }}>
+        <span key={`${frame?.at}-${i}`} className="cctv-seglbl cctv-sam-lbl" style={{ left: `${x * 100}%`, top: `${y * 100}%`, ['--c' as string]: samColour(m.label, typed) }}>
           {m.label} <b>{m.score.toFixed(2)}</b>
           {name && <i>{name}</i>}
         </span>
       ))}
       {big && (
         <div className="cctv-segtag">
-          SAM 3.1 · live model · {masks.length} instances
-          {meta && frame && ` · scan from ${Math.round((performance.now() - frame.at) / 1000)} s ago`}
+          SAM 3.1 · live model · {frame?.held ? 'looks again once the camera rests' : `${masks.length} instances`}
+          {meta && frame && !frame.held && ` · scan from ${Math.round((performance.now() - frame.at) / 1000)} s ago`}
         </div>
       )}
     </div>
@@ -687,16 +712,66 @@ function SegLayer({ cam, big }: { cam: string; big: boolean }) {
 function SamPrompts({ cam }: { cam: string }) {
   const masks = useSam((s) => s.frames[cam]?.masks) ?? EMPTY_ARR
   const asked = useSam((s) => s.frames[cam]?.asked)
+  const held = useSam((s) => s.frames[cam]?.held)
   return (
     <div className="cctv-prompts" data-sam-prompts>
       {Object.entries(SAM_COLOURS).filter(([prompt]) => !asked || asked.includes(prompt)).map(([prompt, colour]) => (
         <span key={prompt} className="cctv-prompt on" style={{ ['--c' as string]: colour }}>
           <i />
           {prompt}
-          <b>{masks.filter((m) => m.label === prompt).length}</b>
+          <b>{held ? '-' : masks.filter((m) => m.label === prompt).length}</b>
         </span>
       ))}
     </div>
+  )
+}
+
+/** what the operator wants the real model to mask as well. Its answer goes in the count, and one it hasn't looked for yet shows a dash, not a zero */
+function TypedPrompts({ cam }: { cam: string }) {
+  const typed = useSam((s) => s.typed)
+  const frame = useSam((s) => s.frames[cam])
+  const modal = useSam((s) => s.on)
+  const every = useMeta((s) => s.every)
+  const [draft, setDraft] = useState('')
+  const [why, setWhy] = useState('')
+  const full = typed.length >= MAX_TYPED
+  const looked = (prompt: string) => !!frame && !frame.held && !!frame.asked?.includes(prompt)
+  const add = () => {
+    const refused = useSam.getState().addTyped(draft)
+    setWhy(refused ?? '')
+    if (refused) return
+    setDraft('')
+    useCctv.getState().setSeg(true)
+  }
+  return (
+    <form className="cctv-typed" onSubmit={(e) => (e.preventDefault(), add())} data-sam-typed>
+      <div>
+        <input type="text" autoComplete="off" spellCheck={false} maxLength={60} disabled={full} placeholder={full ? `${MAX_TYPED} is the most at a time` : 'Also find, such as crane or red valve'} aria-label="Something else for SAM 3.1 to find" value={draft} onChange={(e) => (setDraft(e.target.value), setWhy(''))} data-sam-typed-input />
+        <button type="submit" disabled={full || !draft.trim()} data-sam-typed-add>
+          Find
+        </button>
+      </div>
+      {why && <div data-sam-typed-why>{why}</div>}
+      {typed.length > 0 && (
+        <div className="cctv-prompts">
+          {typed.map((prompt) => (
+            <span key={prompt} className="cctv-prompt on" style={{ ['--c' as string]: samColour(prompt, typed) }} data-sam-typed-chip={prompt}>
+              <i />
+              {prompt}
+              <b title={looked(prompt) ? 'Found in the last answer' : 'Not looked for yet'}>{looked(prompt) ? frame!.masks.filter((m) => m.label === prompt).length : '-'}</b>
+              <button type="button" aria-label={`Stop looking for ${prompt}`} title={`Stop looking for ${prompt}`} onClick={() => useSam.getState().removeTyped(prompt)} data-sam-typed-remove>
+                ×
+              </button>
+            </span>
+          ))}
+        </div>
+      )}
+      <div className="dim">
+        {modal ? 'Looked for on the colour cameras in turn.' : `Each one adds 1 billed image to every scan of the main monitor, about $${((IMAGE_USD * 3600) / every).toFixed(2)}/h, and one clip to a review.`} Masks only: these raise no alarm and go in no log.
+      </div>
+      {typed.length > 0 && !samCamera(cam) && <div className="dim">Thermal camera on the main monitor: colour cameras only.</div>}
+      {typed.length > 0 && modal && frame && !frame.held && !frame.asked && <div data-sam-typed-old>The SAM service answering here is an older one, and ignores typed prompts.</div>}
+    </form>
   )
 }
 
@@ -708,6 +783,8 @@ function PromptsBox({ cam }: { cam: string }) {
   const ms = useCctv((s) => s.segMs)
   const workers = useStore((s) => s.workers)
   const live = useSamLive(cam)
+  const modal = useSam((s) => s.on)
+  const meta = useMeta((s) => s.on)
   const counts = useMemo(() => {
     const m: Record<string, number> = {}
     for (const k of inst) m[k.cls] = (m[k.cls] ?? 0) + 1
@@ -735,6 +812,7 @@ function PromptsBox({ cam }: { cam: string }) {
         ))}
       </div>
       )}
+      {(modal || meta) && <TypedPrompts cam={cam} />}
       <div className="dim small" style={{ marginTop: 6 }}>
         {live ? `Text prompts → real masks from SAM 3.1 on ${cam}.` : `Text prompts → instance masks on the main monitor (${cam}). ${on && ms ? `Last pass ${ms.toFixed(0)} ms in the browser.` : ''}`}{' '}
         {!workers && (
@@ -751,12 +829,74 @@ function PromptsBox({ cam }: { cam: string }) {
   )
 }
 
+const TRACK_COLOURS = ['#22d3ee', '#facc15', '#4ade80', '#fb7185', '#a78bfa', '#fb923c', '#38bdf8', '#f472b6']
+
+/** a recorded clip with SAM 3.1's tracks on it, in its own panel so the live monitor stays uncovered */
+function ReviewBox({ clip }: { clip: ReviewClip }) {
+  const video = useRef<HTMLVideoElement>(null)
+  const [frame, setFrame] = useState(0)
+  useEffect(() => {
+    const v = video.current
+    if (!v) return
+    let id = 0
+    const seen: VideoFrameRequestCallback = (_, shown) => {
+      setFrame(frameAt(clip.times, shown.mediaTime))
+      id = v.requestVideoFrameCallback(seen)
+    }
+    id = v.requestVideoFrameCallback(seen)
+    return () => v.cancelVideoFrameCallback(id)
+  }, [clip])
+  const tracked = clip.frames[frame] ?? EMPTY_ARR
+  const colour = (id: string) => TRACK_COLOURS[clip.ids.indexOf(id) % TRACK_COLOURS.length]
+  const people = tracksOf(clip.ids, PERSON)
+  const others = clip.asked.filter((p) => p !== PERSON)
+  return (
+    <Box title={`Review: ${clip.camera}`} right={<button onClick={closeReview} data-review-close>Close</button>} className="cctv-review">
+      <div className="cctv-replay" data-review-replay>
+        <video ref={video} src={clip.url} autoPlay loop muted playsInline controls />
+        <svg viewBox="0 0 1 1" preserveAspectRatio="none" aria-hidden>
+          {tracked.flatMap((p) => p.polygons.map((g, i) => <polygon key={`${p.id}-${i}`} points={g.map((q) => q.join(',')).join(' ')} style={{ ['--c' as string]: colour(p.id) }} />))}
+        </svg>
+        {tracked.map((p) => (
+          <span key={p.id} className="cctv-seglbl" style={{ left: `${(p.box[0] + p.box[2]) * 50}%`, top: `${Math.max(p.box[1] * 100, 8)}%`, ['--c' as string]: colour(p.id) }} data-review-track={p.id}>
+            {p.id} <b>{p.score.toFixed(2)}</b>
+          </span>
+        ))}
+        <div className="cctv-replay-tag">Recorded clip, not live</div>
+      </div>
+      <p className="h-note" data-review-summary>
+        {people ? `${people} ${people === 1 ? 'person' : 'people'} tracked by real SAM 3.1 through the Meta Model API. Each keeps one number through the clip.` : 'SAM 3.1 tracked nobody in this clip.'} {others.length > 0 && `Also looked for: ${others.map((p) => `${p} (${tracksOf(clip.ids, p)})`).join(', ')}. `}Ends at {fmtClock(clip.t)}.{!others.length && ' Only people were looked for.'}
+      </p>
+    </Box>
+  )
+}
+
+/** the one way a clip is sent. The cost is on screen before the press */
+function ReviewRow() {
+  const r = useReview()
+  const prompts = clipPrompts(useSam((s) => s.typed))
+  const ready = r.have >= CLIP_S
+  return (
+    <div data-review-row>
+      <button onClick={() => void reviewLastSeconds()} disabled={!ready || r.busy} title={`One clip, sent once, looking for ${prompts.join(', ')}`} data-review>
+        {r.busy ? 'Tracking the clip' : `Review the last ${CLIP_S} s`}
+      </button>{' '}
+      <span className="dim" data-review-cost>
+        {ready || r.busy ? '' : `Recording, ${r.have} of ${CLIP_S} s. `}One press sends one clip{prompts.length > 1 && ` for each of ${prompts.join(', ')}`}: at least {CLIP_FRAMES} frames, about ${(CLIP_USD * prompts.length).toFixed(2)}. It counts as {CLIP_IMAGES * prompts.length} images towards the limit.
+      </span>
+    </div>
+  )
+}
+
 /** the operator's own Meta Model API key. Off on every load, and the running cost stays on screen while it runs */
 function MetaRow({ cam }: { cam: string }) {
   const m = useMeta()
+  const clips = useReview((s) => s.clips)
+  const typed = useSam((s) => s.typed)
   const [draft, setDraft] = useState('')
   const key = cleanKey(draft)
-  const worst = worstScan(m.ppe, m.fire)
+  const worst = worstScan(m.ppe, m.fire, typed.length)
+  const scans = m.images - clips * CLIP_IMAGES
   const save = () => {
     if (!key) return
     void m.save(key)
@@ -806,9 +946,10 @@ function MetaRow({ cam }: { cam: string }) {
               </label>
             </div>
             <div className="dim" data-meta-spend>
-              {m.images} {m.images === 1 ? 'image' : 'images'} · about ${(m.images * IMAGE_USD).toFixed(4)} since this page loaded{' · '}{m.on ? `${m.run} of ${CAP_IMAGES} before it stops itself` : `at most ${worst} per scan, about $${((worst * IMAGE_USD * 3600) / m.every).toFixed(2)}/h`}
+              {scans} {scans === 1 ? 'image' : 'images'}{clips > 0 && ` + ${clips} ${clips === 1 ? 'clip' : 'clips'}`} · about ${(m.images * IMAGE_USD).toFixed(4)} since this page loaded{' · '}{m.on ? `${m.run} of ${CAP_IMAGES} before it stops itself` : `at most ${worst} per scan, about $${((worst * IMAGE_USD * 3600) / m.every).toFixed(2)}/h`}
             </div>
             {m.on && !samCamera(cam) && <div className="dim">Thermal camera on the main monitor: no calls until a colour camera is up.</div>}
+            {m.on && samCamera(cam) && canRecord() && <ReviewRow />}
           </>
         )}
         {m.note && <div data-meta-note>{m.note}</div>}
@@ -884,7 +1025,7 @@ function ModelBox() {
           </tr>
           <tr>
             <td className="dim">Classes</td>
-            <td>{SEG_CLASSES.length} segmentation prompts · person · no hard hat · no hi-vis vest · flame · gas cloud · hazardous-area zone (Zone 0 entry / Zone 1–2 PPE: zone map per camera; gas monitor from the worn tag)</td>
+            <td>{SEG_CLASSES.length} segmentation prompts · person · no hard hat · no hi-vis vest · flame · gas cloud · hazardous-area zone (Zone 0 entry / Zone 1–2 PPE: zone map per camera; gas monitor from the worn tag) · anything you type, while real SAM 3.1 is on</td>
           </tr>
         </tbody>
       </table>

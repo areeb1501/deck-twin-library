@@ -18,6 +18,7 @@ import { useEffect, useRef } from 'react'
 import { useFrame, useThree } from '@react-three/fiber'
 import type { CameraControls } from '@react-three/drei'
 import * as THREE from 'three'
+import { materials as libraryMaterials } from '../../../registry/lib/materials'
 import { create } from 'zustand'
 import { useStore } from '../state/store'
 import { driveManual, useCranes } from '../sim/cranes'
@@ -73,8 +74,8 @@ const YAW_MAX: Record<CabView, number> = {
 const DRAG = 0.0042
 const FOV_DEFAULT = 62
 
-/** operator's eye in the slewing frame (f along the boom, y up from the crane's deck, s to the boom's left) */
-const eyeOf = (view: CabView, d: CraneDims): [number, number, number] => (view === 'roof' ? [1.85, d.yD + 4.45, 2.55] : [1.55, d.yD + 1.72, 2.55])
+/** operator's eye in the slewing frame (f along the boom, y up from the crane's deck, s to the boom's left: the cab is on its right) */
+const eyeOf = (view: CabView, d: CraneDims): [number, number, number] => (view === 'roof' ? [1.85, d.yD + 4.45, -2.3] : [1.55, d.yD + 1.72, -2.3])
 
 // ---------------------------------------------------------------- the crane in the scene
 
@@ -98,44 +99,12 @@ function findRig(scene: THREE.Scene, tag: string): Rig | null {
   return slew && boom ? { group, mesh: m, slew, boom } : null
 }
 
-/** cab glass colour as painted into the crane's vertex colours (sampled off the front pane) */
-function glassColour(g: THREE.BufferGeometry, d: CraneDims) {
-  const pos = g.getAttribute('position')
-  const col = g.getAttribute('color')
-  if (pos && col) {
-    for (let i = 0; i < pos.count; i++) {
-      const x = pos.getX(i)
-      const y = pos.getY(i) - d.yD
-      const z = pos.getZ(i)
-      if (Math.abs(x - 2.525) < 0.003 && y > 1.05 && y < 2.6 && z < -2.1 && z > -2.5) return new THREE.Color(col.getX(i), col.getY(i), col.getZ(i))
-    }
-  }
-  return new THREE.Color('#17222a')
-}
-
-/** a clone of the crane material that drops the cab-glass fragments (so the seat looks out, not at the panes) */
-function cabMaterial(orig: THREE.Material, glass: THREE.Color, d: CraneDims) {
-  const m = orig.clone()
-  const prev = orig.onBeforeCompile
-  m.onBeforeCompile = (sh, r) => {
-    prev?.call(orig, sh, r)
-    sh.uniforms.uCabLo = { value: new THREE.Vector3(-0.12, d.yD + 0.36, -3.2) }
-    sh.uniforms.uCabHi = { value: new THREE.Vector3(2.62, d.yD + 2.85, -1.9) }
-    sh.uniforms.uGlass = {
-      value: new THREE.Vector3(glass.r, glass.g, glass.b),
-    }
-    sh.vertexShader = sh.vertexShader.replace('#include <common>', '#include <common>\nvarying vec3 vCabPos;').replace('#include <begin_vertex>', '#include <begin_vertex>\nvCabPos = position;')
-    sh.fragmentShader = sh.fragmentShader
-      .replace('#include <common>', '#include <common>\nvarying vec3 vCabPos;\nuniform vec3 uCabLo;\nuniform vec3 uCabHi;\nuniform vec3 uGlass;')
-      .replace(
-        '#include <clipping_planes_fragment>',
-        '#include <clipping_planes_fragment>\n#ifdef USE_COLOR\nif (all(greaterThan(vCabPos, uCabLo)) && all(lessThan(vCabPos, uCabHi)) && distance(vColor.rgb, uGlass) < 0.02) discard;\n#endif',
-      )
-  }
-  const key = orig.customProgramCacheKey?.bind(orig)
-  m.customProgramCacheKey = () => `${key ? key() : ''}|cabglass`
-  m.name = `${orig.name}-cab`
-  return m
+/** the crane's materials with the library's glass dropped, so the seat looks out, not at the panes */
+function cabMaterials(orig: THREE.Material[]) {
+  const glass = libraryMaterials().glass
+  const clear = glass.clone()
+  clear.visible = false
+  return orig.map((m) => (m === glass ? clear : m))
 }
 
 /** cab interior in the slewing frame (window frames, sill, floor, joystick consoles, tinted glass) */
@@ -171,7 +140,7 @@ function buildInterior(d: CraneDims) {
   const box = (mat: THREE.Material, f0: number, f1: number, y0: number, y1: number, s0: number, s1: number) => {
     const m = new THREE.Mesh(geo, mat)
     m.scale.set(f1 - f0, y1 - y0, s1 - s0)
-    m.position.set((f0 + f1) / 2, d.yD + (y0 + y1) / 2, -(s0 + s1) / 2)
+    m.position.set((f0 + f1) / 2, d.yD + (y0 + y1) / 2, (s0 + s1) / 2)
     m.raycast = () => null
     g.add(m)
     return m
@@ -205,7 +174,7 @@ function buildInterior(d: CraneDims) {
   for (const s of [2.18, 2.92]) {
     box(trim, 1.15, 1.75, 0.34, 0.98, s - 0.08, s + 0.08)
     const grip = new THREE.Mesh(new THREE.CylinderGeometry(0.025, 0.03, 0.16, 10), dark)
-    grip.position.set(1.62, d.yD + 1.06, -s)
+    grip.position.set(1.62, d.yD + 1.06, s)
     grip.raycast = () => null
     g.add(grip)
   }
@@ -258,8 +227,8 @@ export function CraneCabDriver({ controls }: { controls: React.RefObject<CameraC
   const dom = useThree((s) => s.gl.domElement)
   const st = useRef({
     rig: null as Rig | null,
-    mat: null as THREE.Material | null,
-    orig: null as THREE.Material | null,
+    mat: null as THREE.Material[] | null,
+    orig: null as THREE.Material[] | null,
     interior: null as ReturnType<typeof buildInterior> | null,
     entry: 0,
     look: 0,
@@ -433,7 +402,7 @@ export function CraneCabDriver({ controls }: { controls: React.RefObject<CameraC
     const s = st.current
     return () => {
       if (s.rig && s.orig && s.rig.mesh.material === s.mat) s.rig.mesh.material = s.orig
-      s.mat?.dispose()
+      s.mat?.forEach((m, i) => m !== s.orig?.[i] && m.dispose())
       if (s.interior) {
         s.interior.group.removeFromParent()
         s.interior.dispose()
@@ -461,10 +430,10 @@ export function CraneCabDriver({ controls }: { controls: React.RefObject<CameraC
         const rig = findRig(scene, site.tag)
         if (rig) {
           if (s.rig && s.orig && s.rig.mesh.material === s.mat) s.rig.mesh.material = s.orig
-          s.mat?.dispose()
+          s.mat?.forEach((m, i) => m !== s.orig?.[i] && m.dispose())
           s.rig = rig
-          s.orig = rig.mesh.material as THREE.Material
-          s.mat = cabMaterial(s.orig, glassColour(rig.mesh.geometry, d), d)
+          s.orig = rig.mesh.material as THREE.Material[]
+          s.mat = cabMaterials(s.orig)
           rig.mesh.material = s.mat
           if (!s.interior) s.interior = buildInterior(d)
           rig.slew.add(s.interior.group)

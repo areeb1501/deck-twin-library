@@ -5,12 +5,13 @@
  *  - Nothing runs until the operator turns it on. That is never remembered: a reload comes back simulated, and leaving the
  *    camera page or a hidden tab stops the calls.
  *  - Only the camera on the main monitor is scanned, one frame at a time, after it has been up and still for REST_MS.
- *  - `person` goes first. The PPE prompts only go if someone is there and big enough to judge, so an empty frame costs one image.
+ *  - `person` goes first. The PPE prompts only go if someone is there and big enough to judge, so an empty frame costs one image,
+ *    plus one for each prompt the operator has typed, which goes on every scan. The cost on the card includes them.
  *  - Each turn-on may spend CAP_IMAGES. Any error turns it off, because a retry could cost money and tell us nothing.
  *
  * A scan only replaces what it looked for. With flame and smoke unticked, the twin's fire detection stays on that camera,
  * marked simulated, so a fire call-up can't lose its box. A camera leaves SAM's hands as soon as it leaves the main monitor,
- * because it won't be scanned again. Moving a camera counts as a new view: nothing is spent until it has rested.
+ * because it won't be scanned again. Moving a camera counts as a new view: it stays live, and nothing is spent until it has rested.
  *
  * The PPE rules are ppe.py in modal/dt_gateway, with the same thresholds. Masks come back as rasters that fill their box,
  * so they are traced to the same polygons the Modal route sends.
@@ -19,7 +20,7 @@ import { create } from 'zustand'
 import { useSim } from '../state/sim'
 import { feedCanvases, useCctv } from './cctv'
 import { forgetKey, hasKey, loadKey, saveKey } from './metaKey'
-import { applyAnswer, dropFrame, hintsFor, lastMoved, PERSON, PERSON_FLOOR, REST_MS, samCamera, useSam, type AnswerAlert, type AnswerDetection, type PersonHint } from './samClient'
+import { applyAnswer, dropFrame, hintsFor, holdFrame, lastMoved, PERSON, PERSON_FLOOR, REST_MS, samCamera, useSam, type AnswerAlert, type AnswerDetection, type PersonHint } from './samClient'
 import type { DetectionKind } from './types'
 
 const ROUTE = `${import.meta.env.BASE_URL}api/meta-sam`
@@ -43,7 +44,7 @@ export interface Found extends AnswerDetection {
   zone?: 0 | 1 | 2 | null
   permit?: boolean
 }
-type Box = Found['box']
+export type Box = Found['box']
 
 // ---------------------------------------------------------------- PPE rules (ppe.py)
 
@@ -168,12 +169,16 @@ export function maskPolygons(path: string, raster: { width: number; height: numb
     .map((p) => simplify(p, 0.003 * perimeter(p)).map(([x, y]): Point => [+((bounds.left + (x + 0.5) * sx) / w).toFixed(4), +((bounds.top + (y + 0.5) * sy) / h).toFixed(4)]))
 }
 
-async function* lane(text: string) {
+export async function* lane(text: string) {
   const at = { item_id: 'sam', output_index: 0, content_index: 0 }
   yield { type: 'response.output_text.delta', ...at, delta: text } as const
   yield { type: 'response.output_text.done', ...at, text } as const
   yield { type: 'response.completed' } as const
 }
+
+const unit = (v: number, size: number) => +Math.min(Math.max(v / size, 0), 1).toFixed(4)
+/** a box in source pixels as 0 … 1 of the frame */
+export const unitBox = (b: { left: number; top: number; right: number; bottom: number }, w: number, h: number): Box => [unit(b.left, w), unit(b.top, h), unit(b.right, w), unit(b.bottom, h)]
 
 /** the output text for one prompt as detections. The parser only loads for someone who has turned this on */
 export async function parseOutput(text: string, label: string, w: number, h: number): Promise<Found[]> {
@@ -181,12 +186,11 @@ export async function parseOutput(text: string, label: string, w: number, h: num
   const { decodeMaskToSVGPath, parseImageStream, recordsOfKind } = await import('@meta-sam/parser')
   const { records } = await parseImageStream(lane(text)).finalResult
   const masks = recordsOfKind(records, 'mask')
-  const unit = (v: number, size: number) => +Math.min(Math.max(v / size, 0), 1).toFixed(4)
   return recordsOfKind(records, 'box').flatMap((b) => {
     const score = b.confidence ?? 1
     if (score < SEEN_FLOOR) return []
     const m = masks.find((r) => r.objectId === b.objectId)
-    return [{ label, score, box: [unit(b.left, w), unit(b.top, h), unit(b.right, w), unit(b.bottom, h)] as Box, polygons: m ? maskPolygons(decodeMaskToSVGPath(m.mask), m.mask, m.bounds, w, h) : [] }]
+    return [{ label, score, box: unitBox(b, w, h), polygons: m ? maskPolygons(decodeMaskToSVGPath(m.mask), m.mask, m.bounds, w, h) : [] }]
   })
 }
 
@@ -213,7 +217,7 @@ interface MetaStore {
 
 let inflight: AbortController | null = null
 
-function stop(note = '') {
+export function stop(note = '') {
   inflight?.abort()
   inflight = null
   const was = useMeta.getState().on
@@ -262,7 +266,7 @@ export function charge(n: number) {
 }
 
 /** what a scan costs at most, for the operator to see before turning it on, in images */
-export const worstScan = (ppe: boolean, fire: boolean) => 1 + (ppe ? 2 : 0) + (fire ? 2 : 0)
+export const worstScan = (ppe: boolean, fire: boolean, typed = 0) => 1 + (ppe ? 2 : 0) + (fire ? 2 : 0) + typed
 
 /** what a scan with these options doesn't look for */
 export const unjudged = ({ ppe, fire }: { ppe: boolean; fire: boolean }): DetectionKind[] => [...(ppe ? [] : (['noHardHat', 'noVest', 'zonePpe'] as const)), ...(fire ? [] : (['fire'] as const))]
@@ -280,7 +284,7 @@ const WHY: Record<number, string> = {
   429: 'Meta is rate limiting this key',
 }
 
-class Refused extends Error {
+export class Refused extends Error {
   constructor(status: number) {
     super(WHY[status] ?? 'Meta did not answer')
   }
@@ -298,7 +302,7 @@ async function ask(key: string, image: string, prompts: string[], signal: AbortS
 }
 
 /** one frame of one camera, cheapest first. `looping` scans end with the switch. Returns the people found, or null if it was cut short */
-async function scan(camera: string, canvas: HTMLCanvasElement, opts: { ppe: boolean; fire: boolean }, looping: boolean): Promise<number | null> {
+async function scan(camera: string, canvas: HTMLCanvasElement, opts: { ppe: boolean; fire: boolean; typed: string[] }, looping: boolean): Promise<number | null> {
   const key = await loadKey()
   if (!key) throw new Error('No key saved')
   const off = () => looping && !useMeta.getState().on
@@ -329,6 +333,11 @@ async function scan(camera: string, canvas: HTMLCanvasElement, opts: { ppe: bool
       if (!worn) return null
       found = [...found, ...worn]
     }
+    if (opts.typed.length) {
+      const more = await round(opts.typed)
+      if (!more) return null
+      found = [...found, ...more]
+    }
     // switched off while this frame was on its way: it must not turn the camera back on
     if (off()) return null
     applyAnswer(camera, { detections: found, alerts: evaluate(found, ppe, h), ms }, t, t0, 'meta', { asked, unjudged: unjudged(opts) })
@@ -346,7 +355,7 @@ export async function testKey() {
   if (!canvas || !samCamera(camera)) return useMeta.setState({ note: 'Put a colour camera on the main monitor first.' })
   if (useMeta.getState().busy) return
   try {
-    const people = await scan(camera, canvas, { ppe: false, fire: false }, false)
+    const people = await scan(camera, canvas, { ppe: false, fire: false, typed: [] }, false)
     useMeta.setState({ note: `Key works: ${people ?? 0} ${people === 1 ? 'person' : 'people'} found on ${camera}, 1 image used.` })
   } catch (e) {
     useMeta.setState({ note: (e as Error).message })
@@ -375,13 +384,15 @@ export function startMetaSam(): () => void {
       if (camera !== up) {
         if (useSam.getState().source === 'meta') dropFrame(up)
         ;[up, upSince] = [camera, now]
+        // the new camera is scanned next, so it is live from the moment it comes up
+        if (m.on && samCamera(camera) && !useSam.getState().frames[camera]) holdFrame(camera, now)
       }
       const canvas = feedCanvases.get(camera)
       if (!m.on || m.busy || !cctv.feedsVisible || document.hidden || !canvas || !samCamera(camera)) continue
       const head = lastMoved(camera)
       if (!due(now, Math.max(upSince, head), lastScan, scanned === camera && head < lastScan, m.every * 1000)) continue
       try {
-        await scan(camera, canvas, m, true)
+        await scan(camera, canvas, { ppe: m.ppe, fire: m.fire, typed: useSam.getState().typed }, true)
       } catch (e) {
         if ((e as Error).name !== 'AbortError') stop(`${(e as Error).message}. Turned off so nothing more is spent.`)
       }

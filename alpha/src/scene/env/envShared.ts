@@ -2,7 +2,7 @@
  * Shared environment constants + materials (role 'env': never clipped by the section box).
  */
 import * as THREE from 'three'
-import { registerMaterial } from '../../three/materials'
+import { age, registerMaterial } from '../../three/materials'
 
 /** Unit vector towards the sun: mid-morning, ESE, ~33 deg elevation (rakes in under the upper deck). */
 const EL = THREE.MathUtils.degToRad(33)
@@ -150,7 +150,7 @@ const cache = new Map<string, THREE.MeshStandardMaterial>()
 export function envMat(
   name: string,
   p: THREE.MeshStandardMaterialParameters & { physical?: THREE.MeshPhysicalMaterialParameters },
-  opts: { splash?: boolean; underwater?: boolean } = {},
+  opts: { splash?: boolean; underwater?: boolean; aged?: boolean } = {},
 ) {
   let m = cache.get(name)
   if (m) return m
@@ -159,6 +159,7 @@ export function envMat(
   m.name = `env-${name}`
   if (opts.underwater !== false) withUnderwater(m, !!opts.splash)
   registerMaterial(m, 'env')
+  if (opts.aged) age(m)
   cache.set(name, m)
   return m
 }

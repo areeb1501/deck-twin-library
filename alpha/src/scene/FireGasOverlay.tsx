@@ -3,7 +3,7 @@
  * 20° down), point gas detector reach, open-path gas beams between transmitter and receiver, heat /
  * smoke detector zones. The numbers come from sim/fg.ts (the same model as the F&G mapping and the
  * live detection). Shown for every detector with the "F&G coverage" layer, always for a selected
- * detector, and for any detector in alarm, tinted amber (low) or red (high / fire).
+ * detector, and for an open-path beam in alarm; anything in alarm is tinted amber (low) or red (high / fire).
  */
 import { useMemo } from 'react'
 import * as THREE from 'three'
@@ -66,8 +66,10 @@ export function FireGasOverlay({ built }: { built: BuiltPiping }) {
       {items.map((it) => {
         const on = it.tags.includes(sel ?? '')
         const al = alarms.get(it.tags[0])
-        if (!all && !on && !al) return null
-        const material = al ? ALARM[it.type === 'OGD' ? 'beam' : 'vol'][al === 'high' ? 1 : 0] : M[it.type][on ? 1 : 0]
+        // an alarmed detector's beam always shows; its volume only on request, or a large incident tints the whole deck
+        const volume = it.type !== 'OGD'
+        if (!all && !on && !(al && !volume)) return null
+        const material = al ? ALARM[volume ? 'vol' : 'beam'][al === 'high' ? 1 : 0] : M[it.type][on ? 1 : 0]
         return <mesh key={it.key} geometry={it.geo} position={it.pos} quaternion={it.quat} scale={it.scale} material={material} raycast={noPick} renderOrder={4} />
       })}
     </group>

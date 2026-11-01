@@ -296,6 +296,31 @@ tr.al.inactive td { color: var(--h-dim); }
 .alarm-banner.p3 { border-color: rgba(230, 208, 60, 0.75); }
 .alarm-banner.sd-only { border-color: rgba(243, 156, 31, 0.6); }
 @keyframes ab-flash { 50% { background: rgba(120,24,20,0.95); } }
+/* the stack holds the banner, the general-alarm line and the alarm line; the banner keeps its own width */
+.alarm-stack { position: absolute; z-index: 12; top: 56px; left: 50%; transform: translateX(-50%); display: flex; flex-direction: column; gap: 4px; width: min(760px, calc(100vw - 744px)); min-width: 420px; pointer-events: none; }
+.alarm-stack > * { pointer-events: auto; }
+.alarm-stack .alarm-banner { position: static; transform: none; width: auto; min-width: 0; }
+.app.walking .alarm-stack { top: 92px; }
+.alarm-ga { margin: 0; padding: 4px 12px; border-radius: 8px; font-size: 11.5px; color: #fff; background: rgba(150, 26, 20, 0.92); }
+.alarm-ga.gas { color: #1d1f22; background: rgba(243, 176, 45, 0.94); }
+.alarm-ga b { font-weight: 650; }
+.alarm-line { list-style: none; margin: 0; padding: 3px; border-radius: 8px; font-family: var(--mono); font-size: 11px; background: rgba(14, 16, 18, 0.86); border: 1px solid rgba(255, 255, 255, 0.07); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); }
+.alarm-line li { animation: al-in 180ms ease-out; }
+.alarm-line li.more { padding: 2px 6px; color: #8d9297; font-size: 10.5px; }
+.alarm-line button { all: unset; box-sizing: border-box; display: flex; align-items: center; gap: 8px; width: 100%; padding: 2px 6px; border-radius: 5px; color: #d7d9db; cursor: pointer; }
+.alarm-line button:hover { background: rgba(255, 255, 255, 0.07); }
+.alarm-line time { color: #8d9297; flex: none; }
+.alarm-line .prio { display: inline-flex; align-items: center; justify-content: center; flex: none; width: 15px; height: 13px; font-size: 8.5px; font-weight: 700; color: #1d1f22; }
+.alarm-line .prio.p1 { background: #e4372c; color: #fff; clip-path: polygon(50% 0, 100% 100%, 0 100%); padding-top: 3px; animation: al-blink 1s steps(2) infinite; }
+.alarm-line .prio.p2 { background: #f39c1f; clip-path: polygon(50% 0, 100% 50%, 50% 100%, 0 50%); }
+.alarm-line .prio.p3 { background: #e6d03c; }
+.alarm-line .tag { color: #fff; flex: none; }
+.alarm-line .cond { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-family: var(--sans, inherit); }
+.alarm-line .val, .alarm-line .zone { flex: none; color: #a3a8ad; }
+.alarm-line .first { flex: none; padding: 0 5px; border-radius: 4px; font-size: 9.5px; color: #16181b; background: #e8eaec; }
+@keyframes al-in { from { opacity: 0; transform: translateY(-3px); } }
+@keyframes al-blink { 50% { opacity: 0.35; } }
+@media (prefers-reduced-motion: reduce) { .alarm-line li, .alarm-line .prio.p1 { animation: none; } }
 .alarm-banner .counts { display: flex; gap: 4px; }
 .alarm-banner .cnt { display: inline-flex; align-items: center; gap: 4px; font-family: var(--mono); font-size: 11px; padding: 1px 6px 1px 3px; border-radius: 5px; background: rgba(255, 255, 255, 0.07); }
 .alarm-banner .cnt .prio { width: 14px; height: 12px; font-size: 8.5px; }

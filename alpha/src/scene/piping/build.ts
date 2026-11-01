@@ -78,6 +78,10 @@ export interface BuiltLine {
   bands: Band[]
   /** spray nozzle positions (deluge) */
   sprays: { pos: THREE.Vector3; dir: THREE.Vector3 }[]
+  /** small-bore vents (up) and drains (down) with their isolation valve: on the pipe surface, pointing away from it */
+  stubs: { pos: THREE.Vector3; dir: THREE.Vector3; yaw: number }[]
+  /** stainless cladding straps on insulated pipe */
+  straps: { pos: THREE.Vector3; axis: THREE.Vector3; radius: number }[]
   /** tee weld saddles where a branch meets a header */
   tees: { pos: THREE.Vector3; axis: THREE.Vector3; od: number; hostOd: number }[]
   /** free ends in mid-air: weld cap (small bore) or blind flange (headers) */
@@ -179,6 +183,8 @@ export function buildPiping(plant: Plant): BuiltPiping {
     const insOd = od + 2 * insT
     const joints: Joint[] = []
     const supports: Support[] = []
+    const stubs: BuiltLine['stubs'] = []
+    const straps: BuiltLine['straps'] = []
     const bands: Band[] = []
     const tees: BuiltLine['tees'] = []
     const sprays: BuiltLine['sprays'] = []
@@ -359,6 +365,18 @@ export function buildPiping(plant: Plant): BuiltPiping {
           }
         }
 
+        // a vent or drain on most long runs, and the straps that hold the cladding on
+        if (len > 2.4 && line.nps >= 2 && !line.sprayNozzles) {
+          const horiz = Math.abs(d.y) < 0.1
+          const seed = Math.abs(start.x * 7.1 + start.z * 13.7 + start.y * 3.3)
+          if (horiz && seed % 1 < 0.72) {
+            const up = seed % 2 < 1
+            stubs.push({ pos: p0.clone().addScaledVector(d, pc.a + len * (0.3 + 0.4 * ((seed * 3) % 1))).add(new THREE.Vector3(0, ((up ? 1 : -1) * (insT > 0 ? insOd : od)) / 2, 0)), dir: new THREE.Vector3(0, up ? 1 : -1, 0), yaw: seed })
+          }
+        }
+        if (insT > 0)
+          for (let k = pc.a + 0.6; k < pc.b - 0.3; k += 0.6) straps.push({ pos: p0.clone().addScaledVector(d, k), axis: d.clone(), radius: insOd / 2 + 0.0015 })
+
         // ISO 14726 identification bands next to flanged joints / valves
         const bandR = (insT > 0 ? insOd : od) / 2 + 0.002
         if (pc.ka !== 'elbow' && pc.ka !== 'free' && pc.ka !== 'tee' && len > 0.6)
@@ -421,6 +439,8 @@ export function buildPiping(plant: Plant): BuiltPiping {
       supports,
       bands,
       sprays,
+      stubs,
+      straps,
       tees,
       caps,
       sleeves,
@@ -539,6 +559,8 @@ function compact(g: THREE.BufferGeometry) {
 }
 
 const BENTS = [-24, -18, -12, -6, 0, 6, 12, 18, 24]
+/** no post may stand in the production deck's escape aisles or perimeter walkway */
+const onWalkway = (p: THREE.Vector3) => (Math.abs(p.z) > 2.5 && Math.abs(p.z) < 4.5) || Math.abs(p.z) > 18.7 || Math.abs(p.x) > 28.7
 const UPPER_DECK_UNDERSIDE = 9.4
 
 function addSupports(out: Support[], line: PipeLine, start: THREE.Vector3, d: THREE.Vector3, len: number, outerOd: number, fps: Footprint[]) {
@@ -571,7 +593,7 @@ function addSupports(out: Support[], line: PipeLine, start: THREE.Vector3, d: TH
       const top = p.y + outerOd / 2
       out.push({ kind: 'hanger', pos: new THREE.Vector3(p.x, top, p.z), axis: d.clone(), od: outerOd, height: UPPER_DECK_UNDERSIDE - top })
     } else if (bottomY > 0.15 && bottomY < 6.2 && !overEquipment(p)) {
-      out.push({ kind: 'stanchion', pos: new THREE.Vector3(p.x, bottomY, p.z), axis: d.clone(), od: outerOd, height: bottomY })
+      if (!onWalkway(p)) out.push({ kind: 'stanchion', pos: new THREE.Vector3(p.x, bottomY, p.z), axis: d.clone(), od: outerOd, height: bottomY })
     }
   }
 }

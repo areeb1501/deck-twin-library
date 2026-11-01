@@ -87,6 +87,7 @@ export function weather(m: THREE.Material, k = 1) {
   if (k <= 0 || !(m as THREE.MeshStandardMaterial).isMeshStandardMaterial) return m
   m.onBeforeCompile = (shader) => {
     shader.uniforms.wGroundY = WEATHER.groundY
+    shader.uniforms.wK = { value: k }
     shader.vertexShader = shader.vertexShader.replace('#include <common>', '#include <common>\nvarying vec3 vWPos;').replace(
       '#include <project_vertex>',
       `#include <project_vertex>
@@ -100,24 +101,24 @@ export function weather(m: THREE.Material, k = 1) {
       vWPos = (modelMatrix * w_wp).xyz;`,
     )
     shader.fragmentShader = shader.fragmentShader
-      .replace('#include <common>', `#include <common>\nuniform float wGroundY;\n${NOISE}`)
+      .replace('#include <common>', `#include <common>\nuniform float wGroundY;\nuniform float wK;\n${NOISE}`)
       .replace(
         '#include <color_fragment>',
         `#include <color_fragment>
         float w_m = w_fbm(vWPos * 0.55);
         float w_s = w_noise(vWPos * 9.0);
         float w_low = 1.0 - smoothstep(wGroundY + 0.02, wGroundY + 0.55, vWPos.y);
-        float w_g = (smoothstep(0.42, 0.85, w_m) * 0.085 + (w_s - 0.5) * 0.03 + w_low * 0.07) * ${k.toFixed(2)};
+        float w_g = (smoothstep(0.42, 0.85, w_m) * 0.085 + (w_s - 0.5) * 0.03 + w_low * 0.07) * wK;
         diffuseColor.rgb *= 1.0 - w_g;
-        diffuseColor.rgb = mix(diffuseColor.rgb, diffuseColor.rgb * vec3(1.02, 0.99, 0.95), w_low * 0.6 * ${k.toFixed(2)});`,
+        diffuseColor.rgb = mix(diffuseColor.rgb, diffuseColor.rgb * vec3(1.02, 0.99, 0.95), w_low * 0.6 * wK);`,
       )
       .replace(
         '#include <roughnessmap_fragment>',
         `#include <roughnessmap_fragment>
-        roughnessFactor = clamp(roughnessFactor + (w_fbm(vWPos * 1.7 + 11.0) - 0.5) * 0.16 * ${k.toFixed(2)} + w_low * 0.12, 0.04, 1.0);`,
+        roughnessFactor = clamp(roughnessFactor + (w_fbm(vWPos * 1.7 + 11.0) - 0.5) * 0.16 * wK + w_low * 0.12, 0.04, 1.0);`,
       )
   }
-  m.customProgramCacheKey = () => `weather-${k.toFixed(2)}`
+  m.customProgramCacheKey = () => `weather-wK`
   return m
 }
 

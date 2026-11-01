@@ -16,6 +16,16 @@ Two pages, served unlisted on the library site:
 - The Workers button has a stepper beside it: 10 on shift by default, 1 to 24, kept between visits. `WORKER_COUNT` in `src/state/store.ts` sets the cap. `node tools/crew.mjs` tests it against the dev server.
 - Anyone with the URL can open it. Build with `DEMO_PASSWORD` set to add the password gate to the twin.
 
+## Plant outfit and look
+
+- **Outfit.** `src/model/alphaOutfit.ts` adds the utility systems on Alpha: plant air, fresh water, utility stations, hose reels, deluge grids, the K-2200 lube oil console, the topsides HPU, diesel storage, open drains, a pig receiver, nitrogen, and control valve bypasses. Every line ties into a real header or nozzle. The simulation's process model is unchanged, so these items have design data but no live values.
+- **Library parts.** `src/model/libraryItems.ts` lists the registry components used on Alpha. They are `proxy` equipment with a `library` field, drawn by `src/scene/equipment/Proxy.tsx` with the plant's own materials. Their nozzles come from the parts' own ports.
+- **Cranes.** `src/scene/env/Cranes.tsx` puts the registry's `pedestal-crane` parts on the animated rig. `crane.ts` keeps only the boom rest and the rope sets, which follow the simulation.
+- **Fire and gas.** `src/scene/GasCloud.tsx` sizes the plumes from the detection model, and `src/scene/fx/plumeFx.ts` is the particle shaders. A fire borrows the flare's point light (`fireGlow` in `src/scene/fx/simRead.ts`), so normal running pays for no extra light.
+- **Keep it light.** The frame budget comes first. Measure draw calls and triangles rather than frame rate, which swings with whatever else the machine is doing. Bores and vessel internals are skipped unless a section cut or x-ray can show them (`INSIDE` in `src/scene/perf/StaticBatcher.tsx`). Quality starts at medium and climbs if the browser has headroom.
+- **Loader.** Plain HTML and CSS in `demo/index.html`, so it is up before any script runs, and the bar moves on a composited transform, so it keeps going while the plant is built. `src/ui/bootLoader.ts` changes its text and takes it down when the static batcher finishes, with a cap of 12 s after the first frame.
+- **Walkways.** Keep the escape aisles, the perimeter walkway and the cellar's green route clear: no equipment, risers, supports or low pipe. Fix fittings such as beacons to structure that is already there, not to new poles.
+
 ## Media
 
 Clips and stills are in the private R2 bucket `deck-twin-alpha-media`, under `v2/`, served at `/alpha/media/*` by `worker.js`, which also sets noindex and handles the range requests Safari needs for video. The bucket has no public URL. They were cut from `../../deck-twin/video/out/clips`: 1280 to 1920 px wide, H.264 with no sound, each with a same-named `.webp` poster. The two long films, `hero-flyover` (25.6 s) and `walk-bridge` (13 s), have `data-film` in `index.html`: each also has `.av1.mp4` and a small `-sm.mp4` cut, and a baked dissolve so the loop has no jump. Objects are cached as immutable, so a changed file needs a new name or a `v2/`. In dev, `/alpha/media` proxies to the live site. `landing/media.sh` rebuilds and uploads the whole set; change `SET` in it for a new version.
@@ -138,6 +148,9 @@ The header's `Simulator feed` is the one place the console says its data is simu
 | Save raw CCTV feeds | `node tools/cctv-frames.mjs [outDir]`, with the dev server running |
 | Test the scenario author | `node tools/scenario-author.mjs`, with the dev server running |
 | Test the next-action agent | `node tools/next-action.mjs`, with the dev server running (`TWIN_URL` to change the port) |
+| Check for pipe and equipment clashes | `node tools/clash.mjs`, with the dev server running (`PORT` to change the port) |
+| Check for floating geometry | `node tools/floating.mjs`, with the dev server running. Must report 0 |
+| Take stills for a visual check | `node tools/snap.mjs steps.json [outDir] [query]`, with the dev server running |
 | Deploy | `cd .. && npm run deploy` (the library build copies `public/alpha` into `dist`) |
 
 ## Remove it

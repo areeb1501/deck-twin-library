@@ -244,6 +244,8 @@ export interface Proxy extends EquipmentBase {
   size: Vec3
   /** walkers can't pass through it (proxies are walk-through by default) */
   solid?: boolean
+  /** drawn by this component-library part instead of the environment (scene/equipment/Proxy.tsx) */
+  library?: { component: string; props?: Record<string, unknown> }
 }
 
 export type Equipment =

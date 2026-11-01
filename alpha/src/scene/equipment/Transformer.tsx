@@ -38,10 +38,10 @@ const TAU = Math.PI * 2
 
 // ------------------------------------------------------------------ materials
 /** tank skin (RAL 7033-ish grey) — fades in x-ray so the core and windings show */
-const TANK = () => paint('#9aa39c', 'shell', { metalness: 0.3, roughness: 0.5, physical: { clearcoat: 0.3, clearcoatRoughness: 0.45 } })
+const TANK = () => paint('#9aa39c', 'shell', { metalness: 0.3, roughness: 0.5 })
 /** fittings in the tank colour that should stay readable in x-ray */
 const FIT = () => paint('#9aa39c', 'detail', { metalness: 0.3, roughness: 0.5 })
-const PORCELAIN = () => paint('#6e3420', 'internal', { metalness: 0.05, roughness: 0.12, physical: { clearcoat: 0.9, clearcoatRoughness: 0.1 } })
+const PORCELAIN = () => paint('#6e3420', 'internal', { metalness: 0.05, roughness: 0.12 })
 const CORE = () => paint('#55595d', 'internal', { metalness: 0.6, roughness: 0.45 })
 const WINDING = () => paint('#9a6a35', 'internal', { metalness: 0.2, roughness: 0.6 })
 const SPACER = () => paint('#4a3221', 'internal', { metalness: 0.1, roughness: 0.7 })
