@@ -67,11 +67,11 @@ export default defineConfig(({ command, mode }) => {
     // media lives in R2 behind the site's Worker, and the landing search reads the site's index and thumbnails, so dev reads the live copies
     server: {
       fs: { allow: ['..'] },
-      proxy: Object.fromEntries(['/alpha/media', '/r/', '/thumbs/'].map((path) => [path, { target: 'https://deck-twin-library.demoareeb.workers.dev', changeOrigin: true }])),
+      proxy: Object.fromEntries(['/alpha/media'].map((path) => [path, { target: 'https://deck-twin-library.demoareeb.workers.dev', changeOrigin: true }])),
     },
     define: { __DEMO_GATE__: JSON.stringify(demoGate(env, command === 'serve')) },
     build: {
-      outDir: '../public/alpha',
+      outDir: '../dist/alpha',
       emptyOutDir: true,
       chunkSizeWarningLimit: 4000,
       // the landing page at /alpha/ and the twin at /alpha/demo/

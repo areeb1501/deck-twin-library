@@ -1,3 +1,0 @@
-# Per-deployment state written by the wizards: SSH private keys, the generated
-# stack .env, rendered cloud-init. Secrets by construction — never commit.
-*/state/

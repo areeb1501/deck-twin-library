@@ -5,7 +5,6 @@
  * browser plays it, and H.264 for the rest.
  */
 import './landing.css'
-import { initSearch } from './search'
 
 const MEDIA = '/alpha/media/v2'
 const connection = (navigator as Navigator & { connection?: { saveData?: boolean } }).connection
@@ -58,22 +57,6 @@ for (const img of document.querySelectorAll<HTMLImageElement>('img[data-still]')
   img.loading = 'lazy'
   img.src = `${MEDIA}/${img.dataset.still}.webp`
 }
-
-const mac = /mac|iphone|ipad|ipod/i.test(navigator.platform || navigator.userAgent)
-if (mac) document.querySelector('[data-mod]')!.textContent = '⌘'
-initSearch(document.querySelector<HTMLElement>('.top-search')!)
-
-const menuBtn = document.querySelector<HTMLButtonElement>('.top-menu-btn')!
-const menu = document.querySelector<HTMLElement>('.top-menu')!
-const setMenu = (open: boolean) => {
-  menu.hidden = !open
-  menuBtn.setAttribute('aria-expanded', String(open))
-  menuBtn.closest('.top')!.classList.toggle('menu-open', open)
-}
-menuBtn.addEventListener('click', () => setMenu(!!menu.hidden))
-addEventListener('keydown', (e) => {
-  if (e.key === 'Escape') setMenu(false)
-})
 
 const beats = [...document.querySelectorAll<HTMLLIElement>('.beats li')]
 const screens = [...document.querySelectorAll<HTMLVideoElement>('.screen video')]

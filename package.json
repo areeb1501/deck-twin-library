@@ -1,64 +1,10 @@
 {
-  "name": "deck-twin",
-  "version": "0.2.2",
-  "description": "Open-source three.js components for oil and gas digital twins, sized to published engineering standards.",
-  "license": "SEE LICENSE IN LICENSE",
-  "homepage": "https://deck-twin-library.demoareeb.workers.dev",
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/areeb1501/deck-twin-library.git"
-  },
-  "bugs": {
-    "url": "https://github.com/areeb1501/deck-twin-library/issues"
-  },
+  "name": "deck-twin-demo",
+  "private": true,
   "type": "module",
-  "bin": {
-    "deck-twin": "cli/deck-twin.mjs"
-  },
-  "files": [
-    "cli"
-  ],
-  "engines": {
-    "node": ">=18"
-  },
   "scripts": {
-    "dev": "vite",
-    "registry": "tsx scripts/build-registry.ts",
-    "build": "npm run registry && tsc -b && vite build && vite build --ssr src/entry-prerender.tsx --outDir node_modules/.prerender --logLevel warn && tsx scripts/prerender.ts",
-    "typecheck": "tsc -b",
-    "test": "npm run registry && node --test tests/*.test.mjs",
-    "shoot": "node scripts/shoot.mjs",
-    "thumbs": "node scripts/thumbs.mjs",
-    "preview": "vite preview",
-    "build:all": "npm --prefix alpha ci && npm --prefix alpha run build && npm run build",
+    "build": "rm -rf dist && npm --prefix alpha run build && cp site/404.html site/_headers dist/",
+    "build:all": "npm run build",
     "deploy": "npm run build && npx wrangler deploy"
-  },
-  "devDependencies": {
-    "@fontsource-variable/ibm-plex-sans": "^5.3.0",
-    "@fontsource-variable/jetbrains-mono": "^5.3.0",
-    "@fontsource/ibm-plex-mono": "^5.3.0",
-    "@react-three/drei": "^10.7.9",
-    "@react-three/fiber": "^9.8.2",
-    "@react-three/postprocessing": "^3.2.2",
-    "@tailwindcss/vite": "^4.3.3",
-    "@types/node": "^24.19.2",
-    "@types/react": "^19.3.0",
-    "@types/react-dom": "^19.3.0",
-    "@types/three": "^0.186.0",
-    "@vitejs/plugin-react": "^6.1.2",
-    "marked": "^18.1.2",
-    "playwright-core": "^1.64.1",
-    "posthog-js": "^1.443.0",
-    "postprocessing": "^6.39.5",
-    "react": "^19.3.1",
-    "react-dom": "^19.3.1",
-    "sharp": "^0.35.5",
-    "sugar-high": "^2.6.4",
-    "tailwindcss": "^4.3.3",
-    "three": "^0.186.1",
-    "tsx": "^4.23.15",
-    "typescript": "~6.0.3",
-    "vite": "^8.3.5",
-    "wouter": "^3.13.0"
   }
 }

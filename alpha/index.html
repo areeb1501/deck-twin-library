@@ -13,35 +13,13 @@
   </head>
   <body>
     <header class="top">
-      <a class="brand" href="/">
+      <a class="brand" href="/alpha/">
         <svg viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="7" fill="#fe5510" /><path d="M7 22h18M9.5 22v-6h13v6M12.5 16v-4h7v4M16 12V8.5" stroke="#fff" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round" /><circle cx="16" cy="6.5" r="2" fill="#fff" /></svg>
         <span>Deck Twin</span>
       </a>
-      <nav class="top-nav" aria-label="Main">
-        <a class="nav-link" href="/docs"><span>Docs</span></a>
-        <a class="nav-link" href="/components"><span>Components</span></a>
-        <a class="nav-link" href="/symbols"><span>P&amp;ID symbols</span></a>
-        <a class="nav-link" href="/examples"><span>Examples</span></a>
-        <a class="nav-link" href="/playground"><span>Playground</span></a>
-      </nav>
       <div class="top-end">
-        <a class="top-search" href="/?search=1" aria-label="Search docs and components">
-          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><circle cx="7" cy="7" r="4.5" /><path d="m10.5 10.5 3 3" stroke-linecap="round" /></svg>
-          <span class="top-search-label">Search</span>
-          <span class="top-search-keys" aria-hidden="true"><kbd data-mod>Ctrl</kbd><kbd>K</kbd></span>
-        </a>
         <a class="cta small" href="/alpha/demo/">Explore demo</a>
-        <button class="top-menu-btn" type="button" aria-label="Menu" aria-expanded="false" aria-controls="top-menu">
-          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><path d="M2.5 5.5h11M2.5 10.5h11" /></svg>
-        </button>
       </div>
-      <nav class="top-menu" id="top-menu" aria-label="Menu" hidden>
-        <a href="/docs">Docs</a>
-        <a href="/components">Components</a>
-        <a href="/symbols">P&amp;ID symbols</a>
-        <a href="/examples">Examples</a>
-        <a href="/playground">Playground</a>
-      </nav>
     </header>
 
     <main>
@@ -151,7 +129,7 @@
         <div class="lead">
           <h2>Load your own plant</h2>
           <div>
-            <p>Import a plant.json file built from Deck Twin components to view, walk through and inspect it.</p>
+            <p>Import a plant.json file to view, walk through and inspect it.</p>
             <p class="quiet">Files stay in your browser. The simulation and control room are available for the Alpha field only.</p>
           </div>
         </div>
@@ -172,38 +150,17 @@
         <div class="foot-sheet-in">
           <div>
             <h2>Explore the Alpha field</h2>
-            <p>All components in this model are in the component library, free for personal use.</p>
+            <p>Walk the decks, run an upset and open the control room.</p>
           </div>
           <div class="foot-actions">
             <a class="cta on-sheet" href="/alpha/demo/">Explore demo</a>
-            <a class="cta on-sheet outline" href="/components">Browse components</a>
           </div>
         </div>
       </section>
-      <div class="foot-cols">
-        <div class="foot-brand">
-          <a class="brand" href="/">
-            <svg viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="7" fill="#fe5510" /><path d="M7 22h18M9.5 22v-6h13v6M12.5 16v-4h7v4M16 12V8.5" stroke="#fff" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round" /><circle cx="16" cy="6.5" r="2" fill="#fff" /></svg>
-            <span>Deck Twin</span>
-          </a>
-          <p>3D components for oil and gas digital twins, sized to public engineering standards.</p>
-        </div>
-        <nav aria-label="Library"><h3>Library</h3><a href="/components">Components</a><a href="/symbols">P&amp;ID symbols</a><a href="/examples">Example plants</a><a href="/playground">Playground</a></nav>
-        <nav aria-label="Docs"><h3>Docs</h3><a href="/docs/installation">Installation</a><a href="/docs/cli">CLI</a><a href="/docs/assemble">Assembling plants</a><a href="/docs/standards">Standards &amp; data</a></nav>
-        <nav aria-label="For agents"><h3>For agents</h3><a href="/docs/agents">Agent skill</a><a href="/llms.txt">llms.txt</a><a href="/r/index.json">Registry index</a><a href="/prompt.md">Setup prompt</a></nav>
-      </div>
       <div class="foot-end">
         <p>All data on this page is simulated, including process values, alarms, personnel and agent responses. Cameras use SAM 3.1 when enabled and a simulated detector otherwise. Engineering data is based on public standards and does not represent a real asset.</p>
       </div>
     </footer>
-
-    <dialog class="search" aria-label="Search docs and components">
-      <div class="search-box">
-        <input type="text" placeholder="Search by name, tag or standard (e.g. API 610)" aria-label="Search docs and components" autocomplete="off" spellcheck="false" />
-        <div class="search-hits"></div>
-        <div class="search-foot"><span>↑↓ to move</span><span>↵ to open</span><span>esc to close</span></div>
-      </div>
-    </dialog>
     <script type="module" src="/landing/landing.ts"></script>
   </body>
 </html>

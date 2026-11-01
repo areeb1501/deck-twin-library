@@ -137,7 +137,6 @@ function Header() {
         <button onClick={() => file.current?.click()} title="Load a PlantSpec JSON (e.g. produced from a P&ID)">Import spec…</button>
         <button onClick={() => download(`${slug(spec.name)}.spec.json`, spec)} title="Download the editable PlantSpec">Export spec</button>
         <button onClick={() => download(`${slug(spec.name)}.plant.json`, result.plant)} title="Download the compiled plant (viewer format, Load… in the viewer)">Export plant</button>
-        <a className="bf-btn" href="?sandbox=library" target="_blank" rel="noreferrer" title="Browse every component on its own">Library ↗</a>
       </div>
       <input ref={file} type="file" accept=".json,application/json" hidden onChange={(e) => e.target.files?.[0] && onFile(e.target.files[0])} />
       {err && <div className="plant-err">{err}</div>}

@@ -1,13 +1,8 @@
 {
-  "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "deck-twin-library",
+  "name": "deck-twin-demo",
   "compatibility_date": "2026-10-29",
   "main": "alpha/worker.js",
   "workers_dev": true,
-  "routes": [
-    { "pattern": "decktwin.com", "custom_domain": true },
-    { "pattern": "www.decktwin.com", "custom_domain": true }
-  ],
   "assets": {
     "directory": "./dist",
     "binding": "ASSETS",
@@ -16,16 +11,10 @@
   },
   "r2_buckets": [{ "binding": "MEDIA", "bucket_name": "deck-twin-alpha-media" }],
   // per visitor: the camera page sends about two frames a second
-  "ratelimits": [{ "name": "SAM_LIMIT", "namespace_id": "7315", "simple": { "limit": 150, "period": 60 } }],
-  // branch builds run `wrangler preview`, which uses only these: the media is read-only, and previews get their own rate limit counter
+  "ratelimits": [{ "name": "SAM_LIMIT", "namespace_id": "7317", "simple": { "limit": 150, "period": 60 } }],
   "previews": {
     "r2_buckets": [{ "binding": "MEDIA", "bucket_name": "deck-twin-alpha-media" }],
-    "ratelimits": [{ "name": "SAM_LIMIT", "namespace_id": "7316", "simple": { "limit": 150, "period": 60 } }]
+    "ratelimits": [{ "name": "SAM_LIMIT", "namespace_id": "7318", "simple": { "limit": 150, "period": 60 } }]
   },
-  "observability": {
-    "logs": {
-      "enabled": false,
-      "invocation_logs": true
-    }
-  }
+  "observability": { "logs": { "enabled": false, "invocation_logs": true } }
 }

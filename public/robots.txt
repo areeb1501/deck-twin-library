@@ -1,6 +1,0 @@
-User-agent: *
-Allow: /
-Disallow: /shot/
-Disallow: /shot-plant/
-
-Sitemap: https://decktwin.com/sitemap.xml

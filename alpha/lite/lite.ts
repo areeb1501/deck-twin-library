@@ -116,7 +116,7 @@ export function render(tier: Exclude<Tier, 'full'>) {
         <ul>${PLATFORMS.map(([t, d]) => `<li><b>${t}</b><span>${d}</span></li>`).join('')}</ul>
       </section>
       <footer class="lite-foot">
-        <a href="/">${logo}Built with Deck Twin</a>
+        <a href="/alpha/">${logo}Deck Twin</a>
         <small>Images are captures of the 3D twin and its console.</small>
       </footer>
     </main>`

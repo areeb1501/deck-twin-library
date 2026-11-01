@@ -1,6 +1,0 @@
-# Per-deployment state written by deploy.sh and consumed by teardown.sh.
-# Machine-specific, and the transient .env/.tgz staged next to it hold secrets.
-state/
-.env.*
-.stack.tgz
-__pycache__/
