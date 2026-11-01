@@ -34,7 +34,7 @@ function LibraryPart({ eq }: { eq: Proxy }) {
   const Part = LIBRARY[eq.library!.component].default
   return (
     <group ref={root}>
-      <Part {...eq.library!.props} tag={eq.tag} />
+      <Part {...eq.library!.props} tag="" />
     </group>
   )
 }

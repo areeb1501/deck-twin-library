@@ -286,7 +286,7 @@ function buildStatic(sites: CraneSite[], mats: Mats, vc: THREE.Material) {
     }
     m.makeTranslation(c.x, WY + c.deckY, c.z)
     const place = new THREE.Matrix4().copy(m)
-    addBuilt(buckets, draw(libraryParts(c.spec, c.tag).base), vc, (g) => void g.applyMatrix4(place))
+    addBuilt(buckets, draw(libraryParts(c.spec, '').base), vc, (g) => void g.applyMatrix4(place))
   }
   const net = nets.length ? mergeGeometries(nets) : null
   for (const x of nets) x.dispose()

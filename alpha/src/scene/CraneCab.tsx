@@ -75,7 +75,7 @@ const DRAG = 0.0042
 const FOV_DEFAULT = 62
 
 /** operator's eye in the slewing frame (f along the boom, y up from the crane's deck, s to the boom's left: the cab is on its right) */
-const eyeOf = (view: CabView, d: CraneDims): [number, number, number] => (view === 'roof' ? [1.85, d.yD + 4.45, -2.55] : [1.55, d.yD + 1.72, -2.55])
+const eyeOf = (view: CabView, d: CraneDims): [number, number, number] => (view === 'roof' ? [1.85, d.yD + 4.45, -2.3] : [1.55, d.yD + 1.72, -2.3])
 
 // ---------------------------------------------------------------- the crane in the scene
 

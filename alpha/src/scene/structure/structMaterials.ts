@@ -85,7 +85,7 @@ export function structMats(role: 'structure' | 'env' = 'structure'): StructMats 
   const pick = (m: THREE.MeshStandardMaterial, name: string) => {
     if (role === 'structure') return m
     const c = reg(m.clone(), name + '-env')
-    age(c, 0.8)
+    age(c)
     return c
   }
 

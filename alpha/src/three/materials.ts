@@ -193,7 +193,7 @@ function applyWeather(m: THREE.Material, role: MaterialRole) {
 }
 
 /** age a material that already has its own shader patch (the environment's splash-zone steel) */
-export function age(m: THREE.Material, k = 1) {
+export function age(m: THREE.Material, k = 0.9) {
   const prev = m.onBeforeCompile
   const key = m.customProgramCacheKey?.bind(m)
   m.onBeforeCompile = (shader, renderer) => {

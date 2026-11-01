@@ -5,7 +5,7 @@
  * priority-1 alarm exists.
  *
  * Under it runs the alarm line a control room sees (ISA-18.2 style): sim time, priority, tag, condition and zone in
- * the order they came in, the first-out marked, and a click flies to the tag. A general alarm adds the platform
+ * the order they came in, the first active alarm marked first-out, and a click flies to the tag. A general alarm adds the platform
  * announcement. The horn (muted by default) beeps on a new P1 alarm and sounds the PAGA tone of the general alarm:
  * a slow two-tone for gas, a yelp for fire, interrupted for muster, a steady tone for abandon.
  */
@@ -87,13 +87,13 @@ function pagaTone(ga: Exclude<Ga, 'normal'>) {
 const bodyOf = (a: Alarm) => (a.text.startsWith(a.tag) ? a.text.slice(a.tag.length).replace(/^[\s—:-]+/, '') : a.text)
 
 /** the alarm line: unacknowledged alarms oldest first, so the first-out stays on top while the rest pile in */
-function AlarmLine({ alarms }: { alarms: Alarm[] }) {
+function AlarmLine({ alarms, firstOut }: { alarms: Alarm[]; firstOut?: string }) {
   const requestFocus = useStore((s) => s.requestFocus)
   const list = useMemo(() => [...alarms].sort((a, b) => a.raisedAt - b.raisedAt || a.priority - b.priority), [alarms])
   const shown = list.slice(0, 5)
   return (
     <ol className="alarm-line" aria-label="Alarm line, oldest first">
-      {shown.map((a, i) => (
+      {shown.map((a) => (
         <li key={a.id} className={`p${a.priority}`}>
           <button onClick={() => requestFocus(a.tag)} title={`Fly to ${a.tag}`}>
             <time>{fmtClock(a.raisedAt, false)}</time>
@@ -102,7 +102,7 @@ function AlarmLine({ alarms }: { alarms: Alarm[] }) {
             <span className="cond">{bodyOf(a)}</span>
             {a.value && <span className="val">{a.value}</span>}
             {a.zone && <span className="zone">{a.zone}</span>}
-            {i === 0 && <span className="first">First out</span>}
+            {a.id === firstOut && <span className="first">First out</span>}
           </button>
         </li>
       ))}
@@ -135,6 +135,8 @@ export function AlarmBanner() {
   const counts = [1, 2, 3].map((p) => un.filter((a) => a.priority === p).length)
   const top = useMemo(() => [...un].sort((a, b) => a.priority - b.priority || b.raisedAt - a.raisedAt)[0], [un])
   const p1 = counts[0] > 0
+  // the alarm that started it: acknowledging it doesn't hand the mark to the next one
+  const firstOut = useMemo(() => alarms.filter((a) => a.active).reduce<Alarm | null>((f, a) => (!f || a.raisedAt < f.raisedAt ? a : f), null)?.id, [alarms])
 
   // horn: beep once per new unacknowledged P1 alarm (alarms present when the page loads don't count)
   useEffect(() => {
@@ -233,7 +235,7 @@ export function AlarmBanner() {
         <b>General alarm, {gaNow.p}:</b> {GA_TEXT[ga]}
       </p>
     )}
-    {un.length > 0 && <AlarmLine alarms={un} />}
+    {un.length > 0 && <AlarmLine alarms={un} firstOut={firstOut} />}
     </div>
   )
 }

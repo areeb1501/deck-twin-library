@@ -21,7 +21,7 @@ describe('counts match the plant description', () => {
 
   it('splits the valves by type as documented', () => {
     const byType = Object.fromEntries(Object.entries(Object.groupBy(plant.valves, (v) => v.type)).map(([type, list]) => [type, list!.length]))
-    expect(byType).toEqual({ esdv: 14, bdv: 2, psv: 18, control: 27, check: 39, gate: 55, ball: 45, butterfly: 23, needle: 8, globe: 4 })
+    expect(byType).toEqual({ esdv: 13, bdv: 2, psv: 18, control: 27, check: 39, gate: 55, ball: 46, butterfly: 23, needle: 8, globe: 4 })
   })
 
   it('has 181 fire and gas devices of the documented types', () => {

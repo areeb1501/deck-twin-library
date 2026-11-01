@@ -213,7 +213,7 @@ export function extendOutfit(A: Arrays) {
 
   // ================================================================ K-2200 lube oil console and cooler
   LIB('X-2260', 'K-2200 Lube Oil Console', 'gasCompression', 'hydraulic-power-unit', [13.0, 6.1], 0, {
-    props: { reservoir: 800, pumps: 1, kw: 15, accumulators: 0, tag: 'X-2260' }, size: [4.6, 2.2, 2.1],
+    props: { reservoir: 800, pumps: 1, kw: 15, accumulators: 0 }, size: [4.6, 2.2, 2.1],
     design: { capacity: '180 L/min', notes: 'Main and auxiliary lube oil pumps, rundown tank, duplex filters' },
   })
   LIB('E-2210', 'K-2200 Lube Oil Cooler', 'gasCompression', 'plate-heat-exchanger', [13.0, 8.45], 0, {
@@ -239,7 +239,7 @@ export function extendOutfit(A: Arrays) {
 
   // ================================================================ topsides hydraulic power unit
   LIB('X-1950', 'Topsides Hydraulic Power Unit', 'safety', 'hydraulic-power-unit', [-24.8, -5.9], 0, {
-    props: { reservoir: 400, pumps: 1, kw: 7.5, accumulators: 2, tag: 'X-1950' }, size: [4.6, 2.2, 2.1],
+    props: { reservoir: 400, pumps: 1, kw: 7.5, accumulators: 2 }, size: [4.6, 2.2, 2.1],
     design: { pressure: '207 barg', notes: 'Hydraulic supply to the topsides ESD valve actuators' },
   })
   const hs = face('X-1950', 'supply')
@@ -259,7 +259,7 @@ export function extendOutfit(A: Arrays) {
 
   // ================================================================ analyser shelter: gas and oil quality on the export lines
   LIB('AH-5480', 'Analyser Shelter', 'gasTreatment', 'analyser-shelter', [4.4, 15.8], 0, {
-    props: { length: 2.6, width: 2.0, height: 2.7, panels: 2, bottles: 4, tag: 'AH-5480' }, size: [3.6, 4.1, 3.4],
+    props: { length: 2.6, width: 2.0, height: 2.7, panels: 2, bottles: 4 }, size: [3.6, 4.1, 3.4],
     design: { notes: 'Gas chromatograph, water and H2S analysers on export gas, with sample conditioning and calibration bottles' },
   })
 
@@ -342,13 +342,13 @@ export function extendOutfit(A: Arrays) {
   const WN = '10"-PM-N2002-D6A-N'
   const rx = L('10"-PM-1011-D6A-N', 'multiphase', 'wells', 10, [[9.6, -5.7, -19.4], [9.6, -5.7, -18.6], [13.4, -5.7, -18.6], [13.4, pgIn[1], -18.6], [13.4, pgIn[1], pgIn[2]], pgIn], hdr(WN), to('L-1010', 'N1'))
   const by = L('6"-PM-1012-D6A-N', 'multiphase', 'wells', 6, [pgBy, [pgBy[0], pgBy[1], pgBy[2] + 1.0], [pgBy[0], -3.6, pgBy[2] + 1.0], [pgBy[0], -3.6, -19.0], [9.6, -3.6, -19.0], [9.6, -3.6, -19.4]], to('L-1010', 'N2'), hdr(WN))
-  VA('ESDV-1011', 'esdv', rx, 0.5, { actuator: 'pistonSpring', failAction: 'FC', up: [1, 0, 0], design: { notes: 'Pig receiver isolation' } })
+  VA('HV-1013', 'ball', rx, 0.5, { actuator: 'gear', design: { notes: 'Pig receiver isolation' } })
   VA('HV-1011', 'gate', rx, 0.2, { actuator: 'gear' })
   VA('HV-1012', 'gate', by, 0.3, { actuator: 'gear' })
   IL('PG-1011', 'PG', rx, 0.8, { range: '0–100', unit: 'barg', nominal: 42 })
 
   // ================================================================ cellar: nitrogen generator on service air
-  LIB('X-8350', 'Nitrogen Generator', 'utilities', 'nitrogen-generator', [18.6, -2.2], 0, { y: c, props: { modules: 3, tag: 'X-8350' }, size: [6.8, 3.1, 1.9], design: { capacity: '150 Nm³/h, 98 %', notes: 'Membrane package. Feeds the nitrogen header for purging and blanketing' } })
+  LIB('X-8350', 'Nitrogen Generator', 'utilities', 'nitrogen-generator', [18.6, -2.2], 0, { y: c, props: { modules: 3 }, size: [6.8, 3.1, 1.9], design: { capacity: '150 Nm³/h, 98 %', notes: 'Membrane package. Feeds the nitrogen header for purging and blanketing' } })
   E('verticalVessel', 'V-8360', 'Nitrogen Buffer Receiver', 'utilities', [20.6, 1.4], 0, { id: 0.9, tt: 2.0, elevation: 0.6, support: 'legs', internals: 'mesh', platform: false, inletNps: 2, gasNps: 2, liquidNps: 1, psvNps: 2, rating: 150 }, {
     y: c, rename: { N1: 'Nitrogen inlet', N2: 'Nitrogen outlet', N3: 'Drain' }, design: { capacity: '1.5 m³', pressure: '11 barg' },
   })
@@ -373,7 +373,7 @@ export function extendOutfit(A: Arrays) {
   VA('XV-1801', 'needle', scale, 0.2)
 
   // ================================================================ weather deck: electrical house
-  LIB('B-9120', 'Utility Electrical House', 'utilities', 'e-house', [-8.2, 2.9], 0, { y: 10, props: { length: 8, width: 4.4, height: 3.6, label: 'UTILITY SWITCHROOM', interior: false, tag: 'B-9120' }, size: [9.2, 4.8, 6], design: { notes: 'Motor control and UPS for the plant air, fresh water and diesel transfer systems' } })
+  LIB('B-9120', 'Utility Electrical House', 'utilities', 'e-house', [-8.2, 2.9], 0, { y: 10, props: { length: 8, width: 4.4, height: 3.6, label: 'UTILITY SWITCHROOM', interior: false }, size: [9.2, 4.8, 6], design: { notes: 'Motor control and UPS for the plant air, fresh water and diesel transfer systems' } })
 
   // ================================================================ control valve stations: block valves and a globe bypass
   const reduced = (nps: number) => (nps >= 8 ? 6 : nps >= 6 ? 4 : nps >= 4 ? 3 : 2)

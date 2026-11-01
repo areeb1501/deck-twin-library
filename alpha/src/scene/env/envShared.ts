@@ -150,7 +150,7 @@ const cache = new Map<string, THREE.MeshStandardMaterial>()
 export function envMat(
   name: string,
   p: THREE.MeshStandardMaterialParameters & { physical?: THREE.MeshPhysicalMaterialParameters },
-  opts: { splash?: boolean; underwater?: boolean; aged?: number } = {},
+  opts: { splash?: boolean; underwater?: boolean; aged?: boolean } = {},
 ) {
   let m = cache.get(name)
   if (m) return m
@@ -159,7 +159,7 @@ export function envMat(
   m.name = `env-${name}`
   if (opts.underwater !== false) withUnderwater(m, !!opts.splash)
   registerMaterial(m, 'env')
-  if (opts.aged) age(m, opts.aged)
+  if (opts.aged) age(m)
   cache.set(name, m)
   return m
 }

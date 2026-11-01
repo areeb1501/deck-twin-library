@@ -52,10 +52,10 @@ function gaBeaconLayout(): Beacon[] {
   const P = (x: number, y: number, z: number, platform: PlatformId, upper = false) => out.push({ pos: new THREE.Vector3(x, y + WY, z), platform, upper })
   /** clamped on the top rail of a deck-edge guard rail */
   const onRail = (x: number, z: number, floor: number, platform: PlatformId, upper = false) => P(x, floor + RAIL.top + 0.22, z, platform, upper)
-  /** on the deck-side face of a corner lantern post (satDeck.ts, whpDeck.ts) */
+  /** on the deck-side face of a corner lantern post, between its battery box and solar panel (satDeck.ts, whpDeck.ts) */
   const onLanterns = (d: PlanRect, platform: PlatformId) => {
     for (const [x, sx] of [[d.x0 + 0.35, -1], [d.x1 - 0.35, 1]])
-      for (const [z, sz] of [[d.z0 + 0.35, -1], [d.z1 - 0.35, 1]]) P(x - sx * 0.14, 2.3, z - sz * 0.14, platform)
+      for (const [z, sz] of [[d.z0 + 0.35, -1], [d.z1 - 0.35, 1]]) P(x - sx * 0.14, 1.5, z - sz * 0.14, platform)
   }
   const ac: [number, number] = [(ALPHA_DECK.x0 + ALPHA_DECK.x1) / 2, (ALPHA_DECK.z0 + ALPHA_DECK.z1) / 2]
   // Alpha: every main leg at the cellar, production and weather decks
