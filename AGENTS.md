@@ -4,7 +4,7 @@ A shadcn-style registry of standards-based three.js / R3F components for oil & g
 
 ## One repo
 
-**All work happens here.** This repo holds the site, the registry, the CLI, the skill, the twin demo (`alpha/`) and the SAM 3.1 service (`modal/`).
+**All work happens here.** This repo holds the site, the registry, the CLI, the skill, the twin demo (`alpha/`), the SAM 3.1 service (`modal/`) and the D1 scripts (`database/`).
 
 - **Changes** go in this folder, including changes to the twin: edit `alpha/src` directly.
 - **Commits** go to this repo, GitHub `areeb1501/deck-twin-library`, branch `main`.
@@ -19,6 +19,7 @@ A shadcn-style registry of standards-based three.js / R3F components for oil & g
 | Twin dev server | `npm run dev` in `alpha/` → http://localhost:5191/alpha/demo/ |
 | Tests | `npm test` here (library and CLI), `npm test` in `alpha/` (twin), `uv run --no-project pytest -m "not live"` in `modal/` (SAM service). GitHub Actions runs all three on every push, on any branch. `npm test` here rebuilds the registry, which rewrites `public/r` and some tracked files, so run it in a clean clone when other sessions are working here. |
 | Deploy SAM 3.1 to Modal | `./setup.sh` in `modal/`. See `modal/README.md`. |
+| Create the D1 tables | `./database/init.sh`, or `--remote` for the real database. See `database/README.md`. |
 | Validate the registry | `npx tsx scripts/build-registry.ts --check [category or name]` |
 | Type-check | `npx tsc -p tsconfig.app.json --noEmit` |
 | Screenshot a component | `node scripts/shoot.mjs <name> [--ports] [--props '{…}'] [--view x,y,z]` → `.snaps/` |

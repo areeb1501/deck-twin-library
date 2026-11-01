@@ -20,7 +20,6 @@ import {
   previewOrder,
   sparesApi,
   useSpares,
-  wallAt60,
   woMaterialsMap,
   type ForecastResult,
   type WoMatLine,
@@ -100,27 +99,24 @@ export function SparesPage() {
   const openN = useMemo(() => orders.filter(isOpenPo).length, [orders])
   const reqN = useMemo(() => orders.filter((o) => o.stage === 'requisition').length, [orders])
   const actionN = useMemo(() => rows.filter((r) => r.action).length, [rows])
-  if (!parts.length) return <div className="h-placeholder">Spares catalogue loading: it is built from the loaded plant.</div>
+  if (!parts.length) return <div className="h-placeholder">Loading the spares catalogue.</div>
   const pick = (id: string) => setSel(id)
   return (
     <div className="sp-page" data-spares>
       <div className="h-grid" style={{ minWidth: 0 }}>
         <div className="sp-head">
           <div>
-            <h2>Spares &amp; supply</h2>
-            <div className="sp-sim" data-simulated>
-              Simulated data: parts, stock, vendors, prices and lead times are a demo dataset · ERP-ready (SAP MM / Maximo export shape), not connected to an ERP
-            </div>
+            <h2>Spares &amp; logistics</h2>
           </div>
           <span className="grow" />
           <div className="sp-ctl">
             <span className="dim">Logistics clock</span>
             <div className="seg2">
-              <button className={mode === 'demo' ? 'on' : ''} onClick={() => setMsg(say(sparesApi.setMode('demo'), 'demo clock: 1 logistics day = 15 sim min'))} data-act="mode-demo" title={`1 logistics day = ${daySeconds('demo')} sim s ≈ 15 s of wall time at 60×`}>
-                Demo
+              <button className={mode === 'demo' ? 'on' : ''} onClick={() => setMsg(say(sparesApi.setMode('demo'), 'accelerated clock: 1 logistics day = 15 min'))} data-act="mode-demo" title={`1 logistics day = ${daySeconds('demo') / 60} min of plant time`}>
+                Accelerated
               </button>
-              <button className={mode === 'real' ? 'on' : ''} onClick={() => setMsg(say(sparesApi.setMode('real'), 'real-time logistics clock'))} data-act="mode-real" title="1 logistics day = 24 sim hours">
-                Real
+              <button className={mode === 'real' ? 'on' : ''} onClick={() => setMsg(say(sparesApi.setMode('real'), 'real-time logistics clock'))} data-act="mode-real" title="1 logistics day = 24 hours of plant time">
+                Real time
               </button>
             </div>
           </div>
@@ -140,7 +136,7 @@ export function SparesPage() {
         </div>
         <Msg text={msg} />
         <div className="h-kpis">
-          <Kpi label="Inventory value" value={money(kpis.inventoryValue)} title="Offshore store + onshore base + transfers in transit (simulated prices)" />
+          <Kpi label="Inventory value" value={money(kpis.inventoryValue)} title="Offshore store + onshore base + transfers in transit" />
           <Kpi label="Open purchase orders" value={money(kpis.openPoValue)} unit={`${openN} open`} />
           <Kpi label="Requisitions to approve" value={String(reqN)} abn={reqN > 0} title={`Over the ${money(limit)} approval limit`} />
           <Kpi label="Below reorder point" value={String(kpis.belowRop)} abn={rows.some((r) => r.state === 'rop')} title="On-hand (offshore + base − reserved) at or below the ROP" />
@@ -231,7 +227,7 @@ function Logistics({ mode }: { mode: 'demo' | 'real' }) {
         <div className="kv2 sp-kv">
           <span>Next sailing</span>
           <span>
-            {fmtEta(boat.next)} · in {fmtDays(nextIn)} <small className="dim">({wallAt60(nextIn, mode)})</small>
+            {fmtEta(boat.next)} · in {fmtDays(nextIn)}
           </span>
           <span>Cycle</span>
           <span>
@@ -495,7 +491,7 @@ function Orders({ orders, parts, pick, say: setMsg }: { orders: PurchaseOrder[];
       ) : (
         <div className="h-empty">No open orders.</div>
       )}
-      <p className="h-note">ETA is on the simulation clock; ≈ is the remaining time in logistics (real) days. Value = material + expedite premium + freight.</p>
+      <p className="h-note">Value = material + expedite premium + freight.</p>
     </Box>
   )
 }
@@ -523,7 +519,7 @@ function Waiting({ mats, pick, say: setMsg }: { mats: ReturnType<typeof woMateri
   }, [wos, mats])
   return (
     <Box title={`Work orders awaiting materials (${rows.length})`}>
-      <p className="h-note">A corrective or condition-based job cannot start until its parts are kitted in the offshore store. While it waits the machine stays down and the deferred production is booked to the PE loss categories; “of which awaiting spares” is counted here.</p>
+      <p className="h-note">Corrective jobs start once their parts are kitted offshore. Deferred production while waiting is counted here.</p>
       {rows.length ? (
         <table className="h-tbl sp-tbl" data-tbl="wam">
           <thead>
@@ -668,7 +664,7 @@ function PartDetail({ id, close }: { id: string | null; close: () => void }) {
   if (!part || !lvl) {
     return (
       <aside className="faceplate sp-detail">
-        <div className="h-empty">Select a material: stock by location, open orders, order options with cost and ETA, and a 12-month stock-out forecast show here.</div>
+        <div className="h-empty">Select a material.</div>
       </aside>
     )
   }
@@ -702,11 +698,11 @@ function PartDetail({ id, close }: { id: string | null; close: () => void }) {
         <dd style={{ whiteSpace: 'normal' }}>{part.vendor}</dd>
         <dt>Lead time</dt>
         <dd>
-          {part.leadDays} d <small className="dim">{wallAt60(part.leadDays, mode)}</small>
+          {part.leadDays} d
         </dd>
         <dt>Expedited</dt>
         <dd>
-          {part.expediteDays} d · +{Math.round(part.expeditePremium * 100)} % <small className="dim">{wallAt60(part.expediteDays, mode)}</small>
+          {part.expediteDays} d · +{Math.round(part.expeditePremium * 100)} %
         </dd>
         <dt>Weight</dt>
         <dd>
@@ -887,7 +883,7 @@ function ForecastView({ f, uom }: { f: ForecastResult; uom: string }) {
         </text>
       </svg>
       <p className="h-note">
-        On-hand (offshore + base − reserved): p10–p90 band, median line{f.rop > 0 ? ', ROP dashed' : ''}. {f.note}. Simulated demand model.
+        On-hand (offshore + base − reserved): p10–p90 band, median line{f.rop > 0 ? ', ROP dashed' : ''}. {f.note}.
       </p>
     </div>
   )

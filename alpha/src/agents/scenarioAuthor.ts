@@ -3,7 +3,7 @@
  * (sim/scen/spec.ts), never code. Each one is validated against the plant and run once with nobody at the console, and what
  * fails goes back to the model. Real money goes through here, so the spending rules are the design:
  *
- *  - A request goes out only when the operator presses Send. Nothing runs on load or in the background.
+ *  - A request goes out only when the operator presses Send, or Build with their text. Nothing runs on load or in the background.
  *  - One Send may cost at most 1 + MAX_REPAIRS requests, and each one is shown in the chat.
  *  - A page load may spend CAP_REQUESTS and CAP_TOKENS, then it stops. The running count stays on screen.
  *  - Any error stops the turn. There are no retries.
@@ -13,6 +13,7 @@
 import { create } from 'zustand'
 import { forgetKey, hasKey, loadKey, saveKey } from '../safety/metaKey'
 import { useMeta } from '../safety/metaSam'
+import { useAccount } from '../state/account'
 import { newScenarioId, useCustom, type ChatLine } from '../sim/scen/custom'
 import type { DryRunReport } from '../sim/scen/dryRun'
 import type { ScenarioSpec } from '../sim/scen/spec'
@@ -57,6 +58,8 @@ export interface Usage {
 interface AuthorStore extends Settings {
   /** a key is saved for each provider (null until asked) */
   saved: Partial<Record<AuthorProviderId, boolean>>
+  /** text waiting in the message box */
+  seed: string
   chat: ChatLine[]
   draft: Draft | null
   /** the saved scenario this conversation is editing */
@@ -74,6 +77,8 @@ interface AuthorStore extends Settings {
   send: (text: string) => Promise<void>
   stop: () => void
   newChat: () => void
+  /** opens the builder with this text: sent straight away when a model is connected, otherwise left in the box */
+  begin: (text: string) => void
   edit: (id: string) => void
   save: () => string | null
 }
@@ -122,6 +127,7 @@ export const useAuthor = create<AuthorStore>((set, get) => ({
   models: settings0.models ?? {},
   endpoint: settings0.endpoint ?? '',
   saved: {},
+  seed: '',
   chat: Array.isArray(draft0.chat) ? draft0.chat : [],
   draft: draft0.draft ?? null,
   editing: draft0.editing ?? null,
@@ -161,6 +167,12 @@ export const useAuthor = create<AuthorStore>((set, get) => ({
     set({ chat: [], draft: null, editing: null, note: '', partial: '' })
     persist()
   },
+  begin: (text) => {
+    const s = get()
+    if (!text) return
+    if (s.saved[s.provider] === true && !needsSetup(s)) void send(text)
+    else set({ seed: text })
+  },
   edit: (id) => {
     const x = useCustom.getState().items.find((y) => y.id === id)
     if (!x) return
@@ -174,13 +186,17 @@ export const useAuthor = create<AuthorStore>((set, get) => ({
     const old = editing ? useCustom.getState().items.find((y) => y.id === editing) : undefined
     const id = old?.id ?? newScenarioId(draft.spec.title)
     const now = new Date().toISOString()
-    const ok = useCustom.getState().put({ id, spec: { ...draft.spec, id }, model: draft.model, chat, createdAt: old?.createdAt ?? now, updatedAt: now })
+    const ok = useCustom.getState().put({ id, spec: { ...draft.spec, id }, model: draft.model, by: old?.by ?? useAccount.getState().user.name, chat, createdAt: old?.createdAt ?? now, updatedAt: now })
     if (!ok) return 'This browser is out of storage, so the scenario was not saved.'
     set({ editing: id })
     persist()
     return null
   },
 }))
+
+/** what the model connection still needs, or null */
+export const needsSetup = (s: Pick<AuthorStore, 'provider' | 'endpoint' | 'saved'>) =>
+  AUTHOR_PROVIDERS[s.provider].endpoint && !s.endpoint ? 'Add your Modal endpoint to start.' : s.saved[s.provider] === false ? 'Add your key to start.' : null
 
 const why = (e: unknown) => (e instanceof Error ? e.message : String(e))
 

@@ -73,7 +73,7 @@ export function HandoverPage() {
         <div>
           <h2>Shift handover:{plant.name}</h2>
           <div className="dim">
-            {fmtClock(since)} → {fmtClock(t)} · {(span / 3600).toFixed(1)} h {span < WINDOW - 1 ? '(session so far)' : '(last 12 h)'} · generated from the simulation, the maintenance system and the audit trail
+            {fmtClock(since)} → {fmtClock(t)} · {(span / 3600).toFixed(1)} h {span < WINDOW - 1 ? '(session so far)' : '(last 12 h)'}
           </div>
         </div>
         <span className="grow" />

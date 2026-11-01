@@ -26,7 +26,7 @@ const pc = (v: number) => `${Math.round(v * 100)}`
 
 const CSS = `
 .fgp { display: flex; flex-direction: column; gap: 10px; font-size: 12px; min-height: 0; }
-.fgp h4 { margin: 0 0 6px; font-size: 10.5px; text-transform: uppercase; letter-spacing: .07em; color: var(--ui-muted, #9aa0a6); font-weight: 600; }
+.fgp h4 { margin: 0 0 6px; font-size: 12px; color: var(--ui-muted, #9aa0a6); font-weight: 600; }
 .fgp-bar { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
 .fgp-seg { display: inline-flex; border: 1px solid var(--ui-line, rgba(255,255,255,.12)); border-radius: 7px; overflow: hidden; }
 .fgp-seg button { background: none; border: 0; color: var(--ui-muted, #9aa0a6); padding: 4px 8px; font-size: 11.5px; cursor: pointer; }

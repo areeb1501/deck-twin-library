@@ -1,4 +1,4 @@
-/** "▶ Demo story" launcher for the Asset & economics header (sim/demoStory.ts). */
+/** Guided stories (sim/demoStory.ts): the launcher sits on the Instructor page, and a running story shows on the economics header too. */
 import { useState } from 'react'
 import { STORIES, setAutoCrew, startStory, stopStory, useStory, type StoryId } from '../../sim/demoStory'
 import { fmtClock } from '../../sim/types'
@@ -7,7 +7,7 @@ import { fmtUsd } from '../../sim/assetRisk'
 import { useS } from './simApi'
 import './story.css'
 
-export function DemoStory() {
+export function DemoStory({ launcher = false }: { launcher?: boolean }) {
   const active = useStory((s) => s.active)
   const note = useStory((s) => s.note)
   const autoCrew = useStory((s) => s.autoCrew)
@@ -23,6 +23,7 @@ export function DemoStory() {
     if (!r) setOpen(false)
   }
 
+  if (!story && !launcher) return null
   return (
     <div className="story">
       {story ? (
@@ -41,7 +42,7 @@ export function DemoStory() {
         </div>
       ) : (
         <button className="story-go" onClick={() => setOpen((v) => !v)} aria-expanded={open}>
-          ▶ Demo story
+          ▶ Guided story
         </button>
       )}
       {open && !story && (
@@ -52,7 +53,7 @@ export function DemoStory() {
               <span>{s.pitch}</span>
             </button>
           ))}
-          <p className="story-foot">Sets 60×, random failures off, simulated stock. Deterministic, so it plays the same every time.</p>
+          <p className="story-foot">Sets 60× and turns random failures off. Plays the same every time.</p>
           {msg && <div className="h-msg">{msg}</div>}
         </div>
       )}

@@ -39,7 +39,7 @@ export function ValueStrip({ variant = 'console', className, onOpen }: { variant
       tabIndex={0}
       onClick={open}
       onKeyDown={onKey}
-      title="Asset & economics: simulated values at an assumed price deck. Click to open."
+      title={variant === 'console' ? 'Asset and economics' : 'Asset & economics: simulated values at an assumed price deck. Click to open.'}
       data-value-strip={variant}
     >
       <div className="vs-i">
@@ -82,7 +82,7 @@ export function ValueStrip({ variant = 'console', className, onOpen }: { variant
           )}
         </span>
       </div>
-      <span className="vs-sim">simulated</span>
+      {variant !== 'console' && <span className="vs-sim">simulated</span>}
     </div>
   )
 }

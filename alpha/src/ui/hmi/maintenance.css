@@ -31,7 +31,7 @@
 .mt-flow span.done { color: var(--h-dim); border-color: var(--h-line2); }
 .mt-flow span.on { color: #1d1f22; background: var(--h-fg); border-color: var(--h-fg); font-weight: 600; }
 .mt-flow span.x { text-decoration: line-through; }
-.mt-h5 { margin: 10px 0 4px; font-size: 10px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--h-dim); }
+.mt-h5 { margin: 10px 0 4px; font-size: 12px; font-weight: 600; color: var(--h-dim); }
 .mt-hist { display: grid; gap: 2px; font-size: 11px; max-height: 160px; overflow: auto; }
 .mt-hist .warn { color: #ffd7a0; }
 .mt-permit { margin-top: 10px; padding: 8px; border: 1px solid var(--h-line2); border-radius: 3px; background: rgba(255,255,255,0.015); }

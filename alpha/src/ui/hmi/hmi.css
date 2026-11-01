@@ -20,7 +20,7 @@
   --h-ok: #6fbf8a;
   position: fixed; inset: 0; z-index: 60;
   background: var(--h-bg); color: var(--h-fg);
-  display: grid; grid-template-rows: auto auto 1fr; grid-template-columns: minmax(0, 1fr); font-size: 12px;
+  display: grid; grid-template-rows: auto auto 1fr; grid-template-columns: minmax(0, 1fr); font-size: 13px;
   font-family: inherit;
 }
 .hmi * { box-sizing: border-box; }
@@ -29,7 +29,7 @@
 .hmi .faint { color: var(--h-faint); }
 .hmi button {
   font: inherit; color: var(--h-fg); background: var(--h-bg3); border: 1px solid var(--h-line2);
-  border-radius: 3px; padding: 3px 9px; cursor: pointer; white-space: nowrap;
+  border-radius: 4px; padding: 4px 10px; cursor: pointer; white-space: nowrap;
 }
 .hmi button:hover:not(:disabled) { background: #3d4045; border-color: #6b7076; }
 .hmi button:disabled { opacity: 0.4; cursor: default; }
@@ -40,33 +40,55 @@
 .hmi button.link { background: none; border: 0; padding: 0; color: var(--h-fg); text-decoration: underline; text-decoration-color: var(--h-faint); text-underline-offset: 2px; }
 .hmi button.link:hover { text-decoration-color: var(--h-fg); background: none; }
 .hmi select, .hmi input[type='text'], .hmi input[type='number'] {
-  font: inherit; color: var(--h-fg); background: var(--h-bg2); border: 1px solid var(--h-line2); border-radius: 3px; padding: 3px 6px;
+  font: inherit; color: var(--h-fg); background: var(--h-bg2); border: 1px solid var(--h-line2); border-radius: 4px; padding: 4px 8px;
 }
 .hmi input[type='range'] { accent-color: #b9bdc1; }
 .hmi input[type='checkbox'] { accent-color: #b9bdc1; }
 
 /* header */
 .hmi-head {
-  display: flex; align-items: center; gap: 14px; padding: 6px 12px; background: #1f2124; border-bottom: 1px solid var(--h-line);
+  display: flex; align-items: center; gap: 16px; padding: 8px 20px; background: #1f2124; border-bottom: 1px solid var(--h-line);
 }
-.hmi-title { font-weight: 600; letter-spacing: 0.02em; white-space: nowrap; }
+.hmi-title { font-size: 14px; font-weight: 600; white-space: nowrap; }
 .hmi-head { overflow-x: auto; scrollbar-width: none; }
-.hmi-title small { display: block; font-weight: 400; color: var(--h-dim); font-size: 10.5px; }
-.hmi-clock { font-family: var(--mono); font-size: 15px; padding: 2px 8px; background: var(--h-bg2); border: 1px solid var(--h-line); border-radius: 3px; }
+.hmi-title small { display: block; font-weight: 400; color: var(--h-dim); font-size: 11.5px; margin-top: 1px; }
+.hmi-clock { font-family: var(--mono); font-size: 14px; padding: 4px 10px; white-space: nowrap; background: var(--h-bg2); border: 1px solid var(--h-line); border-radius: 3px; }
 .hmi-speed { display: flex; gap: 2px; }
-.hmi-speed button { padding: 3px 7px; }
-.hmi-lamps { display: flex; gap: 8px; margin-left: auto; }
-.hmi-lamp { display: flex; align-items: center; gap: 6px; padding: 3px 8px; border: 1px solid var(--h-line); border-radius: 3px; background: var(--h-bg2); }
+.hmi-speed button { padding: 4px 8px; }
+.hmi-lamps { display: flex; gap: 14px; margin-left: auto; }
+.hmi-lamp { display: flex; align-items: center; gap: 6px; white-space: nowrap; }
+.hmi-lamp.sd, .hmi-lamp.gas, .hmi-lamp.fire, .hmi-lamp.muster, .hmi-lamp.abandon { padding: 2px 8px; border: 1px solid var(--h-line); border-radius: 4px; background: var(--h-bg2); }
 .hmi-lamp i { width: 10px; height: 10px; border-radius: 50%; background: #4a4e53; border: 1px solid #6a6e73; }
 .hmi-lamp.gas i { background: var(--h-p3); border-color: var(--h-p3); }
 .hmi-lamp.fire i, .hmi-lamp.muster i, .hmi-lamp.abandon i { background: var(--h-p1); border-color: var(--h-p1); animation: hmi-flash 1s steps(2) infinite; }
 .hmi-lamp.sd { border-color: var(--h-p2); }
-.hmi-lamp b { font-weight: 600; }
-.hmi-close { margin-left: 4px; }
+.hmi-lamp b { font-weight: 500; }
+.hmi-close { flex: none; }
+
+/* signed-in user and console view */
+.hmi-acct { flex: none; }
+.hmi .hmi-acct-btn { display: flex; align-items: center; gap: 8px; padding: 3px 8px 3px 4px; background: none; border-color: transparent; text-align: left; }
+.hmi .hmi-acct-btn:hover:not(:disabled), .hmi .hmi-acct-btn[aria-expanded='true'] { background: var(--h-bg3); border-color: var(--h-line2); }
+.hmi-acct-btn i { display: grid; place-items: center; width: 28px; height: 28px; border-radius: 50%; background: var(--h-bg3); border: 1px solid var(--h-line2); font-style: normal; font-size: 11px; font-weight: 600; }
+.hmi-acct-btn b { display: block; font-weight: 500; line-height: 1.25; }
+.hmi-acct-btn small { display: block; font-size: 11.5px; color: var(--h-dim); line-height: 1.25; }
+.hmi-acct-btn svg { width: 14px; height: 14px; fill: none; stroke: var(--h-dim); stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+.hmi-acct-bg { position: fixed; inset: 0; z-index: 70; }
+.hmi-acct-menu { position: fixed; top: 54px; right: 20px; z-index: 71; width: 300px; padding: 6px; background: #1f2124; border: 1px solid var(--h-line2); border-radius: 6px; box-shadow: 0 12px 32px rgba(0, 0, 0, 0.45); }
+.hmi-acct-who { display: grid; gap: 2px; padding: 8px 10px 12px; }
+.hmi-acct-who b { font-weight: 600; }
+.hmi-acct-who span { color: var(--h-dim); font-size: 12px; overflow-wrap: anywhere; }
+.hmi-acct-menu h4 { margin: 0; padding: 10px 10px 6px; border-top: 1px solid var(--h-line); font-size: 12px; font-weight: 500; color: var(--h-dim); }
+.hmi .hmi-acct-menu button { display: flex; align-items: center; justify-content: space-between; gap: 12px; width: 100%; padding: 8px 10px; background: none; border-color: transparent; text-align: left; white-space: normal; }
+.hmi .hmi-acct-menu button:hover:not(:disabled) { background: var(--h-bg3); border-color: transparent; }
+.hmi .hmi-acct-menu button.sel { background: var(--h-bg3); border-color: var(--h-line2); }
+.hmi-acct-menu button b { display: block; font-weight: 500; }
+.hmi-acct-menu button small { display: block; font-size: 12px; color: var(--h-dim); }
+.hmi-acct-menu button em { flex: none; font-style: normal; font-size: 11.5px; color: var(--h-dim); font-variant-numeric: tabular-nums; }
 
 /* tabs */
 .hmi-tabbar { display: flex; align-items: stretch; background: #1f2124; border-bottom: 1px solid var(--h-line); }
-.hmi-tabs { display: flex; flex: 1; min-width: 0; gap: 1px; padding: 0 12px; scroll-padding-inline: 12px; overflow-x: auto; scrollbar-width: none; }
+.hmi-tabs { display: flex; align-items: stretch; flex: 1; min-width: 0; padding: 0 12px; scroll-padding-inline: 12px; overflow-x: auto; scrollbar-width: none; }
 .hmi-tabs::-webkit-scrollbar { display: none; }
 @media (prefers-reduced-motion: no-preference) { .hmi-tabs { scroll-behavior: smooth; } }
 .hmi .hmi-tabs-arrow { flex: none; display: grid; place-items: center; width: 32px; padding: 0; border: 0; border-radius: 0; background: var(--h-bg3); }
@@ -74,7 +96,8 @@
 .hmi-tabs-arrow.right { box-shadow: -1px 0 0 var(--h-line); }
 .hmi-tabs-arrow svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
 .hmi-tabs button { flex: none; }
-.hmi-tabs button { border: 0; border-radius: 0; background: none; padding: 7px 14px; color: var(--h-dim); border-bottom: 2px solid transparent; }
+.hmi-tabs button { border: 0; border-radius: 0; background: none; padding: 9px 8px; font-size: 12.5px; color: var(--h-dim); border-bottom: 2px solid transparent; }
+.hmi-tab-sep { flex: none; width: 1px; margin: 9px 4px; background: var(--h-line2); }
 .hmi-tabs button:hover:not(:disabled) { background: var(--h-bg); border-color: transparent; color: var(--h-fg); }
 .hmi-tabs button.on { color: var(--h-fg); background: var(--h-bg); border-bottom-color: var(--h-fg); }
 .hmi-tabs .badge { display: inline-block; min-width: 16px; margin-left: 6px; padding: 0 4px; border-radius: 8px; font-size: 10px; text-align: center; background: var(--h-faint); color: #fff; }
@@ -82,42 +105,43 @@
 .hmi-tabs .badge.p2 { background: var(--h-p2); color: #1d1f22; }
 .hmi-tabs .badge.p3 { background: var(--h-p3); color: #1d1f22; }
 
-.hmi-body { overflow: auto; padding: 12px; min-height: 0; }
+.hmi-body { overflow: auto; padding: 20px; min-height: 0; }
 .hmi-body::-webkit-scrollbar { width: 10px; height: 10px; }
 .hmi-body::-webkit-scrollbar-thumb { background: #4a4e53; border-radius: 5px; }
 
 /* generic blocks */
-.h-grid { display: grid; gap: 10px; }
-.h-box { background: var(--h-bg2); border: 1px solid var(--h-line); border-radius: 3px; padding: 8px 10px; min-width: 0; }
-.h-box > h3, .h-sec { margin: 0 0 6px; font-size: 10.5px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--h-dim); display: flex; align-items: center; gap: 8px; }
+.h-grid { display: grid; gap: 16px; }
+.h-box { background: var(--h-bg2); border: 1px solid var(--h-line); border-radius: 6px; padding: 14px 16px; min-width: 0; }
+.h-box > h3, .h-sec { margin: 0 0 12px; font-size: 13px; font-weight: 600; color: var(--h-fg); display: flex; align-items: center; gap: 8px; }
+.h-box > h3 > *:not(:first-child), .h-sec > *:not(:first-child) { font-weight: 400; font-size: 12px; }
 .h-box > h3 .grow, .h-sec .grow { flex: 1; }
 .h-row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
-.h-note { color: var(--h-dim); font-size: 11.5px; line-height: 1.45; margin: 0; }
+.h-note { color: var(--h-dim); font-size: 12.5px; line-height: 1.5; margin: 0; }
 .h-msg { margin-top: 6px; padding: 4px 8px; border-left: 3px solid var(--h-p2); background: rgba(243,156,31,0.08); color: #ffd7a0; font-size: 11.5px; }
 .h-msg.ok { border-left-color: var(--h-ok); background: rgba(111,191,138,0.08); color: #c4ecd1; }
-.h-empty { color: var(--h-faint); padding: 10px 0; font-style: italic; }
+.h-empty { color: var(--h-dim); padding: 12px 0; }
 
 /* KPI tiles */
-.h-kpis { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 6px; }
-.h-kpi { background: var(--h-bg2); border: 1px solid var(--h-line); border-radius: 3px; padding: 6px 8px; }
-.h-kpi .l { color: var(--h-dim); font-size: 10.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.h-kpi .n { font-family: var(--mono); font-size: 18px; margin-top: 2px; }
-.h-kpi .n small { font-size: 10.5px; color: var(--h-dim); margin-left: 3px; font-family: inherit; }
+.h-kpis { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 10px; }
+.h-kpi { display: flex; flex-direction: column; justify-content: space-between; background: var(--h-bg2); border: 1px solid var(--h-line); border-radius: 6px; padding: 10px 12px; }
+.h-kpi .l { color: var(--h-dim); font-size: 12px; }
+.h-kpi .n { display: flex; flex-wrap: wrap; align-items: baseline; font-family: var(--mono); font-size: 19px; margin-top: 4px; white-space: nowrap; }
+.h-kpi .n small { font-size: 11.5px; color: var(--h-dim); margin-left: 3px; font-family: inherit; }
 .h-kpi.abn { border-color: var(--h-p2); }
 .h-kpi.abn .n { color: #ffd7a0; }
 .h-kpi.bad { border-color: var(--h-p1); }
 .h-kpi.bad .n { color: #ffb8b2; }
 
 /* tables */
-.h-tbl { width: 100%; border-collapse: collapse; font-size: 11.5px; }
-.h-tbl th { text-align: left; font-weight: 600; color: var(--h-dim); padding: 4px 6px; border-bottom: 1px solid var(--h-line2); white-space: nowrap; position: sticky; top: 0; background: var(--h-bg2); }
+.h-tbl { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+.h-tbl th { text-align: left; font-weight: 600; color: var(--h-dim); padding: 6px 8px; border-bottom: 1px solid var(--h-line2); white-space: nowrap; position: sticky; top: 0; background: var(--h-bg2); }
 .h-tbl th.sort { cursor: pointer; user-select: none; }
 .h-tbl th.sort:hover { color: var(--h-fg); }
-.h-tbl td { padding: 3px 6px; border-bottom: 1px solid #383b3f; vertical-align: middle; }
+.h-tbl td { padding: 6px 8px; border-bottom: 1px solid #383b3f; vertical-align: middle; }
 .h-tbl tr:hover td { background: rgba(255,255,255,0.025); }
 .h-tbl td.num { text-align: right; font-family: var(--mono); }
 .h-tbl td.act { white-space: nowrap; text-align: right; }
-.h-tbl td.act button { padding: 1px 6px; margin-left: 3px; font-size: 11px; }
+.h-tbl td.act button { padding: 2px 8px; margin-left: 4px; font-size: 12px; }
 .h-tbl .wrap { white-space: normal; }
 
 /* alarm priority marks (shape + colour + number, so not colour alone) */

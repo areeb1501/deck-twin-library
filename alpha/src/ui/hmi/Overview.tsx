@@ -19,13 +19,6 @@ export function Overview() {
 
   return (
     <div className="h-grid">
-      <p className="h-note">
-        <b>What the plant does.</b> Wells on Alpha and on the WHP-N wellhead platform flow to the production manifold. The HP separator V-1100 splits oil, gas and water;
-        oil is degassed in the LP separator V-1300, cooled and pumped by P-1500A/B over the west bridge to RP, where it is metered and goes down the export riser. Gas is scrubbed,
-        compressed by K-2200 and dried in the TEG contactor before it follows the same route to RP; it also feeds the fuel gas that drives the turbine generators GT-8100A/B. Produced water is treated and dumped overboard. Gas the plant cannot take goes to flare. The LQ
-        platform holds the control room, the emergency generator and the accommodation.
-      </p>
-
       <Box title="Field: now">
         <div className="h-kpis">
           <Kpi label="Oil export" value={fmt(r?.oilExport)} unit="bbl/d" />
@@ -36,7 +29,7 @@ export function Overview() {
           <Kpi label="Production efficiency: now" value={fmt(r?.efficiency, 1)} unit="%" abn={(r?.efficiency ?? 100) < 95} bad={(r?.efficiency ?? 100) < 50} title="Actual over maximum production potential (boe), this instant" />
           <Kpi label="PE: last hour" value={fmt(k?.peHour, 1)} unit="%" abn={(k?.peHour ?? 100) < 95} />
           <Kpi label="PE: session" value={fmt(k?.pe, 1)} unit="%" abn={(k?.pe ?? 100) < 95} />
-          <Kpi label="Availability" value={fmt(k?.availability ?? avail, 1)} unit="%" abn={(k?.availability ?? avail ?? 100) < 95} title="Share of sim time the field was up (no PSD / ESD / blackout)" />
+          <Kpi label="Availability" value={fmt(k?.availability ?? avail, 1)} unit="%" abn={(k?.availability ?? avail ?? 100) < 95} title="Share of time the field was up (no PSD / ESD / blackout)" />
           <Kpi label="Alarm rate" value={fmt(rate)} unit="/ 10 min" abn={(rate ?? 0) >= 5} bad={(rate ?? 0) >= 10} title="ISA-18.2: ≥ 10 alarms in 10 minutes is a flood" />
           <Kpi label="Standing alarms" value={String(standing)} />
           <Kpi label="Trips / shutdowns" value={k ? `${k.trips ?? 0} / ${k.shutdowns ?? 0}` : '-'} />
@@ -75,7 +68,7 @@ export function Overview() {
       </div>
 
       <div className="h-grid" style={{ gridTemplateColumns: 'minmax(0, 3fr) minmax(0, 2fr)' }}>
-        <Box title="Production efficiency, where the potential went (session)" right={k ? <span className="mono dim">PE {fmt(k.pe, 1)} %</span> : null}>
+        <Box title="Production efficiency losses (session)" right={k ? <span className="mono dim">PE {fmt(k.pe, 1)} %</span> : null}>
           <Waterfall k={k} />
         </Box>
         <Box title="Process: key values">

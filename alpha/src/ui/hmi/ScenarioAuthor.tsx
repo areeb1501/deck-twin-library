@@ -1,12 +1,11 @@
 /**
  * Build a training scenario by talking to a model. The operator brings a provider and a key, and every Send is one billed
- * request they chose to make, with the running count on screen. Two full-height panes: the conversation on the left, the
- * draft on the right with what the plant check and the unattended run found. The connection opens from the header, and opens
- * by itself while it still needs something. Logic: agents/scenarioAuthor.ts.
+ * request they chose to make, with the running count on screen. Three full-height panes: the conversation, the draft with what
+ * the plant check and the unattended run found, and the model connection in a sidebar. Logic: agents/scenarioAuthor.ts.
  */
 import { useEffect, useRef, useState, type FormEvent, type KeyboardEvent } from 'react'
 import { AUTHOR_PROVIDERS, modelOf, priceOf, type AuthorProviderId } from '../../agents/authorProvider'
-import { CAP_REQUESTS, CAP_TOKENS, MAX_REPAIRS, overLimit, useAuthor, type Stage } from '../../agents/scenarioAuthor'
+import { CAP_REQUESTS, CAP_TOKENS, MAX_REPAIRS, needsSetup, overLimit, useAuthor, type Stage } from '../../agents/scenarioAuthor'
 import { cleanKey } from '../../safety/metaKey'
 import type { ChatLine } from '../../sim/scen/custom'
 import { DIFFICULTY_LABEL } from '../../sim/scen/types'
@@ -22,54 +21,36 @@ const STAGE: Record<Exclude<Stage, 'idle'>, string> = {
   testing: 'Running it once with nobody at the console…',
 }
 
-const STARTERS = [
-  'A seawater pump trips on a windy night while a crane lift is under way, and the standby is slow to come back.',
-  'A small gas leak near the export pumps that only one detector can see, with another detector already out of service.',
-  'Oil export gets blocked while the operator is already dealing with a compressor trip.',
-  'A stuck ESD valve during a fire in the compression area.',
+export const STARTERS = [
+  { label: 'Pump trip during a crane lift', text: 'A seawater pump trips on a windy night while a crane lift is under way, and the standby is slow to come back.' },
+  { label: 'Gas leak with a detector out', text: 'A small gas leak near the export pumps that only one detector can see, with another detector already out of service.' },
+  { label: 'Export blocked during a trip', text: 'Oil export gets blocked while the operator is already dealing with a compressor trip.' },
+  { label: 'Stuck ESD valve in a fire', text: 'A stuck ESD valve during a fire in the compression area.' },
 ]
 
 const setLibrary = () => useScenario.getState().setView({ kind: 'library' })
 
-const needsOf = (s: ReturnType<typeof useAuthor.getState>) => (AUTHOR_PROVIDERS[s.provider].endpoint && !s.endpoint ? 'Add your Modal endpoint to start.' : s.saved[s.provider] === false ? 'Save a key to start.' : null)
-
 export function ScenarioAuthor() {
   const chat = useAuthor((s) => s.chat)
   const newChat = useAuthor((s) => s.newChat)
-  const provider = useAuthor((s) => s.provider)
-  const needs = useAuthor(needsOf)
+  const editing = useAuthor((s) => s.editing)
   const [plantOk] = useState(() => simTags().alpha)
-  const [setup, setSetup] = useState(false)
-  useEffect(() => {
-    if (needs) setSetup(true)
-  }, [needs])
   return (
     <div className="scn scn-workspace" data-scn="author">
       <div className="h-row">
-        <button onClick={setLibrary}>← Library</button>
-        <h2 className="scn-title">Build a scenario with AI</h2>
+        <button onClick={setLibrary}>← Scenarios</button>
+        <h2 className="scn-title">{editing ? 'Change scenario' : 'New scenario'}</h2>
         <span className="grow" />
-        {plantOk && (
-          <>
-            <Usage />
-            <button className={`scn-setup-btn ${setup ? 'open' : ''}`} aria-expanded={setup} onClick={() => setSetup(!setup)} data-scn="setup">
-              Model: {AUTHOR_PROVIDERS[provider].label}
-              <svg viewBox="0 0 16 16" aria-hidden="true"><path d="m3 6 5 5 5-5" /></svg>
-            </button>
-          </>
-        )}
         <button onClick={newChat} disabled={!chat.length}>
           New conversation
         </button>
       </div>
       {plantOk ? (
-        <>
-          {setup && <Connection />}
-          <div className="scn-author">
-            <Conversation />
-            <DraftCard />
-          </div>
-        </>
+        <div className="scn-author">
+          <Conversation />
+          <DraftCard />
+          <Connection />
+        </div>
       ) : (
         <div className="h-msg">Scenarios run on the Alpha field. Load it from the plant menu to build one here.</div>
       )}
@@ -84,7 +65,8 @@ function Conversation() {
   const stage = useAuthor((s) => s.stage)
   const partial = useAuthor((s) => s.partial)
   const note = useAuthor((s) => s.note)
-  const needs = useAuthor(needsOf)
+  const needs = useAuthor(needsSetup)
+  const seed = useAuthor((s) => s.seed)
   const [text, setText] = useState('')
   const end = useRef<HTMLDivElement>(null)
   const busy = stage !== 'idle'
@@ -92,6 +74,11 @@ function Conversation() {
     const list = end.current?.parentElement
     if (list) list.scrollTop = list.scrollHeight
   }, [chat.length, partial, stage])
+  useEffect(() => {
+    if (!seed) return
+    setText(seed)
+    useAuthor.setState({ seed: '' })
+  }, [seed])
   const send = () => {
     const t = text.trim()
     if (!t || busy || needs) return
@@ -112,11 +99,11 @@ function Conversation() {
       <div className="scn-chat" data-scn="chat">
         {!chat.length && !busy && (
           <div className="scn-start">
-            <p className="h-note">Say what you want to train. The model can only use what the simulator really does, and it will say so if you ask for something else. Nothing is sent until you press Send.</p>
+            <p className="h-note">Describe the exercise. Nothing is sent until you press Send.</p>
             <div className="scn-starters">
               {STARTERS.map((s) => (
-                <button key={s} onClick={() => setText(s)} data-scn-starter>
-                  {s}
+                <button key={s.label} onClick={() => setText(s.text)} data-scn-starter>
+                  {s.text}
                 </button>
               ))}
             </div>
@@ -180,23 +167,22 @@ export function Connection() {
   const saved = useAuthor((s) => s.saved[provider])
   const endpoint = useAuthor((s) => s.endpoint)
   const chosen = useAuthor((s) => s.models[provider])
+  const needs = useAuthor(needsSetup)
   const a = useAuthor.getState()
   const p = AUTHOR_PROVIDERS[provider]
   const model = modelOf(p, chosen)
   const [draft, setDraft] = useState('')
   const key = cleanKey(draft)
+  const ready = saved === true && !needs
   return (
-    <Box title="Model" className="scn-setup">
-      <div className="scn-setup-grid">
-        <div className="scn-setup-col">
-          <div className="seg2" data-scn="providers">
-            {(Object.keys(AUTHOR_PROVIDERS) as AuthorProviderId[]).map((id) => (
-              <button key={id} className={id === provider ? 'on' : ''} onClick={() => (a.setProvider(id), setDraft(''))} data-scn-provider={id}>
-                {AUTHOR_PROVIDERS[id].label}
-              </button>
-            ))}
-          </div>
-          <p className="h-note">{p.blurb}</p>
+    <Box title="Model" right={<span className={`scn-state ${ready ? 'ok' : ''}`} data-scn="state">{ready ? 'Connected' : 'Not connected'}</span>} className="scn-setup">
+      <div className="scn-setup-body" data-scn="setup">
+        <div className="scn-prov" role="radiogroup" aria-label="Provider" data-scn="providers">
+          {(Object.keys(AUTHOR_PROVIDERS) as AuthorProviderId[]).map((id) => (
+            <button role="radio" aria-checked={id === provider} className={id === provider ? 'on' : ''} onClick={() => (a.setProvider(id), setDraft(''))} data-scn-provider={id} key={id}>
+              {AUTHOR_PROVIDERS[id].label}
+            </button>
+          ))}
         </div>
         <div className="scn-conn">
           {p.endpoint && (
@@ -206,16 +192,14 @@ export function Connection() {
             </label>
           )}
           {saved ? (
-            <div className="h-row">
-              <span className="dim">Key saved in this browser.</span>
-              <span className="grow" />
-              <button className="danger" onClick={() => void a.forgetProviderKey()} data-scn="forget">
-                Forget key
+            <div className="scn-saved">
+              <span>Key saved</span>
+              <button className="link" onClick={() => void a.forgetProviderKey()} data-scn="forget">
+                Remove
               </button>
             </div>
           ) : (
             <form
-              className="h-row"
               onSubmit={(e) => {
                 e.preventDefault()
                 if (!key) return
@@ -223,7 +207,10 @@ export function Connection() {
                 setDraft('')
               }}
             >
-              <input className="grow" type="password" autoComplete="off" spellCheck={false} placeholder={p.keyPlaceholder} aria-label={`${p.label} key`} value={draft} onChange={(e) => setDraft(e.target.value)} data-scn="key" />
+              <label>
+                API key
+                <input type="password" autoComplete="off" spellCheck={false} placeholder={p.keyPlaceholder} aria-label={`${p.label} key`} value={draft} onChange={(e) => setDraft(e.target.value)} data-scn="key" />
+              </label>
               <button type="submit" disabled={!key} data-scn="save-key">
                 Save key
               </button>
@@ -242,14 +229,16 @@ export function Connection() {
             </label>
           ) : (
             <div className="scn-model">
-              Model <span className="mono" data-scn="model-fixed">{model}</span>
+              Model
+              <span className="mono" data-scn="model-fixed">{model}</span>
             </div>
           )}
         </div>
+        <Usage />
+        <p className="h-note">
+          Billed to your {p.endpoint ? 'Modal' : p.id === 'meta' ? 'Meta' : 'Baseten'} account. Your key stays encrypted in this browser. One Send can use up to {1 + MAX_REPAIRS} requests.
+        </p>
       </div>
-      <p className="h-note">
-        Runs on your own account, billed by {p.endpoint ? 'Modal' : p.id === 'meta' ? 'Meta' : 'Baseten'}. The key stays encrypted in this browser and goes to the provider only with each message, through this site's server, which keeps nothing. One Send can use up to {1 + MAX_REPAIRS} requests when the checks find problems.
-      </p>
     </Box>
   )
 }
@@ -259,12 +248,12 @@ function Usage() {
   const provider = useAuthor((s) => s.provider)
   const model = modelOf(AUTHOR_PROVIDERS[provider], useAuthor((s) => s.models[provider]))
   const price = priceOf(model)
-  if (!u.requests) return <span className="scn-usage dim" data-scn="price">{price ? `$${price.in} in, $${price.cached} cached, $${price.out} out per M tokens` : 'no list price known'}</span>
+  if (!u.requests) return <div className="scn-usage" data-scn="price">{price ? `$${price.in} in, $${price.out} out per M tokens` : 'No list price known'}</div>
   const tokens = u.input + u.output
   return (
-    <span className={`scn-usage mono ${overLimit(u) ? 'bad' : ''}`} title={`Stops at ${CAP_REQUESTS} requests or ${CAP_TOKENS.toLocaleString()} tokens a page load. The dollar figure is tokens × list price, an estimate and not your bill.`} data-scn="usage">
+    <div className={`scn-usage mono ${overLimit(u) ? 'bad' : ''}`} title={`Stops at ${CAP_REQUESTS} requests or ${CAP_TOKENS.toLocaleString()} tokens a page load. The dollar figure is tokens × list price, an estimate and not your bill.`} data-scn="usage">
       {u.requests} req · {tokens.toLocaleString()} tokens{u.usd !== null ? ` · ≈ $${u.usd.toFixed(3)}` : ''}
-    </span>
+    </div>
   )
 }
 
@@ -278,7 +267,7 @@ function DraftCard() {
   if (!draft) {
     return (
       <Box title="Draft" className="scn-pane">
-        <div className="h-empty">The scenario shows up here once the model has written one.</div>
+        <div className="h-empty">Your scenario appears here.</div>
       </Box>
     )
   }
@@ -287,7 +276,7 @@ function DraftCard() {
   const ok = !!spec && !errors.length && !blockers.length
   const save = (open: boolean) => {
     const why = useAuthor.getState().save()
-    setMsg(why ?? 'Saved to your scenarios in this browser.')
+    setMsg(why ?? '✓ Saved to your scenarios.')
     const id = useAuthor.getState().editing
     if (!why && open && id) useScenario.getState().setView({ kind: 'brief', id })
   }

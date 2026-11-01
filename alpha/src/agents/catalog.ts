@@ -94,7 +94,7 @@ export const WORKFLOWS: Workflow[] = [
     id: 'corrosion-sweep',
     title: 'Corrosion sweep',
     kind: 'hard-to-spot',
-    blurb: 'Where the simulated inspections found wall loss, how fast it is going, and what to inspect next.',
+    blurb: 'Where inspections found wall loss, how fast it is going, and what to inspect next.',
     tools: ['get_corrosion', 'get_corrosion_trend', 'get_inspections', 'get_permits'],
     task: 'From the simulated inspection findings: list the items losing wall fastest, with wall left, rate and the likely cause (exposure, coating breach, vibration). For each give the next inspection date and the permit the repair needs. Say what has not been inspected yet. Only use findings the tools return.',
     local: [{ tool: 'get_corrosion' }, { tool: 'get_inspections', args: { limit: 3 } }],

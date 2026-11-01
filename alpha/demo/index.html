@@ -13,7 +13,7 @@
        * R3F sizes the canvas from its own measurements, so a zoomed canvas falls short of the window. Labels shrink by font size because
        * their position is a JS transform. The minimap's click maths uses plain px, so it stays at 100 %.
        */
-      html.twin-scale .app > :not(.viewport, .minimap), html.twin-scale .fgp-legend { zoom: 0.9; }
+      html.twin-scale .app > :not(.viewport, .minimap, .hmi), html.twin-scale .fgp-legend { zoom: 0.9; }
       html.twin-scale .label-layer .tag-chip { font-size: 10px; }
     </style>
   </head>

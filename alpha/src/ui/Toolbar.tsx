@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { SERVICE } from '../model/catalog'
+import { currentView } from '../state/account'
 import { useStore, WORKER_COUNT, type CameraPreset, type LayerId } from '../state/store'
 import { findItemIn, isAlphaField, usePlant } from '../state/plantStore'
 import { DeckNavigator } from './DeckNavigator'
@@ -110,7 +111,7 @@ export function Toolbar() {
       </div>
       {/* operate: run the plant */}
       <div className="seg" role="group" aria-label="Operate">
-        {!plant.custom && <button onClick={(e) => (e.currentTarget.blur(), setMenu(null), setHmi('economics'))} title="Open the control-room console: asset & economics, spares & supply, live dashboard, risk & what-if, CCTV & PPE, alerts & assistant, process, alarms, shutdowns, F&G, maintenance and scenarios" data-hmi-open>
+        {!plant.custom && <button onClick={(e) => (e.currentTarget.blur(), setMenu(null), setHmi(currentView().home))} title="Open the control-room console: asset & economics, spares & supply, live dashboard, risk & what-if, CCTV & PPE, alerts & assistant, process, alarms, shutdowns, F&G, maintenance and scenarios" data-hmi-open>
           Control room
         </button>}
         {tourable && (

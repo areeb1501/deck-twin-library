@@ -267,7 +267,7 @@ function WoBacklog({ wos, sel, pick, prefill }: { wos: WorkOrder[]; sel: string 
                 <th>Title</th>
                 <th>Type</th>
                 <th>Status</th>
-                <th title="Spare parts reserved for the job (simulated stores)">Materials</th>
+                <th title="Spare parts reserved for the job">Materials</th>
                 <th>Raised</th>
                 <th>By</th>
                 <th style={{ textAlign: 'right' }}>Est h</th>
@@ -301,7 +301,7 @@ function WoBacklog({ wos, sel, pick, prefill }: { wos: WorkOrder[]; sel: string 
             </tbody>
           </table>
         ) : (
-          <div className="h-empty">No work orders{scope === 'open' ? ' open' : ''}. Turn on equipment reliability (Machines page) for degradation and failures, or raise one above.</div>
+          <div className="h-empty">No {scope === 'open' ? 'open ' : ''}work orders.</div>
         )}
       </Box>
     </>
@@ -331,7 +331,7 @@ function WoDetail({ id, close }: { id: string | null; close: () => void }) {
   if (!w) {
     return (
       <aside className="faceplate mt-detail">
-        <div className="h-empty">Select a work order: its lifecycle, permit and isolation certificate show here.</div>
+        <div className="h-empty">Select a work order.</div>
       </aside>
     )
   }
@@ -615,7 +615,7 @@ function PermitList({ permits, pick }: { permits: Permit[]; pick: (wo: string) =
         </label>
       }
     >
-      <p className="h-note">SIMOPS: hot work is suspended automatically on gas on the platform (zone gas, gas alarm or GA); every permit on the platform is suspended on ESD1 / APS. A suspended permit keeps its isolations but stops the work until it is re-validated.</p>
+      <p className="h-note">SIMOPS: gas on the platform suspends hot work. ESD1 or APS suspends every permit until it is re-validated.</p>
       {list.length ? (
         <table className="h-tbl mt-tbl" data-tbl="permits">
           <thead>
@@ -660,7 +660,7 @@ function PermitList({ permits, pick }: { permits: Permit[]; pick: (wo: string) =
           </tbody>
         </table>
       ) : (
-        <div className="h-empty">No permits. Plan an approved work order to request one.</div>
+        <div className="h-empty">No permits.</div>
       )}
       <Msg text={msg} />
     </Box>
@@ -830,7 +830,7 @@ function PmTable({ wos, pick }: { wos: WorkOrder[]; pick: (id: string) => void }
   return (
     <Box title="Preventive maintenance schedule (running hours)">
       <p className="h-note">
-        Each machine class has a PM interval in running hours{knobs?.reliability === 'training' ? ' (÷ 100 in training mode)' : ''}. A PM work order is generated at 90 % of the interval; PM work is planned (its deferred production books to “planned”) and resets the machine’s condition.
+        Work orders are raised at 90 % of each machine class's interval{knobs?.reliability === 'training' ? ' (÷ 100 in training mode)' : ''}.
       </p>
       <table className="h-tbl mt-tbl" data-tbl="pm">
         <thead>

@@ -192,8 +192,7 @@ export function Alarms() {
           </div>
         </div>
         <p className="h-note" style={{ marginTop: 6 }}>
-          Targets: about one alarm per 10 minutes per operator in steady operation; 10 or more in 10 minutes is a flood, and the operator can no longer respond to each one. Shelve nuisance alarms, then
-          fix them; a shelved alarm comes back automatically when its shelf time runs out.
+          Target: about one alarm per 10 minutes per operator. 10 or more in 10 minutes is a flood.
         </p>
       </Box>
     </div>

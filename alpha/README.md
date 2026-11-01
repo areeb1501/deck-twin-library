@@ -49,6 +49,8 @@ Imported plants have no process model, so the ticker, alarm bar, Operations, mai
 
 ## Building a scenario with AI
 
+Start from the New scenario box at the top of the Scenarios page, or Make a variant on any built-in briefing. The builder has three panes: the conversation, the draft, and the model connection in a sidebar. Scenarios are marked with who created them, and stay in this browser until sign-in and the database are in use.
+
 On the console's Scenarios page, **Build with AI** opens a chat. The operator says what they want to train, the model writes a scenario, and it joins the library in this browser.
 
 **The model writes data, never code.** A built-in scenario holds closures. A generated one is a JSON spec in a fixed vocabulary of conditions and effects, and a compiler turns it into an ordinary `Scenario`, so the runner, scoring and debrief don't know the difference. Nothing a model returns is ever evaluated.
@@ -103,6 +105,28 @@ The console's Response page shows what is wrong, what to do next and why. Beside
 **What it costs.** It shares the providers, keys and route with Build with AI. Nothing goes out until the operator presses the button. One press is one request, plus one repair. A page load stops at 12 requests or 150,000 tokens, and any error stops with no retry. `agents/provider.ts` is unchanged, so `PROVIDER_LABEL.muse` stays "(planned)".
 
 **Tested with a stubbed model.** `tests/next-action.test.ts` and `tools/next-action.mjs` count requests and never call a provider. No real model has run this path yet.
+
+## Accounts and console views
+
+The console opens as the signed-in user, shown at the top right with a menu to switch views. An account type says what someone may do; a view says which tabs they see.
+
+| View | For | Tabs |
+|---|---|---|
+| System admin | Admins, by default | All 20 |
+| Operator | Control room and HSE manager | 14 |
+| Finance | Revenue and finance | 5 |
+| HSE | Safety and HSE teams | 12 |
+
+| File | What it does |
+|---|---|
+| `src/state/views.ts` | The tabs and which view shows each. `database/seed.sql` holds the same lists, and a test keeps them equal |
+| `src/state/account.ts` | The signed-in user and chosen view. Falls back to the default system admin |
+| `src/ui/hmi/AccountMenu.tsx` | The user and view switch at the top right |
+| `session-route.js` | Worker routes: who is signed in, and the sign-in check and call log in front of every paid model route |
+
+There is no sign-in page yet, so everyone is the default system admin, and hiding a tab is a display choice rather than a lock. The D1 scripts and what binding the database changes are in `../database/README.md`.
+
+The header's `Simulator feed` is the one place the console says its data is simulated. Keep it there instead of labelling each panel, and keep `Twin detector` wherever a real model could otherwise be assumed.
 
 ## Commands (run in this folder)
 

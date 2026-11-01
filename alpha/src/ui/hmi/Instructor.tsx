@@ -10,6 +10,7 @@ import { fmtClock, type Fault, type Incident } from '../../sim/types'
 import type { Plant, Vec3 } from '../../model/types'
 import { EMPTY_ARR, EMPTY_OBJ, NOT_READY, call, fmt, machinesOf, useS } from './simApi'
 import { Box, Msg } from './common'
+import { DemoStory } from './DemoStory'
 
 interface ReleasePoint {
   id: string
@@ -77,10 +78,8 @@ export function Instructor() {
   const inject = (f: Fault, what: string) => setMsg(resultMsg(call('inject', f), what))
   return (
     <div className="h-grid">
-      <p className="h-note">
-        Instructor station. Faults go straight into the running simulation; the operator sees them the way the plant would show them: alarms, trips, shutdowns, F&G. Use the clock speed in the
-        header to let an incident develop.
-      </p>
+      <p className="h-note">Injected faults reach the console as alarms, trips, shutdowns and F&G events.</p>
+      <DemoStory launcher />
       <Msg text={msg} />
       <div className="h-inst">
         <Release kind="gas" points={points} zones={zones} inject={inject} />

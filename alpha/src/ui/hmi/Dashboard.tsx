@@ -219,13 +219,13 @@ function FieldKpis() {
   return (
     <Box title="Production & availability" className="dsh-kpibox" right={<span className="dim mono">{trend.span > 0 ? `trend ${fmtSpan(trend.span)}` : ''}</span>}>
       <div className="dsh-kpis">
-        <Kpi label="Availability" value={fmt(k?.availability, 1)} unit="%" abn={(k?.availability ?? 100) < 95} title="Share of sim time the field was up (no PSD / ESD / blackout)" />
+        <Kpi label="Availability" value={fmt(k?.availability, 1)} unit="%" abn={(k?.availability ?? 100) < 95} title="Share of time the field was up (no PSD / ESD / blackout)" />
         <Kpi label="PE: now" value={fmt(r?.efficiency, 1)} unit="%" abn={(r?.efficiency ?? 100) < 95} bad={!!r && r.efficiency < 50} title="Actual / maximum production potential (boe), this instant" />
         <Kpi label="PE: session" value={fmt(k?.pe, 1)} unit="%" abn={(k?.pe ?? 100) < 95} />
         <Kpi label="Oil export" value={fmt(r?.oilExport)} unit="bbl/d" bad={!!r && !producing} />
         <Kpi label="Gas export" value={fmt(r?.gasExport, 1)} unit="MMscfd" />
         <Kpi label="Flare" value={fmt(r?.flare, 1)} unit="MMscfd" abn={(r?.flare ?? 0) > 3} bad={(r?.flare ?? 0) > 15} />
-        <Kpi label="Unack. alarms" value={`${unack[0]} · ${unack[1]} · ${unack[2]}`} unit="P1·P2·P3" abn={unack[1] > 0} bad={unack[0] > 0} />
+        <Kpi label="Unack. P1 · P2 · P3" value={`${unack[0]} · ${unack[1]} · ${unack[2]}`} abn={unack[1] > 0} bad={unack[0] > 0} />
         <Kpi label="Alarm rate" value={fmt(rate)} unit="/ 10 min" abn={rate >= 5} bad={rate >= 10} title="ISA-18.2: ≥ 10 in 10 minutes is a flood" />
       </div>
       <div className="dsh-trend">

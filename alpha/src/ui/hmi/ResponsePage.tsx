@@ -12,7 +12,6 @@ import { useAuthor } from '../../agents/scenarioAuthor'
 import { CLASS_DATA, type MachineClass } from '../../sim/alpha'
 import { rpn, useRcm, type RcmRow } from '../../sim/rcm'
 import { simTags } from '../../state/sim'
-import { useStore } from '../../state/store'
 import { Connection } from './ScenarioAuthor'
 import { Box, TagLink } from './common'
 import { useS } from './simApi'
@@ -57,7 +56,6 @@ export function ResponsePage() {
             RCM library
           </button>
         </span>
-        <span className="dim rsp-honest">All readings and actions are on the simulated plant.</span>
       </div>
       {tab === 'next' ? <Workspace /> : <RcmLibrary />}
     </div>
@@ -75,10 +73,7 @@ function Workspace() {
       <Box title={`Open now: ${list.length}`} className="rsp-list">
         {!list.length && (
           <div className="h-empty" data-rsp="quiet">
-            Nothing needs a decision. Start a fire or a trip on the Instructor page, or run a scenario, and the steps show up here.
-            <button className="rsp-go" onClick={() => useStore.getState().setHmi('instructor')}>
-              Open Instructor
-            </button>
+            No open situations.
           </div>
         )}
         {list.map((x) => (
@@ -88,7 +83,7 @@ function Workspace() {
           </button>
         ))}
       </Box>
-      {cur ? <PlanCard sit={cur} /> : <Box title="Next steps" className="rsp-plan"><div className="h-empty">Pick a situation to see what to do next.</div></Box>}
+      {cur ? <PlanCard sit={cur} /> : <Box title="Next steps" className="rsp-plan"><div className="h-empty">Select a situation.</div></Box>}
     </div>
   )
 }
@@ -312,7 +307,7 @@ function RcmLibrary() {
           <button onClick={() => setArmReset(true)} data-rsp="rcm-reset">Reset to examples</button>
         )}
       </div>
-      <p className="h-note">Example rows for this demo, not a real asset&apos;s RCM study. Edits stay in this browser and change the plans straight away.</p>
+      <p className="h-note">Edits are saved in this browser and apply straight away.</p>
       <div className="rsp-table">
         <table className="h-table">
           <thead>

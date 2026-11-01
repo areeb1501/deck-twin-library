@@ -29,7 +29,7 @@ export function ShutdownPage() {
   return (
     <div className="h-grid">
       <div className="h-grid" style={{ gridTemplateColumns: 'minmax(0, 2fr) minmax(0, 3fr)' }}>
-        <Box title="Shutdown hierarchy: a level includes every level below it">
+        <Box title="Shutdown hierarchy">
           <div className="sd-ladder">
             {[...LEVELS].reverse().map((l) => (
               <div key={l} className={highest && SHUTDOWN_RANK[l] <= SHUTDOWN_RANK[highest] ? 'on' : ''}>
@@ -41,8 +41,7 @@ export function ShutdownPage() {
             ))}
           </div>
           <p className="h-note" style={{ marginTop: 6 }}>
-            A shutdown latches. Reset is accepted only once its cause has cleared; the plant then stays down until you restart the platform, which re-opens the ESD valves, closes
-            blowdown, restarts the machines the shutdown stopped and ramps the wells back.
+            Each level includes every level below it. A shutdown latches until its cause clears and the platform is restarted.
           </p>
         </Box>
 
@@ -137,7 +136,7 @@ function ManualEsd() {
     )
   }
   return (
-    <Box title="Manual ESD push-buttons (CCR): lift the cover, then confirm">
+    <Box title="Manual ESD push-buttons">
       <div className="esd-pb">
         {PLATFORMS.map((p) => (
           <section key={p} className="h-box">

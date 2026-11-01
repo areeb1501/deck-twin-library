@@ -45,14 +45,14 @@ export function AgentPanel({ setSel }: { setSel: (s: Sel) => void }) {
             })}
           </select>
         </label>
-        <span className="dim small">same tools, trace and prompts on every model · advisory only · keys stay on the server</span>
+        <span className="dim small">Advisory only</span>
       </div>
       <div className="ag-flows">
         {WORKFLOWS.map((w) => {
           const r = latest[w.id]
           return (
             <div key={w.id} className={`ag-flow ${w.kind} ${open === w.id ? 'on' : ''}`}>
-              <div className="ag-kind">{w.kind === 'hard-to-spot' ? 'Hard to spot' : 'Easy but slow'}</div>
+              <div className="ag-kind">{w.kind === 'hard-to-spot' ? 'Early warning' : 'Routine check'}</div>
               <b>{w.title}</b>
               <p>{w.blurb}</p>
               <div className="ag-row">

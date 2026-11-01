@@ -583,7 +583,7 @@ function OtherValves({ plant, pick, sel }: { plant: Plant; pick: Pick; sel: Sel 
 // ------------------------------------------------------------------ faceplates
 
 function Faceplate({ sel, close }: { sel: Sel; close: () => void }) {
-  if (!sel) return <aside className="faceplate h-note">Click a machine, a valve or a vessel on the mimic for its faceplate.</aside>
+  if (!sel) return <aside className="faceplate h-note">Select equipment for its faceplate.</aside>
   if (sel.kind === 'machine') return <MachineFace key={sel.tag} tag={sel.tag} close={close} />
   if (sel.kind === 'valve') return <ValveFace key={sel.tag} tag={sel.tag} close={close} />
   return <VesselFace key={sel.tag} tag={sel.tag} close={close} />

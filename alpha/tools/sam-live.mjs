@@ -90,7 +90,7 @@ await page.click('[data-sam-toggle]')
 await page.waitForFunction(() => document.querySelectorAll('[data-model-badge="sam-3.1"]').length === 0, null, { timeout: 15000 })
 await page.waitForTimeout(3000)
 s = await state()
-ok('switched off, every camera goes back to simulated and says so', /Simulated/.test(s.active ?? ''), s.active)
+ok('switched off, every camera goes back to simulated and says so', /Twin detector/.test(s.active ?? ''), s.active)
 await page.click('[data-sam-toggle]')
 
 ok('no errors', errors.length === 0, errors.slice(0, 3).join(' | '))

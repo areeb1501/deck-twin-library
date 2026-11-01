@@ -25,7 +25,7 @@ import type { Plant } from '../model/types'
 import { usePlantStore } from '../state/plantStore'
 import { useSim } from '../state/sim'
 import * as A from './alpha'
-import { DEMO_DAY_S, daySeconds, type AssetRisk, type PoMode, type PriceDeck, type SparePart, type SparesData } from './assetTypes'
+import { daySeconds, type AssetRisk, type PoMode, type PriceDeck, type SparePart, type SparesData } from './assetTypes'
 import { platformOfTag } from './fg'
 import { CLASS_LABEL, WO_STATUS_LABEL, classOf, impactBoeD, openWos, partnerOf, runOf, ttfH, useMaint, type Health, type WorkOrder } from './maintenance'
 import * as sparesMod from './spares'
@@ -89,11 +89,6 @@ export function fmtDays(d: number): string {
   if (d < 10) return `${d.toFixed(1)} d`
   if (d < 120) return `${Math.round(d)} d`
   return `${(d / 30.4).toFixed(1)} mo`
-}
-/** wall time a logistics span takes in demo mode at 60× ("≈ 3.5 min at 60×") */
-export function demoEquiv(days: number): string {
-  const s = (days * DEMO_DAY_S) / 60
-  return s < 90 ? `≈ ${Math.max(1, Math.round(s))} s at 60×` : s < 5400 ? `≈ ${(s / 60).toFixed(s < 600 ? 1 : 0)} min at 60×` : `≈ ${(s / 3600).toFixed(1)} h at 60×`
 }
 
 // ================================================================= the register

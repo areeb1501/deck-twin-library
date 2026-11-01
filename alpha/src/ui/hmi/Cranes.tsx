@@ -57,7 +57,7 @@ export function CranesPanel() {
 
   return (
     <div className="h-grid" data-panel="cranes">
-      <Box title="Weather" right={<span className="dim">wind blows FROM the bearing · drives cranes, plumes, gas dispersion, sea</span>}>
+      <Box title="Weather" right={<span className="dim">Direction is where the wind blows from</span>}>
         <div className="h-kpis">
           <Kpi label="Wind" value={`${fmt(wind.speed, 1)}`} unit={`m/s · Bft ${beaufort(wind.speed) < 0 ? 12 : beaufort(wind.speed)}`} abn={wind.speed > CRANE_LIMITS.windPersonnel} bad={wind.speed > CRANE_LIMITS.windCargo} />
           <Kpi label="From" value={`${Math.round(wind.from)}°`} unit={compass(wind.from)} />
@@ -161,9 +161,7 @@ export function CranesPanel() {
         </table>
         <Msg text={msg} />
         <p className="h-note" style={{ marginTop: 6 }}>
-          Lifting stops on wind above the limit, Hs above {CRANE_LIMITS.hsBoat} m (boat lifts), a gas alarm, a general alarm or ESD1 on the platform: the load is landed and the boom laid on its
-          rest; work resumes {CRANE_LIMITS.resumeAfter} s after it clears. The diesel engines are ignition sources: confirmed gas (or APS) shuts them down at once, restart them here when the
-          platform is clear.
+          Lifting stops on wind above the limit, Hs above {CRANE_LIMITS.hsBoat} m, a gas alarm, a general alarm or ESD1, and resumes {CRANE_LIMITS.resumeAfter} s after it clears. Confirmed gas or APS shuts the diesel engines down; restart them here once the platform is clear.
         </p>
       </Box>
 

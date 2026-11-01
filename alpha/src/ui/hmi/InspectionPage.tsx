@@ -38,9 +38,6 @@ function useTicker(ms: number, on = true) {
 export function InspectionPage() {
   return (
     <div className="ins" data-inspection-page>
-      <div className="ins-note">
-        <b>Simulated.</b> The drone, the robot, their readings and the corrosion grades are all simulated in the twin. No hardware is connected, and the camera is a render of the twin.
-      </div>
       <div className="ins-top">
         <LaunchBox />
         {UNITS.map((u) => (
@@ -116,7 +113,7 @@ function UnitCard({ u }: { u: UnitId }) {
   return (
     <Box title={UNIT_SPEC[u].label} right={<span className={`ins-phase ${s.hold ? 'hold' : live ? 'busy' : ''}`}>{s.hold ? 'Stopped for a worker' : PHASE_LABEL[s.phase]}</span>} className="ins-unit">
       <div className="ins-cam">
-        {frame ? <img src={frame.url} alt={`${UNIT_SPEC[u].label} camera, simulated`} /> : <div className="ins-cam-off">{live ? 'Camera starting' : 'Camera off'}</div>}
+        {frame ? <img src={frame.url} alt={`${UNIT_SPEC[u].label} camera`} /> : <div className="ins-cam-off">{live ? 'Camera starting' : 'Camera off'}</div>}
       </div>
       <div className="ins-stats">
         <Kpi label="Battery" value={String(s.battery)} unit="%" abn={s.battery < 30} />
@@ -159,7 +156,7 @@ function Reports() {
   return (
     <div className="ins-reports">
       <Box title="Reports" right={<span className="dim">{reports.length}</span>} className="ins-list">
-        {!reports.length && <div className="dim ins-empty">No inspections yet. Send a unit from here, or select an item in 3D and use Inspect.</div>}
+        {!reports.length && <div className="dim ins-empty">No inspections yet.</div>}
         {reports.map((r) => (
           <button key={r.id} className={`ins-row ${open?.id === r.id ? 'sel' : ''}`} onClick={() => useInspection.setState({ openReport: r.id })} data-report={r.id}>
             <span className="mono">{r.id}</span>
@@ -178,7 +175,7 @@ function ReportView({ r }: { r: InspectionReport }) {
   const inspected = r.stops.filter((s) => s.status === 'inspected')
   return (
     <div className="ins-report" data-report-view={r.id}>
-      <Box title={`Simulated inspection report ${r.id}`} right={<span className="dim">{UNIT_SPEC[r.unit].label}</span>}>
+      <Box title={`Inspection report ${r.id}`} right={<span className="dim">{UNIT_SPEC[r.unit].label}</span>}>
         <div className="ins-sum">{r.summary}</div>
         <div className="ins-stats">
           <Kpi label="Inspected" value={`${inspected.length}/${r.stops.length}`} />
@@ -189,7 +186,7 @@ function ReportView({ r }: { r: InspectionReport }) {
         <Standoff r={r} />
       </Box>
       <ClipPlayer id={r.missionId} />
-      <Box title="Items" right={<span className="dim">values read through the live data feed while on station (simulated historian)</span>}>
+      <Box title="Items">
         {r.stops.map((s) => (
           <StopView key={s.tag} s={s} />
         ))}
@@ -236,7 +233,7 @@ function StopView({ s }: { s: StopResult }) {
   const out = s.readings.filter((x) => x.state !== 'normal')
   return (
     <div className={`ins-stop ${s.verdict}`} data-stop={s.tag}>
-      {s.thumb && <img className="ins-thumb" src={s.thumb} alt={`${s.tag}, simulated camera`} />}
+      {s.thumb && <img className="ins-thumb" src={s.thumb} alt={`${s.tag} camera`} />}
       <div className="ins-stop-body">
         <div className="ins-stop-head">
           <TagLink tag={s.tag} />
@@ -258,14 +255,14 @@ function StopView({ s }: { s: StopResult }) {
                 <td className="mono dim r">
                   {x.lo ?? '-'} … {x.hi ?? '-'}
                 </td>
-                <td className="dim">{x.source === 'simulated' ? 'simulated' : x.tag}</td>
+                <td className="dim">{x.source === 'simulated' ? '-' : x.tag}</td>
               </tr>
             ))}
           </tbody>
         </table>
         {s.corrosion && (
           <div className="dim">
-            Wall {s.corrosion.wallPct} % ({s.corrosion.grade}), {s.corrosion.rateMmPerYr} mm/yr, last survey {s.corrosion.lastSurveyPct} %. {s.corrosion.method === 'ut' ? 'Simulated UT' : 'Simulated visual'}. Assumption, not survey data.
+            Wall {s.corrosion.wallPct} % ({s.corrosion.grade}), {s.corrosion.rateMmPerYr} mm/yr, last survey {s.corrosion.lastSurveyPct} %. {s.corrosion.method === 'ut' ? 'UT' : 'Visual'}.
           </div>
         )}
         <div className="ins-acts">
@@ -300,9 +297,9 @@ function ClipPlayer({ id }: { id: string }) {
   const f = frames[Math.min(i, n - 1)]
   const marks = frames.map((x, k) => (x.mark && !/launch|returning/.test(x.mark) ? { k, mark: x.mark } : null)).filter((x): x is { k: number; mark: string } => !!x)
   return (
-    <Box title="Recorded clip" right={<span className="dim">{n} frames · simulated · {clip.unit === 'robot' ? 'robot' : 'drone'} camera</span>} className="ins-clip" >
+    <Box title="Recorded clip" right={<span className="dim">{n} frames · {clip.unit === 'robot' ? 'robot' : 'drone'} camera</span>} className="ins-clip" >
       <div className="ins-screen">
-        <img src={f.url} alt="Recorded frame, simulated" data-clip-frame={i} />
+        <img src={f.url} alt="Recorded frame" data-clip-frame={i} />
       </div>
       <div className="ins-controls">
         <button onClick={() => (i >= n - 1 && setI(0), setPlaying(!playing))} data-act="clip-play">

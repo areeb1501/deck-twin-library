@@ -12,9 +12,8 @@
 import { Fragment, useMemo, useState, type MouseEvent } from 'react'
 import { useRisk } from '../../safety/risk'
 import { BAND_COLOR, RISK_CATEGORY_LABEL, bandOf, type RiskCategory, type RiskContributor, type RiskHistoryPoint, type RiskSnapshot } from '../../safety/types'
-import { predictConsequence, WORST_LABEL, WORST_LADDER, type ChainStep, type Consequence, type WorstLevel } from '../../safety/whatif'
+import { predictConsequence, WORST_LABEL, type ChainStep, type Consequence, type WorstLevel } from '../../safety/whatif'
 import { SCENARIOS, unavailable, useScenario, type LiveView, type Scenario } from '../../sim/scenarios'
-import { DIFFICULTY_LABEL } from '../../sim/scen/types'
 import { fmtEl } from '../../sim/scen/helpers'
 import { CE_BY_ID } from '../../sim/causeEffect'
 import { fmtClock, type PlatformId, type Shutdown } from '../../sim/types'
@@ -140,11 +139,11 @@ function RiskNow({ now }: { now: RiskSnapshot | null }) {
   const usedCats = useMemo(() => CATS.filter((c) => rows.some((r) => (r.sums[c] ?? 0) > 0)), [rows])
 
   return (
-    <Box title="Risk now: what is driving it" className="rk-now">
+    <Box title="Field risk" className="rk-now">
       {!now ? (
         <div className="rk-empty">
           <Gauge score={null} />
-          <p className="h-note">The risk engine has not scored the plant yet: it publishes after the first simulation ticks. Leave the clock running.</p>
+          <p className="h-note">Waiting for the first risk score.</p>
         </div>
       ) : (
         <div className="rk-now-body">
@@ -386,7 +385,7 @@ function TrendChart({ history, peak }: { history: RiskHistoryPoint[]; peak: { va
         <svg viewBox={`0 0 ${W} ${H}`} className="rk-trend">
           <BandBack Y={(v) => PAD.t + (1 - v / 100) * (H - PAD.t - PAD.b)} />
         </svg>
-        <span>{history.length === 0 ? 'No risk history yet: the trend fills in as the simulation runs.' : 'Collecting the first points…'}</span>
+        <span>{history.length === 0 ? 'No risk history yet.' : 'Collecting the first points…'}</span>
       </div>
     )
   }
@@ -509,75 +508,58 @@ function niceStep(raw: number) {
 function WhatIf({ pick, setPick, sc, cons, live }: { pick: string; setPick: (id: string) => void; sc: Scenario | null; cons: Consequence | null; live: LiveView | null }) {
   const preds = useMemo(() => Object.fromEntries(SCENARIOS.map((s) => [s.id, predictConsequence(s).worstShutdown])), [])
   return (
-    <Box title="What-if: rehearse a scenario before it happens" className="rk-whatif">
+    <Box title="What-if analysis" className="rk-whatif">
       <div className="rk-wi">
         <div className="rk-list" role="listbox" aria-label="Scenarios">
           {SCENARIOS.map((s) => {
             const w = preds[s.id] as WorstLevel
             return (
               <button key={s.id} className={`rk-card ${s.id === pick ? 'sel' : ''} ${live?.id === s.id ? 'live' : ''}`} onClick={() => setPick(s.id)} role="option" aria-selected={s.id === pick} data-wi={s.id}>
-                <span className="rk-card-h">
-                  <span className="mono dim">{String(s.n).padStart(2, '0')}</span>
-                  <b>{s.title}</b>
-                </span>
-                <span className="rk-card-f">
-                  <span className={`rk-diff ${s.difficulty}`}>{DIFFICULTY_LABEL[s.difficulty]}</span>
-                  <span className="dim">{s.category}</span>
-                  <span className="grow" />
-                  {live?.id === s.id && <span className="rk-livetag">LIVE</span>}
-                  <span className="rk-lvl" style={{ borderColor: LVL_COLOR[w], color: LVL_COLOR[w] }}>
-                    {w === 'alarm' ? 'ALARM' : w}
-                  </span>
+                <span>{s.title}</span>
+                <span className="rk-lvl" style={{ borderColor: LVL_COLOR[w], color: LVL_COLOR[w] }}>
+                  {w === 'alarm' ? 'Alarm' : w}
                 </span>
               </button>
             )
           })}
         </div>
-        {sc && cons ? <Detail sc={sc} cons={cons} live={live} /> : <div className="h-empty">Pick a scenario.</div>}
+        {sc && cons ? <Detail sc={sc} cons={cons} live={live} /> : <div className="h-empty">Select a scenario.</div>}
       </div>
     </Box>
   )
 }
 
+type DetailTab = 'sequence' | 'barriers' | 'recovery'
+
 function Detail({ sc, cons, live }: { sc: Scenario; cons: Consequence; live: LiveView | null }) {
   const plant = usePlant()
   const na = unavailable(sc, plant)
   const [msg, setMsg] = useState<string | null>(null)
+  const [tab, setTab] = useState<DetailTab>('sequence')
   const isLive = live?.id === sc.id
   const run = () => {
     const r = useScenario.getState().start(sc.id, 5)
-    setMsg(r ?? `✓ ${sc.title} running at 5×: watch the trend and the live strip`)
+    setMsg(r ?? `✓ ${sc.title} running at 5×`)
   }
   const brief = () => {
     useScenario.getState().setView({ kind: 'brief', id: sc.id })
     useStore.getState().setHmi('scenarios')
   }
   const w = cons.worstShutdown
-  const saved = Math.max(0, cons.deferredBoe.unmitigated - cons.deferredBoe.ideal)
   const band = bandOf(cons.riskPeak)
 
   return (
     <div className="rk-detail" data-wi-detail={sc.id}>
       <div className="rk-d-head">
         <div>
-          <div className="h-row">
-            <span className="mono dim">{String(sc.n).padStart(2, '0')}</span>
-            <h2 className="rk-d-title">{sc.title}</h2>
-            <span className={`rk-diff ${sc.difficulty}`}>{DIFFICULTY_LABEL[sc.difficulty]}</span>
-            <span className="chip">{sc.category}</span>
-            {cons.platforms.map((p) => (
-              <span key={p} className="chip dim">
-                {p}
-              </span>
-            ))}
-          </div>
+          <h2 className="rk-d-title">{sc.title}</h2>
           <p className="rk-d-sum">{sc.summary}</p>
         </div>
         <div className="rk-d-act">
-          <button className="on" onClick={run} disabled={!!na || isLive} data-wi-run={sc.id} title={na ?? 'Fresh session, scenario injected, clock at 5×'}>
-            {isLive ? '● Running' : '▶ Run live at 5×'}
+          <button onClick={brief}>Briefing</button>
+          <button className="on" onClick={run} disabled={!!na || isLive} data-wi-run={sc.id} title={na ?? undefined}>
+            {isLive ? 'Running' : 'Run at 5×'}
           </button>
-          <button onClick={brief}>Open briefing</button>
         </div>
       </div>
       {na && <div className="h-msg">Not available in this plant: {na}</div>}
@@ -590,30 +572,22 @@ function Detail({ sc, cons, live }: { sc: Scenario; cons: Consequence; live: Liv
             {w === 'alarm' ? 'Alarm' : w}
           </div>
           <div className="s">{WORST_LABEL[w]}</div>
-          <Ladder worst={w} />
         </div>
         <div className={`rk-kpi ${cons.lost.some((p) => p === 'Alpha') ? 'abn' : ''}`}>
           <div className="l">Platforms lost</div>
           <div className="n">{cons.lost.length}</div>
-          <div className="s">{cons.lost.join(' · ')}</div>
+          <div className="s">{cons.lost.join(' · ') || 'None'}</div>
         </div>
-        <div className="rk-kpi wide">
-          <div className="l">Deferred production (boe)</div>
-          <DeferBars ideal={cons.deferredBoe.ideal} unm={cons.deferredBoe.unmitigated} />
-          <div className="s">
-            good response saves <b className="mono">{fmt(saved)}</b> boe · {Math.round(cons.share * 100)} % of {fmt(cons.mpp / 1000, 1)} k boe/d for {cons.outageH} h
-          </div>
-        </div>
-        <div className={`rk-kpi ${cons.availabilityHitPct > 0 ? 'abn' : ''}`} title="Outage hours ÷ 24 h (1-day window). Unit shutdowns and alarms keep the field up, so they do not count.">
-          <div className="l">Availability hit (24 h)</div>
+        <div className="rk-kpi">
+          <div className="l">Deferred if unmanaged</div>
           <div className="n">
-            −{cons.availabilityHitPct}
-            <small>%</small>
+            {fmt(cons.deferredBoe.unmitigated)}
+            <small>boe</small>
           </div>
-          <div className="s">{cons.availabilityHitPct > 0 ? `${cons.outageH} h field down` : 'field stays up'}</div>
+          <div className="s">{fmt(cons.deferredBoe.ideal)} boe with a good response</div>
         </div>
         <div className="rk-kpi" style={{ borderColor: band === 'low' ? undefined : BAND_COLOR[band] }}>
-          <div className="l">Risk peak (est.)</div>
+          <div className="l">Risk peak</div>
           <div className="n" style={{ color: BAND_COLOR[band] }}>
             {cons.riskPeak}
           </div>
@@ -621,73 +595,27 @@ function Detail({ sc, cons, live }: { sc: Scenario; cons: Consequence; live: Liv
         </div>
       </div>
 
-      <div className="rk-d-cols">
-        <div className="rk-chain-box">
-          <div className="h-sec">
-            Predicted consequence chain <span className="grow" />
-            <span className="rk-key">
-              <Node level="info" kind="event" /> event <Node level="warn" kind="alarm" /> alarm <Node level="trip" kind="trip" /> trip / ESD
-            </span>
-          </div>
-          <Chain chain={cons.chain} />
-        </div>
-        <div className="rk-side">
-          <div className="h-sec">Initiating event</div>
-          <p className="rk-init">{cons.initiating}</p>
-          <div className="h-sec">Barriers: what stops the escalation</div>
-          <ol className="rk-barriers">
-            {cons.barriers.map((b, i) => (
-              <li key={i}>
-                <span className="rk-shield" aria-hidden>
-                  <svg viewBox="0 0 12 14" width="11" height="13">
-                    <path d="M6 0.8 L11 2.6 V6.8 C11 10 8.6 12.2 6 13.2 C3.4 12.2 1 10 1 6.8 V2.6 Z" fill="none" stroke="currentColor" strokeWidth="1.3" />
-                  </svg>
-                </span>
-                {b}
-              </li>
-            ))}
-          </ol>
-          <div className="h-sec">Recovery</div>
-          <p className="rk-init">{cons.recovery}</p>
+      <div className="seg2 rk-tabs" role="tablist" aria-label="What-if detail">
+        {(['sequence', 'barriers', 'recovery'] as const).map((k) => (
+          <button key={k} role="tab" aria-selected={tab === k} className={tab === k ? 'on' : ''} onClick={() => setTab(k)} data-wi-tab={k}>
+            {k === 'sequence' ? 'Sequence' : k === 'barriers' ? `Barriers (${cons.barriers.length})` : 'Recovery'}
+          </button>
+        ))}
+      </div>
+      {tab === 'sequence' && <Chain chain={cons.chain} />}
+      {tab === 'barriers' && (
+        <ol className="rk-barriers">
+          {cons.barriers.map((b, i) => (
+            <li key={i}>{b}</li>
+          ))}
+        </ol>
+      )}
+      {tab === 'recovery' && (
+        <div className="rk-recovery">
+          <p>{cons.recovery}</p>
           <p className="h-note">Ideal response: {sc.ideal.note}.</p>
         </div>
-      </div>
-    </div>
-  )
-}
-
-/** escalation ladder alarm → APS with the worst level lit */
-function Ladder({ worst }: { worst: WorstLevel }) {
-  const wi = WORST_LADDER.indexOf(worst)
-  return (
-    <div className="rk-ladder" aria-label={`Escalation reaches ${worst}`}>
-      {WORST_LADDER.map((l, i) => (
-        <span key={l} className={i <= wi ? 'on' : ''} style={i <= wi ? { background: LVL_COLOR[l], opacity: i === wi ? 1 : 0.45 } : undefined} title={WORST_LABEL[l]}>
-          {l === 'alarm' ? 'ALM' : l}
-        </span>
-      ))}
-    </div>
-  )
-}
-
-function DeferBars({ ideal, unm }: { ideal: number; unm: number }) {
-  const m = Math.max(1, ideal, unm)
-  return (
-    <div className="rk-defer">
-      <div>
-        <span className="dim">ideal</span>
-        <span className="rk-defer-bar">
-          <i className="ideal" style={{ width: `${Math.max(1.5, (ideal / m) * 100)}%` }} />
-        </span>
-        <b className="mono">{fmt(ideal)}</b>
-      </div>
-      <div>
-        <span className="dim">unmitigated</span>
-        <span className="rk-defer-bar">
-          <i className="unm" style={{ width: `${Math.max(1.5, (unm / m) * 100)}%` }} />
-        </span>
-        <b className="mono">{fmt(unm)}</b>
-      </div>
+      )}
     </div>
   )
 }
@@ -760,21 +688,17 @@ function Chain({ chain }: { chain: ChainStep[] }) {
 
 function EffectGroup({ ce, items }: { ce: string; items: ChainStep[] }) {
   const row = CE_BY_ID[ce]
-  const lvl = row?.level
   return (
-    <span className="rk-fx">
-      <span className="rk-fx-h">
-        <span className="rk-fx-lvl" style={lvl && lvl !== 'alarm' ? { borderColor: LVL_COLOR[lvl], color: LVL_COLOR[lvl] } : undefined}>
-          {lvl === 'alarm' ? 'C&E' : lvl}
-        </span>
-        <span className="dim">{row?.cause ?? ce}</span>
-      </span>
+    <details className="rk-fx">
+      <summary>
+        {row?.cause ?? ce} <span className="dim">· {items.length} effects</span>
+      </summary>
       <ul>
         {items.map((it, i) => (
           <li key={i}>{it.text}</li>
         ))}
       </ul>
-    </span>
+    </details>
   )
 }
 

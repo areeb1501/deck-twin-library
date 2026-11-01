@@ -5,7 +5,8 @@
  * operator did vs what was expected, what went well / to improve, KPIs before and after).
  * Logic and scoring live in sim/scenarios.ts and sim/scen/*. Building a scenario with a model is ScenarioAuthor.tsx.
  */
-import { Fragment, useMemo, useState } from 'react'
+import { Fragment, useMemo, useState, type FormEvent } from 'react'
+import { useAccount } from '../../state/account'
 import { usePlant } from '../../state/plantStore'
 import { SCENARIOS, scenarioById, unavailable, useScenario, type Attempt, type LiveView, type Scenario } from '../../sim/scenarios'
 import { NextActions } from './ResponsePage'
@@ -16,7 +17,7 @@ import { fmtEl } from '../../sim/scen/helpers'
 import { WEIGHTS, HINT_COST } from '../../sim/scen/scoring'
 import { LOSS_LABEL, type LossCategory } from '../../sim/types'
 import { Box, Kpi, Msg } from './common'
-import { ScenarioAuthor } from './ScenarioAuthor'
+import { STARTERS, ScenarioAuthor } from './ScenarioAuthor'
 import { call, fmt, useS } from './simApi'
 import './scenarios.css'
 
@@ -49,9 +50,11 @@ function Library() {
   const [cat, setCat] = useState('all')
   const [plat, setPlat] = useState('all')
   const [q, setQ] = useState('')
-  const [hideNa, setHideNa] = useState(false)
+  const [owner, setOwner] = useState<'all' | 'mine'>('all')
   const [armClear, setArmClear] = useState(false)
   const compiled = useCustom((s) => s.compiled)
+  const mine = useCustom((s) => s.items)
+  const user = useAccount((s) => s.user)
   const all = useMemo(() => [...Object.values(compiled), ...SCENARIOS], [compiled])
   const cats = useMemo(() => [...new Set(all.map((s) => s.category))], [all])
   const plats = useMemo(() => [...new Set(all.flatMap((s) => s.platforms))], [all])
@@ -66,20 +69,25 @@ function Library() {
     return m
   }, [history])
   const list = all.filter((s) => {
+    if (owner === 'mine' && !compiled[s.id]) return false
     if (diff !== 'all' && s.difficulty !== diff) return false
     if (cat !== 'all' && s.category !== cat) return false
     if (plat !== 'all' && !s.platforms.includes(plat)) return false
-    if (hideNa && unavailable(s, plant)) return false
     const t = q.trim().toLowerCase()
     return !t || `${s.title} ${s.summary} ${s.category}`.toLowerCase().includes(t)
   })
   return (
     <div className="h-grid scn">
-      <p className="h-note">
-        Training scenarios: classic offshore control-room exercises on the live plant. Each one starts a fresh session, injects its events on the sim clock and scores you on safety, production,
-        response time and alarm handling. Pick one to read the briefing.
-      </p>
+      <NewScenario />
       <div className="h-filters">
+        <div className="seg2">
+          <button className={owner === 'all' ? 'on' : ''} onClick={() => setOwner('all')}>
+            All scenarios
+          </button>
+          <button className={owner === 'mine' ? 'on' : ''} onClick={() => setOwner('mine')} data-scn="mine">
+            Yours ({mine.length})
+          </button>
+        </div>
         <div className="seg2">
           {(['all', 'foundation', 'intermediate', 'advanced'] as const).map((d) => (
             <button key={d} className={diff === d ? 'on' : ''} onClick={() => setDiff(d)}>
@@ -110,13 +118,6 @@ function Library() {
           </select>
         </label>
         <input type="text" placeholder="Search…" value={q} onChange={(e) => setQ(e.target.value)} />
-        <label>
-          <input type="checkbox" checked={hideNa} onChange={(e) => setHideNa(e.target.checked)} /> hide unavailable
-        </label>
-        <span className="grow" />
-        <button className="on" onClick={() => setView({ kind: 'author' })} data-scn="author">
-          Build with AI
-        </button>
       </div>
       <div className="scn-grid" data-scn="library">
         {list.map((s) => {
@@ -125,7 +126,6 @@ function Library() {
           return (
             <button key={s.id} className={`scn-card ${na ? 'na' : ''}`} onClick={() => setView({ kind: 'brief', id: s.id })} data-scn-card={s.id}>
               <div className="scn-card-h">
-                <span className="scn-n mono">{s.n ? String(s.n).padStart(2, '0') : 'AI'}</span>
                 <b>{s.title}</b>
               </div>
               <div className="scn-tags">
@@ -139,6 +139,7 @@ function Library() {
               </div>
               <p className="scn-sum">{s.summary}</p>
               <div className="scn-card-f">
+                {compiled[s.id] && <span className="scn-by">{authorOf(mine.find((x) => x.id === s.id)?.by, user.name)}</span>}
                 <span className="dim">≤ {fmtMin(s.maxDuration)}</span>
                 <span className="dim">{s.goals.filter((g) => !g.optional).length} objectives</span>
                 <span className="grow" />
@@ -147,10 +148,10 @@ function Library() {
             </button>
           )
         })}
-        {!list.length && <div className="h-empty">No scenario matches the filters.</div>}
+        {!list.length && <div className="h-empty">{owner === 'mine' && !mine.length ? 'You have not created a scenario yet.' : 'No scenario matches the filters.'}</div>}
       </div>
       <Box
-        title={`Attempt history: ${history.length}`}
+        title={`Your attempts: ${history.length}`}
         right={
           history.length ? (
             armClear ? (
@@ -169,7 +170,7 @@ function Library() {
         }
       >
         {history.length === 0 ? (
-          <div className="h-empty">No attempts yet. Attempts are kept in this browser.</div>
+          <div className="h-empty">No attempts yet.</div>
         ) : (
           <table className="h-tbl" data-tbl="scn-history">
             <thead>
@@ -203,6 +204,42 @@ function Library() {
   )
 }
 
+const authorOf = (by: string | undefined, you: string) => (!by || by === you ? 'Created by you' : `Created by ${by}`)
+
+/** one line to a new scenario: the builder takes it from there */
+function NewScenario() {
+  const user = useAccount((s) => s.user)
+  const draft = useAuthor((s) => (s.chat.length ? (s.draft?.spec?.title ?? 'Untitled draft') : null))
+  const [text, setText] = useState('')
+  const open = (e: FormEvent) => {
+    e.preventDefault()
+    useAuthor.getState().begin(text.trim())
+    setView({ kind: 'author' })
+  }
+  return (
+    <section className="h-box scn-new" data-scn="new">
+      <div className="scn-new-h">
+        <h2>New scenario</h2>
+        <span className="dim">Signed in as {user.name}</span>
+      </div>
+      <form className="scn-new-f" onSubmit={open}>
+        <input type="text" placeholder="Describe what the trainee should face" aria-label="Describe the scenario" value={text} onChange={(e) => setText(e.target.value)} data-scn="quick" />
+        <button type="submit" className="on" data-scn="author">
+          {draft && !text.trim() ? 'Continue draft' : 'Build with AI'}
+        </button>
+      </form>
+      <div className="scn-new-ideas">
+        {STARTERS.map((s) => (
+          <button key={s.label} className={text === s.text ? 'sel' : ''} onClick={() => setText(s.text)} data-scn-idea>
+            {s.label}
+          </button>
+        ))}
+        {draft && <span className="dim">In progress: {draft}</span>}
+      </div>
+    </section>
+  )
+}
+
 // ================================================================= briefing
 
 function Briefing({ sc }: { sc: Scenario }) {
@@ -215,14 +252,18 @@ function Briefing({ sc }: { sc: Scenario }) {
   return (
     <div className="h-grid scn" data-scn="brief">
       <div className="h-row">
-        <button onClick={() => setView({ kind: 'library' })}>← Library</button>
-        <span className="scn-n mono">{sc.n ? String(sc.n).padStart(2, '0') : 'AI'}</span>
+        <button onClick={() => setView({ kind: 'library' })}>← Scenarios</button>
         <h2 className="scn-title">{sc.title}</h2>
         <span className={`scn-diff ${sc.difficulty}`}>{DIFFICULTY_LABEL[sc.difficulty]}</span>
         <span className="chip">{sc.category}</span>
+        <span className="grow" />
+        {!custom && (
+          <button onClick={() => (useAuthor.getState().newChat(), useAuthor.getState().begin(`Make a harder variant of "${sc.title}": ${sc.summary}`), setView({ kind: 'author' }))} data-scn="variant">
+            Make a variant
+          </button>
+        )}
         {custom && (
           <>
-            <span className="grow" />
             <button onClick={() => (useAuthor.getState().edit(sc.id), setView({ kind: 'author' }))} data-scn="edit">
               Change in chat
             </button>
@@ -244,7 +285,7 @@ function Briefing({ sc }: { sc: Scenario }) {
       <p className="scn-lead">{sc.summary}</p>
       {custom && (
         <p className="h-note" data-scn="ai-note">
-          Written by {custom.model} and kept in this browser. It was checked against this plant's tags and run once with nobody at the console, but no engineer has reviewed it, and the ideal response below is the model's estimate, not a calibrated figure.
+          Created {custom.by ? `by ${custom.by} ` : ''}with {custom.model}. Checked against this plant and run once unattended, but no engineer has reviewed it.
         </p>
       )}
       <div className="scn-brief">
@@ -296,7 +337,7 @@ function Briefing({ sc }: { sc: Scenario }) {
           <div className="h-msg">Not available in this plant: {na}</div>
         ) : (
           <>
-            <p className="h-note">Starting resets the simulation to normal operation (a new session: KPIs, alarms and the audit trail start from zero). You can change the clock speed in the header at any time.</p>
+            <p className="h-note">Starting resets the plant to normal operation and clears KPIs, alarms and the audit trail.</p>
             <div className="h-row" style={{ marginTop: 6 }}>
               <button className="on" onClick={() => go(1)} data-scn-start={sc.id}>
                 Start at 1×
@@ -329,7 +370,7 @@ function Running({ live }: { live: LiveView }) {
           </div>
           <h2 className="scn-title">{live.title}</h2>
         </div>
-        <div className="scn-clock mono" title="Elapsed sim time / maximum">
+        <div className="scn-clock mono" title="Elapsed time / maximum">
           {fmtEl(live.el)} <span className="dim">/ {fmtEl(live.max)}</span>
           <div className="scn-bar">
             <i style={{ width: `${pct}%` }} />
@@ -375,7 +416,7 @@ function Running({ live }: { live: LiveView }) {
         <div className="h-grid">
           <Box title="CCR & field actions">
             {live.actions.length === 0 ? (
-              <div className="h-empty">Nothing to order right now: use the console pages (Process, Machines, Shutdown, Alarms …).</div>
+              <div className="h-empty">No actions pending.</div>
             ) : (
               <div className="scn-acts">
                 {live.actions.map((a) => (

@@ -3,13 +3,14 @@
  * ("Control room") or by sitting at a console in the CCR / WHP-N local control room. Shown while
  * `useStore.hmi` names a page. ISA-101 style: grey, quiet, colour only when something is abnormal.
  *
- *   Asset & economics · Spares & supply · Live dashboard · Risk & what-if · Response · Scenarios · CCTV & PPE · Inspections · Alerts & assistant ·
- *   Process · Alarms · Shutdown · F&G · Maintenance · Machines · Overview · Trends · Cranes & weather · Handover · Instructor
+ * Which tabs show depends on the console view (state/views.ts), switched from the account menu at the top right.
  *
  * Esc closes. While it is open the walker and the viewer hot-keys ignore the keyboard.
  */
-import { useEffect, useRef, useState, type ReactNode } from 'react'
+import { Fragment, useEffect, useRef, useState, type ReactNode } from 'react'
 import { useStore } from '../../state/store'
+import { useAccount } from '../../state/account'
+import { pagesOf } from '../../state/views'
 import { isAlphaField, usePlant } from '../../state/plantStore'
 import { fmtClock, type AlarmPriority, type PlatformId } from '../../sim/types'
 import { EMPTY_ARR, EMPTY_OBJ, PLATFORMS, call, useS } from './simApi'
@@ -34,30 +35,8 @@ import { ResponsePage } from './ResponsePage'
 import { EconomicsPage } from './EconomicsPage'
 import { SparesPage } from './SparesPage'
 import { DemoStory } from './DemoStory'
+import { AccountMenu } from './AccountMenu'
 import './hmi.css'
-
-const HMI_PAGES = [
-  ['economics', 'Asset & economics'],
-  ['spares', 'Spares & supply'],
-  ['dashboard', 'Live dashboard'],
-  ['risk', 'Risk & what-if'],
-  ['response', 'Response'],
-  ['scenarios', 'Scenarios'],
-  ['cctv', 'CCTV & PPE'],
-  ['inspection', 'Inspections'],
-  ['alerts', 'Alerts & assistant'],
-  ['process', 'Process'],
-  ['alarms', 'Alarms'],
-  ['shutdown', 'Shutdown'],
-  ['fg', 'F&G'],
-  ['maintenance', 'Maintenance'],
-  ['machines', 'Machines'],
-  ['overview', 'Overview'],
-  ['trends', 'Trends'],
-  ['cranes', 'Cranes & weather'],
-  ['handover', 'Handover'],
-  ['instructor', 'Instructor'],
-] as const
 
 const SPEEDS: [number, string][] = [
   [0, 'Pause'],
@@ -79,7 +58,7 @@ export function Hmi() {
         e.stopPropagation()
         e.preventDefault()
         // a dialog inside the console (e.g. the email draft) closes first
-        const modalBg = document.querySelector<HTMLElement>('.hmi .al-modal-bg')
+        const modalBg = document.querySelector<HTMLElement>('.hmi .al-modal-bg, .hmi [data-account-close]')
         if (modalBg) return modalBg.click()
         useStore.getState().setHmi(null)
         return
@@ -98,18 +77,27 @@ export function Hmi() {
 function Console({ page }: { page: string }) {
   const setHmi = useStore((s) => s.setHmi)
   const alpha = isAlphaField(usePlant())
-  const pages = HMI_PAGES.filter(([k]) => alpha || k !== 'inspection')
-  const cur = pages.some(([k]) => k === page) ? page : 'economics'
+  const views = useAccount((s) => s.views)
+  const viewKey = useAccount((s) => s.view)
+  const view = views.find((v) => v.key === viewKey) ?? views[0]
+  const pages = pagesOf(view).filter((p) => alpha || p.key !== 'inspection')
+  const cur = pages.some((p) => p.key === page) ? page : view.home
+  useEffect(() => {
+    useAccount.getState().load()
+  }, [])
   return (
     <div className="hmi" role="dialog" aria-label="Control room console">
       <Header />
       <TabStrip cur={cur}>
-        {pages.map(([k, label]) => (
-          <button key={k} className={cur === k ? 'on' : ''} onClick={() => setHmi(k)} data-page={k}>
-            {label}
-            {k === 'alarms' && <AlarmBadge />}
-            {k === 'shutdown' && <ShutdownBadge />}
-          </button>
+        {pages.map((p, i) => (
+          <Fragment key={p.key}>
+            {i > 0 && pages[i - 1].area !== p.area && <span className="hmi-tab-sep" aria-hidden="true" />}
+            <button className={cur === p.key ? 'on' : ''} onClick={() => setHmi(p.key)} title={p.title} data-page={p.key}>
+              {p.label}
+              {p.key === 'alarms' && <AlarmBadge />}
+              {p.key === 'shutdown' && <ShutdownBadge />}
+            </button>
+          </Fragment>
         ))}
       </TabStrip>
       <main className="hmi-body" data-hmi-page={cur}>
@@ -196,13 +184,13 @@ function Header() {
   return (
     <header className="hmi-head">
       <div className="hmi-title">
-        Alpha field: DCS
-        <small>Central Control Room · operator console</small>
+        Alpha Field
+        <small>Central Control Room · Simulator feed</small>
       </div>
-      <div className="hmi-clock" title="Simulation clock (session starts D1 06:00)">
+      <div className="hmi-clock" title="Plant clock">
         {typeof t === 'number' ? fmtClock(t) : '-'}
       </div>
-      <div className="hmi-speed" title="Simulation speed">
+      <div className="hmi-speed" title="Simulator speed">
         {SPEEDS.map(([v, label]) => (
           <button key={v} className={(speed ?? 1) === v ? 'on' : ''} onClick={() => call('setSpeed', v)}>
             {label}
@@ -218,14 +206,15 @@ function Header() {
             <div key={p} className={`hmi-lamp ${ga} ${sd ? 'sd' : ''}`} title={`${p}: general alarm ${ga}${sd ? `, ${sd} latched` : ''}`}>
               <i />
               <b>{p}</b>
-              <span className="dim">{ga === 'normal' ? 'GA normal' : ga.toUpperCase()}</span>
+              {ga !== 'normal' && <span>{ga.toUpperCase()}</span>}
               {sd && <span className="mono" style={{ color: '#ffd7a0' }}>{sd}</span>}
             </div>
           )
         })}
       </div>
+      <AccountMenu />
       <button className="hmi-close" onClick={() => setHmi(null)} title="Close the console (Esc)">
-        Close ✕
+        3D view
       </button>
     </header>
   )

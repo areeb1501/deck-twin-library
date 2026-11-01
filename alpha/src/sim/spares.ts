@@ -180,13 +180,6 @@ export function fmtDays(days: number) {
   if (days < 1) return `${Math.max(0, Math.round(days * 24))} h`
   return days < 10 ? `${days.toFixed(1)} d` : `${Math.round(days)} d`
 }
-/** wall-clock equivalent of `days` logistics days at 60× in the given clock mode ("≈ 3.5 min at 60×") */
-export function wallAt60(days: number, mode: LogisticsMode) {
-  const s = (days * daySeconds(mode)) / 60
-  if (s < 90) return `≈ ${Math.max(1, Math.round(s))} s at 60×`
-  if (s < 5400) return `≈ ${(s / 60).toFixed(s < 600 ? 1 : 0)} min at 60×`
-  return `≈ ${(s / 3600).toFixed(1)} h at 60×`
-}
 const fmtQty = (q: number) => (Math.abs(q - Math.round(q)) < 1e-6 ? String(Math.round(q)) : q.toFixed(1))
 
 // ---------------------------------------------------------------- catalogue indexes (memoised per parts array)

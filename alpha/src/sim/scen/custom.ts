@@ -17,6 +17,8 @@ export interface SavedScenario {
   spec: ScenarioSpec
   /** what wrote it, for the label on the card and the briefing */
   model: string
+  /** the account that saved it */
+  by?: string
   chat: ChatLine[]
   createdAt: string
   updatedAt: string

@@ -1,6 +1,5 @@
 /* Inspections (plan 12): the units, their camera, reports and the recorded clip. ISA-101 grey; colour only when abnormal. */
 .hmi .ins { display: grid; gap: 10px; align-content: start; min-width: 0; }
-.hmi .ins-note { padding: 6px 10px; border-left: 3px solid var(--h-p2); background: var(--h-bg2); color: var(--h-fg); }
 .hmi .ins-top { display: grid; grid-template-columns: 280px minmax(0, 1fr) minmax(0, 1fr); gap: 10px; align-items: stretch; }
 .hmi .ins-seg { display: flex; gap: 4px; flex-wrap: wrap; }
 .hmi .ins-sel { width: 100%; margin: 8px 0; font: inherit; color: var(--h-fg); background: var(--h-bg3); border: 1px solid var(--h-line2); border-radius: 3px; padding: 4px 6px; }

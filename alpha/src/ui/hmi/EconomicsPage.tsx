@@ -1,5 +1,5 @@
 /**
- * Asset & economics (plan 13 B) — the executive view, first console tab. Reads in five seconds:
+ * Asset & economics (plan 13 B) — the executive view, Finance's first tab. Reads in five seconds:
  *
  *   header        $ at risk over the horizon · demo-story slot (data-demo-story)
  *   KPI tiles     oil vs potential · gas · revenue · cash margin · lifting cost · PE · deferred $ · carbon intensity
@@ -14,7 +14,7 @@
  */
 import { memo, useEffect, useMemo, useState, type MouseEvent, type ReactNode } from 'react'
 import { COST_LABEL, type CostLine, type PriceDeck } from '../../sim/assetTypes'
-import { demoEquiv, fmtDays, fmtUsd, type AssetRiskRow } from '../../sim/assetRisk'
+import { fmtDays, fmtUsd, type AssetRiskRow } from '../../sim/assetRisk'
 import { COST_LINES, LOSS_CATS, deferredTotal, financeApi, sessionCash, useFinance, type FinancePointX } from '../../sim/finance'
 import { maint } from '../../sim/maintenance'
 import { sparesApi, useSpares } from '../../sim/spares'
@@ -79,10 +79,8 @@ function EconHeader({ headerExtra }: { headerExtra?: ReactNode }) {
   return (
     <header className="econ-head" data-econ="header">
       <div className="econ-title">
-        <h2>Asset &amp; economics</h2>
-        <p>
-          Production value, deferment and asset risk in dollars · <span className="econ-sim">simulated data</span> · prices are an assumption
-        </p>
+        <h2>Asset and economics</h2>
+        <p>Production value, deferment and asset risk</p>
       </div>
       <div className="econ-slot" data-demo-story>
         {headerExtra}
@@ -248,7 +246,7 @@ const ProductionChart = memo(function ProductionChart() {
       }
     >
       {!g ? (
-        <div className="econ-empty">Waiting for the simulation: start the clock to see production and value.</div>
+        <div className="econ-empty">Waiting for production data.</div>
       ) : (
         <svg className="econ-chart" viewBox={`0 0 ${PW} ${PH}`} onMouseMove={onMove} onMouseLeave={() => setHover(null)} role="img" aria-label={`Production ${Math.round(now.boe)} of ${Math.round(now.mpp)} boe per day potential`}>
           {g.yTicks.map((v) => (
@@ -290,7 +288,7 @@ const ProductionChart = memo(function ProductionChart() {
         ) : (
           <span className="dim">at potential</span>
         )}
-        <span className="dim grow-r">each point = 5 sim-min average · boe = oil + gas (5.8 Mscf/boe)</span>
+        <span className="dim grow-r">5-minute average · 5.8 Mscf/boe</span>
       </div>
     </Box>
   )
@@ -384,7 +382,7 @@ const Waterfall = memo(function Waterfall() {
 
   return (
     <Box
-      title={mode === 'session' ? `Revenue waterfall: session (${fmtSimSpan(elapsed)} sim)` : 'Revenue waterfall: run-rate per day'}
+      title={mode === 'session' ? `Revenue waterfall: session (${fmtSimSpan(elapsed)})` : 'Revenue waterfall: run-rate per day'}
       className="econ-wf"
       right={
         <span className="econ-seg">
@@ -429,7 +427,7 @@ const Waterfall = memo(function Waterfall() {
           </span>
         ) : (
           <span className="dim">
-            <i className="hatch" /> awaiting spares: none, machines waiting for parts would show here as a share of the losses
+            <i className="hatch" /> Nothing awaiting spares
           </span>
         )}
       </div>
@@ -468,7 +466,6 @@ const RiskRegister = memo(function RiskRegister() {
   const risks = useFinance((s) => s.risks)
   const horizon = useFinance((s) => s.riskHorizon)
   const atRisk = useFinance((s) => s.atRisk)
-  const mode = useSpares((s) => s.mode)
   const [all, setAll] = useState(false)
   const [msg, setMsg] = useState<{ tag: string; text: string | null } | null>(null)
   const rows = useMemo(() => (all ? risks : risks.slice(0, 8)), [risks, all])
@@ -528,7 +525,7 @@ const RiskRegister = memo(function RiskRegister() {
             </thead>
             <tbody>
               {rows.map((r, i) => (
-                <RiskRow key={r.tag} r={r} rank={i + 1} max={max} mode={mode} msg={msg?.tag === r.tag ? msg.text : null} onAct={act} />
+                <RiskRow key={r.tag} r={r} rank={i + 1} max={max} msg={msg?.tag === r.tag ? msg.text : null} onAct={act} />
               ))}
             </tbody>
           </table>
@@ -541,14 +538,14 @@ const RiskRegister = memo(function RiskRegister() {
           </button>
         )}
         <span className="dim">
-          Exposure = P(fail) × (lost production × days down × $/boe + labour + parts). Gas-loss machines valued at the gas price, others at the blended potential mix. Lead times in real days; helicopter charter ≈ estimate.
+          Exposure = P(fail) × (lost production × days down × $/boe + labour + parts).
         </span>
       </div>
     </Box>
   )
 })
 
-function RiskRow({ r, rank, max, mode, msg, onAct }: { r: AssetRiskRow; rank: number; max: number; mode: string; msg: string | null; onAct: (tag: string, fn: () => string | null) => void }) {
+function RiskRow({ r, rank, max, msg, onAct }: { r: AssetRiskRow; rank: number; max: number; msg: string | null; onAct: (tag: string, fn: () => string | null) => void }) {
   const down = r.repairDays + r.partsWaitDays
   const L = r.lever
   const hot = r.exposureUsd >= 1e6
@@ -571,7 +568,7 @@ function RiskRow({ r, rank, max, mode, msg, onAct }: { r: AssetRiskRow; rank: nu
           {r.ttfDays !== null && r.stage !== 'failed' && (
             <div className="sub">
               fails in ≈ {fmtDays(r.ttfDays)}
-              {mode === 'demo' ? ` (${demoEquiv(r.ttfDays)})` : ''}
+              
             </div>
           )}
         </td>
@@ -586,7 +583,7 @@ function RiskRow({ r, rank, max, mode, msg, onAct }: { r: AssetRiskRow; rank: nu
           {fmtDays(down)}
           {r.partsWaitDays > 0 && <div className="sub">parts {fmtDays(r.partsWaitDays)}</div>}
         </td>
-        <td className="cov" title={`${r.cover.note}${coverWait && mode === 'demo' ? ` · ${demoEquiv(r.cover.waitDays)}` : ''}`}>
+        <td className="cov" title={`${r.cover.note}`}>
           <span className={`econ-cov c-${r.cover.status}`}>{COVER_TEXT[r.cover.status]}</span>
           {coverWait && <span className="mono dim"> {fmtDays(r.cover.waitDays)}</span>}
         </td>
@@ -602,7 +599,7 @@ function RiskRow({ r, rank, max, mode, msg, onAct }: { r: AssetRiskRow; rank: nu
           {L.kind !== 'none' && L.kind !== 'raiseWo' && (
             <div className="sub">
               {L.costUsd > 0 ? `${fmtUsd(L.costUsd)} premium${L.heli ? ' + helicopter' : ''} · ` : ''}lands in ≈ {fmtDays(L.arriveDays)}
-              {mode === 'demo' ? ` (${demoEquiv(L.arriveDays)})` : ''}
+              
               {L.beatsFailure ? ' · before the predicted failure' : ''}
             </div>
           )}
@@ -684,7 +681,7 @@ function PriceDeckBox() {
         </button>
       }
     >
-      <div className="econ-assume">Assumption: simulated price deck for this demo, not a market quote. Edit to see the value move.</div>
+      <div className="econ-assume">Planning prices. Edit to see the value move.</div>
       <div className="econ-fields">
         {FIELDS.map((f) => (
           <DeckField key={f.k} f={f} value={deck[f.k]} />
@@ -751,7 +748,7 @@ function EmissionsBox() {
           <small>MMscf</small>
         </div>
       </div>
-      <p className="econ-foot">Screening factors, simulated volumes. Fuel gas is own use (not sold, counted as produced).</p>
+      <p className="econ-foot">Screening factors. Fuel gas is own use.</p>
     </Box>
   )
 }
@@ -767,7 +764,7 @@ function SpendBox() {
     ['Expedite & freight', totals.cost.logistics, 'vendor premiums, boat share, helicopter'],
   ]
   return (
-    <Box title="Maintenance & supply: session" className="econ-spend" right={<span className="econ-sim">simulated</span>}>
+    <Box title="Maintenance & supply: session" className="econ-spend" >
       <div className="econ-pairs col">
         {rows.map(([l, v, why]) => (
           <div key={l} title={why}>

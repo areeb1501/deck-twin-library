@@ -81,7 +81,7 @@ export function CctvPage() {
             </button>
           ) : null
         })}
-        <span className="dim small">{CAMERAS.length} hazardous-area cameras · only the tiles on screen are rendered</span>
+        <span className="dim small">{CAMERAS.length} hazardous-area cameras</span>
       </div>
       <div className="cctv-wall" role="region" aria-label="CCTV camera wall">
         <Tile key={`big-${big.id}`} cam={big} big calledUp={callUp === big.id} />
@@ -576,7 +576,7 @@ function ModelBadge({ cam }: { cam: string }) {
   const meta = useSam((s) => s.source === 'meta')
   return (
     <div className={`cctv-model-badge ${live ? 'live' : ''}`} data-model-badge={live ? 'sam-3.1' : 'sim'}>
-      {live ? (meta ? 'SAM 3.1 · Meta API' : 'SAM 3.1') : 'SIM'}
+      {live ? (meta ? 'SAM 3.1 · Meta API' : 'SAM 3.1') : 'TWIN'}
     </div>
   )
 }
@@ -678,7 +678,7 @@ function SegLayer({ cam, big }: { cam: string; big: boolean }) {
           </span>
         )
       })}
-      <div className="cctv-segtag">SAM 3.1 · simulated · {inst.length} instances</div>
+      <div className="cctv-segtag">Twin detector · {inst.length} instances</div>
     </div>
   )
 }
@@ -715,7 +715,7 @@ function PromptsBox({ cam }: { cam: string }) {
   }, [inst])
   return (
     <Box
-      title={`Segmentation: SAM 3.1 (${live ? 'live model' : 'simulated'})`}
+      title={live ? 'Segmentation: SAM 3.1' : 'Segmentation: twin detector'}
       right={
         <button className={on ? 'on' : ''} onClick={() => useCctv.getState().setSeg(!on)} data-seg-toggle>
           {on ? 'Masks on' : 'Masks off'}
@@ -848,11 +848,11 @@ function ModelBox() {
                 </>
               ) : samOn ? (
                 <>
-                  <b>SAM 3.1 on a Modal GPU</b> : real masks and scores on the 11 colour cameras, in turn. {sam.rtt.toFixed(0)} ms round trip, {sam.gpu} ms on the GPU. The video stays live and masks fade between answers. Thermal cameras stay simulated.
+                  <b>SAM 3.1 on a Modal GPU</b> : real masks and scores on the 11 colour cameras, in turn. {sam.rtt.toFixed(0)} ms round trip, {sam.gpu} ms on the GPU. The video stays live and masks fade between answers. Thermal cameras use the twin detector.
                 </>
               ) : (
                 <>
-                  <b>Simulated SAM 3.1 (twin ground truth)</b> : instance masks from an id render pass of the camera view (true occlusion), PPE boxes from worker flags, hazards from live incidents
+                  <b>Twin detector</b>: masks and PPE boxes from the camera view and worn tags
                 </>
               )}
             </td>
@@ -871,7 +871,7 @@ function ModelBox() {
                 >
                   {sam.on ? 'On' : 'Off'}
                 </button>{' '}
-                {!sam.on ? 'Simulated until turned on' : !samCamera(selected) ? 'Thermal camera: simulated detector' : sam.state === 'waking' ? 'Waking the GPU, up to a minute. Simulated until then' : sam.state === 'error' ? 'Not answering. Simulated until it does' : sam.state === 'live' ? 'Connected' : ''}
+                {!sam.on ? 'Twin detector until turned on' : !samCamera(selected) ? 'Thermal camera: twin detector' : sam.state === 'waking' ? 'Waking the GPU, up to a minute. Twin detector until then' : sam.state === 'error' ? 'Not answering. Twin detector until it does' : sam.state === 'live' ? 'Connected' : ''}
               </td>
             </tr>
           )}

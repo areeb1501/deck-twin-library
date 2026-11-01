@@ -4,8 +4,6 @@
 .sp-head { display: flex; align-items: flex-end; gap: 14px; flex-wrap: wrap; }
 .sp-head h2 { margin: 0; font-size: 15px; font-weight: 600; letter-spacing: 0.02em; }
 .sp-head .grow { flex: 1; }
-.sp-sim { margin-top: 2px; font-size: 10.5px; color: var(--h-dim); letter-spacing: 0.02em; }
-.sp-sim::before { content: 'SIMULATED'; font-weight: 700; font-size: 9.5px; letter-spacing: 0.08em; padding: 0 5px; margin-right: 6px; border: 1px dashed var(--h-line2); border-radius: 2px; color: var(--h-fg); }
 .sp-ctl { display: flex; align-items: center; gap: 6px; }
 .sp-ctl .seg2 { display: flex; gap: 2px; }
 .sp-ctl .seg2 button { padding: 2px 8px; }

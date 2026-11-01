@@ -7,6 +7,7 @@ import { AREA_LABEL, useInsights, type Insight, type InsightArea, type InsightKi
 import { fmtUsd } from '../../sim/assetRisk'
 import { useStore } from '../../state/store'
 import { fmtClock } from '../../sim/types'
+import { currentView } from '../../state/account'
 import { pickOf, showIn3D } from './nav'
 import './insights.css'
 
@@ -15,7 +16,7 @@ const KIND_LABEL: Record<InsightKind, string> = { act: 'Decide', watch: 'Watch',
 function go(x: Insight) {
   const g = x.go
   if (!g) return
-  if (g.page && g.page !== useStore.getState().hmi) return useStore.getState().setHmi(g.page)
+  if (g.page && g.page !== useStore.getState().hmi && currentView().pages.some((p) => p === g.page)) return useStore.getState().setHmi(g.page)
   const tag = g.tag ?? x.tags[0]
   if (tag && pickOf(tag)) showIn3D(tag)
 }
@@ -36,7 +37,7 @@ export function InsightsPanel({ max = 8, compact = false }: { max?: number; comp
   return (
     <section className={`h-box ins ${compact ? 'compact' : ''}`} data-insights="panel">
       <h3>
-        <span>Insights: what the data says</span>
+        <span>Production insights</span>
         <span className="grow" />
         {(['act', 'watch', 'win'] as InsightKind[]).map((k) =>
           counts[k] ? (
@@ -45,9 +46,6 @@ export function InsightsPanel({ max = 8, compact = false }: { max?: number; comp
             </span>
           ) : null,
         )}
-        <span className="dim" title="Rules over the simulated plant, finance, condition monitoring, spares and risk; assumed price deck">
-          simulated
-        </span>
       </h3>
       {headline && <p className="ins-head">{headline}</p>}
       {!compact && areas.length > 1 && (
@@ -85,7 +83,7 @@ export function InsightsPanel({ max = 8, compact = false }: { max?: number; comp
                     {x.go.label} →
                   </button>
                 )}
-                <span className="faint mono" title="First seen (sim clock)">
+                <span className="faint mono" title="First seen">
                   {fmtClock(x.since, false).slice(0, 5)}
                 </span>
               </div>
@@ -93,7 +91,7 @@ export function InsightsPanel({ max = 8, compact = false }: { max?: number; comp
           ))}
         </ol>
       ) : (
-        <div className="h-empty">Nothing stands out: the field is running at potential with no concentrated risk.</div>
+        <div className="h-empty">Field running at potential with no concentrated risk.</div>
       )}
       {!compact && shown.length > max && (
         <button className="link ins-more" onClick={() => setAll((v) => !v)}>

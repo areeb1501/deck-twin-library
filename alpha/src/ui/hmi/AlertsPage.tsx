@@ -22,7 +22,6 @@ import { Box, TagLink } from './common'
 import { EMPTY_ARR } from './simApi'
 import './alerts.css'
 import { AgentPanel } from './AgentPanel'
-import { PROVIDER_LABEL, useProvider } from '../../agents/provider'
 
 const ACTOR_ICON: Record<TraceStep['actor'], string> = { sensor: '◉', rule: '§', risk: '▲', cctv: '◎', assistant: '✦', operator: '●', model: '◆', tool: '⚙' }
 const KIND_LABEL: Record<TraceStep['kind'], string> = { observe: 'Observed', assess: 'Assessed', decide: 'Decided', act: 'Acted', notify: 'Notified', answer: 'Answered' }
@@ -112,12 +111,12 @@ function Outbox({ sel, setSel, onEmail }: { sel: Sel; setSel: (s: Sel) => void; 
       className="al-col"
       title={
         <>
-          Alert outbox <span className="dim">· {alerts.length}</span>
+          Alert queue <span className="dim">· {alerts.length}</span>
           {counts.crit > 0 && <span className="al-badge crit">{counts.crit} critical</span>}
           {counts.open > 0 && <span className="al-badge">{counts.open} open</span>}
         </>
       }
-      right={<span className="al-channel" title="Alerts are drafted as emails in the browser. Nothing is sent; plan 09 adds a server channel.">{channel === 'server' ? 'Server channel' : 'Outbox (prototype; not sent)'}</span>}
+      right={<span className="al-channel" title="Alerts are drafted as emails in the browser. Nothing is sent.">{channel === 'server' ? 'Server channel' : 'Drafts only'}</span>}
     >
       <div className="al-recips">
         <span className="dim">To</span>
@@ -148,7 +147,7 @@ function Outbox({ sel, setSel, onEmail }: { sel: Sel; setSel: (s: Sel) => void; 
         </button>
       </div>
       <div className="al-list" data-alerts={alerts.length}>
-        {!view.length && <div className="h-empty">No alerts yet. Rules watch alarms, F&G, shutdowns, risk, machine health, CCTV, barrier erosion and slow drift.</div>}
+        {!view.length && <div className="h-empty">No alerts.</div>}
         {view.map((a) => (
           <AlertCard key={a.id} a={a} on={sel?.traceId === a.traceId} onSelect={() => setSel({ kind: 'alert', traceId: a.traceId, label: a.title })} onEmail={() => onEmail(a)} onInvestigate={() => {
             const id = investigate({ alertId: a.id })
@@ -283,7 +282,7 @@ function TraceColumn({ sel, setSel }: { sel: Sel; setSel: (s: Sel) => void }) {
     >
       {!sel && (
         <>
-          <p className="h-note">Select an alert, an investigation or an answer to see every step that led to it: observe → assess → decide → notify, and the agent's tool calls.</p>
+          <p className="h-note">Select an alert to see its trace.</p>
           {order.length > 0 && (
             <>
               <div className="h-sec" style={{ marginTop: 10 }}>
@@ -399,7 +398,7 @@ function ReportBox({ run }: { run: InvestigationRun }) {
       </p>
       {r.hidden.length > 0 && (
         <>
-          <div className="h-sec">Hard to spot</div>
+          <div className="h-sec">Early warning</div>
           <ul className="al-hidden">
             {r.hidden.map((h) => (
               <li key={h}>{h}</li>
@@ -429,7 +428,6 @@ function ReportBox({ run }: { run: InvestigationRun }) {
 function Chat({ setSel }: { setSel: (s: Sel) => void }) {
   const messages = (useChat((s) => s.messages) ?? EMPTY_ARR) as ChatMessage[]
   const busy = useChat((s) => s.busy)
-  const provider = useProvider((s) => s.provider)
   const [q, setQ] = useState('')
   const endRef = useRef<HTMLDivElement>(null)
   useEffect(() => {
@@ -442,9 +440,9 @@ function Chat({ setSel }: { setSel: (s: Sel) => void }) {
     void ask(t)
   }
   return (
-    <Box className="al-col al-chatcol" title="Ask the plant" right={<span className="dim">{PROVIDER_LABEL[provider]} · read-only tools</span>}>
+    <Box className="al-col al-chatcol" title="Ask the plant" right={<span className="dim">Read-only tools</span>}>
       <div className="al-chat">
-        {!messages.length && <p className="h-note">Ask about the live twin. Answers come from read-only tools (status, risk, alarms, equipment, F&G, permits, what-if, barrier erosion, drift) and show how they were worked out.</p>}
+        {!messages.length && <p className="h-note">Ask about plant status, risk, alarms, equipment, permits or barriers.</p>}
         {messages.map((m) => (
           <ChatItem key={m.id} m={m} setSel={setSel} />
         ))}

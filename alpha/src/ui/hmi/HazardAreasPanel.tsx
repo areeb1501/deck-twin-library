@@ -278,7 +278,7 @@ function People() {
         <Kpi label="On camera" value={`${confirmed}/${active.length}`} title="Violations a CCTV detection has confirmed" />
       </div>
       {!workersOn ? (
-        <p className="h-note">Field workers are off: nobody on the decks to track. The drill buttons below turn them on.</p>
+        <p className="h-note">No personnel tracked. The drills below turn field workers on.</p>
       ) : rows.length === 0 ? (
         <p className="h-note">Nobody in a classified area right now.</p>
       ) : (
@@ -401,7 +401,7 @@ function Violations() {
         </span>
       </div>
       {rows.length === 0 ? (
-        <p className="h-note">No hazardous-area violations yet. Tracked from the worn personnel tags (RTLS): camera-independent; a camera that sees the person confirms it and draws the box.</p>
+        <p className="h-note">No hazardous-area violations.</p>
       ) : (
         <div className="scroll hz-log">
           <table className="h-tbl">
