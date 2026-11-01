@@ -7,17 +7,21 @@
  *  - The twin knows where every worker stands, however far away, so that goes along as a hint. It names a person SAM saw and gives their
  *    zone. It never adds a person, and SAM alone decides what they wear.
  *  - The live video always stays on top. An answer is seconds old by the time it arrives, so its masks fade on the monitor
- *    rather than freeze the picture. Moving a camera drops them at once: they describe a view that has gone, and a frame
- *    already on its way is thrown away for the same reason. Nothing is sent until the head has rested for REST_MS.
+ *    rather than freeze the picture. Moving a camera clears them at once: they describe a view that has gone, and a frame
+ *    already on its way is thrown away for the same reason. Nothing is sent until the head has rested for REST_MS. The camera
+ *    stays in live mode throughout (`holdFrame`): it shows nothing until SAM has looked again, not the simulator's guesses.
  *  - `withSam` is the one place a camera's detections are chosen. Every Detection says which model made it, so the UI
  *    can't call a simulated box real. A silent model falls back to the simulated detector after STALE_MS.
  *  - Runs only while the camera page is open in a visible tab, so the GPU scales to zero otherwise.
  *  - The switch is never remembered. Every load starts simulated, and leaving the camera page turns it off.
  *  - safety/metaSam.ts is the second way to the same model, on the operator's own Meta key. It shares `applyAnswer`.
+ *  - The operator can type noun phrases for the real model to mask as well (`typed`). Those are masks only: they raise no alert and
+ *    go in no log. They stay until a reload, and the simulated detector never pretends to find them.
  */
 import { create } from 'zustand'
 import { useSim } from '../state/sim'
 import { CAMERAS, feedCanvases, useCctv } from './cctv'
+import { BUILT_IN, cleanPhrase, MAX_TYPED, PERSON } from './samPrompts'
 import type { Detection, DetectionKind } from './types'
 import { useHazardTrack } from './workers'
 
@@ -51,10 +55,12 @@ export interface SamFrame {
   masks: SamMask[]
   /** wall clock of the answer, ms */
   at: number
-  /** the noun phrases sent for this frame, if not all of them */
+  /** the noun phrases this frame really ran, if known. A prompt not listed reads as not looked for yet, never as none found */
   asked?: string[]
   /** what SAM wasn't asked about on this frame. Those stay with the twin, marked `sim` */
   unjudged?: DetectionKind[]
+  /** the camera has moved since this answer, so it holds nothing yet */
+  held?: boolean
 }
 
 interface SamStore {
@@ -70,9 +76,14 @@ interface SamStore {
   rtt: number
   gpu: number
   frames: Record<string, SamFrame>
+  /** noun phrases the operator has added, on both routes */
+  typed: string[]
+  /** adds one, or says why it can't */
+  addTyped: (text: string) => string | null
+  removeTyped: (prompt: string) => void
 }
 
-export const useSam = create<SamStore>((set) => ({
+export const useSam = create<SamStore>((set, get) => ({
   connected: null,
   on: false,
   setOn: (on) => set({ on, ...(on ? {} : { state: 'off' as const, frames: {} }) }),
@@ -81,6 +92,22 @@ export const useSam = create<SamStore>((set) => ({
   rtt: 0,
   gpu: 0,
   frames: {},
+  typed: [],
+  addTyped: (text) => {
+    const prompt = cleanPhrase(text)
+    const { typed } = get()
+    if (!prompt) return 'Use a short noun phrase: letters, numbers, spaces and hyphens, up to 40 characters.'
+    if (BUILT_IN.includes(prompt) || typed.includes(prompt)) return `"${prompt}" is already on the list.`
+    if (typed.length >= MAX_TYPED) return `${MAX_TYPED} at a time. Remove one first.`
+    set({ typed: [...typed, prompt] })
+    return null
+  },
+  removeTyped: (prompt) =>
+    set((s) => ({
+      typed: s.typed.filter((p) => p !== prompt),
+      // its masks go now, rather than at the next answer
+      frames: Object.fromEntries(Object.entries(s.frames).map(([id, f]) => [id, { ...f, masks: f.masks.filter((m) => m.label !== prompt) }])),
+    })),
 }))
 if (import.meta.env.DEV) Object.assign(window, { __sam: useSam })
 
@@ -106,6 +133,8 @@ export interface SamAnswer {
   detections: AnswerDetection[]
   alerts: AnswerAlert[]
   ms: number
+  /** what the Modal service really ran. An older one leaves this out, and ignores typed prompts */
+  prompts?: string[]
 }
 export interface WorkerBox {
   workerId: string
@@ -118,7 +147,7 @@ export interface PersonHint {
   permit: boolean
 }
 
-export const PERSON = 'person'
+export { PERSON }
 export const PERSON_FLOOR = 0.65
 /** weaker masks are mostly valve handles called hard hats: the PPE check on the server still uses them */
 export const MASK_FLOOR = 0.45
@@ -182,6 +211,17 @@ const moved = new Map<string, number>()
 /** when this camera's head last moved, ms (0 if it hasn't) */
 export const lastMoved = (camera: string) => moved.get(camera) ?? 0
 
+/**
+ * this camera stays in live mode, with nothing found yet: it has moved, or has just come up on the main monitor. A real fire keeps
+ * the twin's box, marked `sim`, so moving a camera can't hide a call-up.
+ */
+export function holdFrame(camera: string, now = performance.now()) {
+  useSam.setState((s) => {
+    const was = s.frames[camera]
+    return { frames: { ...s.frames, [camera]: { dets: [], masks: [], at: now, asked: was?.asked, unjudged: [...new Set([...(was?.unjudged ?? []), 'fire' as const])], held: true } } }
+  })
+}
+
 /** this camera goes back to the twin's own detector now */
 export function dropFrame(camera: string) {
   useSam.setState((s) => {
@@ -196,8 +236,9 @@ useCctv.subscribe((s, was) => {
   if (s.ptz === was.ptz) return
   for (const id of new Set([...Object.keys(s.ptz), ...Object.keys(was.ptz)])) {
     if (s.ptz[id] === was.ptz[id]) continue
-    moved.set(id, performance.now())
-    dropFrame(id)
+    const now = performance.now()
+    moved.set(id, now)
+    if (samLive(id, useSam.getState().frames, now)) holdFrame(id, now)
   }
 })
 
@@ -208,7 +249,9 @@ export const hintsFor = (camera: string) => personHints(lastTags.get(camera) ?? 
 export function applyAnswer(camera: string, answer: SamAnswer, t: number, sentAt: number, source: SamSource, scope: Pick<SamFrame, 'asked' | 'unjudged'> = {}) {
   if (lastMoved(camera) > sentAt) return false
   const now = performance.now()
-  useSam.setState((s) => ({ state: 'live', source, rtt: now - sentAt, gpu: answer.ms, frames: { ...s.frames, [camera]: toFrame(answer, camera, t, now, scope) } }))
+  // a prompt removed while this frame was on its way stays removed
+  const wanted = (d: AnswerDetection) => BUILT_IN.includes(d.label) || useSam.getState().typed.includes(d.label)
+  useSam.setState((s) => ({ state: 'live', source, rtt: now - sentAt, gpu: answer.ms, frames: { ...s.frames, [camera]: toFrame({ ...answer, detections: answer.detections.filter(wanted) }, camera, t, now, scope) } }))
   useCctv.getState().pushFrame(camera, withSam(camera, lastSim.get(camera) ?? []))
   return true
 }
@@ -224,18 +267,20 @@ export const samLive = (camera: string, frames: Record<string, SamFrame> = useSa
 async function ask(camera: string, canvas: HTMLCanvasElement) {
   const t = useSim.getState().t
   const t0 = performance.now()
+  const { typed } = useSam.getState()
   const body = JSON.stringify({
     image_base64: canvas.toDataURL('image/jpeg', JPEG_QUALITY),
     camera,
     people: hintsFor(camera),
     return_masks: true,
+    ...(typed.length ? { extra_prompts: typed } : {}),
   })
   const r = await fetch(ROUTE, { method: 'POST', headers: { 'content-type': 'application/json' }, body, signal: AbortSignal.timeout(TIMEOUT_MS) })
   if (!r.ok) throw new Error(`SAM route answered ${r.status}`)
   const answer = (await r.json()) as SamAnswer
   // switched off while this frame was on its way: it must not turn the camera back on
   if (!useSam.getState().on) return
-  applyAnswer(camera, answer, t, t0, 'modal')
+  applyAnswer(camera, answer, t, t0, 'modal', { asked: answer.prompts })
 }
 
 const wait = (ms: number) => new Promise((done) => setTimeout(done, ms))

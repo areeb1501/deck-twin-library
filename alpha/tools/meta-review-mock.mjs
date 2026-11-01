@@ -17,6 +17,7 @@ const page = await browser.newPage({ viewport: { width: 1600, height: 1000 }, de
 const errors = []
 const scans = []
 const clips = []
+const prompts = []
 const MASK = "data=27,60,~!!!!M!0c[0o91w?q1!pIH4pPRVp2B3'7`e.ioeAf6-k/#Xd8%dX9x("
 const STEP = 12
 const person = (id, x, y) => `${id}<|box;x1=${x};y1=${y};x2=${x + 59};y2=${y + 26};w=960;h=540;c=0.9|><|mask;x=0;y=0;c=0.9;${MASK}|>`
@@ -30,8 +31,9 @@ await page.route('**/api/meta-sam', async (route) => {
   await route.fulfill({ json: { ms: 10, outputs: prompts.map((prompt) => ({ prompt, text: '' })) } })
 })
 await page.route('**/api/meta-sam-video', async (route) => {
-  const { video } = route.request().postDataJSON()
+  const { video, prompt } = route.request().postDataJSON()
   clips.push(video.slice(0, 22))
+  prompts.push(prompt)
   writeFileSync(CLIP, Buffer.from(video.slice(video.indexOf(',') + 1), 'base64'))
   const frames = Number(probe('-count_frames', '-show_entries', 'stream=nb_read_frames', '-of', 'csv=p=0').replace(',', ''))
   const events = Array.from({ length: frames }, (_, i) => line(i)).map((delta) => `data: ${JSON.stringify({ type: 'response.output_text.delta', delta })}\n\n`)
@@ -89,7 +91,7 @@ ok('the clip fits the route', (bytes * 4) / 3 < 4_000_000, `${(bytes / 1e6).toFi
 
 ok('the masks draw', (await page.locator('[data-review-replay] polygon').count()) > 0)
 const ids = await page.locator('[data-review-replay] [data-review-track]').evaluateAll((els) => els.map((e) => e.dataset.reviewTrack))
-ok('each person has their own number', ids.join() === '0,1', ids.join())
+ok('each person has their own number', ids.join() === 'person 0,person 1', ids.join())
 ok('it says it is a recording', (await page.textContent('[data-review-replay]')).includes('Recorded clip, not live'))
 ok('it says what was tracked', /2 people tracked/.test(await page.textContent('[data-review-summary]')))
 ok('the running count went up by the price', Math.abs((await dollars()) - before - 0.01) < 0.003, await spend())
@@ -98,7 +100,7 @@ ok('the clip is counted', /\+ 1 clip/.test(await spend()))
 // the fake boxes step along by frame, so a label's position says which frame it thinks is showing
 const steps = await page.evaluate(async ({ step }) => {
   const v = document.querySelector('[data-review-replay] video')
-  const label = () => document.querySelector('[data-review-track="0"]')
+  const label = () => document.querySelector('[data-review-track="person 0"]')
   v.pause()
   const out = []
   for (const at of [0.5, 2.5, 5, 7.5, Math.max(0, v.duration - 1)]) {
@@ -131,6 +133,21 @@ ok('nothing more is sent after the one press', clips.length === 1)
 
 await page.click('[data-review-close]')
 ok('closing the replay is one click', (await page.locator('[data-review-replay]').count()) === 0)
+
+// a typed prompt goes through the clip too, one billed request each, with the price on the button first
+await page.fill('[data-sam-typed-input]', 'crane')
+await page.keyboard.press('Enter')
+await page.waitForSelector('[data-review]:not([disabled])', { timeout: 30000 })
+ok('the price covers the typed prompt', /for each of person, crane.*about \$0\.02/.test(await page.textContent('[data-review-cost]')), await page.textContent('[data-review-cost]'))
+prompts.length = 0
+await button.click()
+await page.waitForSelector('[data-review-replay]', { timeout: 60000 })
+ok('one press, one request per prompt', prompts.slice().sort().join() === 'crane,person', prompts.join())
+const tracks = await page.locator('[data-review-replay] [data-review-track]').evaluateAll((els) => els.map((e) => e.dataset.reviewTrack))
+ok('both prompts are tracked under their own names', tracks.join() === 'person 0,person 1,crane 0,crane 1', tracks.join())
+ok('it says what else was looked for', /Also looked for: crane \(2\)/.test(await page.textContent('[data-review-summary]')))
+await page.click('[data-review-close]')
+await page.click('[data-sam-typed-remove]')
 
 await page.evaluate(() => window.__cctv.getState().setSelected('CCTV-A03'))
 await page.waitForTimeout(1500)

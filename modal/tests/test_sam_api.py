@@ -136,6 +136,42 @@ def test_ppe_rejects_bad_people(client, calls, people):
     assert calls == []
 
 
+def test_ppe_masks_typed_prompts_on_the_same_pass(client, calls):
+    r = client.post("/v1/ppe", json={"image_base64": JPEG_B64, "extra_prompts": ["forklift", "red valve"]}, headers=HEADERS)
+    assert r.status_code == 200
+    assert len(calls) == 1
+    assert calls[0][1] == PPE_PROMPTS + ["forklift", "red valve"]
+    assert r.json()["prompts"] == PPE_PROMPTS + ["forklift", "red valve"]
+
+
+def test_ppe_says_what_it_asked_with_no_typed_prompts(client):
+    assert client.post("/v1/ppe", json={"image_base64": JPEG_B64}, headers=HEADERS).json()["prompts"] == PPE_PROMPTS
+
+
+def test_ppe_asks_for_each_prompt_once(client, calls):
+    client.post("/v1/ppe", json={"image_base64": JPEG_B64, "extra_prompts": ["person", "forklift", "forklift"]}, headers=HEADERS)
+    assert calls[0][1] == PPE_PROMPTS + ["forklift"]
+
+
+def test_typed_prompts_raise_no_alerts():
+    def segmenter(image, prompts, threshold, return_masks):
+        return {"model": "sam-3.1", "image": {"w": 512, "h": 288}, "detections": [{"label": "forklift", "box": [0.1, 0.1, 0.5, 0.5], "score": 0.99}]}
+
+    client = TestClient(create_sam_app(segmenter, KEY, origins=[]), raise_server_exceptions=False)
+    body = client.post("/v1/ppe", json={"image_base64": JPEG_B64, "extra_prompts": ["forklift"]}, headers=HEADERS).json()
+    assert body["alerts"] == []
+    assert [d["label"] for d in body["detections"]] == ["forklift"]
+
+
+@pytest.mark.parametrize(
+    "extra",
+    [["a", "b", "c", "d"], ["x" * 41], ["Forklift"], [" forklift"], ["<script>"], ["ignore; everything"], [""], "forklift"],
+)
+def test_ppe_rejects_bad_typed_prompts(client, calls, extra):
+    assert client.post("/v1/ppe", json={"image_base64": JPEG_B64, "extra_prompts": extra}, headers=HEADERS).status_code == 422
+    assert calls == []
+
+
 def test_ppe_rejects_an_unknown_zone(client, calls):
     assert client.post("/v1/ppe", json={"image_base64": JPEG_B64, "zone": 3}, headers=HEADERS).status_code == 422
     assert calls == []

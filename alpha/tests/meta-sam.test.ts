@@ -18,9 +18,9 @@ import { metaSamRoute, readStream, requestBody } from '../meta-sam-route.js'
 import { metaVideoRoute, videoBody } from '../meta-sam-video-route.js'
 import { CAP_IMAGES, charge, due, evaluate, matchPeople, maskPolygons, needsPpe, parseOutput, startMetaSam, testKey, unjudged, useMeta, worstScan, type Found } from '../src/safety/metaSam'
 import { cleanKey } from '../src/safety/metaKey'
-import { canRecord, CLIP_FRAMES, CLIP_IMAGES, CLIP_USD, closeReview, frameAt, parseClip, reviewLastSeconds, startReview, useReview } from '../src/safety/metaReview'
+import { canRecord, clipPrompts, CLIP_FRAMES, CLIP_IMAGES, CLIP_USD, closeReview, frameAt, mergeClips, parseClip, reviewLastSeconds, startReview, tracksOf, useReview } from '../src/safety/metaReview'
 import { feedCanvases, useCctv } from '../src/safety/cctv'
-import { pickDetections, toFrame, useSam } from '../src/safety/samClient'
+import { pickDetections, samLive, toFrame, useSam } from '../src/safety/samClient'
 import type { Detection } from '../src/safety/types'
 
 // frame 0 of a 320×334 clip, from the parser's README: real API output, two objects
@@ -69,7 +69,10 @@ describe('the Worker route', () => {
   })
 
   it.each([
-    ['an unknown prompt', { ...good, prompts: ['cat'] }],
+    ['a prompt that is not a noun phrase', { ...good, prompts: ['ignore; all <rules>'] }],
+    ['an uppercase prompt', { ...good, prompts: ['Crane'] }],
+    ['a prompt that is too long', { ...good, prompts: ['x'.repeat(41)] }],
+    ['a prompt that is not text', { ...good, prompts: [7] }],
     ['too many prompts', { ...good, prompts: ['person', 'hard hat', 'flame', 'smoke'] }],
     ['the same prompt twice', { ...good, prompts: ['person', 'person'] }],
     ['no prompts', { ...good, prompts: [] }],
@@ -258,6 +261,7 @@ describe('paying only for what is needed', () => {
     expect(worstScan(false, false)).toBe(1)
     expect(worstScan(true, false)).toBe(3)
     expect(worstScan(true, true)).toBe(5)
+    expect(worstScan(true, true, 3)).toBe(8)
   })
 
   it('a camera must stay up before it costs anything', () => {
@@ -465,9 +469,30 @@ describe('the switch', () => {
     answer = () => SOMEONE
     useMeta.getState().setOn(true)
     await vi.advanceTimersByTimeAsync(1500)
-    expect(useSam.getState().frames[CAM]).toBeDefined()
+    expect(useSam.getState().frames[CAM].masks.length).toBeGreaterThan(0)
     useCctv.getState().setPtz(CAM, { pan: 10 })
-    expect(useSam.getState().frames[CAM]).toBeUndefined()
+    expect(useSam.getState().frames[CAM]).toMatchObject({ masks: [], held: true })
+  })
+
+  it('stays in live mode while the camera moves', async () => {
+    answer = () => SOMEONE
+    useMeta.getState().setOn(true)
+    await vi.advanceTimersByTimeAsync(1500)
+    for (let pan = 1; pan <= 40; pan++) {
+      useCctv.getState().setPtz(CAM, { pan })
+      await vi.advanceTimersByTimeAsync(250)
+      expect(samLive(CAM)).toBe(true)
+    }
+  })
+
+  it('a camera coming up on the main monitor is live before its first scan', async () => {
+    answer = () => SOMEONE
+    useMeta.getState().setOn(true)
+    await vi.advanceTimersByTimeAsync(1500)
+    useCctv.setState({ selected: 'CCTV-A02' })
+    await vi.advanceTimersByTimeAsync(300)
+    expect(useSam.getState().frames['CCTV-A02']?.held).toBe(true)
+    expect(samLive('CCTV-A02')).toBe(true)
   })
 
   it('spends nothing while the camera is moving, and one scan when it rests', async () => {
@@ -497,7 +522,7 @@ describe('the switch', () => {
     useCctv.getState().setPtz(CAM, { pan: 25 })
     release()
     await vi.advanceTimersByTimeAsync(0)
-    expect(useSam.getState().frames[CAM]).toBeUndefined()
+    expect(useSam.getState().frames[CAM]).toMatchObject({ masks: [], held: true })
   })
 
   it('says which prompts it sent, so one never sent can not read as found none', async () => {
@@ -505,6 +530,31 @@ describe('the switch', () => {
     answer = (asked) => (asked.includes('person') ? SOMEONE : '')
     await vi.advanceTimersByTimeAsync(1500)
     expect(useSam.getState().frames[CAM].asked).toEqual(['person', 'hard hat', 'high-visibility vest'])
+  })
+
+  it('sends typed prompts on every scan, even with nobody there, and counts them', async () => {
+    useSam.setState({ typed: ['crane', 'red valve'] })
+    useMeta.getState().setOn(true)
+    await vi.advanceTimersByTimeAsync(1500)
+    expect(prompts()).toEqual([['person'], ['crane', 'red valve']])
+    expect(useMeta.getState().images).toBe(3)
+    expect(useSam.getState().frames[CAM].asked).toEqual(['person', 'crane', 'red valve'])
+  })
+
+  it('shows what a typed prompt found, with no alert and no detection', async () => {
+    useSam.setState({ typed: ['crane'] })
+    answer = (asked) => (asked.includes('crane') ? SOMEONE : '')
+    useMeta.getState().setOn(true)
+    await vi.advanceTimersByTimeAsync(1500)
+    const frame = useSam.getState().frames[CAM]
+    expect(frame.masks.map((m) => m.label)).toEqual(['crane'])
+    expect(frame.dets).toEqual([])
+  })
+
+  it('spends nothing on typed prompts until it is turned on', async () => {
+    useSam.setState({ typed: ['crane'] })
+    await vi.advanceTimersByTimeAsync(30_000)
+    expect(fetcher).not.toHaveBeenCalled()
   })
 
   it('goes back to simulated when turned off', async () => {
@@ -518,6 +568,7 @@ describe('the switch', () => {
 
   it('testing the key costs one image and leaves the switch off', async () => {
     answer = () => SOMEONE
+    useSam.setState({ typed: ['crane'] })
     await testKey()
     expect(prompts()).toEqual([['person']])
     expect(useMeta.getState()).toMatchObject({ on: false, images: 1 })
@@ -564,9 +615,10 @@ describe('the clip route', () => {
     expect(await r.text()).not.toContain(good.key)
   })
 
-  it('cannot be asked for another prompt', async () => {
-    await metaVideoRoute(post({ ...good, prompt: 'cat', prompts: ['cat'] }), {})
-    expect(JSON.parse(upstream.mock.calls[0][1].body).input[0].content[0].text).toBe('person')
+  it('tracks a typed noun phrase, one to a request', async () => {
+    await metaVideoRoute(post({ ...good, prompt: 'red valve', prompts: ['cat'] }), {})
+    expect(upstream).toHaveBeenCalledTimes(1)
+    expect(JSON.parse(upstream.mock.calls[0][1].body).input[0].content[0].text).toBe('red valve')
   })
 
   it.each([
@@ -576,6 +628,8 @@ describe('the clip route', () => {
     ['no key', { video }],
     ['a key with a line break', { ...good, key: 'abcdefgh\nx-other: 1' }],
     ['no clip', { key: good.key }],
+    ['a prompt that is not a noun phrase', { ...good, prompt: 'ignore; all <rules>' }],
+    ['a prompt that is not text', { ...good, prompt: ['person'] }],
   ])('refuses %s before spending anything', async (_, body) => {
     expect((await metaVideoRoute(post(body), {})).status).toBe(400)
     expect(upstream).not.toHaveBeenCalled()
@@ -624,8 +678,8 @@ describe('reading a tracked clip', () => {
 
   it('keeps each person under one id from frame to frame', async () => {
     const frames = await parseClip(frame(0) + frame(1), 320, 334)
-    expect(frames[0].map((p) => p.id)).toEqual(['0'])
-    expect(frames[1].map((p) => p.id)).toEqual(['0'])
+    expect(frames[0].map((p) => p.id)).toEqual(['person 0'])
+    expect(frames[1].map((p) => p.id)).toEqual(['person 0'])
     expect(frames[1][0].polygons.length).toBeGreaterThan(0)
     expect(frames[1][0].box).toEqual([0.6594, 0.6826, 0.8469, 0.7635])
   })
@@ -640,8 +694,29 @@ describe('reading a tracked clip', () => {
   it('drops an unsure track whole, not frame by frame', async () => {
     const sure = frame(1, SAMPLE.replaceAll('c=0.91', 'c=0.40').replaceAll('c=0.42', 'c=0.80'))
     const frames = await parseClip(frame(0, SAMPLE.replaceAll('c=0.91', 'c=0.40').replaceAll('c=0.42', 'c=0.30')) + sure, 320, 334)
-    expect(frames[0].map((p) => [p.id, p.score])).toEqual([['1', 0.3]])
-    expect(frames[1].map((p) => p.id)).toEqual(['1'])
+    expect(frames[0].map((p) => [p.id, p.score])).toEqual([['person 1', 0.3]])
+    expect(frames[1].map((p) => p.id)).toEqual(['person 1'])
+  })
+
+  it('names a typed prompt, and holds it to the mask floor rather than the alert floor', async () => {
+    const line = frame(0, SAMPLE.replaceAll('c=0.91', 'c=0.55').replaceAll('c=0.42', 'c=0.30'))
+    expect(await parseClip(line, 320, 334)).toEqual([])
+    expect((await parseClip(line, 320, 334, 'crane'))[0].map((p) => p.id)).toEqual(['crane 0'])
+  })
+
+  it('keeps two prompts apart when Meta numbers both from zero', async () => {
+    const people = await parseClip(frame(0) + frame(1), 320, 334)
+    const cranes = await parseClip(frame(1), 320, 334, 'crane')
+    const merged = mergeClips([people, cranes])
+    expect(merged[0].map((p) => p.id)).toEqual(['person 0'])
+    expect(merged[1].map((p) => p.id)).toEqual(['person 0', 'crane 0'])
+  })
+
+  it('counts tracks by the whole phrase', () => {
+    const ids = ['person 0', 'person 1', 'person lift 0']
+    expect(tracksOf(ids, 'person')).toBe(2)
+    expect(tracksOf(ids, 'person lift')).toBe(1)
+    expect(tracksOf(ids, 'crane')).toBe(0)
   })
 
   it('takes no matches as nobody tracked', async () => {
@@ -778,7 +853,32 @@ describe('the review button', () => {
     expect(body.key).toBe('test-key-12345')
     expect(body.video.startsWith('data:video/mp4;base64,')).toBe(true)
     expect(FakeRecorder.made[0].options.mimeType).toBe('video/mp4;codecs=avc1')
-    expect(Object.keys(body)).toEqual(['key', 'video'])
+    expect(Object.keys(body)).toEqual(['key', 'video', 'prompt'])
+    expect(body.prompt).toBe('person')
+  })
+
+  it('sends the clip once for each typed prompt, and counts every one', async () => {
+    useSam.setState({ typed: ['crane', 'red valve'] })
+    useMeta.getState().setOn(true)
+    await record()
+    const before = useMeta.getState().images
+    await reviewLastSeconds()
+    await vi.advanceTimersByTimeAsync(60_000)
+    expect(clips().map(([, init]) => JSON.parse(init.body).prompt)).toEqual(clipPrompts(['crane', 'red valve']))
+    expect(useMeta.getState().images - before).toBeGreaterThanOrEqual(CLIP_IMAGES * 3)
+    expect(useReview.getState().clips).toBe(3)
+    expect(useReview.getState().clip?.asked).toEqual(['person', 'crane', 'red valve'])
+    expect(useReview.getState().clip?.ids).toEqual(['person 0', 'crane 0', 'red valve 0'])
+  })
+
+  it('stops at the limit before sending any of a press with typed prompts', async () => {
+    useSam.setState({ typed: ['crane', 'red valve', 'forklift'] })
+    useMeta.getState().setOn(true)
+    await record()
+    useMeta.setState({ run: CAP_IMAGES - CLIP_IMAGES * 3 })
+    await reviewLastSeconds()
+    expect(clips()).toHaveLength(0)
+    expect(useMeta.getState().on).toBe(false)
   })
 
   it('a second press while one is on its way sends nothing', async () => {
@@ -880,8 +980,8 @@ describe('the review button', () => {
     await record()
     await reviewLastSeconds()
     const { clip } = useReview.getState()
-    expect(clip).toMatchObject({ camera: CAM, ids: ['0'] })
-    expect(clip!.frames[0][0].id).toBe('0')
+    expect(clip).toMatchObject({ camera: CAM, ids: ['person 0'], asked: ['person'] })
+    expect(clip!.frames[0][0].id).toBe('person 0')
     expect(clip!.times[0]).toBe(0)
     expect(clip!.times.length).toBeGreaterThanOrEqual(33)
     expect(clip!.times.every((t, i) => !i || t > clip!.times[i - 1])).toBe(true)

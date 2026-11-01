@@ -15,6 +15,8 @@ from pydantic import BaseModel, Field, StringConstraints
 from .meta_sam import sniff_image
 
 Prompt = Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=80)]
+#: what an operator may type on the camera page. Matches alpha/src/safety/samPrompts.ts
+Phrase = Annotated[str, StringConstraints(pattern=r"^[a-z0-9][a-z0-9 -]{0,39}$")]
 
 
 class SegmentRequest(BaseModel):
@@ -40,6 +42,7 @@ class PpeRequest(BaseModel):
     permit: bool = False
     threshold: float = Field(0.65, ge=0, le=1)
     people: list[Person] = Field(default_factory=list, max_length=32)
+    extra_prompts: list[Phrase] = Field(default_factory=list, max_length=3, description="Noun phrases to mask as well. They never raise an alert")
     return_masks: bool = Field(False, description="Add normalised mask polygons")
 
 

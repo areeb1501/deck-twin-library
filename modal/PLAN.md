@@ -21,6 +21,7 @@ detector. A real result gets the label `sam-3.1` from the `model` field the serv
 | CCTV cameras wired to it | done: the 11 colour cameras, in turn. Thermal cameras stay simulated |
 | Operator's own Meta key | done: main monitor only, images. Not yet run against the real API with a valid key |
 | Review the last 10 s | done: one press tracks a recorded clip, on the same key. Not yet run against the real API with a valid key |
+| Typed prompts | done: live masks on Modal (run on the real model) and on a Meta key, and the 10 s review. The Meta side is not yet run against the real API with a valid key |
 
 ## Owns
 
@@ -33,15 +34,25 @@ detector. A real result gets the label `sam-3.1` from the `model` field the serv
 
 - `alpha/sam-route.js` holds the URL and key, read from the environment: Worker secrets in production, `modal/.env.local` on the dev server. The browser never sees either.
 - `alpha/src/safety/samClient.ts` sends the main monitor every other frame and the other colour cameras in turn, about two frames a second, only while the camera page is open in a visible tab.
-- The live video always stays on top. Masks fade on it between answers, moving a camera clears them, and nothing is sent until the head has rested for a second. A tile's badge says `SAM 3.1` or `SIM` from where its detections came from.
+- The live video always stays on top. Masks fade on it between answers, moving a camera clears them, and nothing is sent until the head has rested for a second. The camera stays in live mode while it moves, and shows nothing until SAM has looked again, except a real fire, which keeps the twin's box, marked simulated. A tile's badge says `SAM 3.1` or `SIM` from where its detections came from.
 - With no secrets set, the route says so and the site runs the simulated detector.
 - The switch is off on every load and is never remembered. Leaving the camera page turns it off.
+
+## Typed prompts
+
+While real SAM 3.1 is on, on either route, the Segmentation box takes up to three noun phrases of the operator's own, such as `crane` or `red valve`. The simulated detector never offers this, because it can't look for what it wasn't built with.
+
+- **Where the list lives.** `typed` in `useSam` (`samClient.ts`), in memory only, so a reload clears it. The rule for a phrase is in `alpha/src/safety/samPrompts.ts` and `Phrase` in `dt_gateway/schema.py`: lowercase letters, digits, spaces and hyphens, up to 40 characters. Built-in prompts are refused.
+- **Masks only.** A typed prompt raises no alarm and goes in no log. Masks follow the same floor as the rest (`MASK_FLOOR`, 0.45), so a weak match shows as 0. A chip reads `-` until an answer has really looked for it. On the monitor every match gets a mask, and the five surest of each prompt a label.
+- **Modal.** They travel as `extra_prompts` on the same `/v1/ppe` call, so there is still one pass over the image. The service sends back `prompts`, and the twin believes that rather than what it sent. Seven prompts took about 770 ms on the GPU, against about 400 ms for five.
+- **Your own Meta key.** Each typed prompt goes on every scan, even with nobody in view, as one more billed image. The card shows that before you add one, and the 200-image limit still stops the run.
+- **10 s review.** A press tracks `person` and each typed prompt, one billed request per noun phrase on the same clip: about $0.01 each, and 4 images each towards the limit. The button says the total first. This is the only tracking, and it is Meta-key only: live masks are found afresh on each frame, with no id carried between frames.
 
 ## Your own Meta key
 
 The Detector model card on the camera page takes a key from dev.meta.ai. The operator pays Meta directly and no GPU of ours is involved.
 
-**The route.** The browser posts the key, one JPEG and the noun phrases to `alpha/meta-sam-route.js`, on the Worker in production and the dev server locally. It calls `POST /v1/responses` with the frame as a base64 `image_url`, so nothing is uploaded and no files pile up (Files API uploads never expire by default). It returns the raw output text, and the browser decodes the masks with `@meta-sam/parser`, which keeps the Worker within its CPU limit. The route accepts only the five noun phrases the twin uses, at most three at a time, so it can't be used to spend on anything else.
+**The route.** The browser posts the key, one JPEG and the noun phrases to `alpha/meta-sam-route.js`, on the Worker in production and the dev server locally. It calls `POST /v1/responses` with the frame as a base64 `image_url`, so nothing is uploaded and no files pile up (Files API uploads never expire by default). It returns the raw output text, and the browser decodes the masks with `@meta-sam/parser`, which keeps the Worker within its CPU limit. The route accepts short noun phrases only, at most three at a time, with the model fixed, so it can't be used to spend on anything else.
 
 **Why a server route.** Meta's auth docs say to keep keys out of client code. `api.meta.ai` answers preflights with `Access-Control-Allow-Headers: *`, which the Fetch standard says does not cover `Authorization`. Chrome 152 allowed a direct call anyway; other browsers may not.
 
@@ -56,7 +67,7 @@ The Detector model card on the camera page takes a key from dev.meta.ai. The ope
 | Off by default | Every load starts simulated |
 | Where | Only the main monitor's camera, only on the camera page, only in a visible tab, never a thermal camera |
 | When | One scan at a time, every 5, 10 or 20 s. A camera must stay up and still for 1 s first, so scrolling past one or panning it is free |
-| Prompts | `person` first. Hard hat and vest only if someone is big enough to judge, so an empty frame costs one image. Flame and smoke are opt-in |
+| Prompts | `person` first. Hard hat and vest only if someone is big enough to judge, so an empty frame costs one image. Flame and smoke are opt-in. Each typed prompt adds one image to every scan |
 | Limit | 200 images per turn-on (about $0.50), then it turns itself off |
 | Errors | Any error turns it off, with the reason. There are no retries |
 
@@ -81,7 +92,7 @@ The Detector model card shows the button while the Meta switch is on, on a colou
 
 **One canvas per take.** Chrome writes a frame only when a canvas changes, and a recorder added to a shared stream repeats a frame to the others. So each take copies the monitor onto its own canvas every 300 ms. Measured in Chrome, that gives exactly one frame per copy, within 2 ms of the time noted. The replay needs those times, because `<Nf>` counts frames, not seconds, and timers run late under load. The monitor repaints about twice a second, so some frames repeat.
 
-**The route.** `alpha/meta-sam-video-route.js` has the same origin check, rate limit and key rules as the image route, with a 4 MB limit. The clip goes inline as a base64 `video_url`, so nothing is left in Files API storage to expire or delete. Meta's inline limit is 50 MB, and a 13 s clip of twin footage is about 0.2 MB. The prompt is fixed to `person`. Meta's event stream passes straight through undecoded, so a long answer costs the Worker no CPU, and the browser reads it with `parseVideoStream`.
+**The route.** `alpha/meta-sam-video-route.js` has the same origin check, rate limit and key rules as the image route, with a 4 MB limit. The clip goes inline as a base64 `video_url`, so nothing is left in Files API storage to expire or delete. Meta's inline limit is 50 MB, and a 13 s clip of twin footage is about 0.2 MB. Each request tracks one noun phrase, `person` unless a typed prompt is named. Meta's event stream passes straight through undecoded, so a long answer costs the Worker no CPU, and the browser reads it with `parseVideoStream`.
 
 **The replay.** It has its own panel beside the monitors, labelled as a recording. The live video is never covered, and scans carry on. A track is kept or dropped whole, on its best score.
 

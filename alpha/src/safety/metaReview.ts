@@ -13,6 +13,8 @@
  *  - A frame every FRAME_MS for at most LONGEST_MS is at most 50 frames, Meta's minimum, so a press should cost the shown price, as
  *    long as Meta counts the file's frames (not yet confirmed). It counts as CLIP_IMAGES against the turn-on's limit. Any error turns
  *    the switch off, and there are no retries.
+ *  - A clip follows `person` and each prompt the operator has typed. Meta takes one noun phrase to a request and bills each, so a
+ *    press costs that many times the clip's price, and the button says so first.
  *  - The replay has its own panel. The live monitor is never covered.
  */
 import { create } from 'zustand'
@@ -21,7 +23,7 @@ import { feedCanvases, useCctv } from './cctv'
 import { loadKey } from './metaKey'
 import { charge, IMAGE_USD, lane, maskPolygons, Refused, stop, unitBox, useMeta, type Box } from './metaSam'
 import { readStream } from './metaStream'
-import { PERSON_FLOOR, samCamera } from './samClient'
+import { MASK_FLOOR, PERSON, PERSON_FLOOR, samCamera, useSam } from './samClient'
 
 const ROUTE = `${import.meta.env.BASE_URL}api/meta-sam-video`
 /** Meta refuses WebM and VP9, and a plain `video/mp4` may still hold VP9, so the codec is named */
@@ -39,7 +41,7 @@ export const CLIP_USD = CLIP_FRAMES * 0.0002
 export const CLIP_IMAGES = Math.ceil(CLIP_USD / IMAGE_USD)
 
 export interface Tracked {
-  /** stays with one person through the clip */
+  /** stays with one object through the clip, such as `person 2` */
   id: string
   score: number
   box: Box
@@ -50,12 +52,14 @@ export interface ReviewClip {
   camera: string
   /** sim time the clip ends */
   t: number
-  /** what SAM found in each frame of the clip. A frame with nobody in it has no entry */
+  /** what SAM found in each frame of the clip. A frame with nothing in it has no entry */
   frames: Tracked[][]
   /** when each frame was drawn, s from the start of the clip */
   times: number[]
-  /** the people tracked */
+  /** the objects tracked */
   ids: string[]
+  /** the noun phrases sent */
+  asked: string[]
 }
 
 interface ReviewStore {
@@ -149,8 +153,8 @@ function tick() {
 
 // ---------------------------------------------------------------- the answer
 
-/** Meta's output as what each frame holds, in 0 … 1 of the picture. A person's score moves from frame to frame, so a track is kept or dropped whole */
-export async function parseClip(text: string, w: number, h: number): Promise<Tracked[][]> {
+/** Meta's output for one noun phrase as what each frame holds, in 0 … 1 of the picture. A score moves from frame to frame, so a track is kept or dropped whole */
+export async function parseClip(text: string, w: number, h: number, label = PERSON): Promise<Tracked[][]> {
   const frames: Tracked[][] = []
   if (!text.trim()) return frames
   const { decodeMaskToSVGPath, frameIndexOf, parseVideoStream, recordsOfKind } = await import('@meta-sam/parser')
@@ -161,12 +165,21 @@ export async function parseClip(text: string, w: number, h: number): Promise<Tra
   const best = new Map<string, number>()
   for (const b of boxes) best.set(b.objectId, Math.max(best.get(b.objectId) ?? 0, b.confidence ?? 1))
   for (const b of boxes) {
-    if (best.get(b.objectId)! < PERSON_FLOOR) continue
+    if (best.get(b.objectId)! < (label === PERSON ? PERSON_FLOOR : MASK_FLOOR)) continue
     const m = masks.get(at(b))
-    ;(frames[frameIndexOf(b) ?? 0] ??= []).push({ id: b.objectId, score: b.confidence ?? 1, box: unitBox(b, w, h), polygons: m ? maskPolygons(decodeMaskToSVGPath(m.mask), m.mask, m.bounds, w, h) : [] })
+    ;(frames[frameIndexOf(b) ?? 0] ??= []).push({ id: `${label} ${b.objectId}`, score: b.confidence ?? 1, box: unitBox(b, w, h), polygons: m ? maskPolygons(decodeMaskToSVGPath(m.mask), m.mask, m.bounds, w, h) : [] })
   }
   return frames
 }
+
+/** tracks of several noun phrases, frame by frame */
+export const mergeClips = (clips: Tracked[][][]) => Array.from({ length: Math.max(0, ...clips.map((c) => c.length)) }, (_, i) => clips.flatMap((c) => c[i] ?? []))
+
+/** how many tracks a noun phrase has. A track's id is the phrase and a number */
+export const tracksOf = (ids: string[], prompt: string) => ids.filter((id) => id.slice(0, id.lastIndexOf(' ')) === prompt).length
+
+/** the noun phrases a press would send */
+export const clipPrompts = (typed: string[]) => [PERSON, ...typed]
 
 /** the frame showing at this point of the clip */
 export const frameAt = (times: number[], seconds: number) => times.reduce((best, t, i) => (Math.abs(t - seconds) < Math.abs(times[best] - seconds) ? i : best), 0)
@@ -203,20 +216,27 @@ export async function reviewLastSeconds() {
     if (!key) throw new Error('No key saved')
     const blob = await finish(take)
     if (blob.size > MAX_CLIP_BYTES) throw new Error('This clip is too large to send')
+    const asked = clipPrompts(useSam.getState().typed)
     // switched off while the clip was closing: nothing has been spent yet
-    if (abort.signal.aborted || !charge(CLIP_IMAGES)) return
-    useReview.setState((s) => ({ clips: s.clips + 1 }))
-    const r = await fetch(ROUTE, {
-      method: 'POST',
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ key, video: `data:video/mp4;base64,${await base64(blob)}` }),
-      signal: AbortSignal.any([abort.signal, AbortSignal.timeout(TIMEOUT_MS)]),
-    })
-    if (!r.ok || !r.body) throw new Refused(r.status)
-    const frames = await parseClip(await readStream(r.body), w, h)
+    if (abort.signal.aborted || !charge(CLIP_IMAGES * asked.length)) return
+    useReview.setState((s) => ({ clips: s.clips + asked.length }))
+    const video = `data:video/mp4;base64,${await base64(blob)}`
+    const tracks = await Promise.all(
+      asked.map(async (prompt) => {
+        const r = await fetch(ROUTE, {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ key, video, prompt }),
+          signal: AbortSignal.any([abort.signal, AbortSignal.timeout(TIMEOUT_MS)]),
+        })
+        if (!r.ok || !r.body) throw new Refused(r.status)
+        return parseClip(await readStream(r.body), w, h, prompt)
+      }),
+    )
     if (abort.signal.aborted) return
+    const frames = mergeClips(tracks)
     const ids = [...new Set(frames.flat().map((f) => f.id))]
-    show({ url: URL.createObjectURL(blob), camera, t: useSim.getState().t, frames, times: take.ticks.map((t) => (t - take.ticks[0]) / 1000), ids })
+    show({ url: URL.createObjectURL(blob), camera, t: useSim.getState().t, frames, times: take.ticks.map((t) => (t - take.ticks[0]) / 1000), ids, asked })
   } catch (e) {
     if ((e as Error).name !== 'AbortError') stop(`${(e as Error).message}. Turned off so nothing more is spent.`)
   } finally {

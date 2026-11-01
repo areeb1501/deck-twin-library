@@ -4,14 +4,14 @@
 // Masks stay undecoded here: the browser reads them (src/safety/metaSam.ts), so the Worker stays within its CPU limit.
 import { json } from './sam-route.js'
 import { readStream, Upstream } from './src/safety/metaStream.ts'
+import { isPhrase } from './src/safety/samPrompts.ts'
 
 export { readStream }
 
 export const META_SAM_ROUTE = '/alpha/api/meta-sam'
 export const API = 'https://api.meta.ai/v1/responses'
 const MAX_BODY = 2_000_000
-// every prompt is one billed image, so nothing else may be sent through here
-const PROMPTS = new Set(['person', 'hard hat', 'high-visibility vest', 'flame', 'smoke'])
+// every prompt is one billed image on the sender's own key, so a request holds a few short noun phrases and nothing else
 const MAX_PROMPTS = 3
 // what the browser may see of an upstream failure, so it can say why it stopped
 export const PASS_THROUGH = new Set([400, 401, 402, 403, 429])
@@ -40,7 +40,7 @@ const valid = (b) =>
   typeof b?.key === 'string' && KEY.test(b.key) &&
   typeof b.image === 'string' && b.image.startsWith(IMAGE) &&
   Array.isArray(b.prompts) && b.prompts.length > 0 && b.prompts.length <= MAX_PROMPTS &&
-  new Set(b.prompts).size === b.prompts.length && b.prompts.every((p) => PROMPTS.has(p))
+  new Set(b.prompts).size === b.prompts.length && b.prompts.every(isPhrase)
 
 /** the checks every route that spends makes first: the answer to send back, or nothing if it may go on */
 export async function refuse(request, env, maxBody) {
