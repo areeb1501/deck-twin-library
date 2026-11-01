@@ -12,7 +12,7 @@
 import { useFrame, useThree } from '@react-three/fiber'
 import { useMemo, useRef } from 'react'
 import * as THREE from 'three'
-import { envTime } from './envShared'
+import { envNight, envTime } from './envShared'
 import { blowdownInventory, flareRate, PURGE_MMSCFD } from '../fx/simRead'
 
 const vert = /* glsl */ `
@@ -210,7 +210,8 @@ export function FlareFlame({ position, rate }: { position: [number, number, numb
     if (light.current) {
       light.current.position.set(0, h * 0.3, 0)
       const flick = 0.85 + 0.15 * Math.sin(t * 17.0) * Math.sin(t * 7.3 + 1.0)
-      light.current.intensity = Math.min(42000, 9000 * Math.pow(k, 1.5)) * (1 + 0.4 * s.hot) * flick
+      // a flare lights the platform at night; against the daytime sun it barely registers
+      light.current.intensity = Math.min(16000, 9000 * Math.pow(k, 1.5)) * (1 + 0.4 * s.hot) * flick * (0.03 + 0.97 * envNight.value)
     }
   })
   const h0 = flameHeight(rate ?? PURGE_MMSCFD)
