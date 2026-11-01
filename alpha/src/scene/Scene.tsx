@@ -47,6 +47,7 @@ const FireGasMounts = memo(FireGasMountsRaw)
 import { requestShadows, shadowTick } from './perf/shadows'
 import { FireGasMounts as FireGasMountsRaw } from './FireGasMounts'
 import { useSim } from '../state/sim'
+import { bootDone, bootStage } from '../ui/bootLoader'
 import { EyeProjector } from '../ui/Eyes'
 import type { ComponentType } from 'react'
 
@@ -67,6 +68,8 @@ const SkyAndLights = envGet<object>('SkyAndLights', () => (
 ))
 
 const noRaycast = () => null
+/** longest the loader stays up after the first frame, whatever the batcher is doing */
+const BOOT_CAP_MS = 12_000
 // the walkthrough person (scene/Avatar.tsx), resolved by name so the scene runs without it
 const avatarMod = import.meta.glob('./Avatar.tsx', { eager: true }) as Record<string, Record<string, unknown>>
 const Avatar = (Object.values(avatarMod)[0]?.Avatar ?? (() => null)) as ComponentType<object>
@@ -403,6 +406,20 @@ function ShadowOnDemand() {
   return null
 }
 
+/** the first frame is out: the loader says so, and comes off soon if the batcher isn't going to finish it */
+function BootWatch() {
+  const gl = useThree((s) => s.gl)
+  const seen = useRef(false)
+  useFrame(() => {
+    if (seen.current) return
+    seen.current = true
+    bootStage('Preparing the view')
+    const batching = !DEBUG.has('nobatch') && gl.extensions.has('WEBGL_multi_draw')
+    setTimeout(bootDone, batching ? BOOT_CAP_MS : 400)
+  })
+  return null
+}
+
 /** simulated field workers (on by default on the Alpha field — Toolbar → Workers) */
 function FieldWorkers() {
   const on = useStore((s) => s.workers)
@@ -450,6 +467,7 @@ export function Scene() {
         if ((e as MouseEvent).type === 'click') select(null)
       }}
     >
+      <BootWatch />
       <ShadowOnDemand />
       <AdaptiveQuality />
       <Suspense fallback={null}>

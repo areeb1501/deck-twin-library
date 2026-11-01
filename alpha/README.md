@@ -23,6 +23,7 @@ Two pages, served unlisted on the library site:
 - **Cranes.** `src/scene/env/Cranes.tsx` puts the registry's `pedestal-crane` parts on the animated rig. `crane.ts` keeps only the boom rest and the rope sets, which follow the simulation.
 - **Fire and gas.** `src/scene/GasCloud.tsx` sizes the plumes from the detection model, and `src/scene/fx/plumeFx.ts` is the particle shaders. A fire borrows the flare's point light (`fireGlow` in `src/scene/fx/simRead.ts`), so normal running pays for no extra light.
 - **Keep it light.** The frame budget comes first. Measure draw calls and triangles rather than frame rate, which swings with whatever else the machine is doing. Bores and vessel internals are skipped unless a section cut or x-ray can show them (`INSIDE` in `src/scene/perf/StaticBatcher.tsx`). Quality starts at medium and climbs if the browser has headroom.
+- **Loader.** Plain HTML and CSS in `demo/index.html`, so it is up before any script runs, and the bar moves on a composited transform, so it keeps going while the plant is built. `src/ui/bootLoader.ts` changes its text and takes it down when the static batcher finishes, with a cap of 12 s after the first frame.
 - **Walkways.** Keep the escape aisles, the perimeter walkway and the cellar's green route clear: no equipment, risers, supports or low pipe. Fix fittings such as beacons to structure that is already there, not to new poles.
 
 ## Media

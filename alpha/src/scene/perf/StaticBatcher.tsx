@@ -29,6 +29,7 @@ import { useFrame, useThree } from '@react-three/fiber'
 import { useStore } from '../../state/store'
 import { BATCH_LAYER, CULL_LAYER, batchRegistry, refreshEntry, releaseEntry, setShown, type Entry, type Slot } from './batching'
 import { requestShadows } from './shadows'
+import { bootDone } from '../../ui/bootLoader'
 
 const DISABLED = new URLSearchParams(location.search).has('nobatch')
 /** vertices per BatchedMesh: bounds the size of each GPU upload */
@@ -508,6 +509,8 @@ export function StaticBatcher({ root }: { root: RefObject<THREE.Object3D | null>
     if (RELEASE_ORIGINAL_GPU) for (const [g, n] of counts) if (job.geoUsers.get(g) === n) g.dispose()
     // the shadow map content is unchanged, but warm the batched depth shaders now, during the load
     requestShadows(0)
+    // the plant now draws at its working speed: the page can open on it
+    requestAnimationFrame(() => requestAnimationFrame(bootDone))
     job.phase = 'done'
     job.stats.step = 'done'
     job.stats.swapAt = Math.round(performance.now())
