@@ -3,11 +3,14 @@
  * weather deck, CR-N1 on WHP-N, CR-R1 on RP, CR-W1 on WI), animated from the crane-operations
  * simulation (sim/cranes.ts → useCranes): slew, luff and hoist ease smoothly between sim ticks.
  *
- * Draw-call budget (browser): ONE skinned mesh per crane plus two meshes for all the static parts.
- *  - pedestals + boom rests (+ hook pads) never move: all cranes' static parts are merged, vertex
- *    coloured, into one mesh in world space (+ one for the grating platforms);
- *  - each crane's moving parts (slewing house, boom, rope sets, spreader, hook block, whip ball, the
- *    loads) are one vertex-coloured SkinnedMesh: every part is rigidly bound to one bone (slew → boom,
+ * The pedestal, slewing house, lattice boom, hook block, spreader and whip ball are the component library's
+ * pedestal-crane (registry/lifting/pedestal-crane.tsx) with its own materials and signage; the boom rests, the rope
+ * sets and the loads come from crane.ts, because they follow the simulation.
+ *
+ * Draw-call budget (browser): one skinned mesh per crane plus the static parts, one draw per material.
+ *  - pedestals + boom rests (+ hook pads) never move: all cranes' static parts are merged per material in
+ *    world space;
+ *  - each crane's moving parts are one SkinnedMesh: every part is rigidly bound to one bone (slew → boom,
  *    stretched rope sets, hook → loads …). Animation only sets bone transforms in useFrame (no React
  *    state, no allocations). Geometry is shared between cranes of the same spec.
  * The shadow map (re-rendered on demand by Scene.tsx) is refreshed at most once a second, after a
@@ -17,7 +20,9 @@
 import { useFrame, useThree } from '@react-three/fiber'
 import { useEffect, useLayoutEffect, useMemo, useRef } from 'react'
 import * as THREE from 'three'
-import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js'
+import { mergeGeometries, mergeVertices } from 'three/examples/jsm/utils/BufferGeometryUtils.js'
+import { craneParts } from '../../../../registry/lifting/pedestal-crane'
+import { Kit, type Built } from '../../../../registry/lib/kit'
 import { Batches, boxMinMax, tube } from '../structure/batch'
 import { buildCrane, CRANE_PARTS, type CraneBatches, type CranePart } from './crane'
 import { envMat } from './envShared'
@@ -149,36 +154,112 @@ const PARENT: Partial<Record<BoneName, BoneName>> = { slew: 'root', boom: 'slew'
 const NET_PAINT = new THREE.Color('#6f777b')
 const LIGHT_PAINT = new THREE.Color('#d81408')
 
+/** rope sets stay on the rig; everything else is the library's */
+const ROPE_PARTS = new Set<CranePart>(['lead', 'tackle', 'falls'])
+
 interface SpecGeo {
   dims: CraneDims
   geometry: THREE.BufferGeometry
+  materials: THREE.Material[]
 }
 const specKey = (s: CraneSpec) => `${s.boomL}|${s.bearing}|${s.scale}`
 const newParts = () => Object.fromEntries(CRANE_PARTS.map((p) => [p, new Batches<MatKey>()])) as Record<CranePart, Batches<MatKey>>
 
-/** one skinned geometry with every moving part (and the loads) of a crane of this spec */
-function buildSpecGeo(spec: CraneSpec, mats: Mats): SpecGeo {
-  const B = newParts()
-  const { dims } = buildCrane((p) => batchesFor(B[p]), spec, { restF: 20, hookPad: false })
-  const list: THREE.BufferGeometry[] = []
-  for (const p of CRANE_PARTS) {
-    const built = B[p].buildAll()
-    if (p === 'base' || p === 'rest') {
-      for (const g of built) g.geometry.dispose()
-      continue
-    }
-    for (const { key, geometry } of built) list.push(bindTo(paintGeo(geometry, key === 'net' ? NET_PAINT : key === 'light' ? LIGHT_PAINT : colourOf(mats, key)), BONE[p as BoneName]))
-  }
-  for (const k of Object.keys(CARGO) as CargoKind[]) list.push(bindTo(loadGeometry(k, dims, mats), BONE[k]))
-  const geometry = mergeGeometries(list)!
-  for (const g of list) g.dispose()
-  geometry.computeBoundingSphere()
-  return { dims, geometry }
+/** the library parts of a crane of this spec */
+const libraryParts = (spec: CraneSpec, tag: string) => craneParts({ boomLength: spec.boomL, pedestalHeight: spec.bearing, scale: spec.scale, swl: spec.scale >= 1 ? 50 : 15, tag })
+const draw = (fn: (k: Kit) => void): Built => {
+  const k = new Kit()
+  fn(k)
+  return k.build()
 }
 
-/** pedestals + boom rests of all cranes, world space: one vertex-coloured mesh + one grating mesh */
-function buildStatic(sites: CraneSite[], mats: Mats) {
-  const solids: THREE.BufferGeometry[] = []
+/** the triangles of one material of a built part, as their own compact geometry */
+function pieceOf(g: THREE.BufferGeometry, start: number, count: number) {
+  const index = g.getIndex()!
+  const map = new Map<number, number>()
+  const out: number[] = []
+  for (let i = start; i < start + count; i++) {
+    const v = index.getX(i)
+    if (!map.has(v)) map.set(v, map.size)
+    out.push(map.get(v)!)
+  }
+  const piece = new THREE.BufferGeometry()
+  for (const name of ['position', 'normal', 'uv']) {
+    const a = g.getAttribute(name) as THREE.BufferAttribute
+    const data = new Float32Array(map.size * a.itemSize)
+    for (const [from, to] of map) for (let k = 0; k < a.itemSize; k++) data[to * a.itemSize + k] = a.array[from * a.itemSize + k]
+    piece.setAttribute(name, new THREE.BufferAttribute(data, a.itemSize))
+  }
+  piece.setIndex(out)
+  return piece
+}
+
+/** geometry buckets, one per material */
+type Buckets = Map<THREE.Material, THREE.BufferGeometry[]>
+function bucket(b: Buckets, m: THREE.Material, g: THREE.BufferGeometry) {
+  if (!b.has(m)) b.set(m, [])
+  b.get(m)!.push(g)
+}
+function addBuilt(b: Buckets, built: Built, each: (g: THREE.BufferGeometry) => void) {
+  const index = built.geometry.getIndex() ? built.geometry : mergeVertices(built.geometry)
+  for (const grp of index.groups) {
+    const piece = pieceOf(index, grp.start, grp.count)
+    each(piece)
+    bucket(b, built.material[grp.materialIndex ?? 0], piece)
+  }
+  built.geometry.dispose()
+  if (index !== built.geometry) index.dispose()
+}
+const plain = (g: THREE.BufferGeometry) => (g.index ? g : mergeVertices(g))
+/** the same attributes on every piece so they merge */
+function fitted(g: THREE.BufferGeometry) {
+  const out = plain(g)
+  if (!out.getAttribute('uv')) out.setAttribute('uv', new THREE.BufferAttribute(new Float32Array(out.getAttribute('position').count * 2), 2))
+  if (!out.getAttribute('normal')) out.computeVertexNormals()
+  // the library's materials ignore vertex colours, but every piece must carry the same attributes to merge
+  if (!out.getAttribute('color')) out.setAttribute('color', new THREE.BufferAttribute(new Float32Array(out.getAttribute('position').count * 3).fill(1), 3))
+  for (const name of Object.keys(out.attributes)) if (!['position', 'normal', 'uv', 'color', 'skinIndex', 'skinWeight'].includes(name)) out.deleteAttribute(name)
+  return out
+}
+/** one geometry with a group per material, and that material list */
+function flatten(b: Buckets) {
+  const materials = [...b.keys()]
+  const merged = materials.map((m) => mergeGeometries(b.get(m)!.map(fitted), false)!)
+  const geometry = merged.length ? mergeGeometries(merged, true)! : null
+  for (const g of merged) g.dispose()
+  for (const list of b.values()) for (const g of list) g.dispose()
+  geometry?.computeBoundingSphere()
+  return { geometry, materials }
+}
+
+/** one skinned geometry with every moving part (and the loads) of a crane of this spec */
+function buildSpecGeo(spec: CraneSpec, mats: Mats, vc: THREE.Material): SpecGeo {
+  const B = newParts()
+  const { dims } = buildCrane((p) => batchesFor(B[p]), spec, { restF: 20, hookPad: false })
+  const buckets: Buckets = new Map()
+  // ropes and loads follow the simulation: they keep the rig's vertex-coloured geometry
+  for (const p of CRANE_PARTS) {
+    const built = B[p].buildAll()
+    for (const { key, geometry } of built) {
+      if (!ROPE_PARTS.has(p)) {
+        geometry.dispose()
+        continue
+      }
+      bucket(buckets, vc, bindTo(paintGeo(geometry, key === 'net' ? NET_PAINT : key === 'light' ? LIGHT_PAINT : colourOf(mats, key)), BONE[p as BoneName]))
+    }
+  }
+  for (const k of Object.keys(CARGO) as CargoKind[]) bucket(buckets, vc, bindTo(loadGeometry(k, dims, mats), BONE[k]))
+  // the library crane, part by part, each on its bone
+  const lib = libraryParts(spec, '')
+  const parts: [(k: Kit) => void, BoneName][] = [[lib.slewing, 'slew'], [lib.boom, 'boom'], [lib.block, 'hook'], [lib.spreader, 'spreader'], [lib.ball, 'ball']]
+  for (const [fn, bone] of parts) addBuilt(buckets, draw(fn), (g) => void bindTo(g, BONE[bone]))
+  const { geometry, materials } = flatten(buckets)
+  return { dims, geometry: geometry!, materials }
+}
+
+/** pedestals + boom rests of all cranes in world space, one draw per material */
+function buildStatic(sites: CraneSite[], mats: Mats, vc: THREE.Material) {
+  const buckets: Buckets = new Map()
   const nets: THREE.BufferGeometry[] = []
   const m = new THREE.Matrix4()
   const q = new THREE.Quaternion()
@@ -189,25 +270,25 @@ function buildStatic(sites: CraneSite[], mats: Mats) {
     buildCrane((p) => batchesFor(B[p]), c.spec, { restF: c.restF, hookPad: c.hookPad })
     for (const p of CRANE_PARTS) {
       const built = B[p].buildAll()
-      if (p !== 'base' && p !== 'rest') {
+      if (p !== 'rest') {
         for (const g of built) g.geometry.dispose()
         continue
       }
-      m.compose(new THREE.Vector3(c.x, WY + c.deckY, c.z), p === 'rest' ? q.setFromAxisAngle(up, -c.park) : q.identity(), one)
+      m.compose(new THREE.Vector3(c.x, WY + c.deckY, c.z), q.setFromAxisAngle(up, -c.park), one)
       for (const { key, geometry } of built) {
         geometry.applyMatrix4(m)
         if (key === 'net') nets.push(geometry)
-        else solids.push(paintGeo(geometry, key === 'light' ? LIGHT_PAINT : colourOf(mats, key)))
+        else bucket(buckets, vc, paintGeo(geometry, key === 'light' ? LIGHT_PAINT : colourOf(mats, key)))
       }
     }
+    m.makeTranslation(c.x, WY + c.deckY, c.z)
+    const place = new THREE.Matrix4().copy(m)
+    addBuilt(buckets, draw(libraryParts(c.spec, c.tag).base), (g) => void g.applyMatrix4(place))
   }
-  const merge = (l: THREE.BufferGeometry[]) => {
-    const g = l.length ? mergeGeometries(l) : null
-    for (const x of l) x.dispose()
-    g?.computeBoundingSphere()
-    return g
-  }
-  return { solid: merge(solids), net: merge(nets) }
+  const net = nets.length ? mergeGeometries(nets) : null
+  for (const x of nets) x.dispose()
+  net?.computeBoundingSphere()
+  return { ...flatten(buckets), net }
 }
 
 const noRay = () => null
@@ -222,7 +303,7 @@ const DISP = new Map<string, { slew: number; luff: number; hook: number }>()
 /** any crane moved since the last shadow refresh */
 const motion = { amount: 0, lastShadow: 0 }
 
-function makeRig(geo: SpecGeo, material: THREE.Material) {
+function makeRig(geo: SpecGeo) {
   const bones = BONES.map((n) => {
     const b = new THREE.Bone()
     b.name = n
@@ -232,7 +313,7 @@ function makeRig(geo: SpecGeo, material: THREE.Material) {
     const p = PARENT[n]
     if (p) bones[BONE[p]].add(bones[BONE[n]])
   }
-  const mesh = new THREE.SkinnedMesh(geo.geometry, material)
+  const mesh = new THREE.SkinnedMesh(geo.geometry, geo.materials)
   mesh.add(bones[0])
   mesh.castShadow = true
   mesh.receiveShadow = true
@@ -241,9 +322,9 @@ function makeRig(geo: SpecGeo, material: THREE.Material) {
   return { mesh, skeleton: new THREE.Skeleton(bones), bones }
 }
 
-function CraneRig({ site, geo, vc }: { site: CraneSite; geo: SpecGeo; vc: THREE.Material }) {
+function CraneRig({ site, geo }: { site: CraneSite; geo: SpecGeo }) {
   const d = geo.dims
-  const rig = useMemo(() => makeRig(geo, vc), [geo, vc])
+  const rig = useMemo(() => makeRig(geo), [geo])
   const lastCargo = useRef<CargoKind | null | undefined>(undefined)
   // bind once the mesh is placed: bind pose = every bone at identity in the mesh frame
   useLayoutEffect(() => {
@@ -343,18 +424,18 @@ export function Cranes({ mats, upperDeck = true }: { mats: Mats; upperDeck?: boo
   const vc = useMemo(() => envMat('craneVertexColour', { color: '#ffffff', vertexColors: true, roughness: 0.55, metalness: 0.25 }), [])
   const specs = useMemo(() => {
     const m = new Map<string, SpecGeo>()
-    for (const c of CRANES) if (!m.has(specKey(c.spec))) m.set(specKey(c.spec), buildSpecGeo(c.spec, mats))
+    for (const c of CRANES) if (!m.has(specKey(c.spec))) m.set(specKey(c.spec), buildSpecGeo(c.spec, mats, vc))
     return m
-  }, [mats])
-  const statics = useMemo(() => buildStatic(sites, mats), [sites, mats])
-  useEffect(() => () => void (statics.solid?.dispose(), statics.net?.dispose()), [statics])
+  }, [mats, vc])
+  const statics = useMemo(() => buildStatic(sites, mats, vc), [sites, mats, vc])
+  useEffect(() => () => void (statics.geometry?.dispose(), statics.net?.dispose()), [statics])
   useEffect(() => () => specs.forEach((g) => g.geometry.dispose()), [specs])
   return (
     <group name="Cranes">
-      {statics.solid && <mesh name="cranes-static" geometry={statics.solid} material={vc} castShadow receiveShadow raycast={noRay} />}
+      {statics.geometry && <mesh name="cranes-static" geometry={statics.geometry} material={statics.materials} castShadow receiveShadow raycast={noRay} />}
       {statics.net && mats.grating && <mesh name="cranes-grating" geometry={statics.net} material={mats.grating} receiveShadow raycast={noRay} />}
       {sites.map((c) => (
-        <CraneRig key={c.tag} site={c} geo={specs.get(specKey(c.spec))!} vc={vc} />
+        <CraneRig key={c.tag} site={c} geo={specs.get(specKey(c.spec))!} />
       ))}
       <ShadowWhileMoving />
     </group>

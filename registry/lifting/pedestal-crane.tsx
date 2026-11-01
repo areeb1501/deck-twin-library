@@ -42,9 +42,9 @@ const clamp = (v: number, a: number, b: number) => Math.max(a, Math.min(b, v))
 
 type Dims = ReturnType<typeof dims>
 
-function dims(boomLength: number, pedestalHeight: number) {
+function dims(boomLength: number, pedestalHeight: number, scale?: number) {
   const L = clamp(boomLength, 15, 70)
-  const k = clamp(0.62 + L / 100, 0.82, 1.1)
+  const k = scale ?? clamp(0.62 + L / 100, 0.82, 1.1)
   const yB = clamp(pedestalHeight, 5, 25)
   const yD = yB + 0.95
   const foot = 2.9
@@ -137,6 +137,20 @@ export function PedestalCrane({ boomLength = defaults.boomLength, slew = default
 }
 
 export default PedestalCrane
+
+/** The rigid parts for a host that animates them itself. Each draws into a Kit in the frame <PedestalCrane> places it in. */
+export function craneParts({ boomLength, pedestalHeight, swl, tag, scale }: { boomLength: number; pedestalHeight: number; swl: number; tag: string; scale?: number }) {
+  const D = dims(boomLength, pedestalHeight, scale)
+  return {
+    dims: D,
+    base: (k: Kit) => buildBase(k, D, false, swl, tag),
+    slewing: (k: Kit) => buildSlewing(k, D, swl, tag),
+    boom: (k: Kit) => buildBoom(k, D),
+    block: (k: Kit) => buildHookBlock(k, swl),
+    spreader: (k: Kit) => buildSpreader(k),
+    ball: (k: Kit) => buildBall(k),
+  }
+}
 
 // Moving ropes in the slewing frame: hoist lead, luffing tackle + pendants, main falls.
 function rigging(D: Dims, luff: number, hookDrop: number) {
