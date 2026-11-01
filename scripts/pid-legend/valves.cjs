@@ -33,7 +33,7 @@ S({ id: 'valve-ball', name: 'Ball valve', cat: 'valves', std: STD_V, component: 
 
 S({ id: 'valve-ball-encircled', name: 'Ball valve, encircled style', cat: 'valves', std: STD_V, component: 'ball-valve', physical: true, tags: HV,
   drawn: 'A circle large enough to enclose the bow-tie, so it reads as a circle with an X in it, usually between two flange bars on the line.',
-  meaning: 'Ball valve in legends that draw the ball as a full circle around the bow-tie (common on European and NORSOK-style drawings). Becomes ball-valve; a filled bow-tie or NC beside it means normally closed.',
+  meaning: 'Ball valve in legends that draw the ball as a full circle around the bow-tie (common on European and NORSOK-style drawings). Maps to the ball-valve component; a filled bow-tie or NC beside it means normally closed.',
   variants: ['Check the sheet legend: a few legends use the encircled X for a general or special valve', 'Look-alike: a circle with an X on an electrical or lighting drawing is a lamp, not a valve'],
   svg: svg(120, 60, p('M4 30H38M82 30H116') + p('M38 14V46M82 14V46') + c(60, 30, 18) + p('M47 17L73 43M47 43L73 17')) })
 
@@ -143,19 +143,19 @@ S({ id: 'choke-adjustable', name: 'Adjustable choke', cat: 'valves', std: 'API 6
 // ---------- check valves ----------
 S({ id: 'check-general', name: 'Check valve (general)', cat: 'check-valves', std: STD_C, component: 'swing-check-valve', physical: true, tags: ['NRV', 'CV'],
   drawn: 'Bow-tie with the downstream (outlet) triangle filled black, and a flow arrow above it.',
-  meaning: 'Non-return valve: flow only in the arrow direction. Found on pump discharges, compressor discharges and anywhere back-flow must be stopped. The filled side points the way flow goes. Swing type is the default when the legend does not say.',
+  meaning: 'Non-return valve: flow only in the arrow direction. Found on pump discharges, compressor discharges and anywhere back-flow must be stopped. The filled side points in the flow direction. Swing type is the default when the legend does not say.',
   variants: ['ISA/US style: an open triangle against a vertical bar (the seat), with or without an arrow', 'Some legends draw "N" or "NRV" beside a plain bow-tie', 'Check the arrow, not the fill, for direction if the drawing is mirrored'],
   svg: svg(120, 80, valve(50, { fr: 1 }) + arrow(44, 20, 76)) })
 
 S({ id: 'check-swing', name: 'Swing check valve', cat: 'check-valves', std: STD_C, component: 'swing-check-valve', physical: true, tags: ['NRV'],
   drawn: 'Two vertical end bars across the pipe with a disc hanging diagonally from a pivot dot at the top (the hinged clapper), and a flow arrow above.',
   meaning: 'Check valve with a hinged disc that swings open with flow. The usual type for horizontal liquid lines and large pipe.',
-  variants: ['Often drawn simply as the general check (bow-tie with one side filled)', 'Tilting-disc check valves are drawn the same way'],
+  variants: ['Often drawn as the general check (bow-tie with one side filled)', 'Tilting-disc check valves are drawn the same way'],
   svg: svg(120, 80, p('M4 50H40M80 50H116') + p('M40 32V68M80 32V68') + c(48, 36, 3, B) + p('M48 36L72 64') + arrow(44, 18, 76)) })
 
 S({ id: 'check-lift', name: 'Lift (piston) check valve', cat: 'check-valves', std: STD_C, component: 'check-valve-piston', physical: true, tags: ['NRV'],
   drawn: 'Bow-tie with the outlet triangle filled and an open circle (the piston or disc) where the tips meet, with a flow arrow above.',
-  meaning: 'Globe-pattern check valve with a piston or disc that lifts off its seat. Good for high pressure, small bore and pulsating flow (reciprocating pumps and compressors).',
+  meaning: 'Globe-pattern check valve with a piston or disc that lifts off its seat. Suited to high pressure, small bore and pulsating flow (reciprocating pumps and compressors).',
   variants: ['Some legends draw a globe-valve body with an arrow', 'Look-alike: ball check (ball in front of a seat bar), stop-check (adds a handwheel)'],
   svg: svg(120, 80, valve(50, { fr: 1 }) + c(60, 50, 7, W) + arrow(44, 20, 76)) })
 
@@ -168,7 +168,7 @@ S({ id: 'check-ball', name: 'Ball check valve', cat: 'check-valves', std: STD_C,
 S({ id: 'check-dual-plate', name: 'Dual-plate check valve', cat: 'check-valves', std: STD_C + ' / API 594', component: 'dual-plate-check-valve', physical: true, tags: ['NRV'],
   drawn: 'Two vertical bars (a wafer between flanges) with two short plates hinged at the centre and opening downstream in a "<" shape, and a flow arrow above.',
   meaning: 'Wafer check valve with two spring-loaded half-discs on a central hinge pin. Short and light, so common on compressor and pump discharges and on large water lines.',
-  variants: ['Many legends just use the general check symbol and write "dual plate" or "DPC"', 'Some draw a single vertical bar with a filled triangle'],
+  variants: ['Many legends use the general check symbol and write "dual plate" or "DPC"', 'Some draw a single vertical bar with a filled triangle'],
   svg: svg(120, 80, p('M4 50H44M76 50H116') + p('M44 32V68M76 32V68') + c(54, 50, 2.5, B) + p('M54 50L70 38M54 50L70 62') + arrow(44, 18, 76)) })
 
 S({ id: 'check-stop', name: 'Stop-check valve', cat: 'check-valves', std: STD_C, physical: true, tags: ['NRV'],
@@ -199,13 +199,13 @@ S({ id: 'breather-valve', name: 'Pressure-vacuum (breather) valve', cat: 'relief
 
 S({ id: 'rupture-disc', component: 'rupture-disc', name: 'Rupture disc (bursting disc)', cat: 'relief', std: STD_R + ' / ISO 4126-2', physical: true, tags: ['PSE', 'RD', 'BD'], isa: ['PSE'],
   drawn: 'Two short parallel bars (the holder) across a vertical pipe, with a curved arc between them bulging towards the outlet.',
-  meaning: 'Non-reclosing relief device that bursts at a set pressure. Used alone, or under a PSV to protect it from corrosion (then a pressure gauge or PI is drawn between them). ISA tag is PSE. Becomes rupture-disc.',
+  meaning: 'Non-reclosing relief device that bursts at a set pressure. Used alone, or under a PSV to protect it from corrosion (then a pressure gauge or PI is drawn between them). ISA tag is PSE. Maps to the rupture-disc component.',
   variants: ['Some legends draw a vertical pipe with a dashed or zig-zag line across it', 'Buckling-pin relief valves are drawn as a body with a pin and tagged PSE too'],
   svg: svg(120, 116, p('M60 112V72M60 48V6') + p('M38 72H82M38 48H82') + p('M40 68Q60 40 80 68')) })
 
 S({ id: 'flame-arrester', name: 'Flame arrester', cat: 'relief', std: STD_R + ' / ISO 16852', physical: true, tags: ['FA'],
   drawn: 'An in-line rectangle on the pipe with zig-zag lines inside (the crimped-metal element).',
-  meaning: 'Passive device that stops a flame front passing down a vent line or into a tank. Found on tank vents, drain-tank vents and on vent stacks. No dedicated component.',
+  meaning: 'Passive device that stops a flame front from passing down a vent line or into a tank. Found on tank vents, drain-tank vents and on vent stacks. No dedicated component.',
   variants: ['Detonation arresters are drawn the same and marked "DA"', 'Some legends use a rectangle with crossed diagonal hatching'],
   svg: svg(120, 64, p('M4 32H36M84 32H116') + r(36, 12, 48, 40) + p('M52 12l-5 5 10 5-10 5 10 5-10 5 10 5-5 5M68 12l-5 5 10 5-10 5 10 5-10 5 10 5-5 5', thin(1.8))) })
 
@@ -230,14 +230,14 @@ S({ id: 'regulator-temperature', name: 'Self-actuated temperature regulator', ca
 S({ id: 'excess-flow-valve', name: 'Excess-flow valve', cat: 'relief', std: 'ISO 10628-2 / company legend practice', physical: true, tags: ['EFV'],
   drawn: 'A bow-tie with a spring drawn inside the inlet triangle and a flow arrow above.',
   meaning: 'Closes automatically when flow exceeds a set rate (a line break downstream). Found on instrument connections, LPG and chemical lines. No dedicated component.',
-  variants: ['Usually just a check-valve-like symbol tagged EFV', 'Some legends write "XS" or "EFV" next to a plain bow-tie'],
+  variants: ['Usually only a check-valve-like symbol tagged EFV', 'Some legends write "XS" or "EFV" next to a plain bow-tie'],
   svg: svg(120, 80, valve(50) + p('M34 50l3-5 4 10 4-10 4 10 4-10 3 5', thin(1.6)) + arrow(44, 20, 76)) })
 
 // ---------- actuators ----------
 const V = (o = {}) => valve(86, o)
 S({ id: 'op-handwheel', name: 'Handwheel operator', cat: 'actuators', std: STD_A, component: 'gate-valve', physical: true, tags: HV,
   drawn: 'A valve body with a stem and a short horizontal bar on top (the handwheel), a "T".',
-  meaning: 'Manual valve operated by a handwheel. The body below tells the valve type; the handwheel just confirms it is manual. Tag HV if it has one.',
+  meaning: 'Manual valve operated by a handwheel. The body below shows the valve type; the handwheel only confirms that it is manual. Tag HV if it has one.',
   variants: ['Most legends omit the handwheel on manual valves altogether', 'Hand-operated control valves are tagged HCV'],
   svg: svg(120, 104, V() + stem(60, 86, 50, true)) })
 
@@ -261,7 +261,7 @@ S({ id: 'op-handwheel-indicator', name: 'Manual operator with position indicator
 
 S({ id: 'act-diaphragm', name: 'Diaphragm actuator (control valve)', cat: 'actuators', std: STD_A, component: 'control-valve', physical: true, tags: ['FV', 'LV', 'PV', 'TV', 'FCV', 'LCV', 'PCV', 'TCV'], isa: ['FV', 'LV', 'PV', 'TV', 'HV'],
   drawn: 'A bow-tie (often with a globe dot) with a stem and a dome-shaped head on top (a half circle sitting on a flat bar).',
-  meaning: 'Pneumatic spring-diaphragm actuator: the classic modulating control valve. Its tag (FV/LV/PV/TV) names the loop, and FO/FC beside it gives the fail position. Becomes control-valve.',
+  meaning: 'Pneumatic spring-diaphragm actuator: the typical modulating control valve. Its tag (FV/LV/PV/TV) names the loop, and FO/FC beside it gives the fail position. Maps to the control-valve component.',
   variants: ['The dome may be drawn flat-topped or as a full ellipse', 'A positioner box on the stem is common', 'The body may be a butterfly or ball with the same dome for rotary control valves'],
   svg: svg(120, 108, V() + p('M60 86V50') + dome(60, 50)) })
 
@@ -273,13 +273,13 @@ S({ id: 'act-positioner', name: 'Valve positioner', cat: 'actuators', std: STD_A
 
 S({ id: 'act-piston-spring', name: 'Piston actuator, single acting (spring return)', cat: 'actuators', std: STD_A, component: 'esd-valve', physical: true, tags: ['ESDV', 'SDV', 'XV'], isa: ['XV', 'SDV'],
   drawn: 'A valve with a rectangle (the cylinder) on its stem; inside it a horizontal line (the piston) with a zig-zag spring above it.',
-  meaning: 'Air or hydraulic cylinder with spring return. On/off shutdown valves (ESDV, SDV, XV) use it so the spring drives the valve safe on loss of air. With an ESDV/SDV/XV tag it becomes esd-valve; with BDV it becomes blowdown-valve.',
+  meaning: 'Air or hydraulic cylinder with spring return. On/off shutdown valves (ESDV, SDV, XV) use it so the spring drives the valve safe on loss of air. With an ESDV/SDV/XV tag it maps to the esd-valve component; with BDV it maps to the blowdown-valve component.',
   variants: ['Spring and piston are often omitted: a plain rectangle on the stem', 'Scotch-yoke quarter-turn actuators are drawn the same on a ball valve', 'ISA 5.1-2009 draws the piston actuator as a rectangle with the stem through it'],
   svg: svg(120, 108, V() + c(60, 86, 8, W) + p('M60 78V46') + r(38, 20, 44, 34) + p('M40 46H80') + p('M60 46l-8-3 16-4-16-4 16-4-8-3', thin(1.6))) })
 
 S({ id: 'act-piston-double', name: 'Piston actuator, double acting', cat: 'actuators', std: STD_A, physical: true, tags: ['XV', 'HV'], isa: ['XV'],
   drawn: 'A rectangle (cylinder) on the valve stem with a piston line across the middle and a signal port into each end, with no spring.',
-  meaning: 'Cylinder powered in both directions. It stays put on loss of air (fail last), so it is used where the valve must not move on air failure, or with an accumulator. On/off valves (XV) mostly; use esd-valve only if the tag says ESDV/SDV.',
+  meaning: 'Cylinder powered in both directions. It stays put on loss of air (fail last), so it is used where the valve must not move on air failure, or with an accumulator. Mostly on/off valves (XV); use esd-valve only if the tag says ESDV/SDV.',
   variants: ['Ports may be drawn as short stubs with pneumatic (//) or hydraulic (L) marks', 'Often noted "FL" or "fail last"'],
   svg: svg(120, 108, V() + c(60, 86, 8, W) + p('M60 78V38') + r(38, 20, 44, 34) + p('M40 38H80') + p('M38 28H24M38 46H24')) })
 
@@ -291,7 +291,7 @@ S({ id: 'act-motor', name: 'Electric motor actuator (MOV)', cat: 'actuators', st
 
 S({ id: 'act-solenoid', name: 'Solenoid actuator / solenoid valve (SOV)', cat: 'actuators', std: STD_A, physical: true, tags: ['SOV', 'XY', 'XV'], isa: ['XY', 'XV'],
   drawn: 'A square box containing "S" on the stem of a small valve, or a small S box on the air supply to a larger actuator.',
-  meaning: 'Solenoid. On its own small valve it is a solenoid valve; on the air line of an ESDV actuator it is the SOV that vents the actuator to trip the valve. An accessory, not modelled separately; the main valve is what becomes esd-valve or blowdown-valve.',
+  meaning: 'Solenoid. On its own small valve it is a solenoid valve; on the air line of an ESDV actuator it is the SOV that vents the actuator to trip the valve. An accessory, not modelled separately; the main valve is what maps to the esd-valve or blowdown-valve component.',
   variants: ['Manual-reset solenoids add "R" in the box or beside it', 'De-energise-to-trip vs energise-to-trip is written on the C&E, not the symbol'],
   svg: svg(120, 104, V() + p('M60 86V58') + r(42, 26, 36, 32) + t(60, 49, 18, 'S')) })
 
@@ -304,18 +304,18 @@ S({ id: 'act-electro-hydraulic', name: 'Electro-hydraulic actuator', cat: 'actua
 S({ id: 'act-hydraulic', name: 'Hydraulic actuator', cat: 'actuators', std: STD_A, physical: true, tags: ['XV', 'SSV', 'SCSSV'], isa: ['XV'],
   drawn: 'A cylinder rectangle on the stem with a piston line and "H", fed by a hydraulic signal line (a line with "L" marks).',
   meaning: 'Hydraulically powered cylinder, typical on wellhead valves (SSV/USV, wing valves) supplied from the wellhead HPU through the wellhead control panel.',
-  variants: ['Wellhead surface safety valves are often drawn as a gate with a hydraulic piston and spring, tagged SSV or USV', 'The hydraulic supply line may be drawn without marks and just labelled HPU'],
+  variants: ['Wellhead surface safety valves are often drawn as a gate with a hydraulic piston and spring, tagged SSV or USV', 'The hydraulic supply line may be drawn without marks and only labelled HPU'],
   svg: svg(132, 108, V() + p('M60 86V46') + r(38, 20, 44, 34) + p('M40 46H80') + t(60, 40, 13, 'H') + p('M82 30H128', thin(1.6)) + p('M96 24v10h5M114 24v10h5', thin(1.4))) })
 
 S({ id: 'valve-esdv', name: 'Emergency shutdown valve (ESDV)', cat: 'actuators', std: STD_A + ' / API 6D', component: 'esd-valve', physical: true, tags: ['ESDV', 'SDV', 'XV', 'SSIV'], isa: ['XV', 'UV'],
   drawn: 'A ball (or gate) valve with a spring-return cylinder on the stem, a small "S" box on its air supply, and "FC" written under the body.',
-  meaning: 'Shutdown valve tripped by the ESD/PSD system. It fails closed: the spring shuts it when the SOV vents the air. Inlet, outlet, riser and fuel-gas isolations. Becomes esd-valve.',
+  meaning: 'Shutdown valve tripped by the ESD/PSD system. It fails closed: the spring shuts it when the SOV vents the air. Inlet, outlet, riser and fuel-gas isolations. Maps to the esd-valve component.',
   variants: ['Some companies tag it SDV or XV; riser valves are often ESDV-R…', 'The body may be drawn filled when normally closed', 'Partial-stroke test devices and limit switches (ZSO/ZSC) are often drawn beside it'],
   svg: svg(120, 120, V() + c(60, 86, 8, W) + p('M60 78V56') + r(42, 26, 36, 30) + p('M60 52l-7-3 14-4-14-4 14-4-7-3', thin(1.6)) + r(88, 16, 20, 18) + t(98, 30, 13, 'S') + p('M78 34H88', thin(1.6)) + t(60, 116, 13, 'FC')) })
 
 S({ id: 'valve-bdv', name: 'Blowdown valve (BDV)', cat: 'actuators', std: STD_A + ' / API 521', component: 'blowdown-valve', physical: true, tags: ['BDV'], isa: ['BDV'],
   drawn: 'A valve body drawn filled (normally closed) with a spring-return actuator, an "S" box, and "FO" under the body. Its outlet goes to flare.',
-  meaning: 'Depressuring valve. Closed in operation and opens on ESD or fire to blow inventory down to the flare (API 521: typically to 50 % or 6.9 barg within 15 min). Fails open. Becomes blowdown-valve.',
+  meaning: 'Depressuring valve. Closed in operation and opens on ESD or fire to blow inventory down to the flare (API 521: typically to 50 % or 6.9 barg within 15 min). Fails open. Maps to the blowdown-valve component.',
   variants: ['Usually followed by a restriction orifice (RO) to limit the flow', 'Tagged BDV, or XV with an FO mark'],
   svg: svg(120, 120, V({ fl: 1, fr: 1 }) + c(60, 86, 8, W) + p('M60 78V56') + r(42, 26, 36, 30) + p('M60 52l-7-3 14-4-14-4 14-4-7-3', thin(1.6)) + r(88, 16, 20, 18) + t(98, 30, 13, 'S') + p('M78 34H88', thin(1.6)) + t(60, 116, 13, 'FO')) })
 

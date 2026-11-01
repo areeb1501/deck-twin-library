@@ -10,6 +10,7 @@
  */
 import { memo, useLayoutEffect, useMemo, useRef } from 'react'
 import * as THREE from 'three'
+import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js'
 import type { BuiltPiping, Joint, Support } from './build'
 import { GASKET, SERVICE, flange } from '../../model/catalog'
 import { materials, registerMaterial } from '../../three/materials'
@@ -46,6 +47,7 @@ export const Piping = memo(function Piping({ built }: { built: BuiltPiping }) {
           <Supports built={built} />
           <Tees built={built} />
           <Sprays built={built} />
+          <SmallBore built={built} />
           <DelugeSpray built={built} plant={plant} />
           <ValveFlags built={built} />
           <EndsAndSleeves built={built} />
@@ -145,9 +147,9 @@ function Flanges({ built }: { built: BuiltPiping }) {
     return { studs, nuts, gaskets, jointTags }
   }, [joints])
 
-  const studGeo = useMemo(() => cached('unit-stud', () => new THREE.CylinderGeometry(1, 1, 1, 10, 1)), [])
-  const nutGeo = useMemo(() => cached('unit-nut', () => chamferedHex()), [])
-  const gasketGeo = useMemo(() => cached('unit-gasket', () => new THREE.CylinderGeometry(1, 1, 1, 40, 1)), [])
+  const studGeo = useMemo(() => cached('unit-stud', () => new THREE.CylinderGeometry(1, 1, 1, 6, 1, true)), [])
+  const nutGeo = useMemo(() => cached('unit-nut', () => new THREE.CylinderGeometry(1, 1, 1, 6, 1)), [])
+  const gasketGeo = useMemo(() => cached('unit-gasket', () => new THREE.CylinderGeometry(1, 1, 1, 20, 1, true)), [])
 
   return (
     <group>
@@ -166,24 +168,6 @@ function Flanges({ built }: { built: BuiltPiping }) {
       <Instanced geometry={gasketGeo} material={m.gasket} matrices={gaskets} tags={jointTags} kind="line" />
     </group>
   )
-}
-
-/** hexagonal nut with chamfered corners, unit across-corners radius, unit height */
-function chamferedHex() {
-  const pts: [number, number][] = [
-    [0.45, -0.5],
-    [0.92, -0.5],
-    [1, -0.42],
-    [1, 0.42],
-    [0.92, 0.5],
-    [0.45, 0.5],
-  ]
-  const g = new THREE.LatheGeometry(
-    pts.map(([r, y]) => new THREE.Vector2(r, y)),
-    6,
-  )
-  g.computeVertexNormals()
-  return g
 }
 
 // ---------------------------------------------------------------- generic instancing helper
@@ -307,6 +291,47 @@ function Sprays({ built }: { built: BuiltPiping }) {
     return out
   }, [built])
   return <Instanced geometry={geo} material={m.brass} matrices={mats} />
+}
+
+// ---------------------------------------------------------------- vents, drains and cladding straps
+/** 3/4 in nipple on a weldolet, a small gate valve and its plug: unit geometry along +Y from the pipe surface */
+function stubGeometry() {
+  const parts = [
+    new THREE.CylinderGeometry(0.024, 0.04, 0.05, 12).translate(0, 0.025, 0),
+    new THREE.CylinderGeometry(0.0135, 0.0135, 0.2, 10).translate(0, 0.14, 0),
+    new THREE.BoxGeometry(0.05, 0.075, 0.05).translate(0, 0.12, 0),
+    new THREE.CylinderGeometry(0.009, 0.009, 0.09, 8).rotateX(Math.PI / 2).translate(0, 0.12, 0.06),
+    new THREE.CylinderGeometry(0.03, 0.03, 0.008, 12).rotateX(Math.PI / 2).translate(0, 0.12, 0.105),
+    new THREE.CylinderGeometry(0.019, 0.019, 0.018, 6).translate(0, 0.245, 0),
+  ]
+  const g = mergeGeometries(parts.map((p) => p.toNonIndexed()))!
+  for (const p of parts) p.dispose()
+  return g
+}
+
+function SmallBore({ built }: { built: BuiltPiping }) {
+  const m = materials()
+  const stub = useMemo(() => cached('small-bore-stub', stubGeometry), [])
+  const strap = useMemo(() => cached('unit-strap', () => new THREE.CylinderGeometry(1, 1, 1, 18, 1, true)), [])
+  const { stubs, straps } = useMemo(() => {
+    const stubs: THREE.Matrix4[] = []
+    const straps: THREE.Matrix4[] = []
+    const yaw = new THREE.Quaternion()
+    for (const l of built.lines) {
+      for (const s of l.stubs) {
+        const q = new THREE.Quaternion().setFromUnitVectors(Y, s.dir).multiply(yaw.setFromAxisAngle(Y, s.yaw))
+        stubs.push(new THREE.Matrix4().compose(s.pos, q, new THREE.Vector3(1, 1, 1)))
+      }
+      for (const s of l.straps) straps.push(new THREE.Matrix4().compose(s.pos, new THREE.Quaternion().setFromUnitVectors(Y, s.axis), new THREE.Vector3(s.radius, 0.018, s.radius)))
+    }
+    return { stubs, straps }
+  }, [built])
+  return (
+    <group>
+      <Instanced geometry={stub} material={m.valveBody} matrices={stubs} castShadow={false} />
+      <Instanced geometry={strap} material={m.stainless} matrices={straps} castShadow={false} />
+    </group>
+  )
 }
 
 // ---------------------------------------------------------------- supports

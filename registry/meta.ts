@@ -27,13 +27,13 @@ export const CATEGORIES: { id: CategoryId; title: string; blurb: string }[] = [
   { id: 'wellhead', title: 'Wells & pipelines', blurb: 'API 6A trees and wellheads, BOPs, manifolds, pig traps and risers.' },
   { id: 'drilling', title: 'Drilling & subsea', blurb: 'Mud system, pipe handling, well service units, subsea manifolds, PLETs and umbilical terminations.' },
   { id: 'instruments', title: 'Instruments', blurb: 'Transmitters, gauges, flowmeters, level instruments and analysers.' },
-  { id: 'safety', title: 'Fire, gas & safety', blurb: 'F&G detectors, call points, deluge, monitors, showers and lifesaving.' },
-  { id: 'structure', title: 'Structure & access', blurb: 'Decks, beams, grating, stairs, ladders, racks, jackets and bridges.' },
+  { id: 'safety', title: 'Fire, gas & safety', blurb: 'F&G detectors, manual call points, deluge systems, fire monitors, safety showers and lifesaving equipment.' },
+  { id: 'structure', title: 'Structure & access', blurb: 'Deck modules, steel beams, grating, stairs, ladders, pipe racks, jackets and link bridges.' },
   { id: 'electrical', title: 'Power & buildings', blurb: 'Transformers, switchgear, E-houses, panels, lighting and cable tray.' },
   { id: 'interiors', title: 'Control room & interiors', blurb: 'CCR consoles, video walls, screens, doors, windows, rooms, cabinets and CCTV.' },
   { id: 'lifting', title: 'Lifting & logistics', blurb: 'Pedestal cranes, monorails, davits, containers and cargo units.' },
-  { id: 'packages', title: 'Packages & skids', blurb: 'Chemical injection, metering, nitrogen, air, HPU and treatment skids.' },
-  { id: 'onshore', title: 'Onshore & terminals', blurb: 'Loading arms, truck bays, pipeline valve stations, bunds, fences, boilers, substations and site buildings.' },
+  { id: 'packages', title: 'Packages & skids', blurb: 'Chemical injection, metering, nitrogen, instrument air, HPU and treatment skids.' },
+  { id: 'onshore', title: 'Onshore & terminals', blurb: 'Marine loading arms, truck loading bays, pipeline valve stations, tank bunds, security fences, boilers, substations and site buildings.' },
   { id: 'environment', title: 'Environment', blurb: 'Animated ocean and a day or night sky with matching lights, haze and reflections.' },
 ]
 

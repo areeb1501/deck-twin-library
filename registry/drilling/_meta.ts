@@ -7,7 +7,7 @@ export default defineMeta([
     file: 'mud-pump.tsx',
     export: 'MudPump',
     description:
-      'Horizontal single-acting triplex (or 4–6 cylinder) mud pump on an oilfield skid, sized on a 14" stroke, 2200 hp class unit: 5.5 m over skids, discharge centreline 1.25 m, 10" class 150 suction manifold, 5" 10K discharge through a strainer cross. Forged fluid-end modules with hammer-lug valve and cylinder-head covers, liner retainers, pony rods that stroke when `running`, liner-wash header and drip pan. Bladder pulsation dampener and reset relief valve on the cross, two top-mounted AC motors driving each end of the pinion shaft by banded V-belts behind mesh guards or by enclosed gear cases (`drive`).',
+      'Horizontal single-acting triplex (or 4 to 6 cylinder) mud pump on an oilfield skid, sized on a 14" stroke, 2200 hp class unit. It measures 5.5 m over skids, with a discharge centreline of 1.25 m, a 10" class 150 suction manifold and a 5" 10K discharge through a strainer cross. Forged fluid-end modules have hammer-lug valve and cylinder-head covers and liner retainers, with pony rods that stroke when `running`, a liner-wash header and a drip pan. A bladder pulsation dampener and reset relief valve sit on the cross. Two top-mounted AC motors drive each end of the pinion shaft by banded V-belts behind mesh guards or by enclosed gear cases (`drive`).',
     standards: ['API 7K', 'API 6A', 'ASME B16.5', 'ISO 14120'],
     vendors: ['NOV', 'HMH', 'Bentec'],
     tags: ['mud system', 'triplex', 'reciprocating', 'drilling', 'high pressure'],
@@ -29,7 +29,7 @@ export default defineMeta([
     file: 'choke-manifold.tsx',
     export: 'ChokeManifold',
     description:
-      'Skid-mounted drilling choke manifold to API 16C with API 6A 6BX ring-joint connections: 4-1/16" inlet through two gate valves into a studded-cross header, one branch per choke (hydraulic remote chokes with rotary actuators and hoses to a panel junction plate, manual adjustable chokes with handwheels) plus a full-bore bypass with a target block, a gate valve each side of every choke, and a buffer chamber with gauge, drain and two isolated 4-1/16" 5K outlets to the mud-gas separator and the shakers. Ports sit on the API faces; their `rating` is the nearest ASME B16.5 class (10K/15K → 2500, 5K → 1500).',
+      'Skid-mounted drilling choke manifold to API 16C with API 6A 6BX ring-joint connections. A 4-1/16" inlet passes through two gate valves into a studded-cross header with one branch per choke, plus a full-bore bypass with a target block. Chokes are hydraulic remote chokes with rotary actuators and hoses to a panel junction plate, or manual adjustable chokes with handwheels, with a gate valve each side of every choke. A buffer chamber with gauge and drain leads to two isolated 4-1/16" 5K outlets to the mud-gas separator and the shakers. Ports sit on the API faces, and their `rating` is the nearest ASME B16.5 class (10K/15K report 2500, 5K reports 1500).',
     standards: ['API 16C', 'API 6A', 'API RP 53 / API S53'],
     vendors: ['NOV'],
     tags: ['well control', 'choke', 'kill', 'drilling', 'manifold'],
@@ -49,7 +49,7 @@ export default defineMeta([
     file: 'shale-shaker.tsx',
     export: 'ShaleShaker',
     description:
-      'Linear-motion shale shaker sized on a 4-panel unit (3.3 × 2.0 m, 1.17 × 0.66 m pretensioned panels ≈ 3.1 m² of screen, first panel flat then inclined by `deckAngle`). Spring-mounted basket with wedge clamps, optional stacked scalping decks (`decks`), two counter-rotating vibrator motors on an inclined beam giving a 45° line of action; the basket vibrates when `running`. Fixed possum-belly feeder with weir, mud level, bypass gate and flanged feed nozzle, underflow pan draining through the tank-top opening, discharge lip, starter panel. Origin on the mud tank top.',
+      'Linear-motion shale shaker sized on a 4-panel unit (3.3 × 2.0 m, 1.17 × 0.66 m pretensioned panels, about 3.1 m² of screen, first panel flat then inclined by `deckAngle`). The spring-mounted basket has wedge clamps and optional stacked scalping decks (`decks`), with two counter-rotating vibrator motors on an inclined beam giving a 45° line of action. The basket vibrates when `running`. A fixed possum-belly feeder has a weir, mud level, bypass gate and flanged feed nozzle, and the unit has an underflow pan draining through the tank-top opening, a discharge lip and a starter panel. The origin is on the mud tank top.',
     standards: ['API RP 13C', 'ISO 13501 (screen testing)', 'IEC 60079 (Ex motors)'],
     vendors: ['NOV (Brandt)', 'Derrick'],
     tags: ['mud system', 'solids control', 'shaker', 'drilling'],
@@ -70,7 +70,7 @@ export default defineMeta([
     file: 'mud-tank.tsx',
     export: 'MudTank',
     description:
-      'Skid-mounted active mud pit: open-top steel tank on runners with external stiffeners, compartment bulkheads with top-operated equalising valves, translucent mud surface at `level`, grating top with ISO 14122 perimeter handrail and caged ladder. One top-entry agitator per compartment (right-angle helical-bevel gearbox and motor on bridge beams, shaft and canted-blade impellers turning when `running`, second impeller in tall tanks) seen through a guarded hatch opening. Mud-gun header with valved drop pipes and swivel nozzles, suction nozzle with suction bell, return and equalising nozzles, clean-out doors.',
+      'Skid-mounted active mud pit: an open-top steel tank on runners with external stiffeners, compartment bulkheads with top-operated equalising valves, a mud surface at `level`, and a grating top with ISO 14122 perimeter handrail and caged ladder. Each compartment has one top-entry agitator (right-angle helical-bevel gearbox and motor on bridge beams, shaft and canted-blade impellers turning when `running`, second impeller in tall tanks) with a guarded hatch opening. It also has a mud-gun header with valved drop pipes and swivel nozzles, a suction nozzle with suction bell, return and equalising nozzles, and clean-out doors.',
     standards: ['API RP 13C', 'ISO 14122-2/3/4', 'ASME B16.5'],
     vendors: ['NOV (Brandt)'],
     tags: ['mud system', 'pit', 'agitator', 'tank', 'drilling'],
@@ -95,7 +95,7 @@ export default defineMeta([
     file: 'plet.tsx',
     export: 'Plet',
     description:
-      'Subsea PLET: skirted mudmat with stiffeners and padeyes, tubular protection frame with sloped (overtrawlable) ends, rigging padeyes, ROV grab bars, anodes and an ROV-readable nameplate. Pipeline stub with a tie-in flange, ROV-operated trunnion ball valve (gearbox and class-4 bucket facing the ROV side), then a vertical jumper hub inside an alignment funnel or a horizontal hub on a connector receiver (`hubOrientation`); optional hub protection cap. The item sits on its mudmat with y = 0 at the seabed (skirts penetrate below it). The hub port has no flange rating: it is a clamp/collet hub face.',
+      'Subsea PLET with a skirted mudmat with stiffeners and padeyes, a tubular protection frame with sloped (overtrawlable) ends, rigging padeyes, ROV grab bars, anodes and an ROV-readable nameplate. A pipeline stub with a tie-in flange leads to an ROV-operated trunnion ball valve (gearbox and class-4 bucket facing the ROV side), then to a vertical jumper hub inside an alignment funnel or a horizontal hub on a connector receiver (`hubOrientation`), with an optional hub protection cap. The item sits on its mudmat with y = 0 at the seabed, and the skirts penetrate below it. The hub port has no flange rating because it is a clamp/collet hub face.',
     standards: ['API 17P', 'API 17D', 'API 17R', 'DNV-ST-F101', 'DNV-RP-B401'],
     vendors: ['Oil States', 'Turcomp'],
     tags: ['subsea', 'pipeline', 'plet', 'hub', 'mudmat'],
@@ -114,7 +114,7 @@ export default defineMeta([
     file: 'subsea-manifold.tsx',
     export: 'SubseaManifold',
     description:
-      'Cluster-type subsea production manifold: two headers (production and test) with weld-capped ends rising to vertical outlet hubs, well slots on both long sides, each with a vertical jumper hub in a soft-landing funnel, a branch across both headers and an ROV-operated trunnion ball valve on each drop (gearbox and class-4 bucket). Header transmitters, saddles, overtrawlable tubular protection structure with sloped members, roof grating over the valves and open strips over the hubs, lift points, grab bars, anodes and an ROV-readable nameplate. Sits on a skirted mudmat; y = 0 is the seabed. Hub ports carry no flange rating (clamp hubs).',
+      'Cluster-type subsea production manifold with two headers (production and test) with weld-capped ends rising to vertical outlet hubs. Well slots on both long sides each have a vertical jumper hub in a soft-landing funnel, a branch across both headers and an ROV-operated trunnion ball valve on each drop (gearbox and class-4 bucket). It has header transmitters, saddles, an overtrawlable tubular protection structure with sloped members, roof grating over the valves and open strips over the hubs, lift points, grab bars, anodes and an ROV-readable nameplate. It sits on a skirted mudmat, and y = 0 is the seabed. Hub ports carry no flange rating (clamp hubs).',
     standards: ['API 17P', 'API 17D', 'API 17R', 'ISO 13628-15', 'DNV-RP-B401'],
     vendors: ['OneSubsea (SLB)'],
     tags: ['subsea', 'manifold', 'production', 'hub', 'mudmat'],
@@ -133,7 +133,7 @@ export default defineMeta([
     file: 'umbilical-termination-assembly.tsx',
     export: 'UmbilicalTerminationAssembly',
     description:
-      'Subsea UTA on a skirted mudmat: square-tube frame with lift points, grab bars and anodes; umbilical termination head bolted to a bulkhead frame, vertebrae bend restrictor dropping to the seabed and an umbilical stub lying on the seabed to its cut end. ROV panel with a fixed MQC stab plate (`couplers`) carrying a mated flying MQC half with ROV handle and bucket, its hydraulic flying lead running to a parking bracket on the mudmat; wet-mate electrical receptacles with dust caps (`electrical`) plus one mated electrical jumper parked on a second bracket. Internal tubing and cables run from the head to the plates. y = 0 is the seabed.',
+      'Subsea UTA on a skirted mudmat, with a square-tube frame with lift points, grab bars and anodes. The umbilical termination head bolts to a bulkhead frame, with a vertebrae bend restrictor dropping to the seabed and an umbilical stub lying on the seabed to its cut end. The ROV panel has a fixed MQC stab plate (`couplers`) carrying a mated flying MQC half with ROV handle and bucket, and its hydraulic flying lead runs to a parking bracket on the mudmat. It also has wet-mate electrical receptacles with dust caps (`electrical`) and one mated electrical jumper parked on a second bracket. Internal tubing and cables run from the head to the plates. The seabed is at y = 0.',
     standards: ['API 17E', 'ISO 13628-5', 'API 17D', 'ISO 13628-8 (ROV interfaces)'],
     vendors: ['Viper Subsea', 'Prysmian'],
     tags: ['subsea', 'umbilical', 'UTA', 'flying lead', 'MQC', 'mudmat'],
@@ -151,7 +151,7 @@ export default defineMeta([
     file: 'subsea-tree.tsx',
     export: 'SubseaTree',
     description:
-      'Vertical subsea tree on a permanent guide base: skirted mudmat, four guide posts on a 6 ft radius, conductor and 18-3/4" wellhead housings, hydraulic collet wellhead connector with lock indicators, valve block with fail-safe hydraulic actuators (PMV, PSV, AMV, PWV, AWV) and ROV overrides, production wing to a retrievable choke module (stepping actuator, ROV handle and bucket) and a horizontal flowline hub, annulus wing to an annulus hub, tree cap with T-handle. Tree frame with guide funnels, ROV panel (buckets, hot stabs, gauges), subsea control module with hydraulic tubing, grab bars, anodes and nameplate. y = 0 is the seabed. Hub ports carry no flange rating.',
+      'Vertical subsea tree on a permanent guide base, with a skirted mudmat, four guide posts on a 6 ft radius, conductor and 18-3/4" wellhead housings, and a hydraulic collet wellhead connector with lock indicators. The valve block has fail-safe hydraulic actuators (PMV, PSV, AMV, PWV, AWV) and ROV overrides. The production wing runs to a retrievable choke module (stepping actuator, ROV handle and bucket) and a horizontal flowline hub, and the annulus wing runs to an annulus hub. It has a tree cap with T-handle, a tree frame with guide funnels, an ROV panel (buckets, hot stabs, gauges), a subsea control module with hydraulic tubing, grab bars, anodes and nameplate. The seabed is at y = 0. Hub ports carry no flange rating.',
     standards: ['API 17D', 'ISO 13628-4', 'API 17H (ROV interfaces)', 'API 6A'],
     vendors: [],
     tags: ['subsea', 'xmas tree', 'wellhead', 'production', 'hub'],
@@ -169,7 +169,7 @@ export default defineMeta([
     file: 'pipe-handling-catwalk.tsx',
     export: 'PipeHandlingCatwalk',
     description:
-      'Pipe-handling catwalk machine: fabricated body on base runners, checker-plate deck, lined V-trough with a chain-driven skate, three pipe-rack bays each side with stands, end stops and indexer fingers, and hydraulic kicker arms that lift with `kick`. Range-2 drill-pipe joints with tool-joint upsets, hardbanding and thread protectors lie on the racks (`joints` per side) and one waits in the trough. A 36° V-door ramp (slide) with wear plate and side guides climbs to a drill-floor landing at `floorHeight`; control console with hydraulic hoses at the far end. No process ports.',
+      'Pipe-handling catwalk machine with a fabricated body on base runners, a checker-plate deck and a lined V-trough with a chain-driven skate. Three pipe-rack bays each side have stands, end stops and indexer fingers, with hydraulic kicker arms that lift with `kick`. Range-2 drill-pipe joints with tool-joint upsets, hardbanding and thread protectors lie on the racks (`joints` per side), and one lies in the trough. A 36° V-door ramp (slide) with wear plate and side guides climbs to a drill-floor landing at `floorHeight`, and a control console with hydraulic hoses stands at the far end. It has no process ports.',
     standards: ['API 7K', 'API 5DP', 'ISO 14122'],
     vendors: ['NOV', 'Forum Energy Technologies', 'HMH'],
     tags: ['drilling', 'pipe handling', 'catwalk', 'V-door', 'drill pipe'],
@@ -190,7 +190,7 @@ export default defineMeta([
     file: 'cement-unit.tsx',
     export: 'CementUnit',
     description:
-      'Offshore twin-pump cementing skid, about 7.5 × 2.5 m: two electric-driven triplex plunger pumps (TEFC motor, guarded coupling and reduction gearbox turning when `running`, crankcase, plunger windows, fluid end with hammer-lug valve caps) feeding an HP header with plug valves, transducer, gauge and pop-off valve to a 2" discharge flange. Recirculating mixer tub with agitator, mixing head under the bulk cement inlet, recirc pump and densitometer, mix-water inlet with butterfly valve. Two displacement tanks (`tankBbl` each) with sight gauges, grating top, handrail and ladder, a 4" suction header to both pumps, and an operator cabin with windows, console and roof A/C.',
+      'Offshore twin-pump cementing skid, about 7.5 × 2.5 m. Two electric-driven triplex plunger pumps (TEFC motor, guarded coupling and reduction gearbox turning when `running`, crankcase, plunger windows, fluid end with hammer-lug valve caps) feed an HP header with plug valves, transducer, gauge and pop-off valve to a 2" discharge flange. The mixing system has a recirculating mixer tub with agitator, a mixing head under the bulk cement inlet, a recirc pump and densitometer, and a mix-water inlet with butterfly valve. Two displacement tanks (`tankBbl` each) have sight gauges, a grating top, handrail and ladder, and a 4" suction header feeds both pumps. It also has an operator cabin with windows, console and roof A/C.',
     standards: ['API 10A', 'API 7K', 'DNV 2.7-3', 'ISO 14122'],
     vendors: ['Halliburton', 'SLB'],
     tags: ['drilling', 'cementing', 'well service', 'triplex', 'skid'],
@@ -210,7 +210,7 @@ export default defineMeta([
     file: 'coiled-tubing-unit.tsx',
     export: 'CoiledTubingUnit',
     description:
-      'Offshore coiled-tubing spread sized on a 5.6 × 3.0 × 4.7 m reel skid with a 2.9 m core: spoked reel with wraps of tubing (`tubingOd`, `fill`) turning when `running`, A-frame stands and bearings, chain-guarded drive sprocket with twin hydraulic motors and brakes, HP swivel with isolation valve, gauge and a 2" inlet flange on the axle, level wind with guide tubes, diamond screw and a traversing carriage (`wind`) with depth counter, tubing paying off towards the injector, crash/lifting frame. With `spread`, an elevated operator cabin skid with wraparound windows and an electric hydraulic power pack (pump stack, reservoir, fan cooler, hose reels) are placed alongside and hosed to the reel drive. The injector head is not included.',
+      'Offshore coiled-tubing spread sized on a 5.6 × 3.0 × 4.7 m reel skid with a 2.9 m core. The spoked reel carries wraps of tubing (`tubingOd`, `fill`) and turns when `running`, on A-frame stands and bearings, with a chain-guarded drive sprocket with twin hydraulic motors and brakes. The axle carries an HP swivel with isolation valve, gauge and a 2" inlet flange. A level wind with guide tubes, diamond screw and a traversing carriage (`wind`) with depth counter guides the tubing paying off towards the injector, and the skid has a crash/lifting frame. With `spread`, an elevated operator cabin skid with wraparound windows and an electric hydraulic power pack (pump stack, reservoir, fan cooler, hose reels) are placed alongside and hosed to the reel drive. The injector head is not included.',
     standards: ['API RP 16ST', 'API 5ST', 'API 16A (stack, not modelled)', 'DNV 2.7-3'],
     vendors: ['Weatherford'],
     tags: ['well service', 'coiled tubing', 'reel', 'intervention', 'drilling'],

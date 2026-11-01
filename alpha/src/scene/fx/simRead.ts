@@ -41,6 +41,12 @@ export const fwPressure = (): number | undefined => {
   return Number.isFinite(p) ? p : undefined
 }
 
+/**
+ * A burning fire borrows the flare's point light (env/Flare.tsx) instead of adding one: a new light would recompile
+ * every lit material mid-incident, and one kept at zero would cost every pixel all the time. World coordinates.
+ */
+export const fireGlow = { on: false, x: 0, y: 0, z: 0, intensity: 0, distance: 0 }
+
 /** blowdown inventory left, MMscf (undefined if not modelled) */
 export const blowdownInventory = (): number | undefined => {
   const b = simNow().process?.blowdownInventory

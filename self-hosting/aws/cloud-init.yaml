@@ -1,0 +1,76 @@
+#cloud-config
+# User-data for the self-hosted streaming VM(s). Ubuntu 24.04 LTS.
+#
+# Installs Docker from Docker's own apt repo -- Ubuntu's `docker.io` package
+# has no `docker compose` plugin, and the stack is compose-v2 only.
+# The deploy wizard waits for /var/lib/cloud/instance/boot-finished before it
+# scps anything up, so everything here must complete before the stack lands.
+
+users:
+  - name: plant
+    groups: [docker, sudo]
+    shell: /bin/bash
+    sudo: ["ALL=(ALL) NOPASSWD:ALL"]
+    ssh_authorized_keys:
+      # Substituted by deploy.sh with the public half of the generated key
+      # pair, so the admin user is not the AMI's default `ubuntu`.
+      - __SSH_PUBKEY__
+
+# Password auth was never on in the AMI; asserted anyway because a later
+# package or manual edit re-enabling it is the usual way a box gets owned.
+ssh_pwauth: false
+disable_root: true
+
+package_update: true
+packages:
+  - ca-certificates
+  - curl
+  - gnupg
+  - rsync
+  - jq
+
+write_files:
+  - path: /etc/ssh/sshd_config.d/99-hardening.conf
+    permissions: "0644"
+    content: |
+      PasswordAuthentication no
+      KbdInteractiveAuthentication no
+      PermitRootLogin no
+      X11Forwarding no
+      MaxAuthTries 3
+  # Docker publishes its own iptables rules ahead of any host firewall, so a
+  # port bound to 0.0.0.0 in a compose file is public no matter what ufw says.
+  # Compose binds everything but Caddy to 127.0.0.1; this is the second layer.
+  - path: /etc/docker/daemon.json
+    permissions: "0644"
+    content: |
+      {
+        "log-driver": "json-file",
+        "log-opts": { "max-size": "50m", "max-file": "3" },
+        "live-restore": true
+      }
+
+runcmd:
+  - install -m 0755 -d /etc/apt/keyrings
+  - curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
+  - chmod a+r /etc/apt/keyrings/docker.asc
+  - >
+    echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc]
+    https://download.docker.com/linux/ubuntu $(. /etc/os-release && echo $VERSION_CODENAME) stable"
+    > /etc/apt/sources.list.d/docker.list
+  - apt-get update -y
+  - apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+  - systemctl enable --now docker
+  - usermod -aG docker plant
+  # The stack's compose file joins an external `airflow_default` network so
+  # Airflow tasks can reach kafka:9092 by hostname. No Airflow here, so create
+  # it empty rather than editing the compose file the repo ships.
+  - docker network create airflow_default || true
+  # ClickHouse opens far more files than the 1024 default allows and falls
+  # over under trivial load with an error that points nowhere near the cause.
+  - sysctl -w vm.max_map_count=262144
+  - printf 'vm.max_map_count=262144\n' >> /etc/sysctl.d/99-streaming.conf
+  - install -d -o plant -g plant /opt/streaming
+  - systemctl restart ssh
+
+final_message: "cloud-init done after $UPTIME s -- docker $(docker --version)"

@@ -39,13 +39,13 @@ export function PageError({ error, retry }: { error: Error; retry: () => void })
   }
   return (
     <div className="mx-auto flex min-h-[60vh] max-w-md flex-col items-center justify-center px-6 text-center">
-      <h1 className="text-[22px] font-semibold text-ink">This page didn't load</h1>
+      <h1 className="text-[24px] font-semibold text-ink">This page didn't load</h1>
       <p className="mt-2 text-[15px] leading-7 text-fg-3">Something went wrong while opening it. The rest of the site still works.</p>
       <div className="mt-6 flex gap-2.5">
-        <button onClick={retry} className="inline-flex h-10 items-center rounded-full bg-ink px-5 text-[14px] font-medium text-on-ink transition-colors hover:bg-ink-2">
+        <button onClick={retry} className="inline-flex h-10 items-center rounded-md bg-ink px-5 text-[15px] font-medium text-on-ink transition-colors hover:bg-ink-2">
           Try again
         </button>
-        <button onClick={() => location.reload()} className="inline-flex h-10 items-center rounded-full border border-border px-5 text-[14px] font-medium text-ink transition-colors hover:bg-muted">
+        <button onClick={() => location.reload()} className="inline-flex h-10 items-center rounded-md border border-border px-5 text-[15px] font-medium text-ink transition-colors hover:bg-muted">
           Reload
         </button>
       </div>

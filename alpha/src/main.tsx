@@ -7,6 +7,7 @@ import App from './App.tsx'
 import { sandboxes } from './dev/sandboxes'
 import { PasswordGate } from './ui/PasswordGate'
 import { restoreSavedPlant } from './state/savedPlants'
+import { bootDone, bootStage } from './ui/bootLoader'
 
 const key = new URLSearchParams(location.search).get('sandbox')
 const Sandbox = key ? sandboxes[key] : null
@@ -27,5 +28,10 @@ const render = () =>
     </StrictMode>,
   )
 
-if (Sandbox) render()
-else void restoreSavedPlant().finally(render)
+bootStage('Building the decks')
+// a last resort: a scene that never draws must not leave the loader up for ever
+setTimeout(bootDone, 45_000)
+if (Sandbox) {
+  render()
+  bootDone()
+} else void restoreSavedPlant().finally(render)

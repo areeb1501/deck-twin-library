@@ -17,6 +17,7 @@ A shadcn-style registry of standards-based three.js / R3F components for oil & g
 |---|---|
 | Dev server | `npm run dev` → http://localhost:5190. In Claude Code, use the `library` entry in `../.claude/launch.json`. |
 | Twin dev server | `npm run dev` in `alpha/` → http://localhost:5191/alpha/demo/ |
+| Twin plant checks | with the twin dev server running, in `alpha/`: `node tools/clash.mjs` must be clean and `node tools/floating.mjs` must report 0 (`PORT` to change the port) |
 | Tests | `npm test` here (library and CLI), `npm test` in `alpha/` (twin), `uv run --no-project pytest -m "not live"` in `modal/` (SAM service). GitHub Actions runs all three on every push, on any branch. `npm test` here rebuilds the registry, which rewrites `public/r` and some tracked files, so run it in a clean clone when other sessions are working here. |
 | Deploy SAM 3.1 to Modal | `./setup.sh` in `modal/`. See `modal/README.md`. |
 | Validate the registry | `npx tsx scripts/build-registry.ts --check [category or name]` |
@@ -24,6 +25,7 @@ A shadcn-style registry of standards-based three.js / R3F components for oil & g
 | Screenshot a component | `node scripts/shoot.mjs <name> [--ports] [--props '{…}'] [--view x,y,z]` → `.snaps/` |
 | Thumbnails and bounds | `node scripts/shoot.mjs --all --thumbs` |
 | P&ID symbols for new components | add an entry to `scripts/pid-gen/p-*.ts`, then `npx tsx scripts/pid-gen/gen.mts` |
+| Home hero drawing | after changing `separation-train.plant.json` or `registry/generated/bounds.json`, `npx tsx scripts/plan-drawing.ts` rewrites `src/pages/homePlan.json` |
 | Build | `npm run build`: registry → `public/r`, then type-check, then site → `dist/`, then `scripts/prerender.ts` renders every sitemap page to HTML in `dist/` |
 | Build everything | `npm run build:all`: the twin in `alpha/` into `public/alpha`, then the site. This is what a deploy from GitHub runs. |
 | Deploy | Push to `main`: Workers Builds runs `npm run build:all`, then `npx wrangler deploy`. `npm run deploy` by hand skips the twin build, so run `npm run build` in `alpha/` first. |

@@ -3,12 +3,12 @@
  * ("Control room") or by sitting at a console in the CCR / WHP-N local control room. Shown while
  * `useStore.hmi` names a page. ISA-101 style: grey, quiet, colour only when something is abnormal.
  *
- *   Asset & economics · Spares & supply · Live dashboard · Risk & what-if · CCTV & PPE · Inspections · Alerts & assistant ·
- *   Overview · Process · Alarms · Shutdown · F&G · Trends · Machines · Instructor
+ *   Asset & economics · Spares & supply · Live dashboard · Risk & what-if · Response · Scenarios · CCTV & PPE · Inspections · Alerts & assistant ·
+ *   Process · Alarms · Shutdown · F&G · Maintenance · Machines · Overview · Trends · Cranes & weather · Handover · Instructor
  *
  * Esc closes. While it is open the walker and the viewer hot-keys ignore the keyboard.
  */
-import { useEffect } from 'react'
+import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { useStore } from '../../state/store'
 import { isAlphaField, usePlant } from '../../state/plantStore'
 import { fmtClock, type AlarmPriority, type PlatformId } from '../../sim/types'
@@ -30,6 +30,7 @@ import { RiskPage } from './RiskPage'
 import { CctvPage } from './CctvPage'
 import { InspectionPage } from './InspectionPage'
 import { AlertsPage } from './AlertsPage'
+import { ResponsePage } from './ResponsePage'
 import { EconomicsPage } from './EconomicsPage'
 import { SparesPage } from './SparesPage'
 import { DemoStory } from './DemoStory'
@@ -40,21 +41,22 @@ const HMI_PAGES = [
   ['spares', 'Spares & supply'],
   ['dashboard', 'Live dashboard'],
   ['risk', 'Risk & what-if'],
+  ['response', 'Response'],
+  ['scenarios', 'Scenarios'],
   ['cctv', 'CCTV & PPE'],
   ['inspection', 'Inspections'],
   ['alerts', 'Alerts & assistant'],
-  ['overview', 'Overview'],
   ['process', 'Process'],
   ['alarms', 'Alarms'],
   ['shutdown', 'Shutdown'],
   ['fg', 'F&G'],
-  ['trends', 'Trends'],
-  ['machines', 'Machines'],
   ['maintenance', 'Maintenance'],
+  ['machines', 'Machines'],
+  ['overview', 'Overview'],
+  ['trends', 'Trends'],
   ['cranes', 'Cranes & weather'],
   ['handover', 'Handover'],
   ['instructor', 'Instructor'],
-  ['scenarios', 'Scenarios'],
 ] as const
 
 const SPEEDS: [number, string][] = [
@@ -101,7 +103,7 @@ function Console({ page }: { page: string }) {
   return (
     <div className="hmi" role="dialog" aria-label="Control room console">
       <Header />
-      <nav className="hmi-tabs">
+      <TabStrip cur={cur}>
         {pages.map(([k, label]) => (
           <button key={k} className={cur === k ? 'on' : ''} onClick={() => setHmi(k)} data-page={k}>
             {label}
@@ -109,7 +111,7 @@ function Console({ page }: { page: string }) {
             {k === 'shutdown' && <ShutdownBadge />}
           </button>
         ))}
-      </nav>
+      </TabStrip>
       <main className="hmi-body" data-hmi-page={cur}>
         {cur === 'economics' && <EconomicsPage headerExtra={<DemoStory />} />}
         {cur === 'spares' && <SparesPage />}
@@ -118,6 +120,7 @@ function Console({ page }: { page: string }) {
         {cur === 'cctv' && <CctvPage />}
         {cur === 'inspection' && <InspectionPage />}
         {cur === 'alerts' && <AlertsPage />}
+        {cur === 'response' && <ResponsePage />}
         {cur === 'overview' && <Overview />}
         {cur === 'process' && <Process />}
         {cur === 'alarms' && <Alarms />}
@@ -131,6 +134,55 @@ function Console({ page }: { page: string }) {
         {cur === 'instructor' && <Instructor />}
         {cur === 'scenarios' && <ScenariosPage />}
       </main>
+    </div>
+  )
+}
+
+/** the page tabs on one row, with an arrow at each end for what doesn't fit, like a spreadsheet's sheet tabs */
+function TabStrip({ cur, children }: { cur: string; children: ReactNode }) {
+  const strip = useRef<HTMLElement>(null)
+  const [more, setMore] = useState({ left: false, right: false })
+  useEffect(() => {
+    const el = strip.current
+    if (!el) return
+    const measure = () => {
+      const left = el.scrollLeft > 1
+      const right = el.scrollLeft + el.clientWidth < el.scrollWidth - 1
+      setMore((m) => (m.left === left && m.right === right ? m : { left, right }))
+    }
+    measure()
+    el.addEventListener('scroll', measure, { passive: true })
+    const size = new ResizeObserver(measure)
+    size.observe(el)
+    return () => {
+      el.removeEventListener('scroll', measure)
+      size.disconnect()
+    }
+  }, [])
+  // a page opened from elsewhere in the console may have its tab off to one side
+  useEffect(() => {
+    strip.current?.querySelector('.on')?.scrollIntoView({ block: 'nearest', inline: 'nearest' })
+  }, [cur])
+  const page = (dir: 1 | -1) => {
+    const el = strip.current
+    if (el) el.scrollBy({ left: dir * el.clientWidth * 0.8 })
+  }
+  const arrows = more.left || more.right
+  return (
+    <div className="hmi-tabbar">
+      {arrows && (
+        <button className="hmi-tabs-arrow left" disabled={!more.left} onClick={() => page(-1)} aria-label="Show the tabs to the left" title="Show the tabs to the left" data-tabs-arrow="left">
+          <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M10 3 5 8l5 5" /></svg>
+        </button>
+      )}
+      <nav className="hmi-tabs" ref={strip}>
+        {children}
+      </nav>
+      {arrows && (
+        <button className="hmi-tabs-arrow right" disabled={!more.right} onClick={() => page(1)} aria-label="Show the tabs to the right" title="Show the tabs to the right" data-tabs-arrow="right">
+          <svg viewBox="0 0 16 16" aria-hidden="true"><path d="m6 3 5 5-5 5" /></svg>
+        </button>
+      )}
     </div>
   )
 }

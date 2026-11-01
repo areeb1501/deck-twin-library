@@ -224,12 +224,12 @@ export function craneDims(spec: CraneSpec) {
     yA,
     /** boom-frame (t along the boom, n normal) points */
     tip: { t: L + 0.75, n: -0.05 }, // main hoist sheaves
-    tipTop: { t: L - 0.05, n: 0.45 }, // pendant lugs
+    tipTop: { t: L - 0.15, n: 0.55 }, // pendant lugs
     aux: { t: L + 2.7, n: 0.78 }, // whip sheave
-    footGuide: { t: 0.8, n: 1.1 }, // hoist rope guide sheaves on the boom foot
+    footGuide: { t: 0.9, n: 1.27 }, // top of the hoist rope guide sheaves on the boom foot
     /** slewing-frame (x, y) points */
-    uHub: [fA + 0.35, yA - 0.6] as [number, number], // upper luffing block
-    lead: [fA + 0.3, yA + 0.55] as [number, number], // hoist lead sheaves (rope leaves towards the boom)
+    uHub: [fA + 0.35, yA - 0.72] as [number, number], // upper luffing block
+    lead: [fA + 0.42, yA + 0.68] as [number, number], // front of the hoist lead sheaves (rope leaves towards the boom)
     /** boom angle parked on its rest (the boom droops 7 deg) and the working range */
     luffRest: -7 * DEG,
     luffMin: 8 * DEG,

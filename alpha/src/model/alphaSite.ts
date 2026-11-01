@@ -177,7 +177,9 @@ export function extendAlpha(A: AlphaArrays, K: AlphaConsts) {
 
   const pwHdr = '4"-PW-9601-C3A-N'
   const hdrY = lineBy.get(pwHdr)!.route[1][1]
-  const pw1 = L('4"-PW-4101-C3A-N', 'water', 'producedWater', 4, orthoRoute([-11.3, hdrY, 1.25], N('X-4200', 'N1'), 4, N('X-4200', 'N1').pos[1], 'zx'), { line: pwHdr }, eqEnd('X-4200', 'N1'))
+  // over the escape aisle at head height, then down to the hydrocyclone inlet
+  const n42 = face('X-4200', 'N1')
+  const pw1 = L('4"-PW-4101-C3A-N', 'water', 'producedWater', 4, [[-11.3, hdrY, 1.25], [-11.3, 2.9, 1.25], [-11.3, 2.9, 5.2], [-11.3, n42[1], 5.2], [-11.3, n42[1], n42[2]], n42], { line: pwHdr }, eqEnd('X-4200', 'N1'))
   const pw2 = L('4"-PW-4102-C3A-N', 'water', 'producedWater', 4, orthoRoute(N('X-4200', 'N3'), N('V-4100', 'N1'), 4), eqEnd('X-4200', 'N3'), eqEnd('V-4100', 'N1'))
   const n3 = face('V-4100', 'N3')
   const sB = face('P-4300B', 'N1')

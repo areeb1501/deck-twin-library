@@ -92,7 +92,7 @@
       "PLET",
       "PLEM"
     ],
-    "notes": "A PLEM is the same idea with several hubs or a manifold header. Topsides pig traps and risers are separate items.",
+    "notes": "A PLEM is the same arrangement with several hubs or a manifold header. Topsides pig traps and risers are separate items.",
     "datasheet": {
       "form": "Subsea structure datasheet (API 17P / API 17D)",
       "fields": {
@@ -231,7 +231,7 @@
       "TR",
       "TX"
     ],
-    "notes": "Two circles = two-winding transformer; three circles = three-winding. ANSI drawings show two facing coils instead. Two circles in a P&ID instrument context are not used, so this symbol is almost always electrical.",
+    "notes": "Two circles = two-winding transformer; three circles = three-winding. ANSI drawings show two facing coils instead. Two circles are not used in a P&ID instrument context, so this symbol is almost always electrical.",
     "datasheet": {
       "form": "Transformer datasheet / rating plate (IEC 60076-1)",
       "fields": {
@@ -539,7 +539,7 @@
   "coriolis-flowmeter": {
     "symbol": "coriolis-flowmeter.svg",
     "standard": "ISA 5.1 (flow element + transmitter); no agreed ISA element shape for Coriolis",
-    "drawn": "Inline box on the line, often with a U or double-U loop drawn inside, joined to an FT / FIT bubble (integral transmitter). Frequently just a generic FE box with \"CORIOLIS\" or \"MASS\" written beside it.",
+    "drawn": "Inline box on the line, often with a U or double-U loop drawn inside, joined to an FT / FIT bubble (integral transmitter). Frequently only a generic FE box with \"CORIOLIS\" or \"MASS\" written beside it.",
     "tags": [
       "FE"
     ],
@@ -564,7 +564,7 @@
   "ultrasonic-flowmeter": {
     "symbol": "ultrasonic-flowmeter.svg",
     "standard": "ISA 5.1 (flow element + transmitter); ultrasonic element varies by legend",
-    "drawn": "Inline spool box with transducer marks on opposite sides and a diagonal acoustic path between them, joined to an FT bubble. Many legends just write \"USM\" or \"UFM\" beside a generic FE box.",
+    "drawn": "Inline spool box with transducer marks on opposite sides and a diagonal acoustic path between them, joined to an FT bubble. Many legends only write \"USM\" or \"UFM\" beside a generic FE box.",
     "tags": [
       "FE"
     ],
@@ -815,7 +815,7 @@
       "VI",
       "VSHH"
     ],
-    "notes": "V as the first letter is vibration (ISA 5.1). One vibration-probe per monitored bearing; pair for X-Y proximity probes, kind accelerometer for casing sensors. ZE on a machine is an axial position probe and maps here too. Voting such as 1oo2 between A and B means two sensors exist.",
+    "notes": "V as the first letter is vibration (ISA 5.1). Use one vibration-probe per monitored bearing; set pair for X-Y proximity probes and kind accelerometer for casing sensors. ZE on a machine is an axial position probe and maps to this component too. Voting such as 1oo2 between A and B means two sensors exist.",
     "datasheet": {
       "form": "Machinery protection system datasheet (API 670)",
       "fields": {
@@ -954,7 +954,7 @@
   "operator-chair": {
     "symbol": "operator-chair.svg",
     "standard": "Layout plan convention (architectural / control room layout, ISO 11064) (furniture)",
-    "drawn": "Plan view: a rounded seat square with a curved backrest and armrests, placed at a console or desk; often just a circle.",
+    "drawn": "Plan view: a rounded seat square with a curved backrest and armrests, placed at a console or desk; often only a circle.",
     "notes": "Furniture appears only on control room and office layouts.",
     "datasheet": {
       "form": "Furniture schedule (EN 1335, BS 5459-2 24-hour use)",
@@ -1026,7 +1026,7 @@
       "FACP",
       "FGP"
     ],
-    "notes": "An F&G or ESD mimic panel in the CCR; the logic itself lives in the system cabinets (system-cabinet).",
+    "notes": "An F&G or ESD mimic panel in the CCR; the logic itself is in the system cabinets (system-cabinet).",
     "datasheet": {
       "form": "Fire alarm control panel datasheet (EN 54-2 / IEC 61511)",
       "fields": {
@@ -1045,7 +1045,7 @@
     "tags": [
       "CR"
     ],
-    "notes": "The large dashed reach circle is the clue. A small post with a short jib and no reach study is a davit-crane. Not on P&IDs, except a diesel or hydraulic utility tie-in.",
+    "notes": "The large dashed reach circle identifies it. A small post with a short jib and no reach study is a davit-crane. Not on P&IDs, except a diesel or hydraulic utility tie-in.",
     "datasheet": {
       "form": "Offshore crane datasheet (API Spec 2C / EN 13852-1)",
       "fields": {
@@ -1061,7 +1061,7 @@
     "symbol": "shipping-container.svg",
     "standard": "Layout plan convention (lifting / materials-handling study)",
     "drawn": "Plan view: a rectangle at the ISO footprint (10, 20 or 40 ft) in a laydown area, often with a diagonal cross meaning \"laydown / temporary\", the door end marked by a thicker line, and its size written inside.",
-    "notes": "Laydown areas are rectangles with a cross or hatch; a container is one sized like an ISO box. Baskets are open and smaller; tote tanks are near-square.",
+    "notes": "Laydown areas are rectangles with a cross or hatch; a container is a rectangle sized to an ISO footprint. Baskets are open and smaller; tote tanks are near-square.",
     "datasheet": {
       "form": "Offshore container certificate / specification (DNV 2.7-1, ISO 668)",
       "fields": {
@@ -1076,7 +1076,7 @@
     "symbol": "cargo-basket.svg",
     "standard": "Layout plan convention (lifting / materials-handling study)",
     "drawn": "Elevation: an open-topped frame with mesh sides hanging from a four-leg sling set to a master link; in plan, a long rectangle in the laydown area.",
-    "notes": "Open top and mesh sides tell it from a closed container. Not on P&IDs.",
+    "notes": "Open top and mesh sides distinguish it from a closed container. Not on P&IDs.",
     "datasheet": {
       "form": "Offshore container certificate (DNV 2.7-1 / EN 12079-1)",
       "fields": {
@@ -1160,7 +1160,7 @@
     "symbol": "gas-cylinder-quad.svg",
     "standard": "Layout plan convention (lifting / materials-handling study) / P&ID (bottle rack)",
     "drawn": "Layout: a square frame filled with small circles (the cylinders). On P&IDs a bottle rack is drawn as one or more small capsules joined to a manifold with a regulator (PCV) on the outlet.",
-    "notes": "Nitrogen back-up racks and calibration gas bottles use the same drawing; read the gas. A nitrogen generator package is a separate item.",
+    "notes": "Nitrogen back-up racks and calibration gas bottles use the same drawing; read the gas name. A nitrogen generator package is a separate item.",
     "datasheet": {
       "form": "Cylinder bundle certificate (EN 12079-1 / ISO 10961)",
       "fields": {
@@ -1182,7 +1182,7 @@
       "XV",
       "ZS"
     ],
-    "notes": "Swivels plus the ERS mark tell it from a hose. Truck loading arms are smaller and drawn with the truck outline. ISA codes here: XV = ERS.",
+    "notes": "Swivels plus the ERS mark distinguish it from a hose. Truck loading arms are smaller and drawn with the truck outline. ISA codes here: XV = ERS.",
     "datasheet": {
       "form": "Marine loading arm datasheet (OCIMF / EN 1474)",
       "fields": {
@@ -1208,7 +1208,7 @@
       "FV",
       "XV"
     ],
-    "notes": "A meter run ending at a tanker outline is the clue. Marine loading uses articulated arms to a ship manifold instead.",
+    "notes": "A meter run ending at a tanker outline identifies it. Marine loading uses articulated arms to a ship manifold instead.",
     "datasheet": {
       "form": "Loading bay specification (API RP 1004 / EN 13083, API 2610)",
       "fields": {
@@ -1320,7 +1320,7 @@
     "tags": [
       "FNC"
     ],
-    "notes": "Only on site plans. The crosses tell it from a wall (solid double line) or a kerb.",
+    "notes": "Only on site plans. The crosses distinguish it from a wall (solid double line) or a curb.",
     "datasheet": {
       "form": "Fencing specification (BS 1722-10 / -12, ASTM F567)",
       "fields": {
@@ -1455,7 +1455,7 @@
   "gatehouse": {
     "symbol": "gatehouse.svg",
     "standard": "Layout plan convention (site plan)",
-    "drawn": "Site plan: a small hut rectangle on a kerbed island beside the lane, a boom barrier drawn as a thick line from a pivot across the lane, and lane direction arrows.",
+    "drawn": "Site plan: a small hut rectangle on a curbed island beside the lane, a boom barrier drawn as a thick line from a pivot across the lane, and lane direction arrows.",
     "tags": [
       "GH"
     ],
@@ -1511,7 +1511,7 @@
       "TT",
       "AT"
     ],
-    "notes": "Parallel identical runs between two headers are the signature. A single flowmeter in a line is an instrument, not a metering skid; a compact prover (X-R155 type) is a separate box connected by the prover loop. ISA codes here: AT = sampler / densitometer.",
+    "notes": "Parallel identical runs between two headers identify it. A single flowmeter in a line is an instrument, not a metering skid; a compact prover (X-R155 type) is a separate box connected by the prover loop. ISA codes here: AT = sampler / densitometer.",
     "datasheet": {
       "form": "Fiscal metering system datasheet (API MPMS Ch. 4 / 5, AGA 9 / ISO 17089-1)",
       "fields": {
@@ -1559,7 +1559,7 @@
       "A",
       "C"
     ],
-    "notes": "The reboiler with a fire-tube and a vertical still on top is the clue. The tall TEG contactor column itself is a separate item (column).",
+    "notes": "The reboiler with a fire-tube and a vertical still on top identifies it. The tall TEG contactor column itself is a separate item (column).",
     "datasheet": {
       "form": "Glycol regeneration package datasheet (API 12GDU)",
       "fields": {
@@ -1664,7 +1664,7 @@
   "compact-prover": {
     "symbol": "compact-prover.svg",
     "standard": "ISO 10628-2 / PIP PIC001 / API MPMS Ch. 4.2 prover convention",
-    "drawn": "A horizontal flow tube with a piston (displacer) drawn inside and two detector switches on top marking the calibrated volume, connected by a prover loop with valves to the metering skid; often just a box labelled \"prover\".",
+    "drawn": "A horizontal flow tube with a piston (displacer) drawn inside and two detector switches on top marking the calibrated volume, connected by a prover loop with valves to the metering skid; often only a box labelled \"prover\".",
     "tags": [
       "X",
       "A"
@@ -1744,7 +1744,7 @@
   "weld-neck-flange": {
     "symbol": "weld-neck-flange.svg",
     "standard": "ASME B16.5 flange types drawn in half-section (GA / isometric detail convention); on P&IDs every flange is a short bar",
-    "drawn": "In section: a flange disc with a long tapered hub narrowing to the pipe wall and a butt weld at the hub end. On P&IDs just a short bar across the line; on isometrics a bar with a weld dot.",
+    "drawn": "In section: a flange disc with a long tapered hub narrowing to the pipe wall and a butt weld at the hub end. On P&IDs only a short bar across the line; on isometrics a bar with a weld dot.",
     "tags": [
       "WN"
     ],
@@ -1861,7 +1861,7 @@
   "olet": {
     "symbol": "olet.svg",
     "standard": "ISO 10628-2 branch connection / MSS SP-97 (isometric detail)",
-    "drawn": "On P&IDs a branch is just a line meeting another line with a dot (like a tee); on isometrics a branch outlet is a small saddle-shaped boss on the run pipe with the branch rising from it, noted WOL, SOL, TOL, NOL, EOL or LOL.",
+    "drawn": "On P&IDs a branch is a line meeting another line with a dot (like a tee); on isometrics a branch outlet is a small saddle-shaped boss on the run pipe with the branch rising from it, noted WOL, SOL, TOL, NOL, EOL or LOL.",
     "tags": [
       "WOL",
       "SOL",
@@ -2092,7 +2092,7 @@
   "elbow": {
     "symbol": "elbow.svg",
     "standard": "ISO 6412 / isometric convention (fittings are not shown individually on P&IDs)",
-    "drawn": "On P&IDs a change of direction is just a corner in the line; elbows are only drawn on isometrics and GA drawings, as a bend or a corner with a short tick at each weld.",
+    "drawn": "On P&IDs a change of direction is a corner in the line; elbows are only drawn on isometrics and GA drawings, as a bend or a corner with a short tick at each weld.",
     "notes": "Take the angle and radius (LR / SR) from the isometric or the piping class, not the P&ID. Treat a P&ID corner as an elbow only when building a 3D route.",
     "datasheet": {
       "form": "Piping class / isometric bill of materials (ASME B16.9)",
@@ -2551,7 +2551,7 @@
     "tags": [
       "P"
     ],
-    "notes": "Many legends draw it as the normal centrifugal pump circle; the in-line nozzles and vertical motor are the clue when shown. Confirm OH3 / \"vertical in-line\" on the datasheet.",
+    "notes": "Many legends draw it as the normal centrifugal pump circle; the in-line nozzles and vertical motor identify it when shown. Confirm OH3 / \"vertical in-line\" on the datasheet.",
     "datasheet": {
       "form": "API 610 centrifugal pump datasheet (OH3)",
       "fields": {
@@ -2591,7 +2591,7 @@
     "tags": [
       "P"
     ],
-    "notes": "The diagonal arrow (variable stroke) and the small CI / MI line size tell it from a centrifugal pump. Several identical heads in a row inside a dashed box = a chemical-injection-skid.",
+    "notes": "The diagonal arrow (variable stroke) and the small CI / MI line size distinguish it from a centrifugal pump. Several identical heads in a row inside a dashed box = a chemical-injection-skid.",
     "datasheet": {
       "form": "API 675 controlled-volume pump datasheet",
       "fields": {
@@ -2956,7 +2956,7 @@
     "tags": [
       "FA"
     ],
-    "notes": "Only on safety equipment plans. The cross outline tells it from other cabinets.",
+    "notes": "Only on safety equipment plans. The cross outline distinguishes it from other cabinets.",
     "datasheet": {
       "form": "Safety equipment schedule (ISO 7010, EN 13976 stretchers)",
       "fields": {
@@ -3040,7 +3040,7 @@
       "BE",
       "BT"
     ],
-    "notes": "The cone of vision is the giveaway. A pair of symbols joined by a beam line is an open-path gas detector. ISA uses B (burner / combustion) for flame: BE / BT / BSH on some P&IDs.",
+    "notes": "The cone of vision identifies it. A pair of symbols joined by a beam line is an open-path gas detector. ISA uses B (burner / combustion) for flame: BE / BT / BSH on some P&IDs.",
     "datasheet": {
       "form": "Flame detector datasheet (EN 54-10 / FM 3260)",
       "fields": {
@@ -3065,7 +3065,7 @@
     "isa": [
       "AT"
     ],
-    "notes": "The beam line between a pair of symbols is the clue; a single symbol with a cone is a flame detector. Some legends draw an arrow from transmitter to receiver.",
+    "notes": "The beam line between a pair of symbols identifies it; a single symbol with a cone is a flame detector. Some legends draw an arrow from transmitter to receiver.",
     "datasheet": {
       "form": "Open-path gas detector datasheet (IEC 60079-29-4)",
       "fields": {
@@ -3216,7 +3216,7 @@
     "tags": [
       "EXT"
     ],
-    "notes": "Legends vary a lot; read the letters for the agent and capacity. Not shown on P&IDs.",
+    "notes": "Legends vary widely; read the letters for the agent and capacity. Not shown on P&IDs.",
     "datasheet": {
       "form": "Portable extinguisher schedule (EN 3-7 / NFPA 10)",
       "fields": {
@@ -3345,7 +3345,7 @@
   "stair": {
     "symbol": "stair.svg",
     "standard": "Layout plan convention (structural / plot plan drawings); ISO 14122-3",
-    "drawn": "Plan view: a rectangle filled with parallel tread lines and an arrow along it labelled UP (or DN), often with a break line half-way.",
+    "drawn": "Plan view: a rectangle filled with parallel tread lines and an arrow along it labelled UP (or DN), often with a break line halfway.",
     "notes": "Rungs at close spacing with a circle around them is a caged ladder seen in plan. Not on P&IDs."
   },
   "ladder": {
@@ -3591,7 +3591,7 @@
       "EA",
       "AC"
     ],
-    "notes": "The fan with its motor tells it from a shell-and-tube exchanger. The number of bays and fans is written beside it (e.g. 2 bays × 2 fans).",
+    "notes": "The fan with its motor distinguishes it from a shell-and-tube exchanger. The number of bays and fans is written beside it (e.g. 2 bays × 2 fans).",
     "datasheet": {
       "form": "API 661 / ISO 13706 air-cooled heat exchanger datasheet",
       "fields": {
@@ -3697,7 +3697,7 @@
     "tags": [
       "VS"
     ],
-    "notes": "No flame symbol: a cold vent. An open-ended small-bore line ending in a goose-neck or \"TO ATM\" is just a vent connection, not a stack.",
+    "notes": "No flame symbol: a cold vent. An open-ended small-bore line ending in a goose-neck or \"TO ATM\" is a vent connection, not a stack.",
     "datasheet": {
       "form": "Vent stack datasheet (API 521 dispersion, ISO 16852 flame arrester)",
       "fields": {
@@ -3718,7 +3718,7 @@
       "H",
       "EH"
     ],
-    "notes": "The zig-zag element plus a terminal box tells it from a shell-and-tube exchanger. On P&IDs a TIC with a TY / thyristor box and a high-temperature trip (TSHH on the element) usually accompanies it.",
+    "notes": "The zig-zag element plus a terminal box distinguishes it from a shell-and-tube exchanger. On P&IDs a TIC with a TY / thyristor box and a high-temperature trip (TSHH on the element) usually accompanies it.",
     "datasheet": {
       "form": "Electric process heater datasheet (IEC 60079-7 / ASME VIII-1)",
       "fields": {
@@ -3739,7 +3739,7 @@
       "E",
       "HX"
     ],
-    "notes": "The U-shaped double-pipe outline tells it from a shell-and-tube (single shell with a channel). Stacked hairpins in series are drawn as several hairpins joined by short lines.",
+    "notes": "The U-shaped double-pipe outline distinguishes it from a shell-and-tube (single shell with a channel). Stacked hairpins in series are drawn as several hairpins joined by short lines.",
     "datasheet": {
       "form": "Double-pipe exchanger datasheet (TEMA / ASME VIII-1)",
       "fields": {
@@ -3782,7 +3782,7 @@
       "CT",
       "E"
     ],
-    "notes": "The fan on top plus fill and basin tell it from an air-cooled exchanger (tube bundle, no water basin). Onshore only.",
+    "notes": "The fan on top plus fill and basin distinguish it from an air-cooled exchanger (tube bundle, no water basin). Onshore only.",
     "datasheet": {
       "form": "Cooling tower datasheet (CTI STD-201 / ATC-105)",
       "fields": {
@@ -3876,7 +3876,7 @@
       "ZSO",
       "ZSC"
     ],
-    "notes": "Tell it from an ESDV by the FO mark, the flare (FL / BD) line it sits on and the BDV tag. The restriction orifice downstream is drawn as a pair of short bars across the line (like an orifice plate) tagged RO.",
+    "notes": "Distinguish it from an ESDV by the FO mark, the flare (FL / BD) line it sits on and the BDV tag. The restriction orifice downstream is drawn as a pair of short bars across the line (like an orifice plate) tagged RO.",
     "datasheet": {
       "form": "Blowdown valve datasheet (API 6D + actuator sheet, API 521 depressuring case)",
       "fields": {
@@ -3931,7 +3931,7 @@
       "TSV",
       "PSE"
     ],
-    "notes": "The spring zig-zag tells it from a check valve or a plain angle valve. A rupture disc (PSE) is drawn as a curved disc between flanges with no spring. Size code like 3K4 means 3\" inlet, K orifice, 4\" outlet. The outlet line goes to the flare header (FL / RV) or to atmosphere; on a pilot-operated PSV a small pilot box is drawn beside the spring. ISA codes here: PSE = rupture disc.",
+    "notes": "The spring zig-zag distinguishes it from a check valve or a plain angle valve. A rupture disc (PSE) is drawn as a curved disc between flanges with no spring. A size code such as 3K4 means 3\" inlet, K orifice, 4\" outlet. The outlet line goes to the flare header (FL / RV) or to atmosphere; on a pilot-operated PSV a small pilot box is drawn beside the spring. ISA codes here: PSE = rupture disc.",
     "datasheet": {
       "form": "Pressure relief valve datasheet (API 526 / API 520, ISA-TR20.00.01 form)",
       "fields": {
@@ -3985,7 +3985,7 @@
   "dual-plate-check-valve": {
     "symbol": "dual-plate-check-valve.svg",
     "standard": "ISO 14617-8 non-return symbol / PIP PIC001",
-    "drawn": "Non-return symbol (a triangle pointing at a bar across the line) squeezed between two flange marks, because the wafer body sits between the pipe flanges. Many legends just use the general check-valve bow-tie with one half filled.",
+    "drawn": "Non-return symbol (a triangle pointing at a bar across the line) squeezed between two flange marks, because the wafer body sits between the pipe flanges. Many legends use the general check-valve bow-tie with one half filled.",
     "tags": [
       "CHV",
       "NRV"
@@ -4205,7 +4205,7 @@
       "F",
       "S"
     ],
-    "notes": "The second barrel underneath and the filter elements tell it from a horizontal separator. A vertical housing with cartridges is a cartridge-filter.",
+    "notes": "The second barrel underneath and the filter elements distinguish it from a horizontal separator. A vertical housing with cartridges is a cartridge-filter.",
     "datasheet": {
       "form": "Filter-separator datasheet (ASME VIII-1; API 12J)",
       "fields": {
@@ -4454,7 +4454,7 @@
       "FV",
       "PV"
     ],
-    "notes": "The diagonal arrow = variable choke. An angle body with a spring is a PSV, not a choke. A globe control valve with a dome actuator can also do choking duty; then it is control-valve.",
+    "notes": "The diagonal arrow = variable choke. An angle body with a spring is a PSV, not a choke. A globe control valve with a dome actuator can also do choking duty; then it maps to the control-valve component.",
     "datasheet": {
       "form": "Choke valve datasheet (API 6A)",
       "fields": {
@@ -4474,7 +4474,7 @@
       "M",
       "MF"
     ],
-    "notes": "The repeating slot pattern (one inlet, one valve per header) is the signature. A single header with branches is just a header pipe. Test header size is usually smaller; HP / LP headers may both be present.",
+    "notes": "The repeating slot pattern (one inlet, one valve per header) identifies it. A single header with branches is a plain header pipe. Test header size is usually smaller; HP / LP headers may both be present.",
     "datasheet": {
       "form": "Manifold datasheet (ASME B31.3, API 6D valves)",
       "fields": {
@@ -4491,7 +4491,7 @@
   "pig-launcher": {
     "symbol": "pig-launcher.svg",
     "standard": "ISO 10628-2 / PIP PIC001 / API 6D pig trap convention",
-    "drawn": "An oversized barrel with a quick-opening closure (thick bar) at one end, a reducer to the pipeline size, the trap (isolation) valve on the pipeline, and a kicker (or bypass) line from the barrel round the trap valve; a pig signaller (XI / ZS) on the line. Receivers are drawn the same way, mirrored.",
+    "drawn": "An oversized barrel with a quick-opening closure (thick bar) at one end, a reducer to the pipeline size, the trap (isolation) valve on the pipeline, and a kicker (or bypass) line from the barrel around the trap valve; a pig signaller (XI / ZS) on the line. Receivers are drawn the same way, mirrored.",
     "tags": [
       "L",
       "PL",
@@ -4502,7 +4502,7 @@
       "ZS",
       "PI"
     ],
-    "notes": "The closure plus reducer plus kicker line is unmistakable. A plain horizontal capsule is a vessel. Launcher or receiver is decided by flow direction.",
+    "notes": "The closure, reducer and kicker line together identify it unambiguously. A plain horizontal capsule is a vessel. Launcher or receiver is decided by flow direction.",
     "datasheet": {
       "form": "Pig trap datasheet (ASME VIII-1 / ASME B31.4 / B31.8)",
       "fields": {

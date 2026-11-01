@@ -1,18 +1,22 @@
 /**
- * Training scenarios console page: library (filters, best scores, attempt history) → briefing with
- * Start → running panel (live objectives checklist, elapsed time, CCR / field actions, field reports,
+ * Training scenarios console page: library (filters, best scores, attempt history, saved custom scenarios)
+ * → briefing with Start → running panel (live objectives checklist, elapsed time, CCR / field actions, field reports,
  * hints that cost points, Abort) → debrief (score breakdown, timeline of plant events vs what the
  * operator did vs what was expected, what went well / to improve, KPIs before and after).
- * Logic and scoring live in sim/scenarios.ts and sim/scen/*.
+ * Logic and scoring live in sim/scenarios.ts and sim/scen/*. Building a scenario with a model is ScenarioAuthor.tsx.
  */
 import { Fragment, useMemo, useState } from 'react'
 import { usePlant } from '../../state/plantStore'
-import { SCENARIOS, SCENARIO_BY_ID, unavailable, useScenario, type Attempt, type LiveView, type Scenario } from '../../sim/scenarios'
+import { SCENARIOS, scenarioById, unavailable, useScenario, type Attempt, type LiveView, type Scenario } from '../../sim/scenarios'
+import { NextActions } from './ResponsePage'
+import { useAuthor } from '../../agents/scenarioAuthor'
+import { useCustom } from '../../sim/scen/custom'
 import { DIFFICULTY_LABEL, type Difficulty, type ObjStatus } from '../../sim/scen/types'
 import { fmtEl } from '../../sim/scen/helpers'
 import { WEIGHTS, HINT_COST } from '../../sim/scen/scoring'
 import { LOSS_LABEL, type LossCategory } from '../../sim/types'
 import { Box, Kpi, Msg } from './common'
+import { ScenarioAuthor } from './ScenarioAuthor'
 import { call, fmt, useS } from './simApi'
 import './scenarios.css'
 
@@ -21,8 +25,9 @@ export function ScenariosPage() {
   const view = useScenario((s) => s.view)
   const history = useScenario((s) => s.history)
   if (live) return <Running live={live} />
+  if (view.kind === 'author') return <ScenarioAuthor />
   if (view.kind === 'brief') {
-    const sc = SCENARIO_BY_ID[view.id]
+    const sc = scenarioById(view.id)
     if (sc) return <Briefing sc={sc} />
   }
   if (view.kind === 'debrief') {
@@ -46,8 +51,10 @@ function Library() {
   const [q, setQ] = useState('')
   const [hideNa, setHideNa] = useState(false)
   const [armClear, setArmClear] = useState(false)
-  const cats = useMemo(() => [...new Set(SCENARIOS.map((s) => s.category))], [])
-  const plats = useMemo(() => [...new Set(SCENARIOS.flatMap((s) => s.platforms))], [])
+  const compiled = useCustom((s) => s.compiled)
+  const all = useMemo(() => [...Object.values(compiled), ...SCENARIOS], [compiled])
+  const cats = useMemo(() => [...new Set(all.map((s) => s.category))], [all])
+  const plats = useMemo(() => [...new Set(all.flatMap((s) => s.platforms))], [all])
   const best = useMemo(() => {
     const m: Record<string, { best: number; n: number; pass: boolean }> = {}
     for (const a of history) {
@@ -58,7 +65,7 @@ function Library() {
     }
     return m
   }, [history])
-  const list = SCENARIOS.filter((s) => {
+  const list = all.filter((s) => {
     if (diff !== 'all' && s.difficulty !== diff) return false
     if (cat !== 'all' && s.category !== cat) return false
     if (plat !== 'all' && !s.platforms.includes(plat)) return false
@@ -106,6 +113,10 @@ function Library() {
         <label>
           <input type="checkbox" checked={hideNa} onChange={(e) => setHideNa(e.target.checked)} /> hide unavailable
         </label>
+        <span className="grow" />
+        <button className="on" onClick={() => setView({ kind: 'author' })} data-scn="author">
+          Build with AI
+        </button>
       </div>
       <div className="scn-grid" data-scn="library">
         {list.map((s) => {
@@ -114,7 +125,7 @@ function Library() {
           return (
             <button key={s.id} className={`scn-card ${na ? 'na' : ''}`} onClick={() => setView({ kind: 'brief', id: s.id })} data-scn-card={s.id}>
               <div className="scn-card-h">
-                <span className="scn-n mono">{String(s.n).padStart(2, '0')}</span>
+                <span className="scn-n mono">{s.n ? String(s.n).padStart(2, '0') : 'AI'}</span>
                 <b>{s.title}</b>
               </div>
               <div className="scn-tags">
@@ -199,16 +210,43 @@ function Briefing({ sc }: { sc: Scenario }) {
   const na = unavailable(sc, plant)
   const [msg, setMsg] = useState<string | null>(null)
   const go = (speed: number) => setMsg(useScenario.getState().start(sc.id, speed))
+  const custom = useCustom((s) => s.items.find((x) => x.id === sc.id))
+  const [armDelete, setArmDelete] = useState(false)
   return (
     <div className="h-grid scn" data-scn="brief">
       <div className="h-row">
         <button onClick={() => setView({ kind: 'library' })}>← Library</button>
-        <span className="scn-n mono">{String(sc.n).padStart(2, '0')}</span>
+        <span className="scn-n mono">{sc.n ? String(sc.n).padStart(2, '0') : 'AI'}</span>
         <h2 className="scn-title">{sc.title}</h2>
         <span className={`scn-diff ${sc.difficulty}`}>{DIFFICULTY_LABEL[sc.difficulty]}</span>
         <span className="chip">{sc.category}</span>
+        {custom && (
+          <>
+            <span className="grow" />
+            <button onClick={() => (useAuthor.getState().edit(sc.id), setView({ kind: 'author' }))} data-scn="edit">
+              Change in chat
+            </button>
+            {armDelete ? (
+              <>
+                <button className="danger armed" onClick={() => (useCustom.getState().remove(sc.id), setView({ kind: 'library' }))} data-scn="delete-confirm">
+                  Confirm delete
+                </button>
+                <button onClick={() => setArmDelete(false)}>Cancel</button>
+              </>
+            ) : (
+              <button className="danger" onClick={() => setArmDelete(true)} data-scn="delete">
+                Delete…
+              </button>
+            )}
+          </>
+        )}
       </div>
       <p className="scn-lead">{sc.summary}</p>
+      {custom && (
+        <p className="h-note" data-scn="ai-note">
+          Written by {custom.model} and kept in this browser. It was checked against this plant's tags and run once with nobody at the console, but no engineer has reviewed it, and the ideal response below is the model's estimate, not a calibrated figure.
+        </p>
+      )}
       <div className="scn-brief">
         <Box title="Shift handover: initial conditions">
           <ul className="scn-ul">
@@ -244,7 +282,7 @@ function Briefing({ sc }: { sc: Scenario }) {
             <span>Each hint</span>
             <span>−{HINT_COST}</span>
             <span>Ideal response</span>
-            <span>{sc.ideal.deferredBoe.toLocaleString()} boe deferred</span>
+            <span>{sc.ideal.deferredBoe.toLocaleString()} boe deferred{custom ? ' (estimate)' : ''}</span>
             <span>Max duration</span>
             <span>{fmtMin(sc.maxDuration)} sim</span>
           </div>
@@ -364,6 +402,7 @@ function Running({ live }: { live: LiveView }) {
               </ul>
             )}
           </Box>
+          <NextActions />
           <LivePlant />
           <Box
             title={`Hints: ${live.hints.length}/${live.hintCount}`}
@@ -451,7 +490,7 @@ const CAT_LABEL: [keyof Attempt['breakdown'], string, number][] = [
 const LANE_LABEL = { plant: 'Plant & alarms', operator: 'Operator', expected: 'Expected' } as const
 
 function Debrief({ a }: { a: Attempt }) {
-  const sc = SCENARIO_BY_ID[a.scenarioId]
+  const sc = scenarioById(a.scenarioId)
   const [all, setAll] = useState(false)
   const rows = all ? a.timeline : a.timeline.filter((r) => r.lane !== 'plant' || r.level === 'trip' || r.level === 'bad' || r.level === 'warn')
   const [msg, setMsg] = useState<string | null>(null)

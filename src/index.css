@@ -1,23 +1,22 @@
 @import 'tailwindcss';
-@import '@fontsource-variable/inter';
 @import '@fontsource/ibm-plex-mono/400.css';
 @import '@fontsource/ibm-plex-mono/500.css';
 
 @source not "../alpha";
 
-/* Inter's optical-size cut, kept under its own name: only the top nav loads it. */
 @font-face {
-  font-family: 'Inter Display';
-  src: url('../node_modules/@fontsource-variable/inter/files/inter-latin-opsz-normal.woff2') format('woff2');
+  font-family: 'Switzer';
+  src: url('./fonts/Switzer-Variable.woff2') format('woff2');
   font-weight: 100 900;
+  font-style: normal;
   font-display: swap;
 }
 
-/* Site theme: dark by default (near-black ground, frosted glass); html.light swaps the same tokens for a crisp near-white set. .dark-zone keeps a region dark in either theme. */
+/* Site theme: dark by default (near-black ground, flat surfaces); html.light swaps the same tokens for a crisp near-white set. .dark-zone keeps a region dark in either theme. */
 @custom-variant light (&:where(.light, .light *));
 
 @theme inline {
-  --font-sans: 'Inter Variable', ui-sans-serif, system-ui, sans-serif;
+  --font-sans: 'Switzer', ui-sans-serif, system-ui, sans-serif;
   --font-mono: 'IBM Plex Mono', ui-monospace, monospace;
   --color-bg: var(--bg);
   --color-fg: var(--fg);
@@ -85,23 +84,7 @@
   --warn-tint: rgb(251 191 36 / 0.1);
   --err: #fca5a5;
   --err-tint: rgb(248 113 113 / 0.1);
-  --sheen: linear-gradient(180deg, rgb(255 255 255 / 0.04), transparent 55%);
-  --surface-shadow: inset 0 1px 0 rgb(255 255 255 / 0.05);
-  --glass-bg: linear-gradient(180deg, rgb(255 255 255 / 0.07), rgb(255 255 255 / 0.02));
-  --glass-shadow: inset 0 1px 0 rgb(255 255 255 / 0.08), 0 24px 60px -30px rgb(0 0 0 / 0.8);
-  --head-grad: linear-gradient(180deg, #ffffff 30%, #9d9da8);
-  --nav-bg: linear-gradient(180deg, #16171d, #0f1014);
-  --nav-shadow: inset 0 1px 0 rgb(255 255 255 / 0.05), 0 1px 0 rgb(255 255 255 / 0.08), 0 14px 30px -26px rgb(0 0 0 / 0.9);
-  --nav-gloss: linear-gradient(180deg, #d9d9e1 15%, #a9a9b5 90%);
-  --nav-gloss-strong: linear-gradient(180deg, #ffffff 18%, #e6e6ec 48%, #a4a4b1 62%, #d5d5de 100%);
-  --nav-pill: linear-gradient(180deg, rgb(255 255 255 / 0.13), rgb(255 255 255 / 0.04));
-  --nav-pill-shadow: inset 0 1px 0 rgb(255 255 255 / 0.2), inset 0 -1px 0 rgb(0 0 0 / 0.3), 0 1px 2px rgb(0 0 0 / 0.5), 0 7px 16px -12px rgb(254 85 16 / 0.7);
-  --nav-cta: linear-gradient(180deg, #ffffff, #d4d4dc);
-  --nav-cta-shadow: inset 0 1px 0 #ffffff, inset 0 -1px 0 rgb(0 0 0 / 0.14), 0 1px 2px rgb(0 0 0 / 0.5);
   --sym-filter: invert(0.9) hue-rotate(180deg);
-  --grain-img: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 0.6 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-  --grain-opacity: 0.16;
-  --grain-blend: overlay;
   --sh-class: #a5b4fc;
   --sh-identifier: #e4e4e7;
   --sh-sign: #71717a;
@@ -144,23 +127,7 @@ html.light {
   --warn-tint: rgb(245 158 11 / 0.12);
   --err: #b91c1c;
   --err-tint: rgb(239 68 68 / 0.09);
-  --sheen: none;
-  --surface-shadow: 0 1px 2px rgb(16 18 27 / 0.05);
-  --glass-bg: linear-gradient(180deg, rgb(255 255 255 / 0.88), rgb(255 255 255 / 0.62));
-  --glass-shadow: inset 0 1px 0 #ffffff, 0 1px 2px rgb(16 18 27 / 0.05), 0 24px 56px -34px rgb(16 18 27 / 0.18);
-  --head-grad: linear-gradient(180deg, #0f1015 35%, #5d5e6a);
-  --nav-bg: linear-gradient(180deg, #ffffff, #f8f8fa);
-  --nav-shadow: 0 1px 0 rgb(16 18 27 / 0.09), 0 12px 26px -24px rgb(16 18 27 / 0.3);
-  --nav-gloss: linear-gradient(180deg, #4b4c58 15%, #2f303a 90%);
-  --nav-gloss-strong: linear-gradient(180deg, #34353f 10%, #0f1015 55%, #3c3d48 100%);
-  --nav-pill: linear-gradient(180deg, #ffffff, #efeff3);
-  --nav-pill-shadow: inset 0 1px 0 #ffffff, inset 0 -1px 0 rgb(16 18 27 / 0.06), 0 0 0 0.5px rgb(16 18 27 / 0.1), 0 1px 3px rgb(16 18 27 / 0.12);
-  --nav-cta: linear-gradient(180deg, #34353f, #0f1015);
-  --nav-cta-shadow: inset 0 1px 0 rgb(255 255 255 / 0.22), 0 1px 2px rgb(16 18 27 / 0.3);
   --sym-filter: none;
-  --grain-img: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.55 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-  --grain-opacity: 0.1;
-  --grain-blend: multiply;
   --sh-class: #3b46cf;
   --sh-identifier: #1f2029;
   --sh-sign: #7a7b86;
@@ -179,6 +146,7 @@ body,
 }
 body {
   @apply bg-bg text-fg font-sans antialiased;
+  font-size: 15px;
 }
 ::selection {
   background: rgb(254 85 16 / 0.35);
@@ -196,102 +164,94 @@ body {
     outline-offset: 2px;
   }
 }
-h1,
-h2,
-h3 {
-  letter-spacing: -0.025em;
+/* One type system. Switzer everywhere. Weights: 400 for text, 500 for interface, 600 for headings and titles. Sizes: 13, 15, 17, 20, 24, then headings. Monospace is for code, at 13. */
+@layer base {
+  h1,
+  h2,
+  h3 {
+    font-weight: 600;
+    letter-spacing: -0.02em;
+  }
 }
 
-/* Glass: every surface card gets a faint top sheen and an inner highlight; .glass adds the frosted blur. */
-.bg-surface {
-  background-image: var(--sheen);
-  box-shadow: var(--surface-shadow);
-}
-.glass {
-  background: var(--glass-bg);
-  -webkit-backdrop-filter: blur(18px) saturate(1.35);
-  backdrop-filter: blur(18px) saturate(1.35);
-  box-shadow: var(--glass-shadow);
-}
-/* Headings: white fading to grey on dark, ink fading to grey on light. */
-.head-grad {
-  background: var(--head-grad);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-}
 /* P&ID symbols are black line drawings: inverted on dark, as drawn on light. */
 .sym {
   filter: var(--sym-filter);
 }
 
-/* Top nav: Inter's display cut with a polished-metal gradient, and a raised pill on the current page. No blur or blend effects: this header also sits on the docs routes. */
+/* Top nav: flat, on the page's own ground. The current page carries the orange process line along the bar's edge. */
 .site-header {
-  background: var(--nav-bg);
-  box-shadow: var(--nav-shadow);
+  background: var(--bg);
+  box-shadow: 0 1px 0 var(--border);
+  transition: background-color 0.2s ease-out, box-shadow 0.2s ease-out;
 }
-.nav-wordmark,
-.nav-text {
-  font-family: 'Inter Display', var(--font-sans);
-  font-variation-settings: 'opsz' 32;
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
+/* At the top of the home page the bar is part of the orange sheet, the same in both themes. */
+.site-header[data-on-sheet] {
+  --bg: var(--color-signal);
+  --ink: #0f1015;
+  --ink-2: #2b2c34;
+  --on-ink: #ffffff;
+  --fg-3: #0f1015;
+  --muted-fg: #0f1015;
+  --muted: rgb(15 16 21 / 0.07);
+  --hover: rgb(15 16 21 / 0.1);
+  --border: rgb(15 16 21 / 0.28);
+  --line-strong: rgb(15 16 21 / 0.5);
+  box-shadow: none;
+}
+.site-header[data-on-sheet] .logo-mark {
+  fill: #0f1015;
+}
+.site-header[data-on-sheet] .nav-link[aria-current='page'] {
+  box-shadow: inset 0 -2px 0 #0f1015;
 }
 .nav-wordmark {
-  background-image: var(--nav-gloss-strong);
-  font-size: 16px;
-  font-weight: 650;
-  letter-spacing: -0.022em;
+  color: var(--ink);
+  font-size: 17px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
   line-height: 1.3;
 }
 .nav-text {
-  background-image: var(--nav-gloss);
-  font-size: 14px;
-  font-weight: 540;
-  letter-spacing: -0.008em;
+  color: var(--fg-3);
+  font-size: 15px;
+  font-weight: 500;
   line-height: 1.3;
+  transition: color 0.15s ease-out;
 }
 .nav-link {
-  border-radius: 9px;
-  padding: 6px 11px;
+  display: flex;
+  align-items: center;
+  padding: 0 11px;
   white-space: nowrap;
-  transition: background-color 0.15s, box-shadow 0.15s;
-}
-.nav-link:hover {
-  background-color: var(--muted);
 }
 .nav-link:hover .nav-text,
 .nav-link[aria-current='page'] .nav-text {
-  background-image: var(--nav-gloss-strong);
+  color: var(--ink);
 }
 .nav-link[aria-current='page'] {
-  background: var(--nav-pill);
-  box-shadow: var(--nav-pill-shadow);
+  box-shadow: inset 0 -2px 0 var(--color-signal);
 }
 .nav-cta {
-  background: var(--nav-cta);
-  box-shadow: var(--nav-cta-shadow);
+  background: var(--ink);
   color: var(--on-ink);
-  transition: filter 0.15s;
+  transition: background-color 0.15s ease-out, transform 0.12s ease-out;
 }
 .nav-cta:hover {
-  filter: brightness(1.08);
+  background: var(--ink-2);
 }
-.logo-gloss {
-  position: relative;
-  display: block;
-  border-radius: 6px;
-  box-shadow: 0 1px 2px rgb(0 0 0 / 0.35), 0 5px 14px -5px rgb(254 85 16 / 0.65);
+.nav-cta:active {
+  transform: scale(0.98);
 }
-.logo-gloss::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  background: linear-gradient(180deg, rgb(255 255 255 / 0.36), transparent 52%);
-  box-shadow: inset 0 0 0 0.5px rgb(255 255 255 / 0.25);
-  pointer-events: none;
+.nav-cta.line {
+  background: none;
+  box-shadow: inset 0 0 0 1px var(--line-strong);
+  color: var(--ink);
+}
+.nav-cta.line:hover {
+  background: var(--ink);
+  box-shadow: none;
+  color: var(--on-ink);
 }
 
 :root:not(.light) .code-dark {
@@ -307,14 +267,18 @@ h3 {
 }
 
 .prose-docs {
-  @apply text-[16.5px] leading-[1.75] text-fg-2;
+  @apply text-[17px] leading-[1.7] text-fg-2;
+}
+.prose-docs h1,
+.prose-docs h2 {
+  font-weight: 600;
+  letter-spacing: -0.02em;
 }
 .prose-docs h1 {
-  @apply text-[36px] leading-tight font-semibold text-ink mb-4;
-  letter-spacing: -0.035em;
+  @apply text-[40px] leading-tight text-ink mb-4;
 }
 .prose-docs h2 {
-  @apply text-[23px] font-semibold text-ink mt-14 mb-3;
+  @apply text-[24px] text-ink mt-14 mb-3;
 }
 .prose-docs :is(h2, h3) {
   scroll-margin-top: calc(var(--header-h, 0px) + 24px);
@@ -372,61 +336,224 @@ h3 {
   @apply font-semibold text-fg;
 }
 
-/* Footer: the hero's light, turned down. */
-.footer-light {
-  background:
-    radial-gradient(55% 80% at 15% 0%, rgb(59 70 207 / 0.38), transparent 70%),
-    radial-gradient(40% 70% at 95% 10%, rgb(254 85 16 / 0.16), transparent 70%);
+/* The orange drawing sheet: it opens the home page and closes every marketing page, the same in both themes. */
+.display {
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 1;
+  text-wrap: balance;
 }
-html.light .footer-light {
-  background:
-    radial-gradient(55% 80% at 15% 0%, rgb(59 70 207 / 0.12), transparent 70%),
-    radial-gradient(40% 70% at 95% 10%, rgb(254 85 16 / 0.1), transparent 70%);
+.sheet {
+  --ink-on: #0f1015;
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  background: var(--color-signal);
+  color: var(--ink-on);
 }
-
-/* Home hero: a grainy gradient of signal orange and deep indigo light under a white-to-grey headline. Static, so the
-   full orange-to-indigo blend shows from the first frame. */
-.hero-grain {
-  background:
-    radial-gradient(60% 55% at 50% -8%, rgb(254 85 16 / 0.42), transparent 70%),
-    radial-gradient(45% 50% at 88% 62%, rgb(59 70 207 / 0.5), transparent 72%),
-    radial-gradient(40% 45% at 8% 72%, rgb(59 70 207 / 0.3), transparent 70%),
-    radial-gradient(35% 30% at 30% 30%, rgb(254 120 60 / 0.14), transparent 70%),
-    var(--bg);
+.sheet ::selection {
+  background: var(--ink-on);
+  color: var(--color-signal);
 }
-.grain {
-  background-image: var(--grain-img);
-  background-size: 240px 240px;
-  opacity: var(--grain-opacity);
-  mix-blend-mode: var(--grain-blend);
+.sheet :focus-visible {
+  outline-color: var(--ink-on);
 }
-.hero-ink {
-  background: linear-gradient(100deg, #ff8a4c 0%, #fe5510 35%, #f2683a 62%, #b47fc4 82%, #8f97ff 100%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
+.sheet-stage {
+  position: absolute;
+  inset: 0 0 0 38%;
+  z-index: -1;
 }
-html.light .hero-grain {
-  background:
-    radial-gradient(60% 55% at 50% -8%, rgb(254 85 16 / 0.26), transparent 70%),
-    radial-gradient(45% 50% at 88% 62%, rgb(59 70 207 / 0.2), transparent 72%),
-    radial-gradient(40% 45% at 8% 72%, rgb(59 70 207 / 0.13), transparent 70%),
-    radial-gradient(35% 30% at 30% 30%, rgb(254 120 60 / 0.12), transparent 70%),
-    var(--bg);
+.sheet-plan {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  transition: opacity 0.7s ease-out 0.45s;
 }
-html.light .hero-ink {
-  background-image: linear-gradient(100deg, #f0601f 0%, #e5470a 35%, #ee5a2a 62%, #9a5cbc 82%, #4c56dc 100%);
+.sheet-canvas {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transition: opacity 0.3s ease-out;
 }
-/* "Built for agents" band: the same light, turned down and flipped. */
-.agents-band {
-  background:
-    radial-gradient(50% 70% at 0% 0%, rgb(59 70 207 / 0.35), transparent 70%),
-    radial-gradient(40% 60% at 100% 100%, rgb(254 85 16 / 0.18), transparent 70%),
-    var(--deep);
+.sheet[data-plant='ready'] .sheet-canvas,
+.sheet[data-plant='stood'] .sheet-canvas {
+  opacity: 1;
 }
-html.light .agents-band {
-  background:
-    radial-gradient(50% 70% at 0% 0%, rgb(59 70 207 / 0.12), transparent 70%),
-    radial-gradient(40% 60% at 100% 100%, rgb(254 85 16 / 0.12), transparent 70%),
-    var(--deep);
+.sheet[data-plant='ready'] .sheet-plan,
+.sheet[data-plant='stood'] .sheet-plan {
+  opacity: 0;
+}
+.sheet[data-plant='stood'] .sheet-stage {
+  cursor: grab;
+}
+.sheet[data-plant='stood'] .sheet-stage:active {
+  cursor: grabbing;
+}
+.plan-tag,
+.plan-end {
+  fill: currentColor;
+  font-family: var(--font-sans);
+  font-size: 1px;
+  font-weight: 600;
+}
+.plan-end {
+  font-weight: 400;
+}
+.sheet-btn {
+  display: inline-flex;
+  align-items: center;
+  height: 44px;
+  padding: 0 20px;
+  border-radius: 6px;
+  font-size: 15px;
+  font-weight: 500;
+  transition: background-color 0.15s ease-out, color 0.15s ease-out, transform 0.12s ease-out;
+}
+.sheet-btn:active {
+  transform: scale(0.98);
+}
+.sheet-btn.solid {
+  background: var(--ink-on);
+  color: #fff;
+}
+.sheet-btn.solid:hover {
+  background: #2b2c34;
+}
+.sheet-btn.line {
+  box-shadow: inset 0 0 0 1.5px var(--ink-on);
+}
+.sheet-btn.line:hover {
+  background: var(--ink-on);
+  color: #fff;
+}
+/* The drawing's title block: every sheet carries one, in its lower corner. */
+.title-block {
+  display: grid;
+  grid-template-columns: minmax(0, auto) auto;
+  max-width: 100%;
+  font-size: 13px;
+  line-height: 1.3;
+  box-shadow: inset 0 0 0 1.5px var(--ink-on);
+}
+.title-block > * {
+  padding: 9px 14px;
+}
+.title-block > * + * {
+  box-shadow: -1.5px 0 0 var(--ink-on);
+}
+.title-block a {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.title-block a:hover {
+  background: var(--ink-on);
+  color: #fff;
+}
+/* The process line: one orange run through the steps, with a pair of flange faces at each. */
+.run {
+  position: relative;
+}
+.run::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 0;
+  height: 2px;
+  background: var(--color-signal);
+  transform-origin: left;
+}
+.run-stop {
+  position: relative;
+}
+.run-stop::before {
+  content: '';
+  position: absolute;
+  top: -8px;
+  left: 0;
+  width: 7px;
+  height: 18px;
+  border-inline: 2px solid var(--color-signal);
+  background: var(--bg);
+}
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .run::before {
+      animation: run-draw linear both;
+      animation-timeline: view();
+      animation-range: entry 20% cover 45%;
+    }
+  }
+}
+@keyframes run-draw {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+/* Home below the sheet: every section is built the same way, heading left and sentence right, then its content on the same columns. These four values are the page's only spacing. */
+.home {
+  --chapter: clamp(80px, 9vw, 128px);
+  --lead: clamp(40px, 4vw, 56px);
+  --row: 56px;
+  --col: 32px;
+}
+.home-block {
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: var(--chapter) 1.5rem 0;
+}
+.home-block:last-child {
+  padding-bottom: var(--chapter);
+}
+.home-lead,
+.home-columns {
+  display: grid;
+  grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+  gap: var(--col);
+}
+.home-lead {
+  gap: 16px var(--col);
+  align-items: first baseline;
+}
+.home-lead h2 {
+  font-size: clamp(32px, 3.6vw, 52px);
+  line-height: 1.06;
+}
+.home-lead p {
+  color: var(--fg-2);
+  font-size: 17px;
+  line-height: 1.5;
+}
+.home-body {
+  margin-top: var(--lead);
+}
+@media (max-width: 900px) {
+  .home-lead,
+  .home-columns {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .home-columns {
+    gap: var(--row);
+  }
+}
+.index-row {
+  transition: color 0.15s ease-out;
+}
+@media (max-width: 1239px) {
+  .sheet-stage {
+    position: relative;
+    inset: auto;
+    height: min(67.5vw, 48svh);
+    z-index: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .sheet-plan,
+  .sheet-canvas {
+    transition: none;
+  }
 }

@@ -36,9 +36,16 @@ async function loadTwin() {
 }
 async function loadLite(t: Exclude<Tier, 'full'>) {
   const m = await import('./lite')
+  document.getElementById('boot-loader')?.remove()
   m.render(t)
 }
 
 const t = tier()
-if (t === 'full') void loadTwin()
+if (t === 'full')
+  loadTwin().catch(() => {
+    // a chunk failed to arrive, so nothing else is coming to take the loader down
+    const stage = document.querySelector('.bl-stage')
+    if (stage) stage.textContent = 'The twin could not be loaded. Reload the page to try again.'
+    document.getElementById('boot-loader')?.classList.add('bl-failed')
+  })
 else void loadLite(t)

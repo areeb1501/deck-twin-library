@@ -1,0 +1,68 @@
+#cloud-config
+# Bootstraps an Azure VM to run the streaming/ Docker stack.
+#
+# deploy.sh renders __ADMIN_USER__ before passing this as --custom-data. The
+# admin account itself is created by the Azure Linux Agent from
+# `az vm create --admin-username`, with the public key injected; cloud-init
+# only installs Docker and hardens sshd on top of it.
+
+package_update: true
+package_upgrade: true
+
+apt:
+  sources:
+    docker:
+      # Docker's own repo, not Ubuntu's. The distro package ships
+      # docker-compose v1 (Python, EOL) and no `docker compose` plugin.
+      source: "deb [arch=amd64 signed-by=$KEY_FILE] https://download.docker.com/linux/ubuntu $RELEASE stable"
+      keyid: 9DC858229FC7DD38854AE2D88D81803C0EBFCD88
+
+packages:
+  - docker-ce
+  - docker-ce-cli
+  - containerd.io
+  - docker-buildx-plugin
+  - docker-compose-plugin
+  - rsync
+  - jq
+
+write_files:
+  # A drop-in rather than an edit of sshd_config: package upgrades rewrite the
+  # main file, and Azure's image already ships its own drop-ins we must outrank.
+  - path: /etc/ssh/sshd_config.d/99-hardening.conf
+    permissions: "0644"
+    content: |
+      PasswordAuthentication no
+      PermitRootLogin no
+      KbdInteractiveAuthentication no
+      PubkeyAuthentication yes
+      X11Forwarding no
+      MaxAuthTries 3
+
+  # The stack's Kafka and ClickHouse both open far more file descriptors than
+  # the 1024 default; ClickHouse fails under trivial load with a misleading
+  # error when it runs out.
+  - path: /etc/security/limits.d/99-streaming.conf
+    permissions: "0644"
+    content: |
+      * soft nofile 262144
+      * hard nofile 262144
+
+  - path: /etc/docker/daemon.json
+    permissions: "0644"
+    content: |
+      {
+        "log-driver": "json-file",
+        "log-opts": { "max-size": "50m", "max-file": "3" }
+      }
+
+runcmd:
+  # Docker group membership needs a new login to take effect, so deploy.sh
+  # reconnects after waiting for the marker file below.
+  - usermod -aG docker __ADMIN_USER__
+  - install -d -o __ADMIN_USER__ -g __ADMIN_USER__ /opt/streaming
+  - systemctl enable --now docker
+  - systemctl restart ssh || systemctl restart sshd
+  # Marker: deploy.sh polls for this before uploading. Without it the first
+  # `docker compose` lands while apt is still holding the dpkg lock.
+  - touch /var/lib/cloud/streaming-ready

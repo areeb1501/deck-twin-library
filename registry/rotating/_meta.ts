@@ -6,7 +6,7 @@ export default defineMeta([
     title: 'Centrifugal pump (API 610 OH2)',
     file: 'centrifugal-pump.tsx',
     export: 'CentrifugalPump',
-    description: 'Overhung, centreline-mounted end-suction pump with volute casing, bearing housing, spacer coupling under a mesh guard and a TEFC motor on a drain-rim baseplate. Includes an API Plan 53A seal reservoir and a local control station. Motor frame from IEC 60072 for the rated power.',
+    description: 'Overhung, centreline-mounted end-suction pump with volute casing, bearing housing, spacer coupling under a mesh guard and a TEFC motor on a drain-rim baseplate. Includes an API Plan 53A seal reservoir and a local control station. The motor frame follows IEC 60072 for the rated power.',
     standards: ['API 610 (OH2)', 'API 682 Plan 53A', 'IEC 60034 / 60072', 'ASME B16.5'],
     vendors: ['Flowserve', 'Sulzer', 'KSB', 'Ruhrpumpen', 'Baker Hughes', 'ITT Goulds'],
     tags: ['pump', 'export pump', 'transfer', 'rotating'],

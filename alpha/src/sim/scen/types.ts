@@ -215,6 +215,8 @@ export interface Attempt {
   improve: string[]
   objectives: { id: string; text: string; kind: Objective['kind']; status: ObjStatus; at?: number; window?: number; from?: number }[]
   timeline: TimelineRow[]
+  /** elapsed time each timeline step fired at */
+  marks?: Record<string, number>
   before: KpiSnap
   after: KpiSnap
   window: { pe: number; deferred: number; idealDeferred: number; /** losing everything for the max duration */ fullLoss: number; byCategory: Record<string, number> }

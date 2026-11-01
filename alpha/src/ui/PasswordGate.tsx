@@ -6,7 +6,8 @@
  * This keeps a public demo URL from being casually opened. It is not access control: everything it guards
  * ships in the bundle.
  */
-import { useState, type FormEvent, type ReactNode } from 'react'
+import { useLayoutEffect, useState, type FormEvent, type ReactNode } from 'react'
+import { bootHide, bootShow } from './bootLoader'
 import './gate.css'
 
 const KEY = 'deck-twin:gate'
@@ -35,6 +36,8 @@ export function PasswordGate({ children }: { children: ReactNode }) {
   const [pw, setPw] = useState('')
   const [busy, setBusy] = useState(false)
   const [err, setErr] = useState<string | null>(null)
+  // the gate is on screen instead of the loader; the loader comes back for the build once it opens
+  useLayoutEffect(() => (open || !gate ? bootShow() : bootHide()), [open])
   if (open || !gate) return <>{children}</>
 
   const submit = async (e: FormEvent) => {

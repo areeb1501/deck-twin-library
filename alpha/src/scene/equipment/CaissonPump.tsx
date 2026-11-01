@@ -40,8 +40,8 @@ const clamp = (v: number, a: number, b: number) => Math.min(b, Math.max(a, v))
 const TAU = Math.PI * 2
 
 // ------------------------------------------------------------------ materials
-const RED = () => paint('#b1261d', 'detail', { metalness: 0.25, roughness: 0.42, physical: { clearcoat: 0.5, clearcoatRoughness: 0.3 } })
-const BLUEGREY = () => paint('#5f7487', 'detail', { metalness: 0.3, roughness: 0.45, physical: { clearcoat: 0.35, clearcoatRoughness: 0.4 } })
+const RED = () => paint('#b1261d', 'detail', { metalness: 0.25, roughness: 0.42 })
+const BLUEGREY = () => paint('#5f7487', 'detail', { metalness: 0.3, roughness: 0.45 })
 /** caisson skin: coal-tar epoxy grey; fades in x-ray like a vessel shell */
 const CAISSON = () => paint('#6f7774', 'shell', { metalness: 0.3, roughness: 0.65 })
 /** column pipe: fades partly in x-ray so the line shaft shows */
