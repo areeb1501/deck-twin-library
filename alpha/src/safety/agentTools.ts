@@ -1,6 +1,5 @@
 /**
- * Read-only agent tools over the twin (plan 04). The same names and parameter shapes are what a
- * evidence Muse Spark answers from.
+ * Read-only agent tools over the twin (plan 04). Their results are the evidence Muse Spark answers from.
  *
  * Rules:
  *   - every `run()` returns PLAIN JSON (no functions, getters, class instances or cycles);
