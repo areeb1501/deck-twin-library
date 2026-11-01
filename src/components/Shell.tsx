@@ -306,7 +306,7 @@ function Footer() {
       </div>
       <div className="border-t border-border">
         <div className="mx-auto flex max-w-[1440px] flex-wrap justify-between gap-2 px-6 py-5 text-[13px] text-muted-fg">
-          <span>MIT licence</span>
+          <span>Free for personal use. Commercial use needs a licence.</span>
           <span>Reference geometry based on public standards, not vendor CAD. Verify dimensions against the current edition.</span>
         </div>
       </div>
@@ -433,7 +433,7 @@ function SlimFooter() {
   return (
     <footer className="border-t border-border">
       <div className="mx-auto flex max-w-[1180px] flex-wrap items-center justify-between gap-x-6 gap-y-2 px-6 py-6 text-[13px] text-muted-fg lg:px-12">
-        <span>Deck Twin v{VERSION}, MIT licence. Reference geometry based on public standards, not vendor CAD.</span>
+        <span>Deck Twin v{VERSION}. Free for personal use, commercial use needs a licence. Reference geometry based on public standards, not vendor CAD.</span>
         <span className="flex gap-4">
           <a href="/llms.txt" className="hover:text-ink">llms.txt</a>
           <a href="/r/index.json" className="hover:text-ink">Registry</a>

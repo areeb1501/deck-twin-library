@@ -694,7 +694,7 @@ function stateOf(d: Pick<Draft, 'status'>, tag: string): RunState {
 /** what the engine actually drives on the loaded plant: a generated scenario may only name these (sim/scen/validate.ts) */
 export function simTags() {
   const c = getCtx()
-  return { alpha: c.alpha, machines: c.machines, valves: c.simValves, wells: c.wells }
+  return { alpha: c.alpha, machines: c.machines, valves: c.simValves, wells: c.wells, deluge: c.deluge, valveType: c.valveType, partner: c.partner, cls: c.cls }
 }
 
 export function runState(tag: string): RunState {

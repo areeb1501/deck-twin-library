@@ -85,6 +85,25 @@ Keys are kept encrypted in IndexedDB (`src/safety/metaKey.ts`). They travel in t
 
 **Not included.** Custom scenarios stay out of what-if on the Risk page, the agent tools and the alert rules, which are hand-mapped to the twelve built-ins. The in-app agents in `src/agents/provider.ts` are unchanged.
 
+## Next action and the RCM library
+
+The console's Response page shows what is wrong, what to do next and why. Beside a running scenario, `NextActions` shows the same card.
+
+| File | What |
+|---|---|
+| `src/agents/nextAction.ts` | Reads the open situations, builds the rule plan and the evidence pack, asks the model, checks the reply, spending rules, and the plugin that verifies steps |
+| `src/agents/plantActions.ts` | The fixed list of actions, the checks on them, the recorded controls they run through, and how each effect is read back |
+| `src/sim/rcm.ts` | Example RCM rows, in localStorage under `deckTwin.rcm.v1` once edited |
+| `src/ui/hmi/ResponsePage.tsx` | The page, the step cards and the RCM editor |
+
+**What it can see.** Alarms, fire and gas zones, latched shutdowns and machine health. Never `incidents`, the simulator's hidden fault list.
+
+**The model proposes, the operator approves.** Agent tools stay read-only. A model names an action from the fixed list and every step must cite the evidence, so a step that fails the checks goes back once and is then dropped. Abandon platform is not on the list. Buttons take two clicks, and they call the same recorded controls as the console, so scoring and handover see them.
+
+**What it costs.** It shares the providers, keys and route with Build with AI. Nothing goes out until the operator presses the button. One press is one request, plus one repair. A page load stops at 12 requests or 150,000 tokens, and any error stops with no retry. `agents/provider.ts` is unchanged, so `PROVIDER_LABEL.muse` stays "(planned)".
+
+**Tested with a stubbed model.** `tests/next-action.test.ts` and `tools/next-action.mjs` count requests and never call a provider. No real model has run this path yet.
+
 ## Commands (run in this folder)
 
 | Task | Command |
@@ -94,6 +113,7 @@ Keys are kept encrypted in IndexedDB (`src/safety/metaKey.ts`). They travel in t
 | Rebuild | `npm run build` (writes `../public/alpha`) |
 | Save raw CCTV feeds | `node tools/cctv-frames.mjs [outDir]`, with the dev server running |
 | Test the scenario author | `node tools/scenario-author.mjs`, with the dev server running |
+| Test the next-action agent | `node tools/next-action.mjs`, with the dev server running (`TWIN_URL` to change the port) |
 | Deploy | `cd .. && npm run deploy` (the library build copies `public/alpha` into `dist`) |
 
 ## Remove it

@@ -3,7 +3,7 @@
  * ("Control room") or by sitting at a console in the CCR / WHP-N local control room. Shown while
  * `useStore.hmi` names a page. ISA-101 style: grey, quiet, colour only when something is abnormal.
  *
- *   Asset & economics · Spares & supply · Live dashboard · Risk & what-if · Scenarios · CCTV & PPE · Inspections · Alerts & assistant ·
+ *   Asset & economics · Spares & supply · Live dashboard · Risk & what-if · Response · Scenarios · CCTV & PPE · Inspections · Alerts & assistant ·
  *   Process · Alarms · Shutdown · F&G · Maintenance · Machines · Overview · Trends · Cranes & weather · Handover · Instructor
  *
  * Esc closes. While it is open the walker and the viewer hot-keys ignore the keyboard.
@@ -30,6 +30,7 @@ import { RiskPage } from './RiskPage'
 import { CctvPage } from './CctvPage'
 import { InspectionPage } from './InspectionPage'
 import { AlertsPage } from './AlertsPage'
+import { ResponsePage } from './ResponsePage'
 import { EconomicsPage } from './EconomicsPage'
 import { SparesPage } from './SparesPage'
 import { DemoStory } from './DemoStory'
@@ -40,6 +41,7 @@ const HMI_PAGES = [
   ['spares', 'Spares & supply'],
   ['dashboard', 'Live dashboard'],
   ['risk', 'Risk & what-if'],
+  ['response', 'Response'],
   ['scenarios', 'Scenarios'],
   ['cctv', 'CCTV & PPE'],
   ['inspection', 'Inspections'],
@@ -118,6 +120,7 @@ function Console({ page }: { page: string }) {
         {cur === 'cctv' && <CctvPage />}
         {cur === 'inspection' && <InspectionPage />}
         {cur === 'alerts' && <AlertsPage />}
+        {cur === 'response' && <ResponsePage />}
         {cur === 'overview' && <Overview />}
         {cur === 'process' && <Process />}
         {cur === 'alarms' && <Alarms />}

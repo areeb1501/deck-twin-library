@@ -175,7 +175,7 @@ function Line({ l }: { l: ChatLine }) {
 
 // ================================================================= connection
 
-function Connection() {
+export function Connection() {
   const provider = useAuthor((s) => s.provider)
   const saved = useAuthor((s) => s.saved[provider])
   const endpoint = useAuthor((s) => s.endpoint)

@@ -27,7 +27,7 @@ const BODIES = ['ASME', 'API', 'IEC', 'ISO', 'EN', 'NFPA', 'DNV', 'NORSOK', 'ISA
 declare const __SYMBOL_COUNT__: number
 
 export function Home() {
-  usePageMeta(null, 'Open-source three.js components for oil and gas digital twins, sized to published engineering standards.')
+  usePageMeta(null, 'Three.js components for oil and gas digital twins, free for personal use and sized to published engineering standards.')
   const cats = CATEGORIES.filter((c) => byCategory(c.id).length)
   return (
     <div className="home">
@@ -105,7 +105,7 @@ function Sheet() {
         <div className="my-auto max-w-[780px]">
           <h1 className="display text-[38px] sm:text-[60px] min-[1240px]:max-w-[8.8em] min-[1240px]:text-[clamp(56px,4.5vw,68px)]">3D components for oil and gas digital twins</h1>
           <p className="mt-6 max-w-[33rem] text-[17px] leading-[1.5] font-normal sm:text-[20px] min-[1240px]:max-w-[27rem]">
-            Build 3D models of oil and gas facilities from P&amp;IDs, datasheets and equipment lists. All components are open source and sized to published engineering standards.
+            Build 3D models of oil and gas facilities from P&amp;IDs, datasheets and equipment lists. All components are free for personal use and sized to published engineering standards.
           </p>
           <div className="pointer-events-auto mt-8 flex flex-wrap gap-3">
             <a href="/alpha/" className="sheet-btn solid">
