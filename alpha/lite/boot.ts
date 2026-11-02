@@ -6,6 +6,10 @@
  * The twin draws at 90 % here (twin-scale in ../demo/index.html) so the toolbar and panels fit a laptop screen.
  * Lives outside src/ so `npm run refresh` (rsync --delete of src/) keeps it.
  */
+import { initAnalytics } from './analytics'
+
+void initAnalytics()
+
 export type Tier = 'full' | 'lite' | 'unsupported'
 
 function hasWebGL2() {
