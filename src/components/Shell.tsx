@@ -238,8 +238,8 @@ export function Logo({ className = 'h-6 w-6' }: { className?: string }) {
   return (
     <svg viewBox="0 0 32 32" className={className} aria-hidden>
       <rect className="logo-mark" width="32" height="32" rx="7" fill="#fe5510" />
-      <path d="M7 22h18M9.5 22v-6h13v6M12.5 16v-4h7v4M16 12V8.5" stroke="#ffffff" strokeWidth="2.2" fill="none" strokeLinecap="round" strokeLinejoin="round" />
-      <circle cx="16" cy="6.5" r="2" fill="#ffffff" />
+      <path fill="#ffffff" d="M7.5 6H15A10 10 0 0 1 24.97 15.2H19.15A4.2 4.2 0 0 0 15 11.8H13.4V15.2H7.5Z" />
+      <path fill="#ffffff" fillOpacity=".55" d="M7.5 26H15A10 10 0 0 0 24.97 16.8H19.15A4.2 4.2 0 0 1 15 20.2H13.4V16.8H7.5Z" />
     </svg>
   )
 }
