@@ -144,6 +144,18 @@ There is no sign-in page yet, so everyone is the default system admin, and hidin
 
 The header's `Simulator feed` is the one place the console says its data is simulated. Keep it there instead of labelling each panel, and keep `Twin detector` wherever a real model could otherwise be assumed.
 
+## Visitor analytics
+
+`/alpha/` and `/alpha/demo/` run the same three tools as the rest of decktwin.com, with no consent step.
+
+| Tool | Where | Notes |
+|---|---|---|
+| Google Analytics | `index.html`, `demo/index.html` | Runs on any host |
+| Simple Analytics | `index.html`, `demo/index.html` | `data-hostname` puts every visit under decktwin.com in its dashboard |
+| PostHog with replay | `lite/analytics.ts` | Starts only on the hostnames listed there, so local dev stays out |
+
+Replay skips `.label-layer`: the tag labels move on every frame, and recording them would slow the twin.
+
 ## Commands (run in this folder)
 
 | Task | Command |

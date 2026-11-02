@@ -5,6 +5,9 @@
  * browser plays it, and H.264 for the rest.
  */
 import './landing.css'
+import { initAnalytics } from '../lite/analytics'
+
+void initAnalytics()
 
 const MEDIA = '/alpha/media/v2'
 const connection = (navigator as Navigator & { connection?: { saveData?: boolean } }).connection

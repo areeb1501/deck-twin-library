@@ -57,7 +57,7 @@ const PLATFORMS: [string, string][] = [
 ]
 
 // the library site's mark, so the light view reads as part of the same product
-const logo = `<svg class="lite-logo" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="7" fill="#fe5510"/><path d="M7 22h18M9.5 22v-6h13v6M12.5 16v-4h7v4M16 12V8.5" stroke="#fff" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/><circle cx="16" cy="6.5" r="2" fill="#fff"/></svg>`
+const logo = `<svg class="lite-logo" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="7" fill="#fe5510"/><path fill="#fff" d="M7.5 6H15A10 10 0 0 1 24.97 15.2H19.15A4.2 4.2 0 0 0 15 11.8H13.4V15.2H7.5Z"/><path fill="#fff" fill-opacity=".55" d="M7.5 26H15A10 10 0 0 0 24.97 16.8H19.15A4.2 4.2 0 0 1 15 20.2H13.4V16.8H7.5Z"/></svg>`
 
 const monitor = `<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/></svg>`
 
