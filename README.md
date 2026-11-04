@@ -380,7 +380,7 @@ There are no Kubernetes manifests or Helm charts in this repo yet. This is how t
 The CLI is not on npm yet. Until it is, run it from the registry site:
 
 ```bash
-npx -y https://decktwin.com/cli/decktwin.tgz <command>
+npx -y https://deck-twin-library.demoareeb.workers.dev/cli/decktwin.tgz <command>
 ```
 
 The examples below use the short `npx decktwin`, which works once the package is published. The old command name, `deck-twin`, still works.

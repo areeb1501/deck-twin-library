@@ -6,7 +6,7 @@ import { spawnSync } from 'node:child_process'
 import { checkPlant, nextStep } from './check.mjs'
 
 const VERSION = '0.3.0'
-const DEFAULT_REGISTRY = 'https://decktwin.com'
+const DEFAULT_REGISTRY = 'https://deck-twin-library.demoareeb.workers.dev'
 const PEERS = ['three', '@react-three/fiber', '@react-three/drei']
 
 const argv = process.argv.slice(2)
