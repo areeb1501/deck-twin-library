@@ -1,10 +1,10 @@
 // The copy-paste prompt that sets up Deck Twin in any coding agent. Plain text, no DOM: also written to /prompt.md at build.
 import { version } from '../package.json'
 
-export const cliCommand = (site: string) => `npx -y ${site}/cli/decktwin-${version}.tgz`
+export const cliCommand = (_site?: string) => `npx decktwin`
 
 export function agentPrompt(site: string) {
-  const cli = cliCommand(site)
+  const cli = `npx -y decktwin@${version}`
   return `You are setting up **Deck Twin** in this project and then using it to build what I ask for. Deck Twin is a registry of standards-based three.js / React Three Fiber components for oil & gas plants and digital twins: vessels, pumps, compressors, valves, piping, instruments, F&G devices, decks, jackets, cranes, control rooms and packages. Components are copied into the project as source files, and whole plants are described in a plant.json and rendered by <Plant>.
 
 Site: ${site}

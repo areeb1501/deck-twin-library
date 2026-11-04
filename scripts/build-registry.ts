@@ -6,7 +6,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url'
 import { CATEGORIES, type ComponentMeta } from '../registry/meta'
 import type { Port } from '../registry/lib/ports'
 import { metas } from './list'
-import { agentPrompt, cliCommand } from '../src/prompt'
+import { agentPrompt } from '../src/prompt'
 import { componentMarkdown } from '../src/componentMarkdown'
 import { spawnSync } from 'node:child_process'
 import { tmpdir } from 'node:os'
@@ -412,7 +412,7 @@ if (missingPid.length) console.warn(`! ${missingPid.length} component(s) without
 if (existsSync(join(root, 'skill'))) {
   rmSync(join(root, 'public/skill'), { recursive: true, force: true })
   cpSync(join(root, 'skill'), join(root, 'public/skill'), { recursive: true })
-  const cli = cliCommand(SITE)
+  const cli = 'npx -y decktwin'
   for (const f of walk(join(root, 'public/skill')).filter((x) => x.endsWith('.md'))) writeFileSync(f, read(f).replaceAll('{{CLI}}', cli).replaceAll('{{SITE}}', SITE))
   const files = walk(join(root, 'skill')).map((f) => relative(join(root, 'skill'), f)).filter((f) => !f.split('/').pop()!.startsWith('.'))
   writeFileSync(join(root, 'public/skill/manifest.json'), JSON.stringify({ files }, null, 1))
@@ -422,7 +422,7 @@ if (existsSync(join(reg, 'examples'))) {
   for (const f of readdirSync(join(reg, 'examples'))) cpSync(join(reg, 'examples', f), join(out, 'examples', f))
 }
 
-// Agent prompt and the CLI tarball (runs as `npx -y <site>/cli/decktwin-<version>.tgz` until it is on npm)
+// Agent prompt and the CLI tarball (the npm package, also served from the site)
 writeFileSync(join(root, 'public/prompt.md'), agentPrompt(SITE))
 {
   const tmp = join(tmpdir(), `deck-twin-cli-${process.pid}`)

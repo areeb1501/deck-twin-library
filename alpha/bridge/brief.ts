@@ -1,7 +1,7 @@
 /** The rules an AI agent needs to write a plant.json that loads first time. Copied from the plant menu. */
 import { version } from '../../cli/package.json'
 
-const cli = (site: string) => `npx -y ${site}/cli/decktwin-${version}.tgz`
+const cli = (_site: string) => `npx -y decktwin@${version}`
 
 export const agentBrief = (site: string) => `Write this plant as a Deck Twin plant.json. There is one format and it is built from the component library, so follow it exactly.
 

@@ -74,6 +74,51 @@ Deck Twin is an engine for simulating an oil and gas plant in 3D. It gives you o
 - An agent turns your P&IDs, datasheets and equipment lists into a `plant.json`
 - Load it to view and walk your plant
 
+## Pushing the frontier
+
+Most digital twins are built by hand: a 3D artist models the plant, an integrator wires tags to a dashboard, and the result fits one asset. Deck Twin takes a different approach.
+
+| Idea | How Deck Twin does it |
+|---|---|
+| **The plant is data, not a model file** | Equipment, lines, valves and instruments live in one `plant.json`. The 3D model, piping, labels and console are generated from it, so a new plant needs no new 3D code |
+| **Geometry from engineering standards** | Every component is sized from published tables: ASME B36.10 and B16.5 for pipe and flanges, B16.10 for valves, API 610 for pumps, API 6A for wellheads, TEMA for exchangers. Ports are real flange faces, so pipes meet nozzles exactly |
+| **Documents to twin with an agent** | An agent reads P&IDs, datasheets and equipment lists and writes the `plant.json`. A deterministic checker rejects invented components, ports and props, so the agent can't hallucinate the plant |
+| **Simulation and safety logic in the browser** | Process dynamics, the cause and effect matrix, 2ooN fire and gas voting and the shutdown hierarchy run client-side, with no server to install |
+| **AI that is grounded and checked** | Muse Spark reads the plant through read-only tools, cites real data for every step, and each step is checked against the plant before an operator approves it. Scenarios come back as data and are test-run before use |
+| **Open-vocabulary vision on the twin** | SAM 3.1 segments people, PPE and hazards on the twin's CCTV, and masks anything an operator types |
+| **One path to live data** | Instrument reads go through one seam, so the same twin can switch from the simulator to a plant's historian |
+
+## Modelling other plants and uses
+
+The renderer, console and checker are plant-agnostic. The same code draws every plant below.
+
+| Plant | Source |
+|---|---|
+| Alpha field: five offshore platforms with production, wellhead, riser, water injection and accommodation | Bundled, with the full process model |
+| Bravo: onshore compressor station | Bundled example |
+| Charlie: separation train compiled from a spec with no coordinates | Bundled example |
+| Separation train, wellhead platform, offshore water injection, onshore well pad, crude export terminal, control room | `plant.json` examples in the registry |
+
+**Plant types the component library covers:** offshore production and wellhead platforms, subsea tie-ins, onshore well pads and gathering, gas compression and processing, crude and gas export terminals with loading arms and tank farms, pipeline valve stations, water injection and utilities. Any process plant built from the same equipment types (vessels, columns, exchangers, heaters, tanks, pumps, compressors, turbines) can be described the same way.
+
+**How a new plant is modelled:**
+1. Give the agent the plant's documents, or write the `plant.json` by hand.
+2. `npx decktwin validate plant.json` checks every component, port, prop and line number.
+3. Load it in the twin to walk it, inspect it and review layout and access.
+4. Add the plant's process model and cause and effect rows to bring the console's simulation, alarms and shutdowns to that plant. Other plants load with a start and stop model for each machine.
+
+**Uses**
+
+| Use | What the twin gives |
+|---|---|
+| Operator training | Realistic upsets, scored drills and debriefs without touching a running plant |
+| Incident response | Ordered next steps with reasons, checked against the plant |
+| Engineering review | A 3D layout from P&IDs for access, clash and walkway checks before construction |
+| Maintenance and spares | Work orders, isolation plans and stock tied to the equipment they serve |
+| HSE | Fire and gas coverage, hazardous areas, PPE and barrier health in one view |
+| Asset decisions | Deferment, margin and money at risk per machine |
+| Handover and onboarding | A walkable plant with a knowledge card for every tag |
+
 ## Example usage
 
 ### Add components to a React Three Fiber project
