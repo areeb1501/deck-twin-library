@@ -1,13 +1,13 @@
 # CLI
 
-The `deck-twin` CLI installs components, searches the registry, validates `plant.json` files and generates plant scenes from the command line.
+The `decktwin` CLI installs components, searches the registry, validates `plant.json` files and generates plant scenes from the command line.
 
-> **Run the CLI from this site.** The `deck-twin` package is not yet published to npm, so run it as `npx -y https://<this site>/cli/deck-twin-0.2.2.tgz <command>`. This requires no installation and no dependencies. Where these docs show `npx deck-twin`, use this command instead. The **Copy prompt** button on the landing page already uses the full command.
+> **Run the CLI from this site.** The `decktwin` package is not yet published to npm, so run it as `npx -y https://<this site>/cli/decktwin-0.3.0.tgz <command>`. This requires no installation and no dependencies. Where these docs show `npx decktwin`, use this command instead. The **Copy prompt** button on the landing page already uses the full command.
 
-`deck-twin` is a single Node script with no dependencies. It requires Node 18 or later.
+`decktwin` is a single Node script with no dependencies. It requires Node 18 or later. The old name, `deck-twin`, still works as a second command.
 
 ```bash
-npx deck-twin <command>
+npx decktwin <command>
 ```
 
 | Command | What it does |
@@ -61,10 +61,10 @@ Ports are checked at each component's default props. Some ports exist only for s
 ## Examples
 
 ```bash
-npx deck-twin search compressor
-npx deck-twin info reciprocating-compressor --json
-npx deck-twin add pedestal-crane deck-module
-npx deck-twin validate plant.json && npx deck-twin assemble plant.json
+npx decktwin search compressor
+npx decktwin info reciprocating-compressor --json
+npx decktwin add pedestal-crane deck-module
+npx decktwin validate plant.json && npx decktwin assemble plant.json
 ```
 
 ## Registry source

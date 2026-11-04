@@ -1,4 +1,4 @@
-// deck-twin validate: example plants pass, each issue code lands on the right path, and exit codes and --json hold.
+// decktwin validate: example plants pass, each issue code lands on the right path, and exit codes and --json hold.
 import assert from 'node:assert/strict'
 import { writeFileSync } from 'node:fs'
 import { join } from 'node:path'

@@ -40,7 +40,7 @@ export function Home() {
             Each component page includes a 3D preview, size controls, source code and connection points.
           </Stop>
           <Stop title="Install it">
-            The <Mono>deck-twin add</Mono> command copies the component into your project. You own the code.
+            The <Mono>decktwin add</Mono> command copies the component into your project. You own the code.
           </Stop>
           <Stop title="Assemble the plant">
             Define equipment, positions and connections in <Mono>plant.json</Mono>. <Mono>&lt;Plant&gt;</Mono> generates the piping, flanges and supports.
@@ -76,8 +76,8 @@ export function Home() {
           <div className="min-w-0">
             <dl className="divide-y divide-border border-y border-border text-[15px] text-fg-2">
               <Tool name="/r/index.json">Lists all components with their properties, ranges and ports.</Tool>
-              <Tool name="deck-twin info <name>">Returns the details of one component as JSON.</Tool>
-              <Tool name="deck-twin validate plant.json">Checks a plant file for unknown components, invalid ports and line class mismatches.</Tool>
+              <Tool name="decktwin info <name>">Returns the details of one component as JSON.</Tool>
+              <Tool name="decktwin validate plant.json">Checks a plant file for unknown components, invalid ports and line class mismatches.</Tool>
             </dl>
             <div className="mt-6">
               <Command cmd={`${CLI} skill`} />

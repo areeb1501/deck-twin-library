@@ -1,4 +1,4 @@
-// plant.json checker: the rules behind `deck-twin check`, as a pure function so anything that loads a plant applies the same ones. Zero dependencies.
+// plant.json checker: the rules behind `decktwin check`, as a pure function so anything that loads a plant applies the same ones. Zero dependencies.
 
 export const SERVICES = ['oil', 'gas', 'multiphase', 'water', 'seawater', 'firewater', 'steam', 'air', 'nitrogen', 'chemical', 'flare', 'drain', 'fuel-gas', 'diesel', 'potable', 'cooling']
 
@@ -66,9 +66,9 @@ export function clearMatch(word, names) {
 /** The fix for a wrong component name: one name for a typo, otherwise a choice for the agent to make. */
 function componentFix(wrong, names) {
   const one = clearMatch(wrong, names)
-  if (one) return `Did you mean "${one}"? Check it with deck-twin info ${one}.`
+  if (one) return `Did you mean "${one}"? Check it with decktwin info ${one}.`
   const close = closest(wrong, names)
-  return close.length ? `Choose the part that matches the documents: compare ${close.join(', ')} with deck-twin info <name>, or run deck-twin search <words>.` : 'Run deck-twin search <words> and use a name it returns.'
+  return close.length ? `Choose the part that matches the documents: compare ${close.join(', ')} with decktwin info <name>, or run decktwin search <words>.` : 'Run decktwin search <words> and use a name it returns.'
 }
 
 const quoted = (list) => list.map((x) => `"${x}"`).join(', ')
@@ -132,7 +132,7 @@ export function checkPlant(spec, items) {
         const known = [...new Set([...comp.params.map((x) => x.key), ...Object.keys(comp.defaults)])]
         if (!p && !(k in comp.defaults)) {
           const one = clearMatch(k, known)
-          warn('unknown-prop', where, `${at}.props.${k}`, `Prop "${k}" is not a ${comp.name} prop. Known: ${comp.params.map((x) => x.key).join(', ')}.`, one ? `Did you mean "${one}"? Otherwise remove it.` : `Remove it, or run deck-twin info ${comp.name}.`)
+          warn('unknown-prop', where, `${at}.props.${k}`, `Prop "${k}" is not a ${comp.name} prop. Known: ${comp.params.map((x) => x.key).join(', ')}.`, one ? `Did you mean "${one}"? Otherwise remove it.` : `Remove it, or run decktwin info ${comp.name}.`)
         }
         if (p?.type === 'number' && typeof v === 'number' && (v < p.min || v > p.max)) warn('prop-range', where, `${at}.props.${k}`, `${k} = ${v} is outside ${p.min}–${p.max}${p.unit ? ' ' + p.unit : ''}.`, `Use a value from ${p.min} to ${p.max}.`)
         if (p?.type === 'select' && !p.options.some((o) => (typeof o === 'object' ? o.value : o) === v)) warn('prop-option', where, `${at}.props.${k}`, `${k} = ${JSON.stringify(v)} is not one of ${p.options.map((o) => JSON.stringify(typeof o === 'object' ? o.value : o)).join(', ')}.`, 'Use one of the listed values.')
@@ -181,7 +181,7 @@ export function checkPlant(spec, items) {
         const ids = t.comp.ports.map((x) => x.id)
         const one = clearMatch(port, ids)
         const msg = `"${ref}": ${t.comp.name} has no port "${port}" at its default props. Ports: ${ids.join(', ') || 'none'}.`
-        const fix = one ? `Did you mean "${tag}.${one}"?` : `Run deck-twin info ${t.comp.name} and use one of its ports.`
+        const fix = one ? `Did you mean "${tag}.${one}"?` : `Run decktwin info ${t.comp.name} and use one of its ports.`
         if (t.it.props) warn('unknown-port', where, `${at}.${side}`, msg + ' (It may exist for your props.)', fix)
         else err('unknown-port', where, `${at}.${side}`, msg, fix)
         continue
@@ -200,7 +200,7 @@ export function checkPlant(spec, items) {
       const comp = byName.get(v.component)
       if (!comp) {
         err('unknown-component', where, `${path}.component`, `Inline component "${v.component}" does not exist.`, componentFix(v.component, inlineNames))
-      } else if (!comp.ports.some((p) => p.id === 'A') || !comp.ports.some((p) => p.id === 'B')) err('not-inline', where, `${path}.component`, `"${v.component}" is not inline (needs ports A and B).`, `Put it in "items" and join it to the line through its ports. Run deck-twin info ${v.component}.`)
+      } else if (!comp.ports.some((p) => p.id === 'A') || !comp.ports.some((p) => p.id === 'B')) err('not-inline', where, `${path}.component`, `"${v.component}" is not inline (needs ports A and B).`, `Put it in "items" and join it to the line through its ports. Run decktwin info ${v.component}.`)
       if (v.at !== undefined && !(v.at >= 0 && v.at <= 1)) err('bad-inline-at', where, `${path}.at`, `inline "at" must be 0–1.`, 'Use a fraction along the line, such as 0.5.')
     })
   })

@@ -1,6 +1,6 @@
 {
-  "name": "deck-twin",
-  "version": "0.2.2",
+  "name": "decktwin",
+  "version": "0.3.0",
   "description": "CLI for the Deck Twin registry: add standards-based three.js oil & gas components, check and assemble plant.json.",
   "license": "SEE LICENSE IN LICENSE",
   "homepage": "https://deck-twin-library.demoareeb.workers.dev",
@@ -14,10 +14,11 @@
   },
   "type": "module",
   "bin": {
-    "deck-twin": "deck-twin.mjs"
+    "decktwin": "decktwin.mjs",
+    "deck-twin": "decktwin.mjs"
   },
   "files": [
-    "deck-twin.mjs",
+    "decktwin.mjs",
     "check.mjs",
     "README.md",
     "LICENSE"

@@ -7,7 +7,7 @@ import { fileURLToPath } from 'node:url'
 
 export const ROOT = dirname(dirname(fileURLToPath(import.meta.url)))
 export const REGISTRY = join(ROOT, 'public')
-const CLI = join(ROOT, 'cli/deck-twin.mjs')
+const CLI = join(ROOT, 'cli/decktwin.mjs')
 const EXAMPLES = join(ROOT, 'registry/examples')
 
 export const readJson = (file) => JSON.parse(readFileSync(file, 'utf8'))

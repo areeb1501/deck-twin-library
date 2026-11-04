@@ -179,7 +179,7 @@ writeFileSync(
       $schema: 'https://json-schema.org/draft/2020-12/schema',
       $id: `${SITE}/r/plant.schema.json`,
       title: 'Deck Twin plant.json',
-      description: 'A plant built from registry components. Take component names, props and port ids from the CLI, and run `deck-twin validate` on the result.',
+      description: 'A plant built from registry components. Take component names, props and port ids from the CLI, and run `decktwin validate` on the result.',
       type: 'object',
       required: ['name', 'items'],
       additionalProperties: false,
@@ -201,7 +201,7 @@ writeFileSync(
           properties: {
             tag: { type: 'string', minLength: 1 },
             component: { enum: componentNames },
-            props: { type: 'object', description: 'From `deck-twin info <name>`.' },
+            props: { type: 'object', description: 'From `decktwin info <name>`.' },
             position: { ...vec3, description: '[x, y, z] metres: x east, y up, z south. y is the level the item stands on.' },
             rotation: { type: 'number', description: 'Degrees about +Y.' },
           },
@@ -235,7 +235,7 @@ writeFileSync(
         },
         end: {
           oneOf: [
-            { type: 'string', pattern: '^.+\\..+$', description: '"TAG.port", with the port id from `deck-twin info <name>`.' },
+            { type: 'string', pattern: '^.+\\..+$', description: '"TAG.port", with the port id from `decktwin info <name>`.' },
             { type: 'object', required: ['at'], additionalProperties: false, description: 'Battery limit: where the line leaves the plot.', properties: { at: vec3, direction: vec3, label: { type: 'string' } } },
           ],
         },
@@ -422,19 +422,19 @@ if (existsSync(join(reg, 'examples'))) {
   for (const f of readdirSync(join(reg, 'examples'))) cpSync(join(reg, 'examples', f), join(out, 'examples', f))
 }
 
-// Agent prompt and the CLI tarball (runs as `npx -y <site>/cli/deck-twin-<version>.tgz` until it is on npm)
+// Agent prompt and the CLI tarball (runs as `npx -y <site>/cli/decktwin-<version>.tgz` until it is on npm)
 writeFileSync(join(root, 'public/prompt.md'), agentPrompt(SITE))
 {
   const tmp = join(tmpdir(), `deck-twin-cli-${process.pid}`)
   rmSync(tmp, { recursive: true, force: true })
   cpSync(join(root, 'cli'), tmp, { recursive: true })
-  const f = join(tmp, 'deck-twin.mjs')
+  const f = join(tmp, 'decktwin.mjs')
   writeFileSync(f, read(f).replace(/const DEFAULT_REGISTRY = '[^']*'/, `const DEFAULT_REGISTRY = '${SITE}'`))
   mkdirSync(join(root, 'public/cli'), { recursive: true })
   const r = spawnSync('npm', ['pack', '--silent', '--pack-destination', join(root, 'public/cli')], { cwd: tmp, encoding: 'utf8' })
   const packed = r.stdout.trim().split('\n').pop()
   if (r.status !== 0 || !packed) errors.push(`cli: npm pack failed: ${r.stderr}`)
-  else cpSync(join(root, 'public/cli', packed), join(root, 'public/cli/deck-twin.tgz'))
+  else for (const alias of ['decktwin.tgz', 'deck-twin.tgz']) cpSync(join(root, 'public/cli', packed), join(root, 'public/cli', alias))
   rmSync(tmp, { recursive: true, force: true })
 }
 

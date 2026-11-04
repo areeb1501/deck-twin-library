@@ -35,7 +35,7 @@ wells / inlet  →  separation  →  liquid treatment / gas compression  →  ex
 
 ## 3. Spacing
 
-Use the footprint from `deck-twin info <name>` → `bounds.size`: x is length, z is width.
+Use the footprint from `decktwin info <name>` → `bounds.size`: x is length, z is width.
 
 | Between | Clear distance |
 |---|---|
@@ -69,4 +69,4 @@ Use the footprint from `deck-twin info <name>` → `bounds.size`: x is length, z
 
 ## 7. Before you render
 
-Run `deck-twin validate plant.json` and fix all errors. Then render with `assemble`, and check the overlap and floating warnings.
+Run `decktwin validate plant.json` and fix all errors. Then render with `assemble`, and check the overlap and floating warnings.

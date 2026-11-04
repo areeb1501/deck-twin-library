@@ -2,7 +2,7 @@
 
 A plant is a `plant.json` file: a list of **items** (components placed in space) and **lines** (pipe joining one item's port to another's).
 
-`<Plant>` renders the file, and `deck-twin validate` validates it.
+`<Plant>` renders the file, and `decktwin validate` validates it.
 
 ```json
 {
@@ -24,7 +24,7 @@ A plant is a `plant.json` file: a list of **items** (components placed in space)
 }
 ```
 
-This is the only plant format the registry and the CLI use. It is built from registry components, so an agent should take names, props and port ids from the CLI, never from memory. The JSON Schema at [/r/plant.schema.json](/r/plant.schema.json) contains the full list of component names, and `deck-twin validate` is the final check.
+This is the only plant format the registry and the CLI use. It is built from registry components, so an agent should take names, props and port ids from the CLI, never from memory. The JSON Schema at [/r/plant.schema.json](/r/plant.schema.json) contains the full list of component names, and `decktwin validate` is the final check.
 
 ## Coordinates
 
@@ -41,8 +41,8 @@ This is the only plant format the registry and the CLI use. It is built from reg
 | Field | Meaning |
 |---|---|
 | `tag` | Unique. Use the plant's equipment numbering, e.g. `V-1100`, `P-1500A`, `K-2200`, `CR-A1`. |
-| `component` | A registry name, such as `horizontal-separator`. `npx deck-twin list` shows them all. |
-| `props` | Overrides for the component's props. `npx deck-twin info <name>` lists them, with ranges. |
+| `component` | A registry name, such as `horizontal-separator`. `npx decktwin list` shows them all. |
+| `props` | Overrides for the component's props. `npx decktwin info <name>` lists them, with ranges. |
 | `position` | `[x, y, z]`, defaulting to the origin. |
 | `rotation` | Degrees about +Y. |
 
@@ -96,7 +96,7 @@ const components: ComponentMap = {
 <Plant spec={spec} components={components} labels onReport={(issues) => console.table(issues)} />
 ```
 
-`npx deck-twin assemble plant.json` generates this file as `src/PlantScene.tsx`, with all imports included.
+`npx decktwin assemble plant.json` generates this file as `src/PlantScene.tsx`, with all imports included.
 
 ### Sea surface for offshore plants
 

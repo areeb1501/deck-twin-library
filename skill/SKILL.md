@@ -7,15 +7,15 @@ description: Build 3D oil & gas plants and digital twins with the Deck Twin comp
 
 A registry of parametric three.js components for oil & gas plants, sized from engineering standards. Components join at **ports**, their flange faces. A whole plant is one file, `plant.json`.
 
-**In this skill, `deck-twin` means `{{CLI}}`.** It needs no install and no dependencies. Never invent component names, props or port ids. Look them up.
+**In this skill, `decktwin` means `{{CLI}}`.** It needs no install and no dependencies. Never invent component names, props or port ids. Look them up.
 
 | Need | Command |
 |---|---|
-| Is this plant.json valid? | `deck-twin validate plant.json` |
-| What exists | `deck-twin list`, or `deck-twin search <words>` |
-| Props, ranges, ports of one component | `deck-twin info <name> --json` |
-| Install components | `deck-twin add <name...>` |
-| Install everything a plant uses and write the scene | `deck-twin assemble plant.json` |
+| Is this plant.json valid? | `decktwin validate plant.json` |
+| What exists | `decktwin list`, or `decktwin search <words>` |
+| Props, ranges, ports of one component | `decktwin info <name> --json` |
+| Install components | `decktwin add <name...>` |
+| Install everything a plant uses and write the scene | `decktwin assemble plant.json` |
 
 Machine-readable catalogue: `{{SITE}}/r/index.json`. Schema: `{{SITE}}/r/plant.schema.json`. Registry and docs: {{SITE}}
 
@@ -23,11 +23,11 @@ Machine-readable catalogue: `{{SITE}}/r/index.json`. Schema: `{{SITE}}/r/plant.s
 
 ## Validate
 
-`deck-twin validate plant.json` reports every problem in one run, and says how to fix each one. A plant has to pass it to be used in the UI.
+`decktwin validate plant.json` reports every problem in one run, and says how to fix each one. A plant has to pass it to be used in the UI.
 
 **Loop until it passes:**
 
-1. Run `deck-twin validate plant.json --json`.
+1. Run `decktwin validate plant.json --json`.
 2. For each issue, change what `path` points at, as `fix` says. A suggested name is only a suggestion, so confirm it against the documents. When the fix lists several parts, choose with `info`, or look it up with `search`.
 3. Run it again. Stop when `valid` is `true`.
 
@@ -49,7 +49,7 @@ Machine-readable catalogue: `{{SITE}}/r/index.json`. Schema: `{{SITE}}/r/plant.s
       "where": "6\"-PO-101-C3A-N",
       "path": "lines[0].from",
       "message": "\"V-100.oil\": horizontal-separator has no port \"oil\" at its default props. Ports: inlet, gas, liquid, water, psv.",
-      "fix": "Run deck-twin info horizontal-separator and use one of its ports."
+      "fix": "Run decktwin info horizontal-separator and use one of its ports."
     }
   ],
   "next": "Fix every error, then run validate again."
@@ -64,9 +64,9 @@ Three things need the drawn plant, so they show up in the UI, in `<Plant onRepor
 
 ## Workflow A: add a component
 
-1. `deck-twin search <what the user asked for>`. If that finds nothing, use [references/component-map.md](references/component-map.md).
-2. `deck-twin info <name>` for the props, ranges and ports.
-3. `deck-twin add <name>`. It writes the component and the shared `lib/` into `src/components/deck-twin/`.
+1. `decktwin search <what the user asked for>`. If that finds nothing, use [references/component-map.md](references/component-map.md).
+2. `decktwin info <name>` for the props, ranges and ports.
+3. `decktwin add <name>`. It writes the component and the shared `lib/` into `src/components/deck-twin/`.
 4. Render it inside an R3F `<Canvas>`, wrapped in `<Stage>` from `lib/stage`:
    ```tsx
    <Stage radius={10}><CentrifugalPump kw={160} suctionNps={8} dischargeNps={6} tag="P-101A" /></Stage>
@@ -89,7 +89,7 @@ A plant usually comes from several documents: P&IDs, PFDs, line lists, equipment
 3. **Lay it out** with [references/layout.md](references/layout.md). A plot plan wins over these rules. Otherwise flow runs west to east, with at least 1 m between items, and a deck at y carries its equipment at y.
 4. **Wire the lines** as `{ tag, from: "TAG.port", to: "TAG.port" }`, with valves in the line's `inline` list. Every line has a line number as its `tag`. Where a line branches, add a `tee`: see "Branches" in [references/plant-json.md](references/plant-json.md), the full format.
 5. **Validate** with the loop above until it exits 0.
-6. **Look at it.** Load it in the UI, or run `deck-twin assemble plant.json` and render `<PlantScene />`. Fix what the drawn plant reports, then validate again.
+6. **Look at it.** Load it in the UI, or run `decktwin assemble plant.json` and render `<PlantScene />`. Fix what the drawn plant reports, then validate again.
 7. **Report** what you built, which documents it came from, every conflict and what you chose, every assumption, anything you couldn't read or model, and any warning that remains.
 
 ---
@@ -113,7 +113,7 @@ A plant usually comes from several documents: P&IDs, PFDs, line lists, equipment
 5. Intermediate: an onshore separation and compression train. Separator → pumps → cooler, gas → scrubber → compressor, on a pipe rack.
 6. Advanced: a crude export terminal. Metering and prover, tank farm in a bund, rack headers, loading pumps, marine loading arm and truck bay.
 
-The full `plant.json` schema is in [references/plant-json.md](references/plant-json.md). Read its "The one format" table before writing a plant: `"items"` and `"lines"` only, with names, props and ports taken from the CLI. A plant isn't finished until `deck-twin validate` is clean.
+The full `plant.json` schema is in [references/plant-json.md](references/plant-json.md). Read its "The one format" table before writing a plant: `"items"` and `"lines"` only, with names, props and ports taken from the CLI. A plant isn't finished until `decktwin validate` is clean.
 [references/pid-symbols.md](references/pid-symbols.md) is generated from the registry and maps every component to its P&ID symbol, tag letters and datasheet fields.
 [references/pid-legend.md](references/pid-legend.md) is the full legend: every common P&ID symbol (valves, actuators, fail actions, fittings, line types, connectors, ISA bubbles, equipment, F&G, electrical), with how it is drawn, what it means and the component it maps to. Symbols marked *logical* are not hardware.
 `scripts/tile.py` cuts large P&ID scans into legible tiles (needs Pillow).

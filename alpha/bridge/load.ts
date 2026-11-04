@@ -1,6 +1,6 @@
 /**
- * plant.json to an engine Plant. The file is checked by the rules behind `deck-twin validate`, then resolved by the same
- * code that renders it, so Load refuses what `deck-twin validate` refuses, in the same words. Only the layout can add to that: ends too close for two flanges. The Plant that
+ * plant.json to an engine Plant. The file is checked by the rules behind `decktwin validate`, then resolved by the same
+ * code that renders it, so Load refuses what `decktwin validate` refuses, in the same words. Only the layout can add to that: ends too close for two flanges. The Plant that
  * comes out is a shell: one invisible proxy per item and data-only lines, which keep the tag tree, inspector, labels and
  * walker working. The geometry is drawn by <Plant> from the registry (LibraryLayer.tsx).
  */
@@ -70,7 +70,7 @@ const loaded = new WeakMap<object, ComponentMap>()
 export const libraryComponents = (spec: PlantSpec) => loaded.get(spec) as ComponentMap
 
 const said = (i: { where: string; message: string; fix?: string }) => `${i.where}: ${i.message}${i.fix ? ` ${i.fix}` : ''}`
-/** What only the layout or the geometry can tell. The rest repeats `deck-twin validate`, which has already spoken, so Load and the CLI report one count. */
+/** What only the layout or the geometry can tell. The rest repeats `decktwin validate`, which has already spoken, so Load and the CLI report one count. */
 export const onlyDrawing = (i: { level: string; message: string }) => i.level === 'warning' && /^(No straight run|Items overlap|Stands at y)/.test(i.message)
 const namesIn = (s: PlantSpec) => [...new Set([...(s.items ?? []).map((i) => i.component), ...(s.lines ?? []).flatMap((l) => (l.inline ?? []).map((v) => v.component))])]
 

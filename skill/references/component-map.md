@@ -1,6 +1,6 @@
 # Component map: drawing → registry name
 
-Find what the drawing or datasheet calls the item, then use the registry name. Confirm the props and ports with `deck-twin info <name>`. If `list` shows a name that isn't here, `list` wins.
+Find what the drawing or datasheet calls the item, then use the registry name. Confirm the props and ports with `decktwin info <name>`. If `list` shows a name that isn't here, `list` wins.
 
 ## Vessels & tanks
 

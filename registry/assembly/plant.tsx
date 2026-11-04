@@ -160,7 +160,7 @@ export function resolve(spec: PlantSpec, components: ComponentMap) {
     seen.add(s.tag)
     const mod = components[s.component]
     if (!mod) {
-      issues.push({ level: 'error', where: s.tag, message: `Unknown component "${s.component}". Install it (npx deck-twin add ${s.component}) and pass it in components.` })
+      issues.push({ level: 'error', where: s.tag, message: `Unknown component "${s.component}". Install it (npx decktwin add ${s.component}) and pass it in components.` })
       continue
     }
     const props = { ...(mod.defaults ?? {}), ...(s.props ?? {}) }

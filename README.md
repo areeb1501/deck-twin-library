@@ -223,15 +223,15 @@ Each wizard asks for your sizing, prints a full plan with an estimated cost, and
 The CLI is not on npm yet. Until it is, run it from the registry site:
 
 ```bash
-npx -y https://deck-twin-library.demoareeb.workers.dev/cli/deck-twin.tgz <command>
+npx -y https://deck-twin-library.demoareeb.workers.dev/cli/decktwin.tgz <command>
 ```
 
-The examples below use the short `npx deck-twin`, which works once the package is published.
+The examples below use the short `npx decktwin`, which works once the package is published. The old command name, `deck-twin`, still works.
 
 ```bash
-npx deck-twin add horizontal-separator centrifugal-pump gate-valve
-npx deck-twin validate plant.json && npx deck-twin assemble plant.json
-npx deck-twin skill
+npx decktwin add horizontal-separator centrifugal-pump gate-valve
+npx decktwin validate plant.json && npx decktwin assemble plant.json
+npx decktwin skill
 ```
 
 | Doc | What it covers |

@@ -51,7 +51,7 @@ headless screenshots of the console pages.
 | File | What |
 |---|---|
 | `bridge/index.ts` | Registers the format and the renderer with the engine's seams. Everything heavy loads on demand. |
-| `bridge/load.ts` | Runs `cli/check.mjs` and `resolve()`, the code behind `deck-twin check` and `<Plant>`, so a file that passes the CLI loads here. Builds the engine shell: one invisible proxy per item, plus data-only lines. |
+| `bridge/load.ts` | Runs `cli/check.mjs` and `resolve()`, the code behind `decktwin check` and `<Plant>`, so a file that passes the CLI loads here. Builds the engine shell: one invisible proxy per item, plus data-only lines. |
 | `bridge/LibraryLayer.tsx` | Draws `<Plant>` in the plant root, measures each item, tags meshes for picking, and joins registry materials to the section box and x-ray. |
 | `bridge/brief.ts` | The rules behind the plant menu's *Agent rules* button. |
 

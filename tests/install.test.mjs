@@ -239,7 +239,7 @@ describe('command line', () => {
 
   test('help names every command', (t) => {
     const { stdout } = cli(tempDir(t), ['help'])
-    for (const command of ['init', 'add', 'list', 'search', 'info', 'validate', 'assemble', 'skill']) assert.match(stdout, new RegExp(`deck-twin ${command}\\b`))
+    for (const command of ['init', 'add', 'list', 'search', 'info', 'validate', 'assemble', 'skill']) assert.match(stdout, new RegExp(`decktwin ${command}\\b`))
   })
 
   test('an unknown command exits 1', (t) => {

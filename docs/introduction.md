@@ -6,7 +6,7 @@ Use it to build a 3D model of a plant from P&IDs, datasheets, drawings and dimen
 
 The library covers separators, columns, pumps, compressors, gas turbines, valves, piping, instruments, fire and gas devices, decks, pipe racks, jackets, cranes and process packages. Each component has a page with a live preview, and one command installs it into your project.
 
-- **Source files in your project.** As with shadcn/ui, `npx deck-twin add centrifugal-pump` copies one readable file into `src/components/deck-twin/`, together with the shared `lib/`. There is no runtime package to upgrade.
+- **Source files in your project.** As with shadcn/ui, `npx decktwin add centrifugal-pump` copies one readable file into `src/components/deck-twin/`, together with the shared `lib/`. There is no runtime package to upgrade.
 - **Sizes from standards.**
   - Pipe and flanges follow ASME B36.10, B16.5 and B16.47. Fittings follow B16.9, and valve lengths follow B16.10.
   - Relief valves follow API 526, and pumps and compressors follow the API 610, 617 and 618 layouts.

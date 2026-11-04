@@ -1,9 +1,9 @@
 # CLI
 
-`deck-twin` is a single Node script with no dependencies. It needs Node 18 or later.
+`decktwin` is a single Node script with no dependencies. It needs Node 18 or later. The old name, `deck-twin`, still works as a second command.
 
 ```bash
-npx deck-twin <command>
+npx decktwin <command>
 ```
 
 | Command | What it does |
@@ -58,10 +58,10 @@ Ports are checked at each component's default props. Some ports exist only for s
 ## Examples
 
 ```bash
-npx deck-twin search compressor
-npx deck-twin info reciprocating-compressor --json
-npx deck-twin add pedestal-crane deck-module
-npx deck-twin validate plant.json && npx deck-twin assemble plant.json
+npx decktwin search compressor
+npx decktwin info reciprocating-compressor --json
+npx decktwin add pedestal-crane deck-module
+npx decktwin validate plant.json && npx decktwin assemble plant.json
 ```
 
 ## Where it fetches from

@@ -1,7 +1,7 @@
 {
-  "name": "deck-twin",
+  "name": "decktwin",
   "private": true,
-  "version": "0.2.2",
+  "version": "0.3.0",
   "description": "Standards-based three.js components for oil and gas digital twins, sized to published engineering standards.",
   "license": "SEE LICENSE IN LICENSE",
   "homepage": "https://deck-twin-library.demoareeb.workers.dev",
@@ -14,7 +14,8 @@
   },
   "type": "module",
   "bin": {
-    "deck-twin": "cli/deck-twin.mjs"
+    "decktwin": "cli/decktwin.mjs",
+    "deck-twin": "cli/decktwin.mjs"
   },
   "files": [
     "cli"

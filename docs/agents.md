@@ -12,12 +12,12 @@ The steps are explicit and every name is looked up through the CLI, so a small, 
 ## Install the skill
 
 ```bash
-npx deck-twin skill
+npx decktwin skill
 ```
 
 This writes `.claude/skills/deck-twin/`: `SKILL.md` plus the `references/` files. Claude Code loads skills from that location automatically.
 
-- **Other agents (Cursor, Codex, Gemini CLI, custom agents):** run `npx deck-twin skill --dir <folder>` and point the agent at `SKILL.md`, or paste its contents into the system prompt.
+- **Other agents (Cursor, Codex, Gemini CLI, custom agents):** run `npx decktwin skill --dir <folder>` and point the agent at `SKILL.md`, or paste its contents into the system prompt.
 - **Online copy:** [/skill/SKILL.md](/skill/SKILL.md).
 
 ## What the skill contains
@@ -61,6 +61,6 @@ Every component page shows its symbol, tag letters and datasheet mapping under *
 
 Provide the skill, the equipment table and one instruction:
 
-> Follow Workflow B in SKILL.md. Use only names from `deck-twin list` and ports from `deck-twin info`. Run `deck-twin validate plant.json` after every change until it reports no errors, then run `deck-twin assemble plant.json`.
+> Follow Workflow B in SKILL.md. Use only names from `decktwin list` and ports from `decktwin info`. Run `decktwin validate plant.json` after every change until it reports no errors, then run `decktwin assemble plant.json`.
 
 Most of the correction happens in this validation loop. Every error names the item and states what the model must change.

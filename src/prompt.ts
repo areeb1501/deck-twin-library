@@ -1,7 +1,7 @@
 // The copy-paste prompt that sets up Deck Twin in any coding agent. Plain text, no DOM: also written to /prompt.md at build.
 import { version } from '../package.json'
 
-export const cliCommand = (site: string) => `npx -y ${site}/cli/deck-twin-${version}.tgz`
+export const cliCommand = (site: string) => `npx -y ${site}/cli/decktwin-${version}.tgz`
 
 export function agentPrompt(site: string) {
   const cli = cliCommand(site)
@@ -12,7 +12,7 @@ Docs: ${site}/docs
 Agent skill: ${site}/skill/SKILL.md
 Machine index of every component: ${site}/r/index.json
 
-**Running the CLI.** In this session, \`deck-twin\` means \`${cli}\`. It needs no install and no dependencies. Run every command below with it, for example \`${cli} list\`.
+**Running the CLI.** In this session, \`decktwin\` means \`${cli}\`. It needs no install and no dependencies. Run every command below with it, for example \`${cli} list\`.
 
 ## 1. Set up (do this once, then tell me what you did)
 
@@ -22,19 +22,19 @@ Machine index of every component: ${site}/r/index.json
 2. Install the 3D stack:
    - \`npm install three @react-three/fiber @react-three/drei\`
    - \`npm install -D @types/three\`
-3. Configure the components: \`deck-twin init\`. Components go to \`src/components/deck-twin/\`; the shared \`lib/\` comes with the first one.
-4. Install the agent skill: \`deck-twin skill\`. It writes \`.claude/skills/deck-twin/\`. If you are not Claude Code, read ${site}/skill/SKILL.md and every file in its references/ folder now, and follow them as your instructions for this work.
+3. Configure the components: \`decktwin init\`. Components go to \`src/components/deck-twin/\`; the shared \`lib/\` comes with the first one.
+4. Install the agent skill: \`decktwin skill\`. It writes \`.claude/skills/deck-twin/\`. If you are not Claude Code, read ${site}/skill/SKILL.md and every file in its references/ folder now, and follow them as your instructions for this work.
 5. Smoke test.
-   - Run \`deck-twin add gate-valve\`.
+   - Run \`decktwin add gate-valve\`.
    - Render it in a full-screen \`<Canvas shadows>\`, wrapped in \`<Stage>\` from \`src/components/deck-twin/lib/stage\`, with \`<OrbitControls makeDefault />\`.
    - Run the type-checker and the dev server, and confirm it renders.
 
 ## 2. Do the work
 
 **Adding equipment.** Follow Workflow A in SKILL.md:
-1. \`deck-twin search <words>\`
-2. \`deck-twin info <name>\`
-3. \`deck-twin add <name>\`
+1. \`decktwin search <words>\`
+2. \`decktwin info <name>\`
+3. \`decktwin add <name>\`
 4. Use it with props in metres, \`nps\` in inches and \`rating\` as the ASME class.
 
 **Building a plant from any mix of documents** (P&IDs, PFDs, datasheets, equipment and line lists, plot plans, descriptions, notes). Follow Workflow B in SKILL.md:
@@ -45,14 +45,14 @@ Machine index of every component: ${site}/r/index.json
 5. Write plant.json (schema: \`references/plant-json.md\`; patterns: \`references/examples.md\`). There is one format: \`"items"\` and \`"lines"\`, built from registry components. Never use \`"equipment"\`, \`"deck"\`, \`"nozzles"\` or \`"version"\`. JSON Schema: ${site}/r/plant.schema.json.
    - Put line numbers in each line's \`tag\`. Size, service, class and insulation are read from them.
    - Use battery limits \`{ "at": [x, y, z] }\` for lines that leave the drawing.
-6. Run \`deck-twin validate plant.json\` and fix every error. Repeat until it is clean.
-7. Run \`deck-twin assemble plant.json\`. It installs everything and writes \`src/PlantScene.tsx\`.
+6. Run \`decktwin validate plant.json\` and fix every error. Repeat until it is clean.
+7. Run \`decktwin assemble plant.json\`. It installs everything and writes \`src/PlantScene.tsx\`.
 8. Render it and read the \`onReport\` issues (overlaps, items standing on nothing). Fix them and render again.
 
 ## Rules
 
-- **One plant format.** plant.json follows \`references/plant-json.md\` exactly, and it isn't done until \`deck-twin validate\` is clean.
-- **Names come from the CLI.** Use only component names from \`deck-twin list\` or \`search\`, and only props and port ids from \`deck-twin info <name>\`. Never invent them.
+- **One plant format.** plant.json follows \`references/plant-json.md\` exactly, and it isn't done until \`decktwin validate\` is clean.
+- **Names come from the CLI.** Use only component names from \`decktwin list\` or \`search\`, and only props and port ids from \`decktwin info <name>\`. Never invent them.
 - **Units:** metres, degrees, NPS in inches, ASME class numbers.
 - **Everything is wired.** Wire every process item in flow order. Nothing is decorative, unconnected or floating.
 - **Don't fork components.** Don't edit component files to make something fit. Use props, rotation, position or another component.

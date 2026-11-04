@@ -7,10 +7,10 @@ There is exactly one plant format for agents: the one on this page. It is built 
 | Do | Don't |
 |---|---|
 | List components in `"items"`, each with `"tag"`, `"component"` and `"position"`. | Use `"equipment"`, `"deck"`, `"kind"`, `"type"`, `"nozzles"` or `"version"`. Those belong to other formats and the file is rejected. |
-| Take `"component"` from `deck-twin search`, and props and ports from `deck-twin info <name>`. | Invent a name, a prop or a port id, or guess one from a similar component. |
+| Take `"component"` from `decktwin search`, and props and ports from `decktwin info <name>`. | Invent a name, a prop or a port id, or guess one from a similar component. |
 | Join items with lines: `"from": "V-100.gas"`, `"to": "K-101.suction"`. | Write coordinates for a pipe's route unless you need waypoints (`"via"`). The router builds it. |
 | Put valves and other inline parts in the line's `"inline"` list. | Add top-level `"valves"` or `"instruments"`, or put an inline valve in `"items"`. |
-| Run `deck-twin validate plant.json` and fix every error before you hand it over. | Hand over a file that hasn't been checked. |
+| Run `decktwin validate plant.json` and fix every error before you hand it over. | Hand over a file that hasn't been checked. |
 
 The JSON Schema is at [/r/plant.schema.json](/r/plant.schema.json), with the full list of component names. Use it for editor validation or structured output, and start the file with `"$schema"` pointing at it.
 
@@ -30,7 +30,7 @@ interface PlantSpec {
 interface PlantItem {
   tag: string                           // unique: "V-1100", "P-1500A", "DECK-MAIN"
   component: string                     // registry name: "horizontal-separator"
-  props?: Record<string, unknown>       // from `deck-twin info <name>`
+  props?: Record<string, unknown>       // from `decktwin info <name>`
   position?: [number, number, number]   // metres; y = the level it stands on
   rotation?: number                     // degrees about +Y
 }
@@ -73,7 +73,7 @@ A line joins two ports, so it can't start or end in the middle of another line. 
 
 ## Ports move with props
 
-`deck-twin info` lists ports at the component's default props. Resizing an item moves its ports, so treat those positions as approximate when you place something against them, such as a PSV on a vessel. The renderer uses the real positions and reports what doesn't fit.
+`decktwin info` lists ports at the component's default props. Resizing an item moves its ports, so treat those positions as approximate when you place something against them, such as a PSV on a vessel. The renderer uses the real positions and reports what doesn't fit.
 
 ## Rules the checker enforces
 
