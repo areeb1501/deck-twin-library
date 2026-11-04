@@ -5,6 +5,7 @@ import { LLM_ROUTE, llmRoute } from './llm-route.js'
 import { META_SAM_ROUTE, metaSamRoute } from './meta-sam-route.js'
 import { META_VIDEO_ROUTE, metaVideoRoute } from './meta-sam-video-route.js'
 import { SAM_ROUTE, samRoute } from './sam-route.js'
+import { prefetchTwin } from './prefetchTwin'
 
 /**
  * Private /alpha copy of the Deck Twin app (see README.md in this folder). Builds with base /alpha/ straight
@@ -61,7 +62,7 @@ export default defineConfig(({ command, mode }) => {
   const env = { ...loadEnv(mode, new URL('.', import.meta.url).pathname, ''), ...process.env } as Record<string, string>
   return {
     base: '/alpha/',
-    plugins: [react(), samDevRoute()],
+    plugins: [react(), samDevRoute(), prefetchTwin()],
     // bridge/ reaches into ../registry, whose imports would otherwise resolve to a second React and three.js
     resolve: { dedupe: ['react', 'react-dom', 'three', '@react-three/fiber', '@react-three/drei'] },
     // media lives in R2 behind the site's Worker, and the landing search reads the site's index and thumbnails, so dev reads the live copies
