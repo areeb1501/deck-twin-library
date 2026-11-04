@@ -14,7 +14,7 @@ import { tmpdir } from 'node:os'
 const root = join(dirname(fileURLToPath(import.meta.url)), '..')
 const reg = join(root, 'registry')
 const out = join(root, 'public/r')
-const SITE = (process.env.REGISTRY_URL ?? 'https://deck-twin-library.demoareeb.workers.dev').replace(/\/$/, '')
+const SITE = (process.env.REGISTRY_URL ?? 'https://decktwin.com').replace(/\/$/, '')
 const PUBLIC_SITE = 'https://decktwin.com'
 const PEERS = ['three', '@react-three/fiber', '@react-three/drei']
 const ALLOWED = [/^react$/, /^three$/, /^three\/examples\/jsm\//, /^@react-three\/fiber$/, /^@react-three\/drei$/]

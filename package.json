@@ -4,7 +4,7 @@
   "version": "0.3.0",
   "description": "Standards-based three.js components for oil and gas digital twins, sized to published engineering standards.",
   "license": "SEE LICENSE IN LICENSE",
-  "homepage": "https://deck-twin-library.demoareeb.workers.dev",
+  "homepage": "https://decktwin.com",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/areeb1501/deck-twin-library.git"

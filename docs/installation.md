@@ -62,7 +62,7 @@ export default function App() {
 `npx decktwin init` writes a `deck-twin.json` file:
 
 ```json
-{ "dir": "src/components/deck-twin", "registry": "https://deck-twin-library.demoareeb.workers.dev" }
+{ "dir": "src/components/deck-twin", "registry": "https://decktwin.com" }
 ```
 
 - `dir` is the directory that components are installed into.

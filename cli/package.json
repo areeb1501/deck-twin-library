@@ -3,7 +3,7 @@
   "version": "0.3.0",
   "description": "CLI for the Deck Twin registry: add standards-based three.js oil & gas components, check and assemble plant.json.",
   "license": "SEE LICENSE IN LICENSE",
-  "homepage": "https://deck-twin-library.demoareeb.workers.dev",
+  "homepage": "https://decktwin.com",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/areeb1501/deck-twin-library.git",
