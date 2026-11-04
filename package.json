@@ -1,7 +1,8 @@
 {
   "name": "deck-twin",
+  "private": true,
   "version": "0.2.2",
-  "description": "Open-source three.js components for oil and gas digital twins, sized to published engineering standards.",
+  "description": "Standards-based three.js components for oil and gas digital twins, sized to published engineering standards.",
   "license": "SEE LICENSE IN LICENSE",
   "homepage": "https://deck-twin-library.demoareeb.workers.dev",
   "repository": {

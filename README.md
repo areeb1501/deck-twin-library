@@ -80,6 +80,13 @@ Describe a drill in plain words, for example "a stuck ESD valve during a fire in
 
 SAM 3.1 finds people and hazards on the colour CCTV cameras. It stays off until you switch it on. Until then, detections are simulated, and each camera says which it is.
 
+- **Typed prompts.** While real SAM 3.1 is on, type up to three short phrases, such as "ladder", for it to mask as well. They are masks only: no alarm and no log entry.
+- **Review the last 10 s.** One press sends a short clip of the main monitor on your own Meta key and replays it with tracked masks. Nothing is recorded until the switch is on.
+
+### Agents, Investigate and Ask the plant
+
+These use the same Muse Spark connection as the Response and Scenarios pages. Read-only tools gather the evidence from the plant, and one click makes one request. With no key saved, or if a call fails, a local planner answers and the panel says so. The key field is in the Agents panel.
+
 ### Models
 
 | Provider | Model | You need |
@@ -89,7 +96,9 @@ SAM 3.1 finds people and hazards on the colour CCTV cameras. It stays off until 
 | Meta Model API | Muse Spark or Muse Wonder, chosen from a list | An API key |
 | Modal or Meta Model API | SAM 3.1, for cameras | See `modal/README.md` |
 
-Open the console, go to Response or Scenarios, pick a provider under Model and save your key. Ask the plant, Investigate and the Agents strip run on a local rule planner, not a model.
+Open the console, go to Response or Scenarios, or open the Agents panel, pick a provider and save your key. One key serves the whole console.
+
+These model paths are tested with a stubbed model. The real Meta Model API path has not been run with a live key yet.
 
 ## How risk is classified
 
@@ -124,6 +133,12 @@ Open the console, go to Response or Scenarios, pick a provider under Model and s
 | Hidden risk | Barrier erosion, such as detectors out of service, and sensors drifting towards a trip |
 
 Each of these raises an alert with a full trace of how it was reached. Alerts are drafted to an outbox and not sent. All of this runs on simulated data.
+
+## Accounts and views
+
+The console opens as a signed-in user, shown at the top right, with four views: System admin, Operator, Finance and HSE. Each view shows the tabs that role needs.
+
+There is no sign-in page yet, so everyone is the default system admin, and hiding a tab is a display choice, not a lock. The [`database`](database) folder holds the Cloudflare D1 schema, seed and init script for accounts, sessions, views and a log of paid model calls. The database is not bound yet.
 
 ## The data engine
 
@@ -197,14 +212,21 @@ Each wizard asks for your sizing, prints a full plan with an estimated cost, and
 ## What's next
 
 - Connect the data engine to the twin
-- Role-based access, so a manager can share specific action items
+- Sign-in, and the D1 database bound to the console views
+- Share specific action items from one role to another
 - Kubernetes manifests for the twin and the engine
 - Edge gateway connectors for OPC UA, Modbus and MQTT
 - The full console on uploaded plants
 
 ## Use the components
 
-Until it is on npm, run the CLI from the site: `npx -y <site>/cli/deck-twin-0.2.2.tgz <command>`. The examples use the short `npx deck-twin`.
+The CLI is not on npm yet. Until it is, run it from the registry site:
+
+```bash
+npx -y https://deck-twin-library.demoareeb.workers.dev/cli/deck-twin.tgz <command>
+```
+
+The examples below use the short `npx deck-twin`, which works once the package is published.
 
 ```bash
 npx deck-twin add horizontal-separator centrifugal-pump gate-valve
@@ -220,6 +242,7 @@ npx deck-twin skill
 | [Agent skill](docs/agents.md) | Using it from an AI agent |
 | [Standards](docs/standards.md) | The dimensional tables |
 | [Adding a component](docs/contributing.md) | Writing a new component |
+| [Database](database/README.md) | The D1 tables for accounts and views |
 
 ## Develop
 
