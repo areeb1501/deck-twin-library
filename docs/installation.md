@@ -4,7 +4,7 @@ This page explains how to install Deck Twin components in a React project, with 
 
 Deck Twin components are React Three Fiber components. They work in any React project with a bundler, including Vite, Next.js and Remix.
 
-> **Run the CLI from this site.** The `decktwin` package is not yet published to npm, so run it as `npx -y https://<this site>/cli/decktwin-0.3.0.tgz <command>`. This requires no installation and no dependencies. Where these docs show `npx decktwin`, use this command instead. The **Copy prompt** button on the landing page already uses the full command.
+> **No install needed.** Run the CLI with `npx decktwin <command>`. It needs Node 18 or later and has no dependencies. The **Copy prompt** button on the landing page gives an agent the same CLI as a pinned download from this site.
 
 ## 1. Peer dependencies
 
@@ -62,7 +62,7 @@ export default function App() {
 `npx decktwin init` writes a `deck-twin.json` file:
 
 ```json
-{ "dir": "src/components/deck-twin", "registry": "https://deck-twin-library.demoareeb.workers.dev" }
+{ "dir": "src/components/deck-twin", "registry": "https://decktwin.com" }
 ```
 
 - `dir` is the directory that components are installed into.

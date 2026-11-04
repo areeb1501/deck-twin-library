@@ -1,10 +1,10 @@
 # P&ID legend: every common symbol
 
-Generated from `registry/pid/library.json` (293 symbols). Each category is also one image: `https://deck-twin-library.demoareeb.workers.dev/symbols/legend-<category>.svg`, which you can view side by side with the drawing. Symbols marked *logical* are not hardware: read them, then skip them in the 3D model. Where a symbol has a component, that is the registry name to use.
+Generated from `registry/pid/library.json` (293 symbols). Each category is also one image: `https://decktwin.com/symbols/legend-<category>.svg`, which you can view side by side with the drawing. Symbols marked *logical* are not hardware: read them, then skip them in the 3D model. Where a symbol has a component, that is the registry name to use.
 
 ## Valves
 
-Sheet: https://deck-twin-library.demoareeb.workers.dev/symbols/legend-valves.svg
+Sheet: https://decktwin.com/symbols/legend-valves.svg
 
 | Symbol | Drawn as | Meaning | Component |
 |---|---|---|---|
@@ -34,7 +34,7 @@ Sheet: https://deck-twin-library.demoareeb.workers.dev/symbols/legend-valves.svg
 
 ## Check valves
 
-Sheet: https://deck-twin-library.demoareeb.workers.dev/symbols/legend-check-valves.svg
+Sheet: https://decktwin.com/symbols/legend-check-valves.svg
 
 | Symbol | Drawn as | Meaning | Component |
 |---|---|---|---|
@@ -47,7 +47,7 @@ Sheet: https://deck-twin-library.demoareeb.workers.dev/symbols/legend-check-valv
 
 ## Relief, regulators and safety devices
 
-Sheet: https://deck-twin-library.demoareeb.workers.dev/symbols/legend-relief.svg
+Sheet: https://decktwin.com/symbols/legend-relief.svg
 
 | Symbol | Drawn as | Meaning | Component |
 |---|---|---|---|
@@ -63,7 +63,7 @@ Sheet: https://deck-twin-library.demoareeb.workers.dev/symbols/legend-relief.svg
 
 ## Actuators, operators and valve accessories
 
-Sheet: https://deck-twin-library.demoareeb.workers.dev/symbols/legend-actuators.svg
+Sheet: https://decktwin.com/symbols/legend-actuators.svg
 
 | Symbol | Drawn as | Meaning | Component |
 |---|---|---|---|
@@ -95,7 +95,7 @@ Sheet: https://deck-twin-library.demoareeb.workers.dev/symbols/legend-actuators.
 
 ## Piping fittings and specials
 
-Sheet: https://deck-twin-library.demoareeb.workers.dev/symbols/legend-fittings.svg
+Sheet: https://decktwin.com/symbols/legend-fittings.svg
 
 | Symbol | Drawn as | Meaning | Component |
 |---|---|---|---|
@@ -139,7 +139,7 @@ Sheet: https://deck-twin-library.demoareeb.workers.dev/symbols/legend-fittings.s
 
 ## Lines and signals
 
-Sheet: https://deck-twin-library.demoareeb.workers.dev/symbols/legend-lines.svg
+Sheet: https://decktwin.com/symbols/legend-lines.svg
 
 | Symbol | Drawn as | Meaning | Component |
 |---|---|---|---|
@@ -162,7 +162,7 @@ Sheet: https://deck-twin-library.demoareeb.workers.dev/symbols/legend-lines.svg
 
 ## Connectors, boundaries and annotations
 
-Sheet: https://deck-twin-library.demoareeb.workers.dev/symbols/legend-connectors.svg
+Sheet: https://decktwin.com/symbols/legend-connectors.svg
 
 | Symbol | Drawn as | Meaning | Component |
 |---|---|---|---|
@@ -180,7 +180,7 @@ Sheet: https://deck-twin-library.demoareeb.workers.dev/symbols/legend-connectors
 
 ## Instrument bubbles and functions (ISA 5.1)
 
-Sheet: https://deck-twin-library.demoareeb.workers.dev/symbols/legend-instruments.svg
+Sheet: https://decktwin.com/symbols/legend-instruments.svg
 
 | Symbol | Drawn as | Meaning | Component |
 |---|---|---|---|
@@ -201,7 +201,7 @@ Sheet: https://deck-twin-library.demoareeb.workers.dev/symbols/legend-instrument
 
 ## Primary elements and field instruments
 
-Sheet: https://deck-twin-library.demoareeb.workers.dev/symbols/legend-primary-elements.svg
+Sheet: https://decktwin.com/symbols/legend-primary-elements.svg
 
 | Symbol | Drawn as | Meaning | Component |
 |---|---|---|---|
@@ -238,7 +238,7 @@ Sheet: https://deck-twin-library.demoareeb.workers.dev/symbols/legend-primary-el
 
 ## Vessels, columns and tanks
 
-Sheet: https://deck-twin-library.demoareeb.workers.dev/symbols/legend-vessels.svg
+Sheet: https://decktwin.com/symbols/legend-vessels.svg
 
 | Symbol | Drawn as | Meaning | Component |
 |---|---|---|---|
@@ -258,7 +258,7 @@ Sheet: https://deck-twin-library.demoareeb.workers.dev/symbols/legend-vessels.sv
 
 ## Heat transfer equipment
 
-Sheet: https://deck-twin-library.demoareeb.workers.dev/symbols/legend-exchangers.svg
+Sheet: https://decktwin.com/symbols/legend-exchangers.svg
 
 | Symbol | Drawn as | Meaning | Component |
 |---|---|---|---|
@@ -277,7 +277,7 @@ Sheet: https://deck-twin-library.demoareeb.workers.dev/symbols/legend-exchangers
 
 ## Pumps
 
-Sheet: https://deck-twin-library.demoareeb.workers.dev/symbols/legend-pumps.svg
+Sheet: https://decktwin.com/symbols/legend-pumps.svg
 
 | Symbol | Drawn as | Meaning | Component |
 |---|---|---|---|
@@ -293,7 +293,7 @@ Sheet: https://deck-twin-library.demoareeb.workers.dev/symbols/legend-pumps.svg
 
 ## Compressors, blowers and drivers
 
-Sheet: https://deck-twin-library.demoareeb.workers.dev/symbols/legend-machines.svg
+Sheet: https://decktwin.com/symbols/legend-machines.svg
 
 | Symbol | Drawn as | Meaning | Component |
 |---|---|---|---|
@@ -315,7 +315,7 @@ Sheet: https://deck-twin-library.demoareeb.workers.dev/symbols/legend-machines.s
 
 ## Filters, separators and mixers
 
-Sheet: https://deck-twin-library.demoareeb.workers.dev/symbols/legend-separation.svg
+Sheet: https://decktwin.com/symbols/legend-separation.svg
 
 | Symbol | Drawn as | Meaning | Component |
 |---|---|---|---|
@@ -332,7 +332,7 @@ Sheet: https://deck-twin-library.demoareeb.workers.dev/symbols/legend-separation
 
 ## Flare, wellhead, pipeline and packages
 
-Sheet: https://deck-twin-library.demoareeb.workers.dev/symbols/legend-oilfield.svg
+Sheet: https://decktwin.com/symbols/legend-oilfield.svg
 
 | Symbol | Drawn as | Meaning | Component |
 |---|---|---|---|
@@ -355,7 +355,7 @@ Sheet: https://deck-twin-library.demoareeb.workers.dev/symbols/legend-oilfield.s
 
 ## Fire & gas and fire protection
 
-Sheet: https://deck-twin-library.demoareeb.workers.dev/symbols/legend-fire-gas.svg
+Sheet: https://decktwin.com/symbols/legend-fire-gas.svg
 
 | Symbol | Drawn as | Meaning | Component |
 |---|---|---|---|
@@ -386,7 +386,7 @@ Sheet: https://deck-twin-library.demoareeb.workers.dev/symbols/legend-fire-gas.s
 
 ## Electrical (single-line)
 
-Sheet: https://deck-twin-library.demoareeb.workers.dev/symbols/legend-electrical.svg
+Sheet: https://decktwin.com/symbols/legend-electrical.svg
 
 | Symbol | Drawn as | Meaning | Component |
 |---|---|---|---|

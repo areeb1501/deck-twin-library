@@ -2,7 +2,7 @@
 
 The `decktwin` CLI installs components, searches the registry, validates `plant.json` files and generates plant scenes from the command line.
 
-> **Run the CLI from this site.** The `decktwin` package is not yet published to npm, so run it as `npx -y https://<this site>/cli/decktwin-0.3.0.tgz <command>`. This requires no installation and no dependencies. Where these docs show `npx decktwin`, use this command instead. The **Copy prompt** button on the landing page already uses the full command.
+> **No install needed.** Run the CLI with `npx decktwin <command>`. It needs Node 18 or later and has no dependencies. The **Copy prompt** button on the landing page gives an agent the same CLI as a pinned download from this site.
 
 `decktwin` is a single Node script with no dependencies. It requires Node 18 or later. The old name, `deck-twin`, still works as a second command.
 
