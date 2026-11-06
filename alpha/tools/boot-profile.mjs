@@ -55,11 +55,44 @@ for (let run = 1; run <= runs; run++) {
       const at = P.attachShader
       P.attachShader = function (pr, sh) { (shadersOf.get(pr) ?? shadersOf.set(pr, []).get(pr)).push(sh); return at.call(this, pr, sh) }
       const lp = P.linkProgram
+      const early = (window.__earlySources = new Map())
+      const diffs = (window.__lateDiffs = [])
       P.linkProgram = function (pr) {
+        const srcs0 = (shadersOf.get(pr) ?? []).map((sh) => srcOf.get(sh) ?? '')
+        const sig = srcs0.map((x) => x.split('\n').filter((l) => l.startsWith('#define')).join(' ')).join('||')
+        if (!performance.getEntriesByName('dt:batch-swap').length) {
+          if (!early.has(sig)) early.set(sig, srcs0)
+          if (/MeshDepthMaterial/.test(sig)) {
+            const keep = /^(SHADER_TYPE|USE_BATCHING|USE_INSTANCING|USE_SKINNING|USE_MAP|DOUBLE_SIDED|FLIP_SIDED|USE_ALPHATEST|USE_ALPHAMAP|USE_SHADOWMAP|SHADOWMAP_TYPE|DEPTH_PACKING|USE_UV|USE_INSTANCING_COLOR)/
+            const k = srcs0[0].split('\n').filter((l) => l.startsWith('#define')).map((l) => l.slice(8)).filter((d) => keep.test(d)).join(' ') + ' | ' + (srcs0[1].match(/#if (\d+) > 0\n\tvec4 plane/)?.[1] ?? '?') + ' planes'
+            ;(window.__earlyDepth ??= {})[k] = ((window.__earlyDepth ??= {})[k] ?? 0) + 1
+          }
+        } else if (/MeshDepthMaterial/.test(sig) && diffs.length < 8) {
+          // nearest early depth program by define set, and what differs
+          const defs = (src) => new Set(src.split('\n').filter((l) => l.startsWith('#define')).map((l) => l.slice(8)))
+          const lv = defs(srcs0[0]), lf = defs(srcs0[1])
+          let best = null
+          for (const [, e] of early) {
+            if (!/MeshDepthMaterial/.test(e[0])) continue
+            const ev = defs(e[0]), ef = defs(e[1])
+            const d = [...lv].filter((x) => !ev.has(x)).map((x) => 'v-' + x).concat([...ev].filter((x) => !lv.has(x)).map((x) => 'v+' + x), [...lf].filter((x) => !ef.has(x)).map((x) => 'f-' + x), [...ef].filter((x) => !lf.has(x)).map((x) => 'f+' + x))
+            if (!best || d.length < best.length) best = d
+          }
+          const planes = (src) => src.match(/#if (\d+) > 0\n\tvec4 plane/)?.[1]
+          diffs.push(`late(${planes(srcs0[1])} planes) vs nearest early: ${best?.length ? best.join(' ') : 'same defines'}`)
+        } else if (early.has(sig) && diffs.length < 6) {
+          const e = early.get(sig)
+          const out = []
+          srcs0.forEach((src, i) => {
+            const a = e[i].split('\n'), b = src.split('\n')
+            for (let k = 0; k < Math.max(a.length, b.length) && out.length < 8; k++) if (a[k] !== b[k]) out.push(`${i ? 'frag' : 'vert'}:${k} early«${a[k]}» late«${b[k]}»`)
+          })
+          diffs.push(out.length ? out.join('\n      ') : 'identical source: the key differs elsewhere')
+        }
         if (performance.getEntriesByName('dt:batch-swap').length) {
-          const srcs = (shadersOf.get(pr) ?? []).map((sh) => srcOf.get(sh) ?? '')
+          const srcs = srcs0
           const keep = /^(SHADER_TYPE|USE_BATCHING|USE_INSTANCING|USE_SKINNING|USE_MAP|DOUBLE_SIDED|FLIP_SIDED|USE_ALPHATEST|USE_ALPHAMAP|USE_UV|USE_ENVMAP|USE_FOG|USE_SHADOWMAP|VERTEX_TEXTURES|USE_INSTANCING_COLOR|USE_MORPHTARGETS|USE_COLOR|USE_EMISSIVEMAP|USE_ROUGHNESSMAP|USE_METALNESSMAP|USE_NORMALMAP|USE_CLEARCOAT|FLAT_SHADED|TONE_MAPPING|DEPTH_PACKING|USE_LOGDEPTHBUF|USE_TRANSMISSION)/
-          const defs = srcs[0]?.split('\n').filter((l) => l.startsWith('#define')).map((l) => l.slice(8)).filter((d) => keep.test(d)).join(' ') + ' | clip=' + (srcs[1]?.match(/NUM_CLIPPING_PLANES (\d+)/)?.[1] ?? '?') + ' fog=' + (srcs[1]?.includes('USE_FOG') ? 1 : 0)
+          const defs = srcs[0]?.split('\n').filter((l) => l.startsWith('#define')).map((l) => l.slice(8)).filter((d) => keep.test(d)).join(' ') + ' | ' + (srcs[1]?.match(/#if (\d+) > 0\n\tvec4 plane/)?.[1] ?? '?') + ' planes fog=' + (srcs[1]?.includes('USE_FOG') ? 1 : 0)
           late[defs] = (late[defs] ?? 0) + 1
         }
         return lp.call(this, pr)
@@ -73,9 +106,33 @@ for (let run = 1; run <= runs; run++) {
       P[name] = function (...a) {
         const t0 = performance.now()
         const r = f.apply(this, a)
-        if (name === 'linkProgram') linkedAt.set(a[0], t0)
+        if (name === 'linkProgram') {
+          linkedAt.set(a[0], t0)
+          ;(window.__linked ??= []).push(a[0])
+        }
         if (name === 'getProgramParameter' && a[1] === 0x8b86) {
           const since = t0 - (linkedAt.get(a[0]) ?? t0)
+          if (since < 50) {
+            const keep = /^(SHADER_TYPE|SHADER_NAME|USE_BATCHING|USE_INSTANCING|USE_SKINNING|USE_MAP|DOUBLE_SIDED|FLIP_SIDED|USE_ALPHATEST|USE_ALPHAMAP|USE_SHADOWMAP|USE_FOG|USE_ENVMAP|USE_COLOR|USE_INSTANCING_COLOR|USE_EMISSIVEMAP|FLAT_SHADED|TONE_MAPPING|USE_TRANSMISSION|STANDARD|PHYSICAL)/
+            const srcs = (shadersOf.get(a[0]) ?? []).map((sh) => srcOf.get(sh) ?? '')
+            const k = srcs[0]?.split('\n').filter((l) => l.startsWith('#define')).map((l) => l.slice(8)).filter((d) => keep.test(d)).join(' ') + ' | ' + (srcs[1]?.match(/#if (\d+) > 0\n\tvec4 plane/)?.[1] ?? '?') + ' planes' + (srcs[1]?.includes('#define USE_FOG') ? ' fog' : '')
+            const defs = (src) => new Set((src ?? '').split('\n').filter((l) => l.startsWith('#define')).map((l) => l.slice(8)))
+            const nameOf = (src) => (src ?? '').match(/#define SHADER_NAME (.*)/)?.[1] ?? ''
+            const lv = defs(srcs[0]), lf = defs(srcs[1]), ln = nameOf(srcs[0])
+            let best = null
+            for (const pr of window.__linked ?? []) {
+              if (pr === a[0] || (linkedAt.get(pr) ?? 0) > t0 - 50) continue
+              const es = (shadersOf.get(pr) ?? []).map((sh) => srcOf.get(sh) ?? '')
+              if (nameOf(es[0]) !== ln) continue
+              const ev = defs(es[0]), ef = defs(es[1])
+              const d = [...lv].filter((x) => !ev.has(x)).map((x) => 'v-' + x).concat([...ev].filter((x) => !lv.has(x)).map((x) => 'v+' + x), [...lf].filter((x) => !ef.has(x)).map((x) => 'f-' + x), [...ef].filter((x) => !lf.has(x)).map((x) => 'f+' + x))
+              const pl = (srcs[1]?.match(/#if (\d+) > 0\n\tvec4 plane/)?.[1] ?? '?') + '/' + (es[1]?.match(/#if (\d+) > 0\n\tvec4 plane/)?.[1] ?? '?')
+              if (!d.length && pl.split('/')[0] !== pl.split('/')[1]) d.push('planes ' + pl)
+              if (!best || d.length < best.length) best = d
+              if (/MeshDepthMaterial/.test(srcs[0]) && lv.has('USE_BATCHING') && ev.has('USE_BATCHING')) (window.__depthDiffs ??= []).push(`${Math.round(t0)}: ${d.join(' ') || 'same defines'} planes ${pl}`)
+            }
+            ;(window.__stalls ??= []).push([Math.round(t0), Math.round(performance.now() - t0), k, best ? (best.length ? best.join(' ') : 'same defines, same planes') : 'no earlier program with this name'])
+          }
           const b = since < 50 ? '<50ms' : since < 500 ? '<500ms' : since < 2000 ? '<2s' : '>2s'
           const h = (gls[`uniformsQuery ${b} after link`] ??= { n: 0, ms: 0 })
           h.n++
@@ -148,7 +205,7 @@ for (let run = 1; run <= runs; run++) {
       b.n++; b.bytes += r.encodedBodySize; b.end = Math.max(b.end, r.responseEnd)
     }
     const big = res.map((r) => ({ name: r.name.replace(/^.*\/alpha\//, ''), kb: Math.round(r.encodedBodySize / 1024), start: Math.round(r.startTime), end: Math.round(r.responseEnd) })).sort((a, b) => b.kb - a.kb).slice(0, 12)
-    return { late: window.__lateLinks, ext: !!document.createElement('canvas').getContext('webgl2')?.getExtension('KHR_parallel_shader_compile'), gl: window.__gl, dcl: Math.round(nav.domContentLoadedEventEnd), marks: [...window.__bootMarks, ...performance.getEntriesByType('mark').filter((m) => m.name.startsWith('dt:')).map((m) => [Math.round(m.startTime), m.name])].sort((a, b) => a[0] - b[0]), longTasks: window.__longTasks, byType, big }
+    return { depthDiffs: window.__depthDiffs ?? [], stalls: window.__stalls ?? [], earlyDepth: window.__earlyDepth, diffs: window.__lateDiffs, late: window.__lateLinks, ext: !!document.createElement('canvas').getContext('webgl2')?.getExtension('KHR_parallel_shader_compile'), gl: window.__gl, dcl: Math.round(nav.domContentLoadedEventEnd), marks: [...window.__bootMarks, ...performance.getEntriesByType('mark').filter((m) => m.name.startsWith('dt:')).map((m) => [Math.round(m.startTime), m.name])].sort((a, b) => a[0] - b[0]), longTasks: window.__longTasks, byType, big }
   })
   console.log(`\n=== run ${run}: ${total} ms wall until the loader is gone (${path})`)
   console.log('marks:', info.marks.map(([t, m]) => `${t} ${m}`).join(' | '))
@@ -156,11 +213,53 @@ for (let run = 1; run <= runs; run++) {
   if (!quiet) console.log('largest:', info.big.map((b) => `${b.name} ${b.kb} kB ${b.start}→${b.end}`).join('\n         '))
   const busy = info.longTasks.reduce((a, [, d]) => a + d, 0)
   console.log(`webgl (parallel compile ${info.ext ? 'yes' : 'NO'}):`, Object.entries(info.gl).filter(([k, v]) => v.ms > 5 || /link|compileShader|getExtension:|getProgramParameter|uniformsQuery/.test(k)).sort((a, b) => b[1].ms - a[1].ms).map(([k, v]) => `${k} ${Math.round(v.ms)} ms/${v.n}`).join(', '))
+  if (args.includes('--stalls')) {
+    console.log('batched depth stalls vs every earlier batched depth program:\n  ' + info.depthDiffs.slice(0, 12).join('\n  '))
+    const by = new Map()
+    for (const [t, ms, k, why] of info.stalls) {
+      const e = by.get(k) ?? { n: 0, ms: 0, t: [], why }
+      e.n++
+      e.ms += ms
+      e.t.push(t)
+      by.set(k, e)
+    }
+    console.log('programs linked right before use:\n' + [...by].sort((a, b) => b[1].ms - a[1].ms).map(([k, e]) => `  ${String(Math.round(e.ms)).padStart(4)} ms ${e.n}× at ${e.t.slice(0, 4).join(',')}  ${k}\n         vs nearest earlier: ${e.why}`).join('\n'))
+  }
+  if (args.includes('--late')) console.log('depth variants compiled early:\n' + Object.entries(info.earlyDepth ?? {}).map(([k, n]) => `  ${n}× ${k}`).join('\n'))
+  if (args.includes('--late')) console.log('late vs early with the same defines:\n  ' + (info.diffs ?? []).join('\n  ---\n  '))
   if (args.includes('--late')) console.log(`linked after swap (${Object.values(info.late).reduce((a, b) => a + b, 0)}):\n` + Object.entries(info.late).sort((a, b) => b[1] - a[1]).map(([k, n]) => `  ${n}× ${k.slice(0, 700)}`).join('\n'))
   console.log(`long tasks: ${info.longTasks.length}, ${busy} ms blocked; worst ${info.longTasks.map(([s, d]) => `${d}@${s}`).sort((a, b) => parseInt(b) - parseInt(a)).slice(0, 8).join(' ')}`)
   if (prof) {
     const self = new Map()
     const nodes = new Map(prof.nodes.map((n) => [n.id, n]))
+    if (args.includes('--map')) {
+      // original file:function for every frame, through the chunks' source maps
+      const { TraceMap, originalPositionFor } = await import('../../node_modules/@jridgewell/trace-mapping/dist/trace-mapping.mjs')
+      const maps = new Map()
+      const mapOf = (url) => {
+        const file = url.replace(/^.*\/assets\//, '')
+        if (!maps.has(file)) {
+          try {
+            maps.set(file, new TraceMap(JSON.parse(readFileSync(join(root, 'alpha/assets', file + '.map'), 'utf8'))))
+          } catch {
+            maps.set(file, null)
+          }
+        }
+        return maps.get(file)
+      }
+      for (const n of prof.nodes) {
+        const f = n.callFrame
+        const m = f.url && mapOf(f.url)
+        if (!m) continue
+        const o = originalPositionFor(m, { line: f.lineNumber + 1, column: f.columnNumber })
+        if (!o.source) continue
+        const src = o.source.replace(/^(\.\.\/)+/, '').replace(/^alpha\/src\//, 'src/').replace(/.*node_modules\//, 'nm:')
+        f.functionName = (o.name || f.functionName || '(anon)') + ' ' + src.replace(/^src\//, '') + ':' + o.line
+        f.url = ''
+        f.lineNumber = -1
+        f.columnNumber = -1
+      }
+    }
     const dt = prof.timeDeltas
     let total = 0
     prof.samples.forEach((id, i) => {
@@ -184,6 +283,37 @@ for (let run = 1; run <= runs; run++) {
           incl.set(key, (incl.get(key) ?? 0) + dt[i])
         }
       })
+      if (args.includes('--map')) {
+        // inclusive per original file (a sample counts once per file on its stack)
+        const byFile = new Map()
+        prof.samples.forEach((id, i) => {
+          const seen = new Set()
+          for (let n = id; n !== undefined; n = parent.get(n)) {
+            const file = nodes.get(n).callFrame.functionName.split(' ').pop()?.split(':')[0] ?? ''
+            if (!file || seen.has(file)) continue
+            seen.add(file)
+            byFile.set(file, (byFile.get(file) ?? 0) + dt[i])
+          }
+        })
+        console.log('inclusive by file:\n' + [...byFile].sort((a, b) => b[1] - a[1]).slice(0, 45).map(([k, v]) => `  ${String(Math.round(v / 1000)).padStart(5)} ms  ${k}`).join('\n'))
+      }
+      if (opt('--callers', '')) {
+        // who calls a function: inclusive time by the nearest caller frame
+        const want = opt('--callers', '')
+        const by = new Map()
+        prof.samples.forEach((id, i) => {
+          for (let n = id; n !== undefined; n = parent.get(n)) {
+            const f = nodes.get(n).callFrame
+            if (!f.functionName.startsWith(want)) continue
+            let p = parent.get(n)
+            while (p !== undefined && nodes.get(p).callFrame.functionName.startsWith(want)) p = parent.get(p)
+            const k = p === undefined ? '(root)' : nodes.get(p).callFrame.functionName
+            by.set(k, (by.get(k) ?? 0) + dt[i])
+            break
+          }
+        })
+        console.log(`callers of ${want}:\n` + [...by].sort((a, b) => b[1] - a[1]).slice(0, 15).map(([k, v]) => `  ${String(Math.round(v / 1000)).padStart(5)} ms  ${k}`).join('\n'))
+      }
       const topI = [...incl].sort((a, b) => b[1] - a[1]).filter(([k]) => !/^\(root\)|^\(idle\)|^\(program\)|^\(garbage/.test(k)).slice(0, Number(opt('--inclusive', 60)))
       console.log('inclusive:\n' + topI.map(([k, v]) => `  ${String(Math.round(v / 1000)).padStart(5)} ms  ${k}`).join('\n'))
       for (const [k] of topI) {

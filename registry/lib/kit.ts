@@ -1,6 +1,5 @@
 // Geometry kit: build parts in a local frame, bucket by material, merge into one mesh with one draw group per material.
 import * as THREE from 'three'
-import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js'
 import { RoundedBoxGeometry } from 'three/examples/jsm/geometries/RoundedBoxGeometry.js'
 import { materials, type MaterialName } from './materials'
 
@@ -455,20 +454,50 @@ export class Kit {
 
   build(): Built {
     const m = materials()
-    const keys = [...this.buckets.keys()]
-    const geos: THREE.BufferGeometry[] = []
-    const mats: THREE.Material[] = []
-    for (const k of keys) {
-      const merged = mergeGeometries(this.buckets.get(k)!, false)
-      if (!merged) continue
-      geos.push(merged)
-      mats.push(typeof k === 'string' ? m[k] : k)
-    }
-    const geometry = geos.length ? mergeGeometries(geos, true)! : new THREE.BufferGeometry()
-    for (const g of geos) g.dispose()
+    const keys = [...this.buckets.keys()].filter((k) => this.buckets.get(k)!.length)
+    const geometry = mergeLists(keys.map((k) => this.buckets.get(k)!))
     geometry.computeBoundingSphere()
     geometry.computeBoundingBox()
     this.buckets.clear()
-    return { geometry, material: mats }
+    return { geometry, material: keys.map((k) => (typeof k === 'string' ? m[k] : k)) }
   }
+}
+
+// One geometry from the buckets, one draw group per bucket, in a single pass over typed arrays (every part is normalised
+// to indexed position / normal / uv, so three's mergeGeometries and its index built with push() are not needed).
+function mergeLists(lists: THREE.BufferGeometry[][]): THREE.BufferGeometry {
+  let nv = 0
+  let ni = 0
+  for (const list of lists)
+    for (const g of list) {
+      nv += g.attributes.position.count
+      ni += g.index!.count
+    }
+  const pos = new Float32Array(nv * 3)
+  const nor = new Float32Array(nv * 3)
+  const uv = new Float32Array(nv * 2)
+  const idx = nv > 65535 ? new Uint32Array(ni) : new Uint16Array(ni)
+  const out = new THREE.BufferGeometry()
+  let vo = 0
+  let io = 0
+  lists.forEach((list, k) => {
+    const start = io
+    for (const g of list) {
+      const a = g.attributes
+      const ia = g.index!.array
+      pos.set(a.position.array as Float32Array, vo * 3)
+      nor.set(a.normal.array as Float32Array, vo * 3)
+      uv.set(a.uv.array as Float32Array, vo * 2)
+      if (vo === 0) idx.set(ia, 0)
+      else for (let i = 0; i < ia.length; i++) idx[io + i] = ia[i] + vo
+      vo += a.position.count
+      io += ia.length
+    }
+    if (io > start) out.addGroup(start, io - start, k)
+  })
+  out.setAttribute('position', new THREE.BufferAttribute(pos, 3))
+  out.setAttribute('normal', new THREE.BufferAttribute(nor, 3))
+  out.setAttribute('uv', new THREE.BufferAttribute(uv, 2))
+  out.setIndex(new THREE.BufferAttribute(idx, 1))
+  return out
 }

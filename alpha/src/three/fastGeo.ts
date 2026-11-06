@@ -19,6 +19,33 @@ export function installFastGeometry() {
   THREE.BufferGeometry.prototype.applyMatrix4 = function (m: THREE.Matrix4) {
     return transformGeometry(this, m)
   }
+  THREE.BufferGeometry.prototype.clone = function () {
+    return cloneGeometry(this)
+  }
+}
+
+const slowClone = THREE.BufferGeometry.prototype.clone
+
+/** g.clone() with one copy per array: three's clone copies every attribute twice, and a primitive's clone runs its generator first */
+export function cloneGeometry(g: THREE.BufferGeometry): THREE.BufferGeometry {
+  if (g.constructor !== THREE.BufferGeometry || Object.keys(g.morphAttributes).length) return slowClone.call(g)
+  const out = new THREE.BufferGeometry()
+  out.name = g.name
+  for (const name of Object.keys(g.attributes)) {
+    const a = g.attributes[name]
+    if ((a as THREE.InterleavedBufferAttribute).isInterleavedBufferAttribute) return slowClone.call(g)
+    const b = new THREE.BufferAttribute((a.array as Float32Array).slice(), a.itemSize, a.normalized)
+    b.gpuType = (a as THREE.BufferAttribute).gpuType
+    out.setAttribute(name, b)
+  }
+  if (g.index) out.setIndex(new THREE.BufferAttribute((g.index.array as Uint32Array).slice(), 1))
+  for (const gr of g.groups) out.addGroup(gr.start, gr.count, gr.materialIndex)
+  if (g.boundingBox) out.boundingBox = g.boundingBox.clone()
+  if (g.boundingSphere) out.boundingSphere = g.boundingSphere.clone()
+  out.drawRange.start = g.drawRange.start
+  out.drawRange.count = g.drawRange.count
+  out.userData = g.userData
+  return out
 }
 
 /** g.applyMatrix4(m), on the arrays directly */
@@ -161,5 +188,5 @@ export function unit(key: string, make: () => THREE.BufferGeometry): THREE.Buffe
   let g = units.get(key)
   // kept as a plain BufferGeometry: cloning a CylinderGeometry would run its generator again before copying
   if (!g) units.set(key, (g = new THREE.BufferGeometry().copy(make())))
-  return g.clone()
+  return cloneGeometry(g)
 }

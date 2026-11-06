@@ -259,7 +259,8 @@ export class Kit {
   /** Rounded-corner box (castings, enclosures). */
   rbox(mat: MatKey, size: V3, radius: number, pos: V3 = [0, 0, 0], o?: Orient, seg = 2) {
     const r = Math.min(radius, size[0] / 2 - 1e-4, size[1] / 2 - 1e-4, size[2] / 2 - 1e-4)
-    return this.add(mat, new RoundedBoxGeometry(size[0], size[1], size[2], seg, Math.max(r, 1e-4)), mat4(pos, o))
+    const rr = Math.max(r, 1e-4)
+    return this.add(mat, unit(`rbox|${size.join(',')}|${seg}|${rr}`, () => new RoundedBoxGeometry(size[0], size[1], size[2], seg, rr)), mat4(pos, o))
   }
   /** Cylinder centred on pos, axis along `axis`. r2 = top radius (towards +axis). */
   cyl(mat: MatKey, r: number, h: number, pos: V3 = [0, 0, 0], axis: Orient = 'y', seg = 24, r2?: number, open = false) {

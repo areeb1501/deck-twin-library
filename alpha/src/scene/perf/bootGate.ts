@@ -11,11 +11,24 @@ export const STAGE_LAYER = 31
 
 let held: { camera: THREE.Camera; mask: number } | null = null
 let done = false
+const lit = new Set<THREE.Object3D>()
 
-export function holdFrames(camera: THREE.Camera) {
+export function holdFrames(camera: THREE.Camera, scene: THREE.Object3D) {
   if (held || done) return
   held = { camera, mask: camera.layers.mask }
   camera.layers.set(STAGE_LAYER)
+  stageLights(scene)
+}
+
+/** the lights see the staging layer too: a frame drawn without them would compile shadowless variants of every batch */
+export function stageLights(scene: THREE.Object3D) {
+  if (!held) return
+  scene.traverse((o) => {
+    if ((o as THREE.Light).isLight && !lit.has(o)) {
+      lit.add(o)
+      o.layers.enable(STAGE_LAYER)
+    }
+  })
 }
 
 let target: THREE.WebGLRenderTarget | null = null
@@ -43,6 +56,8 @@ export function releaseFrames() {
   done = true
   if (held) held.camera.layers.mask = held.mask
   held = null
+  for (const o of lit) o.layers.disable(STAGE_LAYER)
+  lit.clear()
 }
 
 /** still loading: the batcher doesn't need its usual patience with a plant being edited */

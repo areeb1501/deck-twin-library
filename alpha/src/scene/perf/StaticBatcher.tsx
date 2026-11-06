@@ -29,9 +29,10 @@ import { useFrame, useThree } from '@react-three/fiber'
 import { useStore } from '../../state/store'
 import { BATCH_LAYER, CULL_LAYER, batchRegistry, refreshEntry, releaseEntry, setShown, type Entry, type Slot } from './batching'
 import { requestShadows } from './shadows'
-import { STAGE_LAYER, booting, releaseFrames, withView } from './bootGate'
+import { STAGE_LAYER, booting, releaseFrames, stageLights, withView } from './bootGate'
 import { bootDone } from '../../ui/bootLoader'
 import { computeBounds } from '../../three/fastGeo'
+import { precompileShadows } from './shadowWarm'
 
 const DISABLED = new URLSearchParams(location.search).has('nobatch')
 /** vertices per BatchedMesh: bounds the size of each GPU upload */
@@ -391,6 +392,8 @@ export function StaticBatcher({ root }: { root: RefObject<THREE.Object3D | null>
     const planned = new Map<THREE.Mesh, Planned>()
     const subCache = new Map<THREE.BufferGeometry, Map<string, THREE.BufferGeometry>>()
     const sub = (p: Piece) => {
+      // the whole geometry: the batch copies it as it is
+      if (p.start === 0 && p.count === p.geo.index!.count) return p.geo.boundingSphere ? p.geo : computeBounds(p.geo)
       let m = subCache.get(p.geo)
       if (!m) subCache.set(p.geo, (m = new Map()))
       const k = `${p.start}:${p.count}`
@@ -467,9 +470,13 @@ export function StaticBatcher({ root }: { root: RefObject<THREE.Object3D | null>
       for (const b of job.batches) holder.add(b)
       try {
         // compileAsync only watches one program per material, and these are the batching variants: wait for them by hand
-        withView(gl, () => gl.compile(holder, camera, scene))
+        const depth = withView(gl, () => {
+          gl.compile(holder, camera, scene)
+          return precompileShadows(gl, scene, camera, [holder])
+        })
         const programs = new Set<{ isReady(): boolean }>()
-        for (const b of job.batches) for (const p of (gl.properties.get(b.material) as { programs?: Map<string, { isReady(): boolean }> }).programs?.values() ?? []) programs.add(p)
+        for (const m of [...job.batches.map((b) => b.material as THREE.Material), ...depth])
+          for (const p of (gl.properties.get(m) as { programs?: Map<string, { isReady(): boolean }> }).programs?.values() ?? []) programs.add(p)
         const total = programs.size
         const until = performance.now() + 15_000
         while (performance.now() < until) {
@@ -484,6 +491,7 @@ export function StaticBatcher({ root }: { root: RefObject<THREE.Object3D | null>
       for (const b of job.batches) holder.remove(b)
     }
     if (job.cancelled) throw CANCEL
+    stageLights(scene) // lights mounted since the hold began
     job.stats.compileMs = Math.round(performance.now() - tc)
     performance.mark('dt:batch-staged')
     job.stats.step = 'stage'

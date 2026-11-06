@@ -46,6 +46,7 @@ import { patchN8AO } from './perf/n8aoFix'
 const FireGasMounts = memo(FireGasMountsRaw)
 import { requestShadows, shadowTick } from './perf/shadows'
 import { holdFrames, releaseFrames, withView } from './perf/bootGate'
+import { precompileShadows } from './perf/shadowWarm'
 import { FireGasMounts as FireGasMountsRaw } from './FireGasMounts'
 import { useSim } from '../state/sim'
 import { bootDone, bootStage } from '../ui/bootLoader'
@@ -428,9 +429,12 @@ function BootWatch() {
       requestAnimationFrame(() => requestAnimationFrame(bootDone))
     }
     if (!batching) return void setTimeout(finish, 400)
-    holdFrames(camera)
+    holdFrames(camera, scene)
     performance.mark('dt:compile')
-    withView(gl, () => gl.compileAsync(scene, camera)).then(() => performance.mark('dt:compiled'), () => {})
+    withView(gl, () => {
+      precompileShadows(gl, scene, camera, [scene])
+      return gl.compileAsync(scene, camera)
+    }).then(() => performance.mark('dt:compiled'), () => {})
     setTimeout(finish, BOOT_CAP_MS)
   })
   return null
