@@ -13,7 +13,7 @@
  *  - mirrored transforms (negative determinant) get their winding flipped automatically.
  */
 import * as THREE from 'three'
-import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js'
+import { computeBounds, mergeLists, transformGeometry, unit } from '../../../three/fastGeo'
 import { RoundedBoxGeometry } from 'three/examples/jsm/geometries/RoundedBoxGeometry.js'
 import { materials, type MaterialName } from '../../../three/materials'
 import { latheCrisp, type Profile } from '../../../three/pipeGeometry'
@@ -78,6 +78,12 @@ export function mat4(pos: V3 = [0, 0, 0], o?: Orient, s?: V3 | number) {
   const q = o ? orientQuat(o) : new THREE.Quaternion()
   const sc = s === undefined ? new THREE.Vector3(1, 1, 1) : typeof s === 'number' ? new THREE.Vector3(s, s, s) : new THREE.Vector3(...s)
   return new THREE.Matrix4().compose(new THREE.Vector3(...pos), q, sc)
+}
+
+/** unit-height cylinder of radius 1 (top radius rTop / r), scaled into place by the caller's matrix */
+function unitCyl(rTop: number, r: number, seg: number, open: boolean) {
+  const k = r > 0 ? Math.round((rTop / r) * 1000) / 1000 : 1
+  return unit(`cyl|${seg}|${open ? 1 : 0}|${k}`, () => new THREE.CylinderGeometry(k, 1, 1, seg, 1, open))
 }
 
 function normalise(g: THREE.BufferGeometry): THREE.BufferGeometry {
@@ -235,7 +241,7 @@ export class Kit {
     if (typeof mat === 'string') mat = this.alias[mat] ?? mat
     const g = normalise(geo)
     const m = local ? this.top.clone().multiply(local) : this.top
-    g.applyMatrix4(m)
+    transformGeometry(g, m)
     if (m.determinant() < 0) flipWinding(g)
     let list = this.buckets.get(mat)
     if (!list) this.buckets.set(mat, (list = []))
@@ -248,7 +254,7 @@ export class Kit {
   }
 
   box(mat: MatKey, size: V3, pos: V3 = [0, 0, 0], o?: Orient) {
-    return this.add(mat, new THREE.BoxGeometry(size[0], size[1], size[2]), mat4(pos, o))
+    return this.add(mat, unit('box', () => new THREE.BoxGeometry(1, 1, 1)), mat4(pos, o, size))
   }
   /** Rounded-corner box (castings, enclosures). */
   rbox(mat: MatKey, size: V3, radius: number, pos: V3 = [0, 0, 0], o?: Orient, seg = 2) {
@@ -257,7 +263,7 @@ export class Kit {
   }
   /** Cylinder centred on pos, axis along `axis`. r2 = top radius (towards +axis). */
   cyl(mat: MatKey, r: number, h: number, pos: V3 = [0, 0, 0], axis: Orient = 'y', seg = 24, r2?: number, open = false) {
-    return this.add(mat, new THREE.CylinderGeometry(r2 ?? r, r, h, seg, 1, open), mat4(pos, axis))
+    return this.add(mat, unitCyl(r2 ?? r, r, seg, open), mat4(pos, axis, [r, h, r]))
   }
   /** Cylinder between two points. */
   rod(mat: MatKey, a: V3, b: V3, r: number, seg = 10, r2?: number) {
@@ -267,7 +273,7 @@ export class Kit {
     const L = d.length()
     if (L < 1e-6) return this
     const mid = va.clone().add(vb).multiplyScalar(0.5)
-    return this.add(mat, new THREE.CylinderGeometry(r2 ?? r, r, L, seg, 1, false), mat4([mid.x, mid.y, mid.z], d.toArray() as V3))
+    return this.add(mat, unitCyl(r2 ?? r, r, seg, false), mat4([mid.x, mid.y, mid.z], d.toArray() as V3, [r, L, r]))
   }
   /** Lathe profile (r, y) about `axis`, profile y measured from pos along the axis. */
   lathe(mat: MatKey, profile: Profile, pos: V3 = [0, 0, 0], axis: Orient = 'y', seg = 32, phiStart = 0, phiLength = Math.PI * 2) {
@@ -280,7 +286,8 @@ export class Kit {
     return this.add(mat, g, mat4(pos, axis))
   }
   sphere(mat: MatKey, r: number, pos: V3 = [0, 0, 0], scale?: V3, seg = 20, o?: Orient) {
-    return this.add(mat, new THREE.SphereGeometry(r, seg, Math.max(6, Math.round(seg * 0.6))), mat4(pos, o, scale))
+    const sc = scale === undefined ? r : typeof scale === 'number' ? scale * r : ([scale[0] * r, scale[1] * r, scale[2] * r] as V3)
+    return this.add(mat, unit(`sphere|${seg}`, () => new THREE.SphereGeometry(1, seg, Math.max(6, Math.round(seg * 0.6)))), mat4(pos, o, sc))
   }
   /** Partial sphere (dome). thetaLength from the +Y pole. */
   dome(mat: MatKey, r: number, pos: V3, axis: Orient = 'y', thetaLength = Math.PI / 2, scaleAxis = 1, seg = 28) {
@@ -383,19 +390,10 @@ export class Kit {
 
   build(): Built {
     const m = materials()
-    const keys = [...this.buckets.keys()]
-    const geos: THREE.BufferGeometry[] = []
-    const mats: THREE.Material[] = []
-    for (const k of keys) {
-      const merged = mergeGeometries(this.buckets.get(k)!, false)
-      if (!merged) continue
-      geos.push(merged)
-      mats.push(typeof k === 'string' ? m[k] : k)
-    }
-    const geometry = geos.length ? mergeGeometries(geos, true)! : new THREE.BufferGeometry()
-    for (const g of geos) g.dispose()
-    geometry.computeBoundingSphere()
-    geometry.computeBoundingBox()
+    const keys = [...this.buckets.keys()].filter((k) => this.buckets.get(k)!.length)
+    const mats = keys.map((k) => (typeof k === 'string' ? m[k] : k))
+    const geometry = mergeLists(keys.map((k) => this.buckets.get(k)!)) ?? new THREE.BufferGeometry()
+    computeBounds(geometry)
     this.buckets.clear()
     return { geometry, material: mats }
   }

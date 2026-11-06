@@ -10,6 +10,7 @@
  */
 import * as THREE from 'three'
 import { SECTIONS, type SectionName } from '../../model/catalog'
+import { computeBounds } from '../../three/fastGeo'
 
 export type V3 = [number, number, number]
 
@@ -17,16 +18,16 @@ const _m = new THREE.Matrix4()
 const _m2 = new THREE.Matrix4()
 const _nm = new THREE.Matrix3()
 const _v = new THREE.Vector3()
-const _n = new THREE.Vector3()
 
 export type UvMode = 'keep' | 'world'
 
 export class GeoBatch {
-  private pos: number[] = []
-  private nor: number[] = []
-  private uv: number[] = []
-  private idx: number[] = []
+  private pos: Float32Array[] = []
+  private nor: Float32Array[] = []
+  private uv: Float32Array[] = []
+  private idx: Uint32Array[] = []
   private count = 0
+  private idxCount = 0
 
   get vertexCount() {
     return this.count
@@ -41,43 +42,90 @@ export class GeoBatch {
     const p = geo.getAttribute('position') as THREE.BufferAttribute
     const n = geo.getAttribute('normal') as THREE.BufferAttribute | undefined
     const t = geo.getAttribute('uv') as THREE.BufferAttribute | undefined
-    _nm.getNormalMatrix(m)
+    const e = m.elements
+    const nm = _nm.getNormalMatrix(m).elements
     const base = this.count
-    for (let i = 0; i < p.count; i++) {
-      _v.fromBufferAttribute(p, i).applyMatrix4(m)
-      this.pos.push(_v.x, _v.y, _v.z)
-      if (n) _n.fromBufferAttribute(n, i).applyMatrix3(_nm).normalize()
-      else _n.set(0, 1, 0)
-      this.nor.push(_n.x, _n.y, _n.z)
+    const cnt = p.count
+    const P = p.array as ArrayLike<number>
+    const N = n?.array as ArrayLike<number> | undefined
+    const pos = new Float32Array(cnt * 3)
+    const nor = new Float32Array(cnt * 3)
+    const uv = new Float32Array(cnt * 2)
+    for (let i = 0; i < cnt; i++) {
+      const x = P[i * 3], y = P[i * 3 + 1], z = P[i * 3 + 2]
+      const px = e[0] * x + e[4] * y + e[8] * z + e[12]
+      const py = e[1] * x + e[5] * y + e[9] * z + e[13]
+      const pz = e[2] * x + e[6] * y + e[10] * z + e[14]
+      pos[i * 3] = px
+      pos[i * 3 + 1] = py
+      pos[i * 3 + 2] = pz
+      let nx = 0, ny = 1, nz = 0
+      if (N) {
+        const a = N[i * 3], b = N[i * 3 + 1], c = N[i * 3 + 2]
+        nx = nm[0] * a + nm[3] * b + nm[6] * c
+        ny = nm[1] * a + nm[4] * b + nm[7] * c
+        nz = nm[2] * a + nm[5] * b + nm[8] * c
+        const l = Math.sqrt(nx * nx + ny * ny + nz * nz) || 1
+        nx /= l
+        ny /= l
+        nz /= l
+      }
+      nor[i * 3] = nx
+      nor[i * 3 + 1] = ny
+      nor[i * 3 + 2] = nz
       if (uvMode === 'world') {
-        const ax = Math.abs(_n.x)
-        const ay = Math.abs(_n.y)
-        const az = Math.abs(_n.z)
-        if (ay >= ax && ay >= az) this.uv.push(_v.x * uvScale, _v.z * uvScale)
-        else if (ax >= az) this.uv.push(_v.z * uvScale, _v.y * uvScale)
-        else this.uv.push(_v.x * uvScale, _v.y * uvScale)
-      } else if (t) this.uv.push(t.getX(i), t.getY(i))
-      else this.uv.push(0, 0)
+        const ax = Math.abs(nx)
+        const ay = Math.abs(ny)
+        const az = Math.abs(nz)
+        const [u, v] = ay >= ax && ay >= az ? [px, pz] : ax >= az ? [pz, py] : [px, py]
+        uv[i * 2] = u * uvScale
+        uv[i * 2 + 1] = v * uvScale
+      } else if (t) {
+        uv[i * 2] = t.getX(i)
+        uv[i * 2 + 1] = t.getY(i)
+      }
     }
+    let idx: Uint32Array
     if (geo.index) {
       const a = geo.index.array
-      for (let i = 0; i < a.length; i++) this.idx.push(a[i] + base)
+      idx = new Uint32Array(a.length)
+      for (let i = 0; i < a.length; i++) idx[i] = a[i] + base
     } else {
-      for (let i = 0; i < p.count; i++) this.idx.push(base + i)
+      idx = new Uint32Array(cnt)
+      for (let i = 0; i < cnt; i++) idx[i] = base + i
     }
-    this.count += p.count
+    this.pos.push(pos)
+    this.nor.push(nor)
+    this.uv.push(uv)
+    this.idx.push(idx)
+    this.count += cnt
+    this.idxCount += idx.length
     return this
   }
 
   build(): THREE.BufferGeometry | null {
     if (this.count === 0) return null
     const g = new THREE.BufferGeometry()
-    g.setAttribute('position', new THREE.Float32BufferAttribute(this.pos, 3))
-    g.setAttribute('normal', new THREE.Float32BufferAttribute(this.nor, 3))
-    g.setAttribute('uv', new THREE.Float32BufferAttribute(this.uv, 2))
-    g.setIndex(this.count > 65535 ? new THREE.Uint32BufferAttribute(this.idx, 1) : new THREE.Uint16BufferAttribute(this.idx, 1))
-    g.computeBoundingSphere()
-    g.computeBoundingBox()
+    const join = (parts: Float32Array[], size: number) => {
+      const out = new Float32Array(this.count * size)
+      let o = 0
+      for (const a of parts) {
+        out.set(a, o)
+        o += a.length
+      }
+      return out
+    }
+    g.setAttribute('position', new THREE.BufferAttribute(join(this.pos, 3), 3))
+    g.setAttribute('normal', new THREE.BufferAttribute(join(this.nor, 3), 3))
+    g.setAttribute('uv', new THREE.BufferAttribute(join(this.uv, 2), 2))
+    const idx = new Uint32Array(this.idxCount)
+    let o = 0
+    for (const a of this.idx) {
+      idx.set(a, o)
+      o += a.length
+    }
+    g.setIndex(new THREE.BufferAttribute(this.count > 65535 ? idx : new Uint16Array(idx), 1))
+    computeBounds(g)
     return g
   }
 }

@@ -8,7 +8,7 @@
  * Pure functions, no React. All output in deck-local coordinates.
  */
 import * as THREE from 'three'
-import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js'
+import { mergeFast, transformGeometry } from '../../three/fastGeo'
 import type { Instrument, Nozzle, PipeLine, Plant, Rating, Valve, Vec3 } from '../../model/types'
 import { GASKET, elbowRadius, flange, pipeOD, pipeWall, valveLength } from '../../model/catalog'
 import { RACK_TIER } from '../../model/plant'
@@ -198,11 +198,11 @@ export function buildPiping(plant: Plant): BuiltPiping {
       const z = new THREE.Vector3().crossVectors(bend, e.dA)
       const m = new THREE.Matrix4().makeBasis(bend, e.dA, z).setPosition(e.start)
       const g = hollowElbow(e.R, od, wall, e.angle, segs, Math.max(10, Math.round(e.angle * 12)))
-      g.applyMatrix4(m)
+      transformGeometry(g, m)
       parts.push({ geo: g, group: -1 }) // already grouped; handled below
       if (insT > 0) {
         const gi = hollowElbow(e.R, insOd, insT - 0.002, e.angle, segs, Math.max(10, Math.round(e.angle * 12)))
-        gi.applyMatrix4(m)
+        transformGeometry(gi, m)
         insParts.push({ geo: gi, group: -1 })
       }
     }
@@ -515,46 +515,54 @@ function mergeGrouped(geos: THREE.BufferGeometry[]): THREE.BufferGeometry {
     if (b) g1.push(b)
   }
   const parts: { geo: THREE.BufferGeometry; group: number }[] = []
-  if (g0.length) parts.push({ geo: mergeGeometries(g0, false)!, group: 0 })
-  if (g1.length) parts.push({ geo: mergeGeometries(g1, false)!, group: 1 })
+  if (g0.length) parts.push({ geo: mergeFast(g0)!, group: 0 })
+  if (g1.length) parts.push({ geo: mergeFast(g1)!, group: 1 })
   return mergeGroups(parts)
 }
 
 function splitGroups(g: THREE.BufferGeometry): [THREE.BufferGeometry | null, THREE.BufferGeometry | null] {
   const out: (THREE.BufferGeometry | null)[] = [null, null]
-  const idx = g.index!
   for (const gr of g.groups) {
     if (gr.materialIndex === undefined || gr.materialIndex > 1) continue
-    const sub = new THREE.BufferGeometry()
-    for (const name of Object.keys(g.attributes)) sub.setAttribute(name, g.attributes[name])
-    sub.setIndex(Array.from((idx.array as ArrayLike<number> & { slice: (a: number, b: number) => ArrayLike<number> }).slice(gr.start, gr.start + gr.count)))
-    out[gr.materialIndex] = compact(sub)
+    out[gr.materialIndex] = compact(g, gr.start, gr.count)
   }
   return [out[0], out[1]]
 }
 
-/** drop unreferenced vertices so merged buffers stay small */
-function compact(g: THREE.BufferGeometry) {
-  const idx = g.index!.array as ArrayLike<number>
-  const map = new Map<number, number>()
-  const newIdx: number[] = []
-  for (let i = 0; i < idx.length; i++) {
-    const o = idx[i]
-    let n = map.get(o)
-    if (n === undefined) {
-      n = map.size
-      map.set(o, n)
-    }
-    newIdx.push(n)
+/** one index range of a geometry as its own, with only the vertices it uses, so merged buffers stay small */
+function compact(g: THREE.BufferGeometry, start: number, count: number) {
+  const idx = g.index!.array
+  let mn = Infinity
+  let mx = -1
+  for (let i = start, e = start + count; i < e; i++) {
+    const v = idx[i]
+    if (v < mn) mn = v
+    if (v > mx) mx = v
+  }
+  const range = mx - mn + 1
+  const remap = new Int32Array(range).fill(-1)
+  const newIdx = new Uint32Array(count)
+  let n = 0
+  for (let i = 0; i < count; i++) {
+    const v = idx[start + i] - mn
+    let r = remap[v]
+    if (r < 0) r = remap[v] = n++
+    newIdx[i] = r
   }
   const out = new THREE.BufferGeometry()
   for (const name of Object.keys(g.attributes)) {
     const src = g.attributes[name] as THREE.BufferAttribute
-    const arr = new Float32Array(map.size * src.itemSize)
-    for (const [o, n] of map) for (let c = 0; c < src.itemSize; c++) arr[n * src.itemSize + c] = src.array[o * src.itemSize + c] as number
-    out.setAttribute(name, new THREE.BufferAttribute(arr, src.itemSize))
+    const k = src.itemSize
+    const from = src.array as ArrayLike<number>
+    const arr = new Float32Array(n * k)
+    for (let v = 0; v < range; v++) {
+      const r = remap[v]
+      if (r < 0) continue
+      for (let c = 0; c < k; c++) arr[r * k + c] = from[(mn + v) * k + c]
+    }
+    out.setAttribute(name, new THREE.BufferAttribute(arr, k))
   }
-  out.setIndex(newIdx)
+  out.setIndex(new THREE.BufferAttribute(n > 65535 ? newIdx : new Uint16Array(newIdx), 1))
   return out
 }
 

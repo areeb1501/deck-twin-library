@@ -45,7 +45,7 @@ import { patchN8AO } from './perf/n8aoFix'
 // perf: the plant re-renders on select / hover; keep its big static children from re-rendering with it
 const FireGasMounts = memo(FireGasMountsRaw)
 import { requestShadows, shadowTick } from './perf/shadows'
-import { holdFrames, releaseFrames } from './perf/bootGate'
+import { holdFrames, releaseFrames, withView } from './perf/bootGate'
 import { FireGasMounts as FireGasMountsRaw } from './FireGasMounts'
 import { useSim } from '../state/sim'
 import { bootDone, bootStage } from '../ui/bootLoader'
@@ -407,22 +407,31 @@ function ShadowOnDemand() {
   return null
 }
 
-/** after the first full frame, rest the renderer behind the loader until the batcher finishes, with a cap in case it doesn't */
+/**
+ * The first frame draws nothing: the camera holds on the staging layer while every material's program compiles in the
+ * driver's threads (KHR_parallel_shader_compile) and the batcher builds on the main thread. The originals are never drawn
+ * on the way in (uploading them all was a second by itself; a selection or x-ray uploads what it needs when it needs it), so
+ * the camera holds until the batcher swaps the plant in, with a cap in case it doesn't.
+ */
 function BootWatch() {
   const gl = useThree((s) => s.gl)
   const camera = useThree((s) => s.camera)
+  const scene = useThree((s) => s.scene)
   const seen = useRef(false)
   useFrame(() => {
     if (seen.current) return
     seen.current = true
     bootStage('Preparing the view')
     const batching = !DEBUG.has('nobatch') && gl.extensions.has('WEBGL_multi_draw')
-    // this first frame still draws everything: skipping it saves little and leaves the first x-ray click to pay for it
-    requestAnimationFrame(() => batching && holdFrames(camera))
-    setTimeout(() => {
+    const finish = () => {
       releaseFrames()
       requestAnimationFrame(() => requestAnimationFrame(bootDone))
-    }, batching ? BOOT_CAP_MS : 400)
+    }
+    if (!batching) return void setTimeout(finish, 400)
+    holdFrames(camera)
+    performance.mark('dt:compile')
+    withView(gl, () => gl.compileAsync(scene, camera)).then(() => performance.mark('dt:compiled'), () => {})
+    setTimeout(finish, BOOT_CAP_MS)
   })
   return null
 }
@@ -467,6 +476,8 @@ export function Scene() {
       gl={{ antialias: false, powerPreference: 'high-performance', stencil: false }}
       onCreated={({ gl, scene, camera }) => {
         gl.localClippingEnabled = true
+        // the info-log queries stall on every program; shader errors are a dev-time matter
+        gl.debug.checkShaderErrors = import.meta.env.DEV
         glRef = gl
         if (import.meta.env.DEV) Object.assign(window, { __scene: scene, __gl: gl, __camera: camera })
       }}

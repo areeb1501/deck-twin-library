@@ -14,7 +14,7 @@
  */
 import { useMemo } from 'react'
 import * as THREE from 'three'
-import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js'
+import { mergeFast } from '../../three/fastGeo'
 import type { VerticalVessel } from '../../model/types'
 import { pipeOD } from '../../model/catalog'
 import { materials } from '../../three/materials'
@@ -401,7 +401,7 @@ function addInternals(
       m.setPosition(Math.cos(a) * rt * 0.5, -0.25, -Math.sin(a) * rt * 0.5)
       geos.push(box(0.002, 0.07, rt * 0.9, m))
     }
-    const geometry = mergeGeometries(geos.map(prep))!
+    const geometry = mergeFast(geos.map(prep))!
     const matrices: THREE.Matrix4[] = []
     const pitch = 0.15
     const lim = R - 0.085

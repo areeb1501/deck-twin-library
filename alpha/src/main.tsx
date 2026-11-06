@@ -8,6 +8,7 @@ import { sandboxes } from './dev/sandboxes'
 import { PasswordGate } from './ui/PasswordGate'
 import { restoreSavedPlant } from './state/savedPlants'
 import { bootDone, bootStage } from './ui/bootLoader'
+import { installFastGeometry } from './three/fastGeo'
 
 const key = new URLSearchParams(location.search).get('sandbox')
 const Sandbox = key ? sandboxes[key] : null
@@ -28,6 +29,7 @@ const render = () =>
     </StrictMode>,
   )
 
+installFastGeometry()
 bootStage('Building the decks')
 // a last resort: a scene that never draws must not leave the loader up for ever
 setTimeout(bootDone, 45_000)

@@ -24,6 +24,7 @@ Two pages, served unlisted on the library site:
 - **Fire and gas.** `src/scene/GasCloud.tsx` sizes the plumes from the detection model, and `src/scene/fx/plumeFx.ts` is the particle shaders. A fire borrows the flare's point light (`fireGlow` in `src/scene/fx/simRead.ts`), so normal running pays for no extra light.
 - **Keep it light.** The frame budget comes first. Measure draw calls and triangles rather than frame rate, which swings with whatever else the machine is doing. Bores and vessel internals are skipped unless a section cut or x-ray can show them (`INSIDE` in `src/scene/perf/StaticBatcher.tsx`). Quality starts at medium and climbs if the browser has headroom.
 - **Loader.** Plain HTML and CSS in `demo/index.html`, so it is up before any script runs, and the bar moves on a composited transform, so it keeps going while the plant is built. `src/ui/bootLoader.ts` changes its text and takes it down when the static batcher finishes, with a cap of 12 s after the first frame.
+- **Start-up.** The plant's geometry is built on the main thread, so the fast paths in `src/three/fastGeo.ts` (typed-array merge, transform and bounds, cached unit primitives) are what keep "Building the decks" short. Nothing is drawn until the batcher has swapped the plant in: `src/scene/perf/bootGate.ts` holds the camera on a staging layer, every shader variant is compiled in the driver's threads meanwhile (`BootWatch` in `src/scene/Scene.tsx`), with a render target bound and the real view so the variants match the composer's, and the batches upload while the loader is still up. Measure a change with `node tools/boot-profile.mjs` before and after: it loads the production build cold and prints the stages, the long tasks and the hottest functions.
 - **Walkways.** Keep the escape aisles, the perimeter walkway and the cellar's green route clear: no equipment, risers, supports or low pipe. Fix fittings such as beacons to structure that is already there, not to new poles.
 
 ## Media
@@ -157,6 +158,7 @@ The header's `Simulator feed` is the one place the console says its data is simu
 | Check for pipe and equipment clashes | `node tools/clash.mjs`, with the dev server running (`PORT` to change the port) |
 | Check for floating geometry | `node tools/floating.mjs`, with the dev server running. Must report 0 |
 | Take stills for a visual check | `node tools/snap.mjs steps.json [outDir] [query]`, with the dev server running |
+| Measure the cold start | `node tools/boot-profile.mjs [--runs 3] [--fresh] [--inclusive 60] [--late] [--shot out.png]`, against `../public/alpha` after `npm run build` (no server needed) |
 | Deploy | `cd .. && npm run deploy` (the library build copies `public/alpha` into `dist`) |
 
 ## Remove it

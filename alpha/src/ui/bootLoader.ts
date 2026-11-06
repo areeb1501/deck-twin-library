@@ -19,5 +19,5 @@ export function bootDone() {
   const loader = el()
   if (!loader || loader.classList.contains('bl-off')) return
   loader.classList.add('bl-off')
-  setTimeout(() => loader.remove(), 500)
+  setTimeout(() => loader.remove(), 300)
 }

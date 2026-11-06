@@ -15,7 +15,8 @@
  *    reads as solid steel.
  */
 import * as THREE from 'three'
-import { mergeGeometries, mergeVertices } from 'three/examples/jsm/utils/BufferGeometryUtils.js'
+import { mergeVertices } from 'three/examples/jsm/utils/BufferGeometryUtils.js'
+import { computeBounds, mergeFast, transformGeometry, unit } from '../../three/fastGeo'
 import { useEffect, useLayoutEffect, useRef } from 'react'
 import { materials, registerMaterial, type MaterialName } from '../../three/materials'
 import { GASKET, flange, pipeOD } from '../../model/catalog'
@@ -66,7 +67,7 @@ export class Parts {
   private map = new Map<MatKey, THREE.BufferGeometry[]>()
   add(mat: MatKey, g: THREE.BufferGeometry | null | undefined, m?: THREE.Matrix4) {
     if (!g) return
-    if (m) g.applyMatrix4(m)
+    if (m) transformGeometry(g, m)
     const list = this.map.get(mat) ?? []
     list.push(prep(g))
     this.map.set(mat, list)
@@ -77,13 +78,13 @@ export class Parts {
     let i = 0
     for (const [k, list] of this.map) {
       if (!list.length) continue
-      const geometry = list.length === 1 ? list[0] : mergeGeometries(list, false)
+      const geometry = list.length === 1 ? list[0] : mergeFast(list)
       if (!geometry) {
         console.warn('[vesselParts] merge failed for', typeof k === 'string' ? k : k.name)
         continue
       }
       if (list.length > 1) list.forEach((g) => g.dispose())
-      geometry.computeBoundingSphere()
+      computeBounds(geometry)
       const material = typeof k === 'string' ? all[k] : k
       out.push({
         key: `${typeof k === 'string' ? k : material.uuid}-${i++}`,
@@ -168,9 +169,12 @@ export function toX(g: THREE.BufferGeometry) {
 
 // ===================================================================== primitives
 
+const _t = new THREE.Matrix4()
+const _s = new THREE.Matrix4()
+
 export function box(w: number, h: number, d: number, m?: THREE.Matrix4) {
   const g: THREE.BufferGeometry = new THREE.BoxGeometry(w, h, d)
-  if (m) g.applyMatrix4(m)
+  if (m) transformGeometry(g, m)
   return g
 }
 export function boxAt(w: number, h: number, d: number, x: number, y: number, z: number) {
@@ -181,18 +185,16 @@ export function boxAt(w: number, h: number, d: number, x: number, y: number, z: 
 export function rod(a: THREE.Vector3, b: THREE.Vector3, r: number, seg = 10, open = false) {
   const d = b.clone().sub(a)
   const L = d.length()
-  const g: THREE.BufferGeometry = new THREE.CylinderGeometry(r, r, Math.max(L, 1e-4), seg, 1, open)
-  g.translate(0, L / 2, 0)
-  g.applyMatrix4(frame(a, L > 1e-6 ? d : UP))
-  return g
+  const g = unit(`cyl|${seg}|${open ? 1 : 0}`, () => new THREE.CylinderGeometry(1, 1, 1, seg, 1, open))
+  const m = frame(a, L > 1e-6 ? d : UP).multiply(_t.makeTranslation(0, L / 2, 0)).multiply(_s.makeScale(r, Math.max(L, 1e-4), r))
+  return transformGeometry(g, m)
 }
 
 /** Hex nut centred at c with axis `axis`. af = across flats. */
 export function hexNut(c: THREE.Vector3, axis: THREE.Vector3, af: number, h: number) {
   const R = af / Math.sqrt(3)
-  const g: THREE.BufferGeometry = new THREE.CylinderGeometry(R, R, h, 6)
-  g.applyMatrix4(frame(c, axis))
-  return g
+  const g = unit('cyl|6|0', () => new THREE.CylinderGeometry(1, 1, 1, 6))
+  return transformGeometry(g, frame(c, axis).multiply(_s.makeScale(R, h, R)))
 }
 
 export type Prof = [number, number][]
@@ -324,7 +326,7 @@ export function ring(r0: number, r1: number, y0: number, y1: number, seg = 48, p
     const t = V(Math.cos(phi), 0, -Math.sin(phi)).multiplyScalar(sgn)
     mb.quad(mb.v(p(r0, y0)), mb.v(p(r1, y0)), mb.v(p(r1, y1)), mb.v(p(r0, y1)), t)
   }
-  return mergeGeometries([prep(g), prep(mb.geo())])!
+  return mergeFast([prep(g), prep(mb.geo())])!
 }
 
 /** Raised circumferential weld bead on a radius-R surface at station y (lathe Y). */

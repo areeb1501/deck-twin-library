@@ -8,7 +8,7 @@
  * Material groups:  0 = outer / paint,  1 = bore (inner),  2 = machined faces.
  */
 import * as THREE from 'three'
-import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js'
+import { mergeLists } from './fastGeo'
 import { flange, pipeOD, pipeWall } from '../model/catalog'
 import type { Rating } from '../model/types'
 
@@ -74,9 +74,8 @@ export function mergeGroups(parts: { geo: THREE.BufferGeometry; group: number }[
     byGroup.get(p.group)!.push(g)
   }
   const keys = [...byGroup.keys()].sort((a, b) => a - b)
-  const merged = keys.map((k) => mergeGeometries(byGroup.get(k)!.map(stripGroups), false)!)
-  const out = mergeGeometries(merged, true)!
-  // mergeGeometries(useGroups=true) assigns materialIndex = array position; remap to keys
+  const out = mergeLists(keys.map((k) => byGroup.get(k)!.map(stripGroups)))!
+  // one group per list, materialIndex = list position; remap to keys
   out.groups.forEach((gr, i) => (gr.materialIndex = keys[i]))
   return out
 }

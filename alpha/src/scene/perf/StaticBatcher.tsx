@@ -29,8 +29,9 @@ import { useFrame, useThree } from '@react-three/fiber'
 import { useStore } from '../../state/store'
 import { BATCH_LAYER, CULL_LAYER, batchRegistry, refreshEntry, releaseEntry, setShown, type Entry, type Slot } from './batching'
 import { requestShadows } from './shadows'
-import { booting, releaseFrames } from './bootGate'
+import { STAGE_LAYER, booting, releaseFrames, withView } from './bootGate'
 import { bootDone } from '../../ui/bootLoader'
+import { computeBounds } from '../../three/fastGeo'
 
 const DISABLED = new URLSearchParams(location.search).has('nobatch')
 /** vertices per BatchedMesh: bounds the size of each GPU upload */
@@ -230,8 +231,7 @@ function extract(g: THREE.BufferGeometry, start: number, count: number): THREE.B
   out.setAttribute('uv', new THREE.BufferAttribute(uv, 2))
   out.setIndex(new THREE.BufferAttribute(n > 65535 ? tmpIdx : new Uint16Array(tmpIdx), 1))
   // bounds now, while the data is here: the batch keeps them, and its own CPU copy is released after upload
-  out.computeBoundingBox()
-  out.computeBoundingSphere()
+  computeBounds(out)
   return out
 }
 
@@ -430,6 +430,7 @@ export function StaticBatcher({ root }: { root: RefObject<THREE.Object3D | null>
         b.userData.noCull = true
         b.userData.noBatch = true
         b.frustumCulled = false // until it has been uploaded (staging), then true
+        b.layers.enable(STAGE_LAYER) // drawn (empty) while the loader holds the camera: see bootGate.ts
         for (const g of geos.keys()) {
           geos.set(g, b.addGeometry(g))
           await tick()
@@ -465,8 +466,18 @@ export function StaticBatcher({ root }: { root: RefObject<THREE.Object3D | null>
       const holder = new THREE.Group()
       for (const b of job.batches) holder.add(b)
       try {
-        // not while loading: the loader hides the first draw, which builds the real variants anyway (these miss the plant's clipping planes)
-        if (!booting()) await gl.compileAsync(holder, camera, scene)
+        // compileAsync only watches one program per material, and these are the batching variants: wait for them by hand
+        withView(gl, () => gl.compile(holder, camera, scene))
+        const programs = new Set<{ isReady(): boolean }>()
+        for (const b of job.batches) for (const p of (gl.properties.get(b.material) as { programs?: Map<string, { isReady(): boolean }> }).programs?.values() ?? []) programs.add(p)
+        const total = programs.size
+        const until = performance.now() + 15_000
+        while (performance.now() < until) {
+          for (const p of programs) if (p.isReady()) programs.delete(p)
+          if (!programs.size || job.cancelled) break
+          await new Promise((r) => setTimeout(r, 10))
+        }
+        performance.mark(`dt:batch-compiled ${total - programs.size}/${total}`)
       } catch {
         /* compiled synchronously on first draw instead */
       }
@@ -474,11 +485,13 @@ export function StaticBatcher({ root }: { root: RefObject<THREE.Object3D | null>
     }
     if (job.cancelled) throw CANCEL
     job.stats.compileMs = Math.round(performance.now() - tc)
+    performance.mark('dt:batch-staged')
     job.stats.step = 'stage'
     job.phase = 'stage'
   }
 
   function swap(job: Job, r: THREE.Object3D) {
+    performance.mark('dt:batch-swap')
     const s = st.current
     const keep = new Set(job.planned.map((p) => p.mesh))
     // originals no longer batched (or batched anew) go back to themselves first
@@ -575,7 +588,8 @@ export function StaticBatcher({ root }: { root: RefObject<THREE.Object3D | null>
     // ---- staged upload, then the one-frame switch-over
     const job = s.job
     if (job?.phase === 'stage') {
-      let budget = UPLOAD_VERTS_PER_FRAME
+      // under the loader the frames draw nothing else, so the uploads can come faster
+      let budget = booting() ? UPLOAD_VERTS_PER_FRAME * 4 : UPLOAD_VERTS_PER_FRAME
       while (job.stageIndex < job.batches.length && budget > 0) {
         const b = job.batches[job.stageIndex++]
         budget -= b.geometry.attributes.position.count
@@ -591,7 +605,7 @@ export function StaticBatcher({ root }: { root: RefObject<THREE.Object3D | null>
 
     // ---- look for changes once a second; rebuild once the plant has been stable for a scan
     if (job || now < s.nextScan) return
-    s.nextScan = now + (booting() ? 100 : 1000)
+    s.nextScan = now + (booting() ? 50 : 1000)
     let dead = 0
     for (const e of batchRegistry.entries.values()) if (e.dead) dead++
     const pending = pendingCount(r)
@@ -608,6 +622,7 @@ export function StaticBatcher({ root }: { root: RefObject<THREE.Object3D | null>
     s.lastPending = -1
     const nj: Job = { cancelled: false, phase: 'build', batches: [], planned: [], geoUsers: new Map(), stageIndex: 0, stats: { t0: now, step: 'collect', slices: 0, pieces: 0, meshes: 0, buildMs: 0, activeMs: 0, compileMs: 0, swapAt: 0 } }
     s.job = nj
+    performance.mark('dt:batch-build')
     build(nj, r).catch((err) => {
       if (err !== CANCEL) console.warn('[batch] build failed', err)
       for (const b of nj.batches) b.dispose()
