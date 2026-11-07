@@ -26,7 +26,8 @@ const server = createServer((req, res) => {
   createReadStream(file).pipe(res)
 })
 await new Promise((r) => server.listen(0, '127.0.0.1', r))
-const origin = `http://127.0.0.1:${server.address().port}`
+// --origin https://decktwin.com measures the live site through the CDN instead of the local build
+const origin = opt('--origin', `http://127.0.0.1:${server.address().port}`)
 
 const launch = () => chromium.launch({ channel: 'chrome', headless: true, args: ['--use-angle=metal', '--enable-gpu', '--ignore-gpu-blocklist', '--enable-gpu-rasterization'] })
 let browser = await launch()
